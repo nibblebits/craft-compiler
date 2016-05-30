@@ -26,20 +26,16 @@
 #define TOKEN_H
 
 #include <iostream>
+#include "Branch.h"
 #include "CharPos.h"
-class Token
+class Token : public Branch
 {
 public:
-    Token(std::string token_class, std::string token_value, CharPos position);
+    Token(std::string type, std::string value, CharPos position);
     virtual ~Token();
 
-    std::string getClass();
-    std::string getValue();
     CharPos getPosition();
 private:
-    // Would probably make more sense for the token class to be an integer, but for the ease of implementation it will remain a string for now.
-    std::string token_class;
-    std::string token_value;
     CharPos position;
 };
 

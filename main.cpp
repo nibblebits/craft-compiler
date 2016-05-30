@@ -38,7 +38,7 @@ void debug_output_tokens(std::vector<Token*> tokens)
     std::cout << "DEBUG TOKEN OUTPUT" << std::endl;
     for (Token* token : tokens)
     {
-        std::cout << "<" << token->getClass() << ", " << token->getValue() << "> ";
+        std::cout << "<" << token->getType() << ", " << token->getValue() << "> ";
     }
 
     std::cout << std::endl;
@@ -68,7 +68,7 @@ int main(int argc, char** argv)
     
     try
     {
-        parser.addRule("expression:identifier:operator@-@+:identifier");
+        parser.addRule("expression:identifier:operator:identifier");
     }
     catch(ParserException ex)
     {

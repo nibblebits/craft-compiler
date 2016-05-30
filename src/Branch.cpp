@@ -26,12 +26,16 @@
 
 #include "Branch.h"
 
-Branch::Branch() {
-    left = NULL;
-    right = NULL;
+Branch::Branch(std::string type, std::string value)
+{
+    this->type = type;
+    this->value = value;
+    this->left = NULL;
+    this->right = NULL;
 }
 
-Branch::~Branch() {
+Branch::~Branch()
+{
     // This acts as a domino effect, when a branch gets deleted it deletes its children and the children do the same until no more children exist.
     if (this->left != NULL)
         delete left;
@@ -39,3 +43,12 @@ Branch::~Branch() {
         delete right;
 }
 
+std::string Branch::getType()
+{
+    return this->type;
+}
+
+std::string Branch::getValue()
+{
+    return this->value;
+}

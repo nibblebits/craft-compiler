@@ -26,15 +26,22 @@
 #define BRANCH_H
 
 #include <cstddef>
+#include <string>
 
-class Branch {
+class Branch
+{
 public:
     Branch* left;
     Branch* right;
-    
-    Branch();
+
+    Branch(std::string type, std::string value);
     virtual ~Branch();
+
+    std::string getType();
+    std::string getValue();
 private:
+    std::string type;
+    std::string value;
 };
 
 #endif /* BRANCH_H */

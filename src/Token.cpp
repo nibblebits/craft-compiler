@@ -26,26 +26,18 @@
 
 #include "Token.h"
 
-Token::Token (std::string token_class, std::string token_value, CharPos position)
+Token::Token(std::string type, std::string value, CharPos position)
+: Branch::Branch(type, value)
 {
-  this->token_class = token_class;
-  this->token_value = token_value;
-  this->position = position;
+    this->position = position;
 }
 
-Token::~Token () { }
-
-std::string Token::getClass ()
+Token::~Token()
 {
-  return this->token_class;
 }
 
-std::string Token::getValue ()
+CharPos Token::getPosition()
 {
-  return this->token_value;
+    return this->position;
 }
-
- CharPos Token::getPosition() {
-     return this->position;
- }
 
