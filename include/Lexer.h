@@ -30,6 +30,9 @@
 #include "Token.h"
 #include "LexerException.h"
 
+typedef bool (*is_func)();
+typedef bool (*callback_func)(char);
+
 class Lexer
 {
 public:
@@ -41,12 +44,18 @@ public:
 private:
     std::string input;
     std::vector<Token*> tokens;
-    bool isOperator(char op);
-    bool isSymbol(char op);
-    bool isCharacter(char op);
-    bool isNumber(char op);
-    bool isWhitespace(char op);
-    bool isKeyword(std::string op);
+    Token* token;
+    std::string tokenValue;
+    CharPos position;
+    std::string::iterator it;
+    void fillTokenWhile(callback_func callback);
+    
+    static bool isOperator(char op);
+    static bool isSymbol(char op);
+    static bool isCharacter(char op);
+    static bool isNumber(char op);
+    static bool isWhitespace(char op);
+    static bool isKeyword(std::string op);
     
 
 };

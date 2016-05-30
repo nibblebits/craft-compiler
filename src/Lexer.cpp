@@ -58,35 +58,21 @@ void Lexer::tokenize()
         throw LexerException("No input has been provided.");
     }
 
-    Token* token = NULL;
-    std::string tokenValue;
-    CharPos position;
+    token = NULL;
+    tokenValue = "";
     position.line_no = 1;
     position.col_pos = 1;
 
-    for (std::string::iterator it = this->input.begin(); it < this->input.end(); it++)
+
+    for (it = this->input.begin(); it < this->input.end(); it++)
     {
         char c = *it;
         if (isCharacter(c))
         {
-            tokenValue = c;
-            do
+            fillTokenWhile([](char c) -> bool
             {
-                it++;
-                c = *it;
-                if (isCharacter(c) || isNumber(c))
-                {
-                    tokenValue += c;
-                    position.col_pos++;
-                }
-                else
-                {
-                    it--;
-                    break;
-                }
-            }
-            while (true);
-
+                return isCharacter(c) || isNumber(c);
+            });
 
             if (isKeyword(tokenValue))
             {
@@ -99,67 +85,29 @@ void Lexer::tokenize()
         }
         else if (isOperator(c))
         {
-            tokenValue = c;
-            do
+            fillTokenWhile([](char c) -> bool
             {
-                it++;
-                c = *it;
-                if (isOperator(c))
-                {
-                    tokenValue += c;
-                    position.col_pos++;
-                }
-                else
-                {
-                    it--;
-                    break;
-                }
-            }
-            while (true);
+                return isOperator(c);
+            });
 
             token = new Token("operator", tokenValue, position);
         }
         else if (isSymbol(c))
         {
-            tokenValue = c;
-            do
+            fillTokenWhile([](char c) -> bool
             {
-                it++;
-                c = *it;
-                if (isSymbol(c))
-                {
-                    tokenValue += c;
-                    position.col_pos++;
-                }
-                else
-                {
-                    it--;
-                    break;
-                }
-            }
-            while (true);
+                return isSymbol(c);
+            });
 
             token = new Token("symbol", tokenValue, position);
         }
         else if (isNumber(c))
         {
             tokenValue = c;
-            do
+            fillTokenWhile([](char c) -> bool
             {
-                it++;
-                c = *it;
-                if (isNumber(c))
-                {
-                    tokenValue += c;
-                    position.col_pos++;
-                }
-                else
-                {
-                    it--;
-                    break;
-                }
-            }
-            while (true);
+                return isNumber(c);
+            });
 
             token = new Token("number", tokenValue, position);
         }
@@ -187,10 +135,9 @@ void Lexer::tokenize()
                 {
                     break;
                 }
-
-                token = new Token("string", tokenValue, position);
             }
             while (true);
+            token = new Token("string", tokenValue, position);
         }
         else
         {
@@ -212,6 +159,28 @@ void Lexer::tokenize()
 std::vector<Token*> Lexer::getTokens()
 {
     return this->tokens;
+}
+
+void Lexer::fillTokenWhile(callback_func callback)
+{
+    char c = *it;
+    tokenValue = c;
+    do
+    {
+        it++;
+        c = *it;
+        if (callback(c))
+        {
+            tokenValue += c;
+            position.col_pos++;
+        }
+        else
+        {
+            it--;
+            break;
+        }
+    }
+    while (true);
 }
 
 bool Lexer::isOperator(char op)
@@ -264,5 +233,3 @@ bool Lexer::isKeyword(std::string op)
 
     return false;
 }
-
-
