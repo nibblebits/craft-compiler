@@ -16,24 +16,36 @@
  */
 
 /* 
- * File:   def.h
+ * File:   Parser.h
  * Author: Daniel McCarthy
  *
- * Created on 28 May 2016, 19:48
- * 
- * Description: This header contains definitions such as debug mode and other compiler related settings.
+ * Created on 29 May 2016, 20:31
  */
 
-#ifndef DEF_H
-#define DEF_H
+#ifndef PARSER_H
+#define PARSER_H
 
-#define COMPILER_NAME "Goblin compiler"
-#define COMPILER_VERSION "v1.0"
-#define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
+#include <vector>
+#include <string>
+#include "Helper.h"
+#include "ParserRule.h"
+#include "ParserRuleRequirement.h"
+#include "ParserException.h"
+#include "Tree.h"
+#include "Token.h"
+class Parser {
+public:
+    Parser();
+    virtual ~Parser();
+    void addRule(std::string rule_exp);
+    void setInput(std::vector<Token> tokens);
+    void buildTree();
+    Tree* getTree();
+private:
+    std::vector<Token> input;
+    std::vector<ParserRule*> rules;
+    Tree* tree;
+};
 
-// Uncomment this line to enable debug mode, this will display debug related information related to the compiler
-#define DEBUG_MODE
-
-
-#endif /* DEF_H */
+#endif /* PARSER_H */
 

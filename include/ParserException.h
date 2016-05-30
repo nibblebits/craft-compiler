@@ -16,24 +16,32 @@
  */
 
 /* 
- * File:   def.h
+ * File:   LexerException.h
  * Author: Daniel McCarthy
  *
- * Created on 28 May 2016, 19:48
- * 
- * Description: This header contains definitions such as debug mode and other compiler related settings.
+ * Created on 30 May 2016, 02:54
  */
 
-#ifndef DEF_H
-#define DEF_H
+#ifndef PARSEREXCEPTION_H
+#define PARSEREXCEPTION_H
+#include "SourceCodeRelatedException.h"
+#include "CharPos.h"
 
-#define COMPILER_NAME "Goblin compiler"
-#define COMPILER_VERSION "v1.0"
-#define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
+class ParserException : public SourceCodeRelatedException
+{
+public:
 
-// Uncomment this line to enable debug mode, this will display debug related information related to the compiler
-#define DEBUG_MODE
+    ParserException(std::string message) :
+    SourceCodeRelatedException(message)
+    {
+    }
 
+    ParserException(CharPos position, std::string cause) :
+    SourceCodeRelatedException(position, "Syntax Error", cause)
+    {
 
-#endif /* DEF_H */
+    }
+};
+
+#endif /* PARSEREXCEPTION_H */
 

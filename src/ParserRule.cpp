@@ -16,24 +16,37 @@
  */
 
 /* 
- * File:   def.h
+ * File:   ParserRule.cpp
  * Author: Daniel McCarthy
  *
- * Created on 28 May 2016, 19:48
+ * Created on 30 May 2016, 02:28
  * 
- * Description: This header contains definitions such as debug mode and other compiler related settings.
+ * Description: Contains individual rule information for the parser
  */
 
-#ifndef DEF_H
-#define DEF_H
+#include "ParserRule.h"
 
-#define COMPILER_NAME "Goblin compiler"
-#define COMPILER_VERSION "v1.0"
-#define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
+ParserRule::ParserRule(std::string name)
+{
+    this->name = name;
+}
 
-// Uncomment this line to enable debug mode, this will display debug related information related to the compiler
-#define DEBUG_MODE
+ParserRule::~ParserRule()
+{
+    // Delete all the rule requirements
+    for (ParserRuleRequirement* requirement : this->requirements)
+    {
+        delete requirement;
+    }
+}
 
+void ParserRule::addRequirement(ParserRuleRequirement* requirement)
+{
+    this->requirements.push_back(requirement);
+}
 
-#endif /* DEF_H */
+std::vector<ParserRuleRequirement*> ParserRule::getRequirements()
+{
+    return this->requirements;
+}
 

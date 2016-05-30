@@ -16,24 +16,26 @@
  */
 
 /* 
- * File:   def.h
+ * File:   Branch.h
  * Author: Daniel McCarthy
  *
- * Created on 28 May 2016, 19:48
- * 
- * Description: This header contains definitions such as debug mode and other compiler related settings.
+ * Created on 29 May 2016, 20:41
  */
 
-#ifndef DEF_H
-#define DEF_H
+#ifndef BRANCH_H
+#define BRANCH_H
 
-#define COMPILER_NAME "Goblin compiler"
-#define COMPILER_VERSION "v1.0"
-#define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
+#include <cstddef>
 
-// Uncomment this line to enable debug mode, this will display debug related information related to the compiler
-#define DEBUG_MODE
+class Branch {
+public:
+    Branch* left;
+    Branch* right;
+    
+    Branch();
+    virtual ~Branch();
+private:
+};
 
-
-#endif /* DEF_H */
+#endif /* BRANCH_H */
 

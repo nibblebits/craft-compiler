@@ -16,24 +16,19 @@
  */
 
 /* 
- * File:   def.h
+ * File:   Tree.cpp
  * Author: Daniel McCarthy
  *
- * Created on 28 May 2016, 19:48
+ * Created on 29 May 2016, 20:35
  * 
- * Description: This header contains definitions such as debug mode and other compiler related settings.
+ * Description: Holds helper methods and also holds children of an AST(Abstract Syntax Tree)
  */
 
-#ifndef DEF_H
-#define DEF_H
+#include "Tree.h"
 
-#define COMPILER_NAME "Goblin compiler"
-#define COMPILER_VERSION "v1.0"
-#define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
+Tree::Tree() {
+}
 
-// Uncomment this line to enable debug mode, this will display debug related information related to the compiler
-#define DEBUG_MODE
-
-
-#endif /* DEF_H */
+Tree::~Tree() {
+}
 

@@ -27,6 +27,8 @@
 #include <vector>
 #include "def.h"
 #include "Lexer.h"
+#include "Parser.h"
+
 using namespace std;
 
 #ifdef DEBUG_MODE
@@ -45,6 +47,7 @@ void debug_output_tokens(std::vector<Token*> tokens)
 #endif
 
 Lexer lexer;
+Parser parser;
 
 int main(int argc, char** argv)
 {
@@ -60,7 +63,19 @@ int main(int argc, char** argv)
     catch (LexerException ex)
     {
         std::cout << "Error with input: " << ex.getMessage() << std::endl;
+        return 1;
     }
+    
+    try
+    {
+        parser.addRule("expression:identifier:operator@-@+:identifier");
+    }
+    catch(ParserException ex)
+    {
+        std::cout << "Error parsing: " << ex.getMessage() << std::endl;
+    }
+    
+    
 
     return 0;
 }

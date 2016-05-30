@@ -16,24 +16,26 @@
  */
 
 /* 
- * File:   def.h
+ * File:   Branch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 28 May 2016, 19:48
+ * Created on 29 May 2016, 20:41
  * 
- * Description: This header contains definitions such as debug mode and other compiler related settings.
+ * Description: Holds child branches
  */
 
-#ifndef DEF_H
-#define DEF_H
+#include "Branch.h"
 
-#define COMPILER_NAME "Goblin compiler"
-#define COMPILER_VERSION "v1.0"
-#define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
+Branch::Branch() {
+    left = NULL;
+    right = NULL;
+}
 
-// Uncomment this line to enable debug mode, this will display debug related information related to the compiler
-#define DEBUG_MODE
-
-
-#endif /* DEF_H */
+Branch::~Branch() {
+    // This acts as a domino effect, when a branch gets deleted it deletes its children and the children do the same until no more children exist.
+    if (this->left != NULL)
+        delete left;
+    if (this->right != NULL)
+        delete right;
+}
 

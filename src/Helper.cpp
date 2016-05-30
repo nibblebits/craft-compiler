@@ -16,24 +16,30 @@
  */
 
 /* 
- * File:   def.h
+ * File:   Helper.cpp
  * Author: Daniel McCarthy
  *
- * Created on 28 May 2016, 19:48
+ * Created on 30 May 2016, 04:02
  * 
- * Description: This header contains definitions such as debug mode and other compiler related settings.
+ * Description: A helper class that contains common functions
  */
 
-#ifndef DEF_H
-#define DEF_H
+#include "Helper.h"
 
-#define COMPILER_NAME "Goblin compiler"
-#define COMPILER_VERSION "v1.0"
-#define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
+std::vector<std::string> Helper::split(std::string str, char delimiter)
+{
+    std::vector<std::string> strings;
+    std::size_t l_pos = 0;
+    std::size_t pos = 0;
+    while (true)
+    {
+        pos = str.find(delimiter, l_pos);
+        std::string f = str.substr(l_pos, pos - l_pos);
+        strings.push_back(f);
+        l_pos = pos + 1;
+        if (pos == std::string::npos)
+            break;
+    }
 
-// Uncomment this line to enable debug mode, this will display debug related information related to the compiler
-#define DEBUG_MODE
-
-
-#endif /* DEF_H */
-
+    return strings;
+}

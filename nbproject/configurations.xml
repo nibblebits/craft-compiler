@@ -4,12 +4,19 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>include/Branch.h</itemPath>
       <itemPath>include/CharPos.h</itemPath>
       <itemPath>include/Exception.h</itemPath>
+      <itemPath>include/Helper.h</itemPath>
       <itemPath>include/Lexer.h</itemPath>
       <itemPath>include/LexerException.h</itemPath>
+      <itemPath>include/Parser.h</itemPath>
+      <itemPath>include/ParserException.h</itemPath>
+      <itemPath>include/ParserRule.h</itemPath>
+      <itemPath>include/ParserRuleRequirement.h</itemPath>
       <itemPath>include/SourceCodeRelatedException.h</itemPath>
       <itemPath>include/Token.h</itemPath>
+      <itemPath>include/Tree.h</itemPath>
       <itemPath>def.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -19,8 +26,14 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>src/Branch.cpp</itemPath>
+      <itemPath>src/Helper.cpp</itemPath>
       <itemPath>src/Lexer.cpp</itemPath>
+      <itemPath>src/Parser.cpp</itemPath>
+      <itemPath>src/ParserRule.cpp</itemPath>
+      <itemPath>src/ParserRuleRequirement.cpp</itemPath>
       <itemPath>src/Token.cpp</itemPath>
+      <itemPath>src/Tree.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -53,13 +66,25 @@
       </compileType>
       <item path="def.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/CharPos.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Exception.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Lexer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/LexerException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SourceCodeRelatedException.h"
             ex="false"
@@ -68,11 +93,25 @@
       </item>
       <item path="include/Token.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Tree.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Lexer.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ParserRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Token.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Tree.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -97,13 +136,25 @@
       </compileType>
       <item path="def.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/CharPos.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Exception.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Lexer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/LexerException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SourceCodeRelatedException.h"
             ex="false"
@@ -112,11 +163,25 @@
       </item>
       <item path="include/Token.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Tree.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Lexer.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ParserRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Token.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Tree.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>
