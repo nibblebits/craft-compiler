@@ -34,12 +34,15 @@ public:
     
     void allow(std::string value);
     bool allowed(std::string value);
+    void excludeFromTree(bool exclude);
     bool hasValueRequirements();
+    bool excluded();
     std::string getClassName();
     std::vector<std::string> getAllowedValues();
 private:
     std::string _class;
     std::vector<std::string> allowed_classes;
+    bool exclude_from_tree;
 
 };
 

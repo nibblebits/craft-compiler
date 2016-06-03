@@ -29,6 +29,7 @@
 ParserRuleRequirement::ParserRuleRequirement(std::string _class)
 {
     this->_class = _class;
+    this->exclude_from_tree = false;
 }
 
 ParserRuleRequirement::~ParserRuleRequirement()
@@ -37,12 +38,12 @@ ParserRuleRequirement::~ParserRuleRequirement()
 
 void ParserRuleRequirement::allow(std::string value)
 {
-    allowed_classes.push_back(value);
+    this->allowed_classes.push_back(value);
 }
 
 bool ParserRuleRequirement::allowed(std::string value)
 {
-    if (allowed_classes.size() == 0)
+    if (this->allowed_classes.size() == 0)
     {
         return true;
     }
@@ -58,12 +59,27 @@ bool ParserRuleRequirement::allowed(std::string value)
     return false;
 }
 
+void ParserRuleRequirement::excludeFromTree(bool exclude)
+{
+    this->exclude_from_tree = exclude;
+}
+
 bool ParserRuleRequirement::hasValueRequirements()
 {
-    return allowed_classes.size() != 0;
+    return this->allowed_classes.size() != 0;
+}
+
+bool ParserRuleRequirement::excluded()
+{
+    return this->exclude_from_tree;
 }
 
 std::string ParserRuleRequirement::getClassName()
 {
-    return _class;
+    return this->_class;
+}
+
+std::vector<std::string> ParserRuleRequirement::getAllowedValues()
+{
+    return this->allowed_classes;
 }

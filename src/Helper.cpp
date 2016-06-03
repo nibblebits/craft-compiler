@@ -43,3 +43,17 @@ std::vector<std::string> Helper::split(std::string str, char delimiter)
 
     return strings;
 }
+
+std::string Helper::str_remove(std::string str, char remove)
+{
+    std::string new_str = "";
+    for (char c : str)
+    {
+        if (c != remove)
+        {
+            new_str += c;
+        }
+    }
+    
+    return new_str;
+}

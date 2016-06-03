@@ -30,6 +30,7 @@ Branch::Branch(std::string type, std::string value)
 {
     this->type = type;
     this->value = value;
+    this->excluded_from_tree = false;
 }
 
 Branch::~Branch()
@@ -37,10 +38,19 @@ Branch::~Branch()
 
 }
 
-
 void Branch::addChild(std::shared_ptr<Branch> branch)
 {
     this->children.push_back(branch);
+}
+
+void Branch::exclude(bool excluded)
+{
+    this->excluded_from_tree = excluded;
+}
+
+bool Branch::excluded()
+{
+    return this->excluded_from_tree;
 }
 
 std::vector<std::shared_ptr<Branch>> Branch::getChildren()

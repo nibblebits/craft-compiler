@@ -65,7 +65,7 @@ Parser parser;
 int main(int argc, char** argv)
 {
     std::cout << COMPILER_FULLNAME << std::endl;
-    lexer.setInput("a + 32 nn");
+    lexer.setInput("87 + (10/2 + (10 / 3) )");
     try
     {
         lexer.tokenize();
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
         parser.addRule("E:identifier");
         parser.addRule("E:number");
         parser.addRule("E:E:operator:E");
-        parser.addRule("E:symbol@(:E:symbol@)");
+        parser.addRule("E:'symbol@(:E:'symbol@)");
         parser.setInput(lexer.getTokens());
         parser.buildTree();
 

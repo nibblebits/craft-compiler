@@ -36,6 +36,11 @@
 #include "Tree.h"
 #include "Token.h"
 #include "Branch.h"
+
+#define PARSER_RULE_COMPATIBLE 0
+#define PARSER_RULE_COMPATIBLE_NO_BRANCH 1
+#define PARSER_RULE_INCOMPATIBLE 2
+
 class Parser {
 public:
     Parser();
@@ -50,7 +55,7 @@ private:
     std::shared_ptr<Tree> tree;
     std::vector<std::shared_ptr<Branch>> branches;
     
-    bool isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos);
+    int isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos);
     void reductBranches();
 };
 

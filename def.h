@@ -34,6 +34,5 @@
 // Uncomment this line to enable debug mode, this will display debug related information related to the compiler
 #define DEBUG_MODE
 
-
 #endif /* DEF_H */
 

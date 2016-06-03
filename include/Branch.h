@@ -37,6 +37,8 @@ public:
     virtual ~Branch();
 
     void addChild(std::shared_ptr<Branch> branch);
+    void exclude(bool excluded);
+    bool excluded();
     std::vector<std::shared_ptr<Branch>> getChildren();
     std::string getType();
     std::string getValue();
@@ -44,6 +46,7 @@ private:
     std::string type;
     std::string value;
     std::vector<std::shared_ptr<Branch>> children;
+    bool excluded_from_tree;
 };
 
 #endif /* BRANCH_H */

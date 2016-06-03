@@ -53,13 +53,18 @@ void Parser::addRule(std::string rule_exp)
     std::shared_ptr<ParserRule> rule = std::shared_ptr<ParserRule>(new ParserRule(split[0]));
     for (int i = 1; i < split.size(); i++)
     {
-        std::string requirement_name = split[i];
+        std::vector<std::string> allowed_values = Helper::split(split[i], '@');
+        std::string requirement_name = Helper::str_remove(allowed_values[0], '\'');
         std::shared_ptr<ParserRuleRequirement> requirement = std::shared_ptr<ParserRuleRequirement>(new ParserRuleRequirement(requirement_name));
-        std::vector<std::string> allowed_values = Helper::split(requirement_name, '@');
         for (int i = 1; i < allowed_values.size(); i++)
         {
             std::string allowed_value = allowed_values[i];
             requirement->allow(allowed_value);
+        }
+
+        if (split[i][0] == '\'')
+        {
+            requirement->excludeFromTree(true);
         }
 
         rule->addRequirement(requirement);
@@ -72,34 +77,89 @@ void Parser::setInput(std::vector<std::shared_ptr<Token>> tokens)
     this->input = tokens;
 }
 
-bool Parser::isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos)
+int Parser::isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos)
 {
-    std::vector<std::shared_ptr<ParserRuleRequirement>> requirements = rule->getRequirements();
+    bool ok = false;
+    std::vector<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
     if (requirements.size() < pos + 1)
-        return false;
+        return PARSER_RULE_INCOMPATIBLE;
 
     std::shared_ptr<ParserRuleRequirement> requirement = requirements[pos];
-    return requirement->getClassName() == branch->getType();
+    if (requirement->getClassName() == branch->getType())
+    {
+        if (requirement->hasValueRequirements())
+        {
+            ok = requirement->allowed(branch->getValue());
+        }
+        else
+        {
+            ok = true;
+        }
+
+        if (ok)
+        {
+            if (requirement->excluded())
+            {
+                return PARSER_RULE_COMPATIBLE_NO_BRANCH;
+            }
+            else
+            {
+                return PARSER_RULE_COMPATIBLE;
+            }
+        }
+    }
+
+    return PARSER_RULE_INCOMPATIBLE;
 }
 
 void Parser::reductBranches()
 {
-    for (std::shared_ptr<ParserRule> rule : this->rules)
+    for (int i = 0; i < 2000; i++)
     {
-        int matched = 0;
-        for (int i = 0; i < this->branches.size(); i++)
+        for (std::shared_ptr<ParserRule> rule : this->rules)
         {
-            std::shared_ptr<Branch> branch = this->branches[i];
-            if (isPartOfRule(rule, branch, 0))
+            for (int i = 0; i < this->branches.size(); i++)
             {
-                matched++;
-            }
-            
-            if (matched == rule->getRequirements().size())
-            {
-                // Match found.
-                
-                matched = 0;
+                std::vector<std::shared_ptr < Branch>> tmp_list;
+                int total_requirements = rule->getRequirements().size();
+
+                if (i + total_requirements <= this->branches.size())
+                {
+                    for (int b = 0; b < total_requirements; b++)
+                    {
+                        int index = i + b;
+                        std::shared_ptr<Branch> branch = this->branches[index];
+                        int result = this->isPartOfRule(rule, branch, b);
+                        if (result == PARSER_RULE_COMPATIBLE || result == PARSER_RULE_COMPATIBLE_NO_BRANCH)
+                        {
+                            if (result == PARSER_RULE_COMPATIBLE_NO_BRANCH)
+                            {
+                                branch->exclude(true);
+                            }
+                            tmp_list.push_back(branch);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (tmp_list.size() == total_requirements)
+                {
+                    // We have a match
+                    std::shared_ptr<Branch> root = std::shared_ptr<Branch>(new Branch(rule->getName(), ""));
+                    for (std::shared_ptr<Branch> branch : tmp_list)
+                    {
+                        if (!branch->excluded())
+                            root->addChild(branch);
+                    }
+
+                    // Erase the parsed branches from the vector
+                    this->branches.erase(this->branches.begin() + i, this->branches.begin() + i + tmp_list.size());
+                    // Add the new branch into the branches list
+                    this->branches.insert(this->branches.begin() + i, root);
+                }
             }
         }
     }

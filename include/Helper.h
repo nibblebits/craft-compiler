@@ -32,6 +32,7 @@ class Helper
 {
 public:
     static std::vector<std::string> split(std::string str, char delimiter);
+    static std::string str_remove(std::string str, char remove);
 private:
 
 };
