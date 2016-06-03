@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include <memory>
 #include "def.h"
 #include "Lexer.h"
 #include "Parser.h"
@@ -33,10 +34,10 @@ using namespace std;
 
 #ifdef DEBUG_MODE
 
-void debug_output_tokens(std::vector<Token*> tokens)
+void debug_output_tokens(std::vector<std::shared_ptr<Token>> tokens)
 {
     std::cout << "DEBUG TOKEN OUTPUT" << std::endl;
-    for (Token* token : tokens)
+    for (std::shared_ptr<Token> token : tokens)
     {
         std::cout << "<" << token->getType() << ", " << token->getValue() << "> ";
     }
@@ -44,6 +45,18 @@ void debug_output_tokens(std::vector<Token*> tokens)
     std::cout << std::endl;
 }
 
+void debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs = 0)
+{
+    for (int i = 0; i < no_tabs; i++)
+    {
+        std::cout << "\t";
+    }
+
+    std::cout << branch->getType() << ":" << branch->getValue() << std::endl;
+
+    for (std::shared_ptr<Branch> child : branch->getChildren())
+        debug_output_branch(child, no_tabs + 1);
+}
 #endif
 
 Lexer lexer;
@@ -52,7 +65,7 @@ Parser parser;
 int main(int argc, char** argv)
 {
     std::cout << COMPILER_FULLNAME << std::endl;
-    lexer.setInput("uint8 c = \"Hello World@@\" 123\n c++;");
+    lexer.setInput("a + 32 nn");
     try
     {
         lexer.tokenize();
@@ -65,17 +78,26 @@ int main(int argc, char** argv)
         std::cout << "Error with input: " << ex.getMessage() << std::endl;
         return 1;
     }
-    
+
     try
     {
-        parser.addRule("expression:identifier:operator:identifier");
+        parser.addRule("E:identifier");
+        parser.addRule("E:number");
+        parser.addRule("E:E:operator:E");
+        parser.addRule("E:symbol@(:E:symbol@)");
+        parser.setInput(lexer.getTokens());
+        parser.buildTree();
+
+#ifdef DEBUG_MODE
+        debug_output_branch(parser.getTree()->root);
+#endif
     }
-    catch(ParserException ex)
+    catch (ParserException ex)
     {
         std::cout << "Error parsing: " << ex.getMessage() << std::endl;
     }
-    
-    
+
+
 
     return 0;
 }

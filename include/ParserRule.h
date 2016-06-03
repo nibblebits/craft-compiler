@@ -27,6 +27,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include "ParserRuleRequirement.h"
 
 class ParserRule {
@@ -34,11 +35,12 @@ public:
     ParserRule(std::string name);
     virtual ~ParserRule();
     
-    void addRequirement(ParserRuleRequirement* requirement);
-    std::vector<ParserRuleRequirement*> getRequirements();
+    std::string getName();
+    void addRequirement(std::shared_ptr<ParserRuleRequirement> requirement);
+    std::vector<std::shared_ptr<ParserRuleRequirement>> getRequirements();
 private:
     std::string name;
-    std::vector<ParserRuleRequirement*> requirements;
+    std::vector<std::shared_ptr<ParserRuleRequirement>> requirements;
 
 };
 

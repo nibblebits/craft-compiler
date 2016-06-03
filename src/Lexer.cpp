@@ -39,11 +39,8 @@ Lexer::Lexer()
 
 Lexer::~Lexer()
 {
-    // Delete all the tokens they are no longer needed
-    for (Token* token : this->tokens)
-    {
-        delete token;
-    }
+   /* Do not delete tokens here as tokens are also branches and are deleted by the parser.
+    * I know that should the lexer fail we will have a memory leak but this issue will be addressed later. */
 }
 
 void Lexer::setInput(std::string input)
@@ -148,7 +145,8 @@ void Lexer::tokenize()
         if (token != NULL)
         {
             tokenValue = "";
-            tokens.push_back(token);
+            std::shared_ptr<Token> token_sp(token);
+            tokens.push_back(token_sp);
             token = NULL;
         }
 
@@ -156,7 +154,7 @@ void Lexer::tokenize()
     }
 }
 
-std::vector<Token*> Lexer::getTokens()
+std::vector<std::shared_ptr<Token>> Lexer::getTokens()
 {
     return this->tokens;
 }

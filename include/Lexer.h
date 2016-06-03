@@ -27,6 +27,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include "Token.h"
 #include "LexerException.h"
 
@@ -39,11 +40,11 @@ public:
     Lexer();
     void setInput(std::string input);
     void tokenize();
-    std::vector<Token*> getTokens();
+    std::vector<std::shared_ptr<Token>> getTokens();
     virtual ~Lexer();
 private:
     std::string input;
-    std::vector<Token*> tokens;
+    std::vector<std::shared_ptr<Token>> tokens;
     Token* token;
     std::string tokenValue;
     CharPos position;

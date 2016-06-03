@@ -27,24 +27,31 @@
 
 #include <vector>
 #include <string>
+#include <queue>
+#include <memory>
 #include "Helper.h"
 #include "ParserRule.h"
 #include "ParserRuleRequirement.h"
 #include "ParserException.h"
 #include "Tree.h"
 #include "Token.h"
+#include "Branch.h"
 class Parser {
 public:
     Parser();
     virtual ~Parser();
     void addRule(std::string rule_exp);
-    void setInput(std::vector<Token> tokens);
+    void setInput(std::vector<std::shared_ptr<Token>> tokens);
     void buildTree();
-    Tree* getTree();
+    std::shared_ptr<Tree> getTree();
 private:
-    std::vector<Token> input;
-    std::vector<ParserRule*> rules;
-    Tree* tree;
+    std::vector<std::shared_ptr<Token>> input;
+    std::vector<std::shared_ptr<ParserRule>> rules;
+    std::shared_ptr<Tree> tree;
+    std::vector<std::shared_ptr<Branch>> branches;
+    
+    bool isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos);
+    void reductBranches();
 };
 
 #endif /* PARSER_H */

@@ -33,15 +33,7 @@ Parser::Parser()
 
 Parser::~Parser()
 {
-    if (this->tree != NULL);
-    {
-        delete this->tree;
-    }
 
-    for (ParserRule* rule : this->rules)
-    {
-        delete rule;
-    }
 }
 
 void Parser::addRule(std::string rule_exp)
@@ -49,7 +41,7 @@ void Parser::addRule(std::string rule_exp)
     std::vector<std::string> split;
     if (rule_exp.find(" ") != -1)
     {
-        throw ParserException("Rules may not contain spaces!");
+        throw ParserException("Rules may not contain spaces");
     }
 
     split = Helper::split(rule_exp, ':');
@@ -58,11 +50,11 @@ void Parser::addRule(std::string rule_exp)
         throw ParserException("Parser rule not formatted correctly");
     }
 
-    ParserRule* rule = new ParserRule(split[0]);
+    std::shared_ptr<ParserRule> rule = std::shared_ptr<ParserRule>(new ParserRule(split[0]));
     for (int i = 1; i < split.size(); i++)
     {
         std::string requirement_name = split[i];
-        ParserRuleRequirement* requirement = new ParserRuleRequirement(requirement_name);
+        std::shared_ptr<ParserRuleRequirement> requirement = std::shared_ptr<ParserRuleRequirement>(new ParserRuleRequirement(requirement_name));
         std::vector<std::string> allowed_values = Helper::split(requirement_name, '@');
         for (int i = 1; i < allowed_values.size(); i++)
         {
@@ -75,18 +67,65 @@ void Parser::addRule(std::string rule_exp)
     this->rules.push_back(rule);
 }
 
-void Parser::setInput(std::vector<Token> tokens)
+void Parser::setInput(std::vector<std::shared_ptr<Token>> tokens)
 {
     this->input = tokens;
 }
 
-void Parser::buildTree()
+bool Parser::isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos)
 {
-    this->tree = new Tree();
+    std::vector<std::shared_ptr<ParserRuleRequirement>> requirements = rule->getRequirements();
+    if (requirements.size() < pos + 1)
+        return false;
 
+    std::shared_ptr<ParserRuleRequirement> requirement = requirements[pos];
+    return requirement->getClassName() == branch->getType();
 }
 
-Tree* Parser::getTree()
+void Parser::reductBranches()
 {
+    for (std::shared_ptr<ParserRule> rule : this->rules)
+    {
+        int matched = 0;
+        for (int i = 0; i < this->branches.size(); i++)
+        {
+            std::shared_ptr<Branch> branch = this->branches[i];
+            if (isPartOfRule(rule, branch, 0))
+            {
+                matched++;
+            }
+            
+            if (matched == rule->getRequirements().size())
+            {
+                // Match found.
+                
+                matched = 0;
+            }
+        }
+    }
+}
 
+void Parser::buildTree()
+{
+    if (this->input.size() == 0)
+        throw ParserException("No token input has been specified.");
+
+    this->tree = std::shared_ptr<Tree>(new Tree());
+    this->tree->root = std::shared_ptr<Branch>(new Branch("root", ""));
+    for (std::shared_ptr<Token> token : this->input)
+    {
+        this->branches.push_back(token);
+    }
+
+    reductBranches();
+
+    for (std::shared_ptr<Branch> branch : this->branches)
+    {
+        this->tree->root->addChild(branch);
+    }
+}
+
+std::shared_ptr<Tree> Parser::getTree()
+{
+    return this->tree;
 }

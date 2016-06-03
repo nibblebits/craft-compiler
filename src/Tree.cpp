@@ -26,9 +26,12 @@
 
 #include "Tree.h"
 
-Tree::Tree() {
+Tree::Tree()
+{
+    this->root = NULL;
 }
 
-Tree::~Tree() {
+Tree::~Tree()
+{
 }
 

@@ -30,17 +30,22 @@ Branch::Branch(std::string type, std::string value)
 {
     this->type = type;
     this->value = value;
-    this->left = NULL;
-    this->right = NULL;
 }
 
 Branch::~Branch()
 {
-    // This acts as a domino effect, when a branch gets deleted it deletes its children and the children do the same until no more children exist.
-    if (this->left != NULL)
-        delete left;
-    if (this->right != NULL)
-        delete right;
+
+}
+
+
+void Branch::addChild(std::shared_ptr<Branch> branch)
+{
+    this->children.push_back(branch);
+}
+
+std::vector<std::shared_ptr<Branch>> Branch::getChildren()
+{
+    return this->children;
 }
 
 std::string Branch::getType()

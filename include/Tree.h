@@ -25,10 +25,12 @@
 #ifndef TREE_H
 #define TREE_H
 
+#include "Branch.h"
 class Tree {
 public:
     Tree();
     virtual ~Tree();
+    std::shared_ptr<Branch> root;
 private:
 
 };

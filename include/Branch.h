@@ -27,21 +27,23 @@
 
 #include <cstddef>
 #include <string>
+#include <vector>
+#include <memory>
 
 class Branch
 {
 public:
-    Branch* left;
-    Branch* right;
-
     Branch(std::string type, std::string value);
     virtual ~Branch();
 
+    void addChild(std::shared_ptr<Branch> branch);
+    std::vector<std::shared_ptr<Branch>> getChildren();
     std::string getType();
     std::string getValue();
 private:
     std::string type;
     std::string value;
+    std::vector<std::shared_ptr<Branch>> children;
 };
 
 #endif /* BRANCH_H */

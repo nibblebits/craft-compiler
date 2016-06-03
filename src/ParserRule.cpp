@@ -33,19 +33,20 @@ ParserRule::ParserRule(std::string name)
 
 ParserRule::~ParserRule()
 {
-    // Delete all the rule requirements
-    for (ParserRuleRequirement* requirement : this->requirements)
-    {
-        delete requirement;
-    }
+
 }
 
-void ParserRule::addRequirement(ParserRuleRequirement* requirement)
+std::string ParserRule::getName()
+{
+    return this->name;
+}
+
+void ParserRule::addRequirement(std::shared_ptr<ParserRuleRequirement>requirement)
 {
     this->requirements.push_back(requirement);
 }
 
-std::vector<ParserRuleRequirement*> ParserRule::getRequirements()
+std::vector<std::shared_ptr<ParserRuleRequirement>> ParserRule::getRequirements()
 {
     return this->requirements;
 }
