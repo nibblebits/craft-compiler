@@ -38,6 +38,7 @@ Parser::~Parser()
 
 void Parser::addRule(std::string rule_exp)
 {
+    bool branchable = true;
     std::vector<std::string> split;
     if (rule_exp.find(" ") != -1)
     {
@@ -48,6 +49,12 @@ void Parser::addRule(std::string rule_exp)
     if (split.size() == 0)
     {
         throw ParserException("Parser rule not formatted correctly");
+    }
+
+    if (split[0][0] == '\'')
+    {
+        branchable = false;
+        split[0] = Helper::str_remove(split[0], 0);
     }
 
     std::shared_ptr<ParserRule> rule = std::shared_ptr<ParserRule>(new ParserRule(split[0]));
@@ -68,6 +75,11 @@ void Parser::addRule(std::string rule_exp)
         }
 
         rule->addRequirement(requirement);
+    }
+
+    if (!branchable)
+    {
+        rule->canCreateBranch(false);
     }
     this->rules.push_back(rule);
 }
@@ -114,8 +126,9 @@ int Parser::isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branc
 
 void Parser::reductBranches()
 {
-    for (int i = 0; i < 2000; i++)
+    while (this->branches.size() != 1)
     {
+        bool at_least_one_rule = false;
         for (std::shared_ptr<ParserRule> rule : this->rules)
         {
             for (int i = 0; i < this->branches.size(); i++)
@@ -149,6 +162,8 @@ void Parser::reductBranches()
                 {
                     // We have a match
                     std::shared_ptr<Branch> root = std::shared_ptr<Branch>(new Branch(rule->getName(), ""));
+
+                    // Add the branches in the tmp_list to the branch
                     for (std::shared_ptr<Branch> branch : tmp_list)
                     {
                         if (!branch->excluded())
@@ -159,8 +174,25 @@ void Parser::reductBranches()
                     this->branches.erase(this->branches.begin() + i, this->branches.begin() + i + tmp_list.size());
                     // Add the new branch into the branches list
                     this->branches.insert(this->branches.begin() + i, root);
+                    at_least_one_rule = true;
                 }
             }
+        }
+        
+        // Check for syntax error
+        if (!at_least_one_rule)
+        {
+            // Find the first element that is still a token and use it as a base for the error
+            for (std::shared_ptr<Branch> branch : this->branches)
+            {
+                if (branch->getBranchType() == BRANCH_TYPE_TOKEN)
+                {
+                    std::shared_ptr<Token> token = std::dynamic_pointer_cast<Token>(branch);
+                    throw ParserException(token->getPosition(), "the token: '" + token->getValue() + "' was not expected.");
+                }
+            }
+            
+            break;
         }
     }
 }
@@ -179,8 +211,9 @@ void Parser::buildTree()
 
     reductBranches();
 
-    for (std::shared_ptr<Branch> branch : this->branches)
+    for (int i = 0; i < this->branches.size(); i++)
     {
+        std::shared_ptr<Branch> branch = this->branches.at(i);
         this->tree->root->addChild(branch);
     }
 }

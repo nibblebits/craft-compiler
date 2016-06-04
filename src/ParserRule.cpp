@@ -29,11 +29,21 @@
 ParserRule::ParserRule(std::string name)
 {
     this->name = name;
+    this->branchable = true;
 }
 
 ParserRule::~ParserRule()
 {
 
+}
+
+void ParserRule::canCreateBranch(bool branchable)
+{
+    this->branchable = branchable;
+}
+bool ParserRule::isBranchable()
+{
+    return this->branchable;
 }
 
 std::string ParserRule::getName()

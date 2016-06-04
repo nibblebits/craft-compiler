@@ -41,3 +41,7 @@ CharPos Token::getPosition()
     return this->position;
 }
 
+int Token::getBranchType()
+{
+    return BRANCH_TYPE_TOKEN;
+}

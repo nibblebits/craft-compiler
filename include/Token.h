@@ -35,6 +35,7 @@ public:
     virtual ~Token();
 
     CharPos getPosition();
+    int getBranchType();
 private:
     CharPos position;
 };

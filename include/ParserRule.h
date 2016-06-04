@@ -33,14 +33,16 @@
 class ParserRule {
 public:
     ParserRule(std::string name);
-    virtual ~ParserRule();
-    
+    virtual ~ParserRule();  
+    void canCreateBranch(bool branchable);
+    bool isBranchable();
     std::string getName();
     void addRequirement(std::shared_ptr<ParserRuleRequirement> requirement);
     std::vector<std::shared_ptr<ParserRuleRequirement>> getRequirements();
 private:
     std::string name;
     std::vector<std::shared_ptr<ParserRuleRequirement>> requirements;
+    bool branchable;
 
 };
 

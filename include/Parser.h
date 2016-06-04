@@ -29,6 +29,7 @@
 #include <string>
 #include <queue>
 #include <memory>
+#include <algorithm>
 #include "Helper.h"
 #include "ParserRule.h"
 #include "ParserRuleRequirement.h"

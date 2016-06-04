@@ -27,7 +27,7 @@
 #include "Lexer.h"
 #include <iostream>
 const char operators[] = {'+', '-', '/', '*'};
-const char symbols[] = {'=', '(', ')', ';'};
+const char symbols[] = {'=', '(', ')', ',', '#', ';'};
 const std::string keywords[] = {
     "nibble", "bit", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64",
     "if", "for", "do", "while", "next", "continue", "break", "switch"
@@ -91,11 +91,7 @@ void Lexer::tokenize()
         }
         else if (isSymbol(c))
         {
-            fillTokenWhile([](char c) -> bool
-            {
-                return isSymbol(c);
-            });
-
+            tokenValue = *it;
             token = new Token("symbol", tokenValue, position);
         }
         else if (isNumber(c))

@@ -67,3 +67,8 @@ std::string Branch::getValue()
 {
     return this->value;
 }
+
+int Branch::getBranchType()
+{
+    return BRANCH_TYPE_BRANCH;
+}

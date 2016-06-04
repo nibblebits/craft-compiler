@@ -56,6 +56,7 @@ void debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs = 0)
 
     for (std::shared_ptr<Branch> child : branch->getChildren())
         debug_output_branch(child, no_tabs + 1);
+
 }
 #endif
 
@@ -65,7 +66,7 @@ Parser parser;
 int main(int argc, char** argv)
 {
     std::cout << COMPILER_FULLNAME << std::endl;
-    lexer.setInput("87 + (10/2 + (10 / 3) )");
+    lexer.setInput("int32 x\nx = #getInput(x, y, z)\nbe");
     try
     {
         lexer.tokenize();
@@ -84,7 +85,12 @@ int main(int argc, char** argv)
         parser.addRule("E:identifier");
         parser.addRule("E:number");
         parser.addRule("E:E:operator:E");
+        parser.addRule("V_DEF:keyword:E");
         parser.addRule("E:'symbol@(:E:'symbol@)");
+        parser.addRule("E:E:'symbol@,:E");
+        parser.addRule("ASSIGN:E:symbol@=:E");
+        parser.addRule("ASSIGN:E:symbol@=:CALL");
+        parser.addRule("CALL:'symbol@#:E:E");
         parser.setInput(lexer.getTokens());
         parser.buildTree();
 

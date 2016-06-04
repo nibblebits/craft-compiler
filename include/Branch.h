@@ -30,6 +30,8 @@
 #include <vector>
 #include <memory>
 
+#define BRANCH_TYPE_BRANCH 0
+#define BRANCH_TYPE_TOKEN 1
 class Branch
 {
 public:
@@ -42,6 +44,8 @@ public:
     std::vector<std::shared_ptr<Branch>> getChildren();
     std::string getType();
     std::string getValue();
+    
+    virtual int getBranchType();
 private:
     std::string type;
     std::string value;

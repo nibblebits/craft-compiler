@@ -41,7 +41,7 @@ public:
     }
 
     SourceCodeRelatedException(CharPos position, std::string start_message, std::string cause) :
-    Exception(start_message + " on line: " + std::to_string(position.line_no) + ", column: " + std::to_string(position.col_pos) + " cause: " + cause)
+    Exception(start_message + " on line: " + std::to_string(position.line_no) + ", column: " + (position.col_pos > 0 ? std::to_string(position.col_pos) : "unknown") + " cause: " + cause)
     {
 
     }

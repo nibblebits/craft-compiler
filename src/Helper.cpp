@@ -57,3 +57,17 @@ std::string Helper::str_remove(std::string str, char remove)
     
     return new_str;
 }
+
+std::string Helper::str_remove(std::string str, int index)
+{
+    std::string new_str = "";
+    for (int i = 0; i < str.size(); i++)
+    {
+        if (i != index)
+        {
+            new_str += str[i];
+        }
+    }
+    
+    return new_str;
+}
