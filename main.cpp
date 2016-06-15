@@ -26,6 +26,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <fstream>
 #include "def.h"
 #include "Lexer.h"
 #include "Parser.h"
@@ -66,7 +67,26 @@ Parser parser;
 int main(int argc, char** argv)
 {
     std::cout << COMPILER_FULLNAME << std::endl;
-    lexer.setInput("int32 x\nx = #getInput(x, y, z)\nbe");
+    if (argc == 1) {
+        std::cout << "No arguments provided, a source file must be specified" << std::endl;
+        return 1;
+    }
+    
+    // Load the file
+    std::ifstream ifs;
+    std::string source = "";
+    ifs.open(argv[1]);
+    if (!ifs.is_open()) {
+        std::cout << "Failed to open: " << argv[1] << std::endl;
+        return 2;
+    }
+    
+    while(ifs.good()) {
+        source += ifs.get();
+    }
+    ifs.close();
+    
+    lexer.setInput(source);
     try
     {
         lexer.tokenize();
@@ -77,9 +97,14 @@ int main(int argc, char** argv)
     catch (LexerException ex)
     {
         std::cout << "Error with input: " << ex.getMessage() << std::endl;
-        return 1;
+        return 3;
     }
 
+    if (lexer.getTokens().size() == 0) {
+        std::cout << "Nothing to compile, file is empty or just whitespaces." << std::endl;
+        return 4;
+    }
+    
     try
     {
         parser.addRule("E:identifier");
@@ -91,6 +116,8 @@ int main(int argc, char** argv)
         parser.addRule("ASSIGN:E:symbol@=:E");
         parser.addRule("ASSIGN:E:symbol@=:CALL");
         parser.addRule("CALL:'symbol@#:E:E");
+        parser.addRule("CALL:'symbol@#:E:ZERO_ARGS");
+        parser.addRule("ZERO_ARGS:'symbol@(:'symbol@)");
         parser.setInput(lexer.getTokens());
         parser.buildTree();
 
@@ -101,6 +128,7 @@ int main(int argc, char** argv)
     catch (ParserException ex)
     {
         std::cout << "Error parsing: " << ex.getMessage() << std::endl;
+        return 5;
     }
 
 

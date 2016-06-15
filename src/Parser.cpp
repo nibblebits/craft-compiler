@@ -188,7 +188,7 @@ void Parser::reductBranches()
                 if (branch->getBranchType() == BRANCH_TYPE_TOKEN)
                 {
                     std::shared_ptr<Token> token = std::dynamic_pointer_cast<Token>(branch);
-                    throw ParserException(token->getPosition(), "the token: '" + token->getValue() + "' was not expected.");
+                    throw ParserException(token->getPosition(), "the token '" + token->getValue() + "' may not be expected or something nearby.");
                 }
             }
             
