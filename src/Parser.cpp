@@ -142,6 +142,7 @@ void Parser::reductBranches()
                     {
                         int index = i + b;
                         std::shared_ptr<Branch> branch = this->branches[index];
+
                         int result = this->isPartOfRule(rule, branch, b);
                         if (result == PARSER_RULE_COMPATIBLE || result == PARSER_RULE_COMPATIBLE_NO_BRANCH)
                         {
@@ -178,7 +179,7 @@ void Parser::reductBranches()
                 }
             }
         }
-        
+
         // Check for syntax error
         if (!at_least_one_rule)
         {
@@ -191,7 +192,7 @@ void Parser::reductBranches()
                     throw ParserException(token->getPosition(), "the token '" + token->getValue() + "' may not be expected or something nearby.");
                 }
             }
-            
+
             break;
         }
     }

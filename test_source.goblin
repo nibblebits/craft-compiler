@@ -1,2 +1,7 @@
-int32 x 
-x = #getInput(x)
+
+#print(3)
+int32 #print(int32 x)
+{
+	int32 a
+	a = x + 1
+}

@@ -67,25 +67,28 @@ Parser parser;
 int main(int argc, char** argv)
 {
     std::cout << COMPILER_FULLNAME << std::endl;
-    if (argc == 1) {
+    if (argc == 1)
+    {
         std::cout << "No arguments provided, a source file must be specified" << std::endl;
         return 1;
     }
-    
+
     // Load the file
     std::ifstream ifs;
     std::string source = "";
     ifs.open(argv[1]);
-    if (!ifs.is_open()) {
+    if (!ifs.is_open())
+    {
         std::cout << "Failed to open: " << argv[1] << std::endl;
         return 2;
     }
-    
-    while(ifs.good()) {
+
+    while (ifs.good())
+    {
         source += ifs.get();
     }
     ifs.close();
-    
+
     lexer.setInput(source);
     try
     {
@@ -100,11 +103,12 @@ int main(int argc, char** argv)
         return 3;
     }
 
-    if (lexer.getTokens().size() == 0) {
+    if (lexer.getTokens().size() == 0)
+    {
         std::cout << "Nothing to compile, file is empty or just whitespaces." << std::endl;
         return 4;
     }
-    
+
     try
     {
         parser.addRule("E:identifier");
@@ -113,11 +117,19 @@ int main(int argc, char** argv)
         parser.addRule("V_DEF:keyword:E");
         parser.addRule("E:'symbol@(:E:'symbol@)");
         parser.addRule("E:E:'symbol@,:E");
+        parser.addRule("PD:'symbol@(:V_DEF:'symbol@)");
+        parser.addRule("FUNC:keyword:'symbol@#:E:PD:SCOPE");
         parser.addRule("ASSIGN:E:symbol@=:E");
-        parser.addRule("ASSIGN:E:symbol@=:CALL");
+        parser.addRule("ASSIGN:E:symbol@=:STMT");
         parser.addRule("CALL:'symbol@#:E:E");
         parser.addRule("CALL:'symbol@#:E:ZERO_ARGS");
         parser.addRule("ZERO_ARGS:'symbol@(:'symbol@)");
+        parser.addRule("SCOPE:'symbol@{:STMT:'symbol@}");
+        parser.addRule("SCOPE:'symbol@{:'symbol@}");
+        parser.addRule("STMT:CALL");
+        parser.addRule("STMT:ASSIGN");
+        parser.addRule("STMT:V_DEF");
+        parser.addRule("STMT:STMT:STMT");
         parser.setInput(lexer.getTokens());
         parser.buildTree();
 
