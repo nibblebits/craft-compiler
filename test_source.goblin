@@ -1,7 +1,13 @@
+int32 a
+int32 c
 
-#print(3)
-int32 #print(int32 x)
+int32 #aFunction(uint32 b)
 {
-	int32 a
-	a = x + 1
+	uint32 m
+	c = b
+}
+
+int32 #bFunction(uint32 e)
+{
+	m = 3
 }

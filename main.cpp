@@ -30,6 +30,7 @@
 #include "def.h"
 #include "Lexer.h"
 #include "Parser.h"
+#include "TypeChecker.h"
 
 using namespace std;
 
@@ -63,6 +64,7 @@ void debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs = 0)
 
 Lexer lexer;
 Parser parser;
+TypeChecker typeChecker;
 
 int main(int argc, char** argv)
 {
@@ -144,7 +146,15 @@ int main(int argc, char** argv)
     }
 
 
-
+    try
+    {
+        typeChecker.setTree(parser.getTree());
+        typeChecker.validate();
+    } catch(TypeCheckerException ex)
+    {
+        std::cout << "Error with types: " << ex.getMessage() << std::endl;
+        return 6;
+    }
     return 0;
 }
 

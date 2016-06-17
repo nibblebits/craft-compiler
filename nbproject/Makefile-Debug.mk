@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/src/ASTAssistant.o \
 	${OBJECTDIR}/src/Branch.o \
 	${OBJECTDIR}/src/Helper.o \
 	${OBJECTDIR}/src/Lexer.o \
@@ -43,7 +44,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
 	${OBJECTDIR}/src/Token.o \
-	${OBJECTDIR}/src/Tree.o
+	${OBJECTDIR}/src/Tree.o \
+	${OBJECTDIR}/src/TypeChecker.o
 
 
 # C Compiler Flags
@@ -74,6 +76,11 @@ ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+
+${OBJECTDIR}/src/ASTAssistant.o: src/ASTAssistant.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASTAssistant.o src/ASTAssistant.cpp
 
 ${OBJECTDIR}/src/Branch.o: src/Branch.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -114,6 +121,11 @@ ${OBJECTDIR}/src/Tree.o: src/Tree.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Tree.o src/Tree.cpp
+
+${OBJECTDIR}/src/TypeChecker.o: src/TypeChecker.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/TypeChecker.o src/TypeChecker.cpp
 
 # Subprojects
 .build-subprojects:
