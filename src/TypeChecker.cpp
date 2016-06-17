@@ -48,9 +48,9 @@ void TypeChecker::validate()
     }
     std::shared_ptr<Branch> root = this->tree->root;
 
-    // Push a blank variable vector to represent the global scope
-    std::vector<struct variable> variables;
-    this->scopes.push(variables);
+    // Push a blank entity vector to represent the global scope
+    std::vector<struct entity> entities;
+    this->scopes.push(entities);
     this->global_scope = &this->scopes.top();
     Check(root);
 }
@@ -67,11 +67,11 @@ void TypeChecker::Check(std::shared_ptr<Branch> branch)
             std::shared_ptr<Branch> var_name_branch = children[1]->getChildren()[0];
             std::string var_type = children[0]->getValue();
             std::string var_name = var_name_branch->getValue();
-            if (isVariableRegistered(var_name))
+            if (isEntityRegistered(var_name))
             {
                 throwAlreadyDeclaredException(var_name_branch);
             }
-            registerVariable(var_type, var_name);
+            registerEntity(var_type, var_name);
         }
         else if (branch_type == "ASSIGN")
         {
@@ -81,13 +81,13 @@ void TypeChecker::Check(std::shared_ptr<Branch> branch)
             std::string variable_name = variable_name_branch->getValue();
             std::string variable_value = variable_value_branch->getValue();
 
-            if (!isVariableRegistered(variable_name))
+            if (!isEntityRegistered(variable_name))
             {
                 throwUndeclaredException(variable_name_branch);
             }
             if (variable_value_branch->getType() == "identifier")
             {
-                if (!isVariableRegistered(variable_value))
+                if (!isEntityRegistered(variable_value))
                 {
                     throwUndeclaredException(variable_value_branch);
                 }
@@ -95,9 +95,23 @@ void TypeChecker::Check(std::shared_ptr<Branch> branch)
         }
         else if (branch_type == "SCOPE")
         {
-            // Push a new variable scope as we are in a new scope now
-            std::vector<struct variable> variables;
-            this->scopes.push(variables);
+            // Push a new entity scope as we are in a new scope now
+            std::vector<struct entity> entities;
+            this->scopes.push(entities);
+        } else if(branch_type == "FUNC")
+        {
+            std::shared_ptr<Branch> func_return_type_branch = children[0];
+            std::shared_ptr<Branch> func_name_branch = children[1]->getChildren()[0];
+            
+            std::string func_return_type_value = func_return_type_branch->getValue();
+            std::string func_name_value = func_name_branch->getValue();
+            
+            if (isEntityRegistered(func_name_value))
+            {
+                throwAlreadyDeclaredException(func_name_branch);
+            }
+            
+            registerEntity(func_return_type_value, func_name_value);
         }
 
         // Check its children.
@@ -114,39 +128,39 @@ void TypeChecker::Check(std::shared_ptr<Branch> branch)
     }
 }
 
-bool TypeChecker::isVariableRegistered(std::string name)
+bool TypeChecker::isEntityRegistered(std::string name)
 {
-    std::vector<struct variable>* variables = &this->scopes.top();
-    if (isVariableInVector(variables, name))
+    std::vector<struct entity>* entities = &this->scopes.top();
+    if (isEntityInVector(entities, name))
         return true;
     
     // Its not in the scope so lets check the global scope
-    if (isVariableInVector(this->global_scope, name))
+    if (isEntityInVector(this->global_scope, name))
         return true;
 
     return false;
 }
 
 
-bool TypeChecker::isVariableInVector(std::vector<struct variable>* vector, std::string name)
+bool TypeChecker::isEntityInVector(std::vector<struct entity>* vector, std::string name)
 {
-    for (std::vector<struct variable>::iterator it = vector->begin(); it < vector->end(); it++)
+    for (std::vector<struct entity>::iterator it = vector->begin(); it < vector->end(); it++)
     {
-        struct variable var = *it;
-        if (var.name == name)
+        struct entity en = *it;
+        if (en.name == name)
             return true;
     }
     
     return false;
 }
 
-void TypeChecker::registerVariable(std::string type, std::string name)
+void TypeChecker::registerEntity(std::string type, std::string name)
 {
-    std::vector<struct variable>* variables = &this->scopes.top();
-    struct variable var;
-    var.type = type;
-    var.name = name;
-    variables->push_back(var);
+    std::vector<struct entity>* entities = &this->scopes.top();
+    struct entity en;
+    en.type = type;
+    en.name = name;
+    entities->push_back(en);
 }
 
 void TypeChecker::throwAlreadyDeclaredException(std::shared_ptr<Branch> branch)

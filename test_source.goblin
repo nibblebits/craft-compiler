@@ -7,7 +7,8 @@ int32 #aFunction(uint32 b)
 	c = b
 }
 
-int32 #bFunction(uint32 e)
+int32 #aFunction(uint32 e)
 {
-	m = 3
+	uint32 dan
+	dan = 3 / 4
 }

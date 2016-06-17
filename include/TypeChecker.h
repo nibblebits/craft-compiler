@@ -41,19 +41,19 @@ public:
     void validate();
 private:
     /* This structure will need changing should this language become object orientated */
-    struct variable {
+    struct entity {
         std::string type;
         std::string name;
     };
     
-    std::stack<std::vector<struct variable>> scopes;
+    std::stack<std::vector<struct entity>> scopes;
     std::shared_ptr<Tree> tree;
     
-    std::vector<struct variable>* global_scope;
+    std::vector<struct entity>* global_scope;
     void Check(std::shared_ptr<Branch> branch);
-    bool isVariableRegistered(std::string name);
-    bool isVariableInVector(std::vector<struct variable>* vector, std::string name);
-    void registerVariable(std::string type, std::string name);
+    bool isEntityRegistered(std::string name);
+    bool isEntityInVector(std::vector<struct entity>* vector, std::string name);
+    void registerEntity(std::string type, std::string name);
     
     void throwAlreadyDeclaredException(std::shared_ptr<Branch> branch);
     void throwUndeclaredException(std::shared_ptr<Branch> branch);
