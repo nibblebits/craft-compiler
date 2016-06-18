@@ -38,6 +38,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/ASTAssistant.o \
 	${OBJECTDIR}/src/Branch.o \
+	${OBJECTDIR}/src/CodeGenerator.o \
 	${OBJECTDIR}/src/Compiler.o \
 	${OBJECTDIR}/src/CompilerEntity.o \
 	${OBJECTDIR}/src/Helper.o \
@@ -88,6 +89,11 @@ ${OBJECTDIR}/src/Branch.o: src/Branch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Branch.o src/Branch.cpp
+
+${OBJECTDIR}/src/CodeGenerator.o: src/CodeGenerator.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CodeGenerator.o src/CodeGenerator.cpp
 
 ${OBJECTDIR}/src/Compiler.o: src/Compiler.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
