@@ -49,8 +49,7 @@ private:
     
     std::stack<std::vector<struct entity>> scopes;
     std::shared_ptr<Tree> tree;
-    ASTAssistant* astAssistant;
-    
+    ASTAssistant* astAssistant;  
     std::vector<struct entity>* global_scope;
     void Check(std::shared_ptr<Branch> branch);
     bool isEntityRegistered(std::string name);

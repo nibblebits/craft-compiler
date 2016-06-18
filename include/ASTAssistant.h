@@ -28,7 +28,8 @@
 #include <vector>
 #include "Branch.h"
 #include "CompilerEntity.h"
-class ASTAssistant : public CompilerEntity {
+class ASTAssistant : public CompilerEntity 
+{
 public:
     ASTAssistant(Compiler* compiler);
     virtual ~ASTAssistant();
