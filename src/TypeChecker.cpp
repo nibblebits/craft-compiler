@@ -75,21 +75,19 @@ void TypeChecker::Check(std::shared_ptr<Branch> branch)
         }
         else if (branch_type == "ASSIGN")
         {
-            // Not yet complete
             std::shared_ptr<Branch> variable_name_branch = children[0]->getChildren()[0];
-            std::shared_ptr<Branch> variable_value_branch = children[2]->getChildren()[0];
-            std::string variable_name = variable_name_branch->getValue();
-            std::string variable_value = variable_value_branch->getValue();
+            std::vector<std::shared_ptr<Branch>> all_identifiers_of_assignment = astAssistant.findAllChildrenOfType(children[2], "identifier");
 
-            if (!isEntityRegistered(variable_name))
+            if (!isEntityRegistered(variable_name_branch->getValue()))
             {
                 throwUndeclaredException(variable_name_branch);
             }
-            if (variable_value_branch->getType() == "identifier")
+          
+            for (std::shared_ptr<Branch> identifier : all_identifiers_of_assignment)
             {
-                if (!isEntityRegistered(variable_value))
+                if(!isEntityRegistered(identifier->getValue()))
                 {
-                    throwUndeclaredException(variable_value_branch);
+                    throwUndeclaredException(identifier);
                 }
             }
         }

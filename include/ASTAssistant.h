@@ -25,12 +25,15 @@
 #ifndef ASTASSISTANT_H
 #define ASTASSISTANT_H
 
+#include <vector>
+#include "Branch.h"
 class ASTAssistant {
 public:
     ASTAssistant();
     virtual ~ASTAssistant();
+    std::vector<std::shared_ptr<Branch>> findAllChildrenOfType(std::shared_ptr<Branch> root, std::string branch_type);
 private:
-
+    
 };
 
 #endif /* ASTASSISTANT_H */

@@ -1,14 +1,3 @@
 int32 a
 int32 c
-
-int32 #aFunction(uint32 b)
-{
-	uint32 m
-	c = b
-}
-
-int32 #aFunction(uint32 e)
-{
-	uint32 dan
-	dan = 3 / 4
-}
+c = (b + a)
