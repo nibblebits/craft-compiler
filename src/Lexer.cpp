@@ -33,14 +33,14 @@ const std::string keywords[] = {
     "if", "for", "do", "while", "next", "continue", "break", "switch"
 };
 
-Lexer::Lexer()
+Lexer::Lexer(Compiler* compiler) : CompilerEntity(compiler)
 {
+    
 }
 
 Lexer::~Lexer()
 {
-   /* Do not delete tokens here as tokens are also branches and are deleted by the parser.
-    * I know that should the lexer fail we will have a memory leak but this issue will be addressed later. */
+
 }
 
 void Lexer::setInput(std::string input)

@@ -16,26 +16,26 @@
  */
 
 /* 
- * File:   ASTAssistant.h
+ * File:   CompilerEntity.h
  * Author: Daniel McCarthy
  *
- * Created on 17 June 2016, 00:50
+ * Created on 18 June 2016, 19:07
  */
 
-#ifndef ASTASSISTANT_H
-#define ASTASSISTANT_H
+#ifndef COMPILERENTITY_H
+#define COMPILERENTITY_H
 
-#include <vector>
-#include "Branch.h"
-#include "CompilerEntity.h"
-class ASTAssistant : public CompilerEntity {
+class Compiler;
+class CompilerEntity {
 public:
-    ASTAssistant(Compiler* compiler);
-    virtual ~ASTAssistant();
-    std::vector<std::shared_ptr<Branch>> findAllChildrenOfType(std::shared_ptr<Branch> root, std::string branch_type);
+    CompilerEntity(Compiler* compiler);
+    virtual ~CompilerEntity();
+protected:
+    Compiler* getCompiler();
 private:
-    
+    Compiler* compiler;
+
 };
 
-#endif /* ASTASSISTANT_H */
+#endif /* COMPILERENTITY_H */
 

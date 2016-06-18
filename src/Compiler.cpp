@@ -16,26 +16,43 @@
  */
 
 /* 
- * File:   ASTAssistant.h
+ * File:   Compiler.cpp
  * Author: Daniel McCarthy
  *
- * Created on 17 June 2016, 00:50
+ * Created on 18 June 2016, 18:53
+ * 
+ * Description: 
  */
 
-#ifndef ASTASSISTANT_H
-#define ASTASSISTANT_H
+#include "Compiler.h"
 
-#include <vector>
-#include "Branch.h"
-#include "CompilerEntity.h"
-class ASTAssistant : public CompilerEntity {
-public:
-    ASTAssistant(Compiler* compiler);
-    virtual ~ASTAssistant();
-    std::vector<std::shared_ptr<Branch>> findAllChildrenOfType(std::shared_ptr<Branch> root, std::string branch_type);
-private:
-    
-};
+Compiler::Compiler() 
+{
+    this->lexer = new Lexer(this);
+    this->parser = new Parser(this);
+    this->typeChecker = new TypeChecker(this);
+    this->astAssistant = new ASTAssistant(this);
+}
 
-#endif /* ASTASSISTANT_H */
+Compiler::~Compiler() 
+{
+    delete this->typeChecker;
+}
 
+Lexer* Compiler::getLexer()
+{
+    return this->lexer;
+}
+Parser* Compiler::getParser()
+{
+    return this->parser;
+}
+TypeChecker* Compiler::getTypeChecker()
+{
+    return this->typeChecker;
+}
+
+ASTAssistant* Compiler::getASTAssistant()
+{
+    return this->astAssistant;
+}

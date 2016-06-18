@@ -26,9 +26,11 @@
  */
 
 #include "TypeChecker.h"
+#include "Compiler.h"
 
-TypeChecker::TypeChecker()
+TypeChecker::TypeChecker(Compiler* compiler) : CompilerEntity(compiler)
 {
+    this->astAssistant = compiler->getASTAssistant();
 }
 
 TypeChecker::~TypeChecker()
@@ -76,7 +78,7 @@ void TypeChecker::Check(std::shared_ptr<Branch> branch)
         else if (branch_type == "ASSIGN")
         {
             std::shared_ptr<Branch> variable_name_branch = children[0]->getChildren()[0];
-            std::vector<std::shared_ptr<Branch>> all_identifiers_of_assignment = astAssistant.findAllChildrenOfType(children[2], "identifier");
+            std::vector<std::shared_ptr<Branch>> all_identifiers_of_assignment = astAssistant->findAllChildrenOfType(children[2], "identifier");
 
             if (!isEntityRegistered(variable_name_branch->getValue()))
             {

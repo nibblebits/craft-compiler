@@ -37,14 +37,15 @@
 #include "Tree.h"
 #include "Token.h"
 #include "Branch.h"
+#include "CompilerEntity.h"
 
 #define PARSER_RULE_COMPATIBLE 0
 #define PARSER_RULE_COMPATIBLE_NO_BRANCH 1
 #define PARSER_RULE_INCOMPATIBLE 2
 
-class Parser {
+class Parser : public CompilerEntity {
 public:
-    Parser();
+    Parser(Compiler* compiler);
     virtual ~Parser();
     void addRule(std::string rule_exp);
     void setInput(std::vector<std::shared_ptr<Token>> tokens);

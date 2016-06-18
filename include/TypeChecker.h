@@ -31,11 +31,11 @@
 #include "TypeCheckerException.h"
 #include "Token.h"
 #include "ASTAssistant.h"
-
-class TypeChecker
+#include "CompilerEntity.h"
+class TypeChecker : public CompilerEntity
 {
 public:
-    TypeChecker();
+    TypeChecker(Compiler* compiler);
     virtual ~TypeChecker();
 
     void setTree(std::shared_ptr<Tree> tree);
@@ -49,7 +49,7 @@ private:
     
     std::stack<std::vector<struct entity>> scopes;
     std::shared_ptr<Tree> tree;
-    ASTAssistant astAssistant;
+    ASTAssistant* astAssistant;
     
     std::vector<struct entity>* global_scope;
     void Check(std::shared_ptr<Branch> branch);

@@ -16,26 +16,36 @@
  */
 
 /* 
- * File:   ASTAssistant.h
+ * File:   Compiler.h
  * Author: Daniel McCarthy
  *
- * Created on 17 June 2016, 00:50
+ * Created on 18 June 2016, 18:53
  */
 
-#ifndef ASTASSISTANT_H
-#define ASTASSISTANT_H
+#ifndef COMPILER_H
+#define COMPILER_H
 
-#include <vector>
-#include "Branch.h"
-#include "CompilerEntity.h"
-class ASTAssistant : public CompilerEntity {
+#include "Lexer.h"
+#include "Parser.h"
+#include "TypeChecker.h"
+#include "ASTAssistant.h"
+
+class Compiler {
 public:
-    ASTAssistant(Compiler* compiler);
-    virtual ~ASTAssistant();
-    std::vector<std::shared_ptr<Branch>> findAllChildrenOfType(std::shared_ptr<Branch> root, std::string branch_type);
+    Compiler();
+    virtual ~Compiler();
+    Lexer* getLexer();
+    Parser* getParser();
+    TypeChecker* getTypeChecker();
+    ASTAssistant* getASTAssistant();
 private:
-    
+    /* Ideally these do not have to be pointers but since arguments now exist in the constructors of these objects I have ran into issues calling them.
+     * I plan to change this soon */
+    Lexer* lexer;
+    Parser* parser;
+    TypeChecker* typeChecker;
+    ASTAssistant* astAssistant;
 };
 
-#endif /* ASTASSISTANT_H */
+#endif /* COMPILER_H */
 

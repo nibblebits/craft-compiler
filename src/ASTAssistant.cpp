@@ -26,7 +26,7 @@
 
 #include "ASTAssistant.h"
 
-ASTAssistant::ASTAssistant() {
+ASTAssistant::ASTAssistant(Compiler* compiler) : CompilerEntity(compiler) {
 }
 
 ASTAssistant::~ASTAssistant() {

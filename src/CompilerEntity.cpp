@@ -16,26 +16,27 @@
  */
 
 /* 
- * File:   ASTAssistant.h
+ * File:   CompilerEntity.cpp
  * Author: Daniel McCarthy
  *
- * Created on 17 June 2016, 00:50
+ * Created on 18 June 2016, 19:07
+ * 
+ * Description: All compiler entities extend this for example the lexer, parser, type checker, ASTAssistant and code generators extend this class.
+ * This class provides access to the compiler.
  */
 
-#ifndef ASTASSISTANT_H
-#define ASTASSISTANT_H
-
-#include <vector>
-#include "Branch.h"
 #include "CompilerEntity.h"
-class ASTAssistant : public CompilerEntity {
-public:
-    ASTAssistant(Compiler* compiler);
-    virtual ~ASTAssistant();
-    std::vector<std::shared_ptr<Branch>> findAllChildrenOfType(std::shared_ptr<Branch> root, std::string branch_type);
-private:
-    
-};
 
-#endif /* ASTASSISTANT_H */
+CompilerEntity::CompilerEntity(Compiler* compiler)
+{
+    this->compiler = compiler;
+}
 
+CompilerEntity::~CompilerEntity()
+{
+}
+
+Compiler* CompilerEntity::getCompiler()
+{
+    return this->compiler;
+}

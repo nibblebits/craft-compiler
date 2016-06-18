@@ -7,6 +7,8 @@
       <itemPath>include/ASTAssistant.h</itemPath>
       <itemPath>include/Branch.h</itemPath>
       <itemPath>include/CharPos.h</itemPath>
+      <itemPath>include/Compiler.h</itemPath>
+      <itemPath>include/CompilerEntity.h</itemPath>
       <itemPath>include/Exception.h</itemPath>
       <itemPath>include/Helper.h</itemPath>
       <itemPath>include/Lexer.h</itemPath>
@@ -31,6 +33,8 @@
                    projectFiles="true">
       <itemPath>src/ASTAssistant.cpp</itemPath>
       <itemPath>src/Branch.cpp</itemPath>
+      <itemPath>src/Compiler.cpp</itemPath>
+      <itemPath>src/CompilerEntity.cpp</itemPath>
       <itemPath>src/Helper.cpp</itemPath>
       <itemPath>src/Lexer.cpp</itemPath>
       <itemPath>src/Parser.cpp</itemPath>
@@ -53,6 +57,10 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>include</Elem>
+    <Elem>src</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
@@ -76,6 +84,10 @@
       <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/CharPos.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Compiler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CompilerEntity.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Exception.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -111,6 +123,10 @@
       <item path="src/ASTAssistant.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Compiler.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CompilerEntity.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -157,6 +173,10 @@
       </item>
       <item path="include/CharPos.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Compiler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CompilerEntity.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Exception.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
@@ -191,6 +211,10 @@
       <item path="src/ASTAssistant.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Compiler.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CompilerEntity.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
       </item>

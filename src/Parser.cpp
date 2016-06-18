@@ -26,7 +26,7 @@
 
 #include "Parser.h"
 
-Parser::Parser()
+Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
 {
     this->tree = NULL;
 }

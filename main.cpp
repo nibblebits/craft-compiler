@@ -28,9 +28,7 @@
 #include <memory>
 #include <fstream>
 #include "def.h"
-#include "Lexer.h"
-#include "Parser.h"
-#include "TypeChecker.h"
+#include "Compiler.h"
 
 using namespace std;
 
@@ -62,12 +60,14 @@ void debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs = 0)
 }
 #endif
 
-Lexer lexer;
-Parser parser;
-TypeChecker typeChecker;
 
 int main(int argc, char** argv)
 {
+    Compiler compiler;
+    Lexer* lexer = compiler.getLexer();
+    Parser* parser = compiler.getParser();
+    TypeChecker* typeChecker = compiler.getTypeChecker();
+    
     std::cout << COMPILER_FULLNAME << std::endl;
     if (argc == 1)
     {
@@ -91,12 +91,12 @@ int main(int argc, char** argv)
     }
     ifs.close();
 
-    lexer.setInput(source);
+    lexer->setInput(source);
     try
     {
-        lexer.tokenize();
+        lexer->tokenize();
 #ifdef DEBUG_MODE
-        debug_output_tokens(lexer.getTokens());
+        debug_output_tokens(lexer->getTokens());
 #endif
     }
     catch (LexerException ex)
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
         return 3;
     }
 
-    if (lexer.getTokens().size() == 0)
+    if (lexer->getTokens().size() == 0)
     {
         std::cout << "Nothing to compile, file is empty or just whitespaces." << std::endl;
         return 4;
@@ -113,30 +113,30 @@ int main(int argc, char** argv)
 
     try
     {
-        parser.addRule("E:identifier");
-        parser.addRule("E:number");
-        parser.addRule("E:E:operator:E");
-        parser.addRule("V_DEF:keyword:E");
-        parser.addRule("E:'symbol@(:E:'symbol@)");
-        parser.addRule("E:E:'symbol@,:E");
-        parser.addRule("PD:'symbol@(:V_DEF:'symbol@)");
-        parser.addRule("FUNC:keyword:'symbol@#:E:PD:SCOPE");
-        parser.addRule("ASSIGN:E:symbol@=:E");
-        parser.addRule("ASSIGN:E:symbol@=:STMT");
-        parser.addRule("CALL:'symbol@#:E:E");
-        parser.addRule("CALL:'symbol@#:E:ZERO_ARGS");
-        parser.addRule("ZERO_ARGS:'symbol@(:'symbol@)");
-        parser.addRule("SCOPE:'symbol@{:STMT:'symbol@}");
-        parser.addRule("SCOPE:'symbol@{:'symbol@}");
-        parser.addRule("STMT:CALL");
-        parser.addRule("STMT:ASSIGN");
-        parser.addRule("STMT:V_DEF");
-        parser.addRule("STMT:STMT:STMT");
-        parser.setInput(lexer.getTokens());
-        parser.buildTree();
+        parser->addRule("E:identifier");
+        parser->addRule("E:number");
+        parser->addRule("E:E:operator:E");
+        parser->addRule("V_DEF:keyword:E");
+        parser->addRule("E:'symbol@(:E:'symbol@)");
+        parser->addRule("E:E:'symbol@,:E");
+        parser->addRule("PD:'symbol@(:V_DEF:'symbol@)");
+        parser->addRule("FUNC:keyword:'symbol@#:E:PD:SCOPE");
+        parser->addRule("ASSIGN:E:symbol@=:E");
+        parser->addRule("ASSIGN:E:symbol@=:STMT");
+        parser->addRule("CALL:'symbol@#:E:E");
+        parser->addRule("CALL:'symbol@#:E:ZERO_ARGS");
+        parser->addRule("ZERO_ARGS:'symbol@(:'symbol@)");
+        parser->addRule("SCOPE:'symbol@{:STMT:'symbol@}");
+        parser->addRule("SCOPE:'symbol@{:'symbol@}");
+        parser->addRule("STMT:CALL");
+        parser->addRule("STMT:ASSIGN");
+        parser->addRule("STMT:V_DEF");
+        parser->addRule("STMT:STMT:STMT");
+        parser->setInput(lexer->getTokens());
+        parser->buildTree();
 
 #ifdef DEBUG_MODE
-        debug_output_branch(parser.getTree()->root);
+        debug_output_branch(parser->getTree()->root);
 #endif
     }
     catch (ParserException ex)
@@ -148,8 +148,8 @@ int main(int argc, char** argv)
 
     try
     {
-        typeChecker.setTree(parser.getTree());
-        typeChecker.validate();
+        typeChecker->setTree(parser->getTree());
+        typeChecker->validate();
     } catch(TypeCheckerException ex)
     {
         std::cout << "Error with types: " << ex.getMessage() << std::endl;

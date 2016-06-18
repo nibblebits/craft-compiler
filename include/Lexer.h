@@ -30,14 +30,15 @@
 #include <memory>
 #include "Token.h"
 #include "LexerException.h"
+#include "CompilerEntity.h"
 
 typedef bool (*is_func)();
 typedef bool (*callback_func)(char);
 
-class Lexer
+class Lexer : public CompilerEntity
 {
 public:
-    Lexer();
+    Lexer(Compiler* compiler);
     void setInput(std::string input);
     void tokenize();
     std::vector<std::shared_ptr<Token>> getTokens();
