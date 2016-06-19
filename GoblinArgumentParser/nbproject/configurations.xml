@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="97">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>include/Argument.h</itemPath>
+      <itemPath>include/ArgumentContainer.h</itemPath>
+      <itemPath>include/GoblinArgumentException.h</itemPath>
+      <itemPath>include/GoblinArgumentParser.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>src/Argument.cpp</itemPath>
+      <itemPath>src/ArgumentContainer.cpp</itemPath>
+      <itemPath>GoblinArgumentParser.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="2">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <standard>11</standard>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+        </ccTool>
+      </compileType>
+      <item path="GoblinArgumentParser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="include/Argument.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ArgumentContainer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinArgumentException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinArgumentParser.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Argument.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ArgumentContainer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+      <item path="GoblinArgumentParser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="include/Argument.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ArgumentContainer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinArgumentException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinArgumentParser.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/Argument.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ArgumentContainer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

@@ -2,7 +2,7 @@
 <configurationDescriptor version="97">
   <projectmakefile>Makefile</projectmakefile>
   <confs>
-    <conf name="Debug" type="1">
+    <conf name="Debug" type="2">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
         <platform>3</platform>
@@ -25,18 +25,8 @@
       <runprofile version="9">
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" test_source.gob</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" test_source.goblin</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -A -B
-</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -A woop</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -A</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblina -output test_source.goblino</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblin</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino</runcommand>
+        <runcommand>"${OUTPUT_PATH}"</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>
@@ -45,7 +35,7 @@
         </environment>
       </runprofile>
     </conf>
-    <conf name="Release" type="1">
+    <conf name="Release" type="2">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
         <platform>3</platform>

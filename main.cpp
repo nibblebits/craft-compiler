@@ -29,10 +29,24 @@
 #include <fstream>
 #include "def.h"
 #include "Compiler.h"
+#include "Exception.h"
+#include "GoblinLibraryLoader.h"
+#include "GoblinArgumentParser.h"
 
 using namespace std;
 
-#ifdef DEBUG_MODE
+enum
+{
+    NO_ARGUMENTS_PROVIDED = 1,
+    ARGUMENT_PARSE_PROBLEM = 2,
+    PROBLEM_WITH_ARGUMENT = 3,
+    SOURCE_FILE_LOAD_FAILURE = 4,
+    ERROR_WITH_LEXER = 5,
+    ERROR_WITH_PARSER = 6,
+    ERROR_WITH_TYPE_CHECKER = 7
+} CompilerErrorCode; 
+
+#ifdef DEBUG_MODE 
 
 void debug_output_tokens(std::vector<std::shared_ptr<Token>> tokens)
 {
@@ -60,29 +74,15 @@ void debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs = 0)
 }
 #endif
 
-
-int main(int argc, char** argv)
+std::string LoadFile(std::string filename)
 {
-    Compiler compiler;
-    Lexer* lexer = compiler.getLexer();
-    Parser* parser = compiler.getParser();
-    TypeChecker* typeChecker = compiler.getTypeChecker();
-    
-    std::cout << COMPILER_FULLNAME << std::endl;
-    if (argc == 1)
-    {
-        std::cout << "No arguments provided, a source file must be specified" << std::endl;
-        return 1;
-    }
-
     // Load the file
     std::ifstream ifs;
     std::string source = "";
-    ifs.open(argv[1]);
+    ifs.open(filename);
     if (!ifs.is_open())
     {
-        std::cout << "Failed to open: " << argv[1] << std::endl;
-        return 2;
+        throw Exception("Failed to open: " + filename);
     }
 
     while (ifs.good())
@@ -91,7 +91,79 @@ int main(int argc, char** argv)
     }
     ifs.close();
 
-    lexer->setInput(source);
+    return source;
+}
+
+int main(int argc, char** argv)
+{
+    std::string codegen;
+    std::string input_file;
+    std::string output_file;
+    std::string source_file_data;
+        
+    Compiler compiler;
+    Lexer* lexer = compiler.getLexer();
+    Parser* parser = compiler.getParser();
+    TypeChecker* typeChecker = compiler.getTypeChecker();
+
+    std::cout << COMPILER_FULLNAME << std::endl;
+    if (argc == 1)
+    {
+        std::cout << "No arguments provided, provide the argument \"-help\" for more information" << std::endl;
+        return NO_ARGUMENTS_PROVIDED;
+    }
+    else
+    {
+        try
+        {
+           ArgumentContainer arguments = GoblinArgumentParser_GetArguments(argc, argv);
+           if (!arguments.hasArgument("input"))
+           {
+               std::cout << "You must provide an input file, use -input filename" << std::endl;
+               return PROBLEM_WITH_ARGUMENT;
+           }
+           
+           if (!arguments.hasArgument("output"))
+           {
+               std::cout << "You must provide an output file, use -output filename" << std::endl;
+               return PROBLEM_WITH_ARGUMENT;
+           }
+           
+           if (!arguments.hasArgument("codegen"))
+           {
+               std::cout << "No code generator provided, defaulting to standard code generator" << std::endl;
+               codegen = "goblin_bytecode";
+           }
+           else
+           {
+               codegen = arguments.getArgumentValue("codegen");
+           }
+           
+           input_file = arguments.getArgumentValue("input");
+           output_file = arguments.getArgumentValue("output");
+           
+           if (input_file == output_file)
+           {
+               std::cout << "The input file and the output file may not be the same" << std::endl;
+               return PROBLEM_WITH_ARGUMENT;
+           }
+           std::cout << "Compiling: " << input_file << " to " << output_file << ", code generator: " << codegen << std::endl;
+        } catch(GoblinArgumentException ex)
+        {
+            std::cout << "Error parsing arguments: " + ex.getMessage() << std::endl;
+            return ARGUMENT_PARSE_PROBLEM;
+        }
+    }
+    try 
+    {
+        source_file_data = LoadFile(input_file);
+    } catch(Exception ex)
+    {
+        std::cout << "Problem loading source file: " << ex.getMessage() << std::endl;
+        return SOURCE_FILE_LOAD_FAILURE;
+    }
+    
+    lexer->setInput(source_file_data);
     try
     {
         lexer->tokenize();
@@ -102,13 +174,13 @@ int main(int argc, char** argv)
     catch (LexerException ex)
     {
         std::cout << "Error with input: " << ex.getMessage() << std::endl;
-        return 3;
+        return ERROR_WITH_LEXER;
     }
 
     if (lexer->getTokens().size() == 0)
     {
         std::cout << "Nothing to compile, file is empty or just whitespaces." << std::endl;
-        return 4;
+        return ERROR_WITH_LEXER;
     }
 
     try
@@ -142,7 +214,7 @@ int main(int argc, char** argv)
     catch (ParserException ex)
     {
         std::cout << "Error parsing: " << ex.getMessage() << std::endl;
-        return 5;
+        return ERROR_WITH_PARSER;
     }
 
 
@@ -150,10 +222,11 @@ int main(int argc, char** argv)
     {
         typeChecker->setTree(parser->getTree());
         typeChecker->validate();
-    } catch(TypeCheckerException ex)
+    }
+    catch (TypeCheckerException ex)
     {
         std::cout << "Error with types: " << ex.getMessage() << std::endl;
-        return 6;
+        return ERROR_WITH_TYPE_CHECKER;
     }
     return 0;
 }

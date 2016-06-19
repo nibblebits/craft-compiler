@@ -1,5 +1,5 @@
 /*
-    Goblin compiler v1.0 - The standard compiler for the Goblin language.
+    Goblin Argument Parser v1.0 - A parser for translating program arguments.
     Copyright (C) 2016  Daniel McCarthy
 
     This program is free software: you can redistribute it and/or modify
@@ -16,37 +16,25 @@
  */
 
 /* 
- * File:   Exception.h
+ * File:   Argument.h
  * Author: Daniel McCarthy
  *
- * Created on 27 May 2016, 16:52
+ * Created on 18 June 2016, 23:55
  */
 
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#ifndef ARGUMENT_H
+#define ARGUMENT_H
 
-class Exception
-{
+#include <string>
+class __declspec(dllexport) Argument {
 public:
-
-    Exception(std::string message)
-    {
-        this->msg = message;
-    }
-
-    virtual ~Exception()
-    {
-        
-    }
-    
-    std::string getMessage()
-    {
-        return this->msg;
-    }
+    Argument();
+    virtual ~Argument();
+    std::string name;
+    std::string value;
 private:
-    std::string msg;
+    
 };
 
-
-#endif /* EXCEPTION_H */
+#endif /* ARGUMENT_H */
 

@@ -60,7 +60,6 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>include</Elem>
     <Elem>src</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
@@ -76,8 +75,20 @@
           <standard>11</standard>
           <incDir>
             <pElem>include</pElem>
+            <pElem>GoblinLibraryLoader/include</pElem>
+            <pElem>GoblinArgumentParser/include</pElem>
           </incDir>
         </ccTool>
+        <linkerTool>
+          <linkerAddLib>
+            <pElem>GoblinLibraryLoader/dist/Debug/MinGW-Windows</pElem>
+            <pElem>GoblinArgumentParser/dist/Debug/MinGW-Windows</pElem>
+          </linkerAddLib>
+          <linkerLibItems>
+            <linkerLibLibItem>GoblinLibraryLoader</linkerLibLibItem>
+            <linkerLibLibItem>GoblinArgumentParser</linkerLibLibItem>
+          </linkerLibItems>
+        </linkerTool>
       </compileType>
       <item path="def.h" ex="false" tool="3" flavor2="0">
       </item>
