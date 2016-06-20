@@ -33,6 +33,9 @@
 #include "GoblinLibraryLoader.h"
 #include "GoblinArgumentParser.h"
 
+// Built in code generators
+#include "GoblinByteCodeGenerator.h"
+
 using namespace std;
 
 enum
@@ -41,10 +44,13 @@ enum
     ARGUMENT_PARSE_PROBLEM = 2,
     PROBLEM_WITH_ARGUMENT = 3,
     SOURCE_FILE_LOAD_FAILURE = 4,
-    ERROR_WITH_LEXER = 5,
-    ERROR_WITH_PARSER = 6,
-    ERROR_WITH_TYPE_CHECKER = 7
-} CompilerErrorCode; 
+    CODEGENERATOR_LOAD_PROBLEM = 5,
+    ERROR_WITH_LEXER = 6,
+    ERROR_WITH_PARSER = 7,
+    ERROR_WITH_TYPE_CHECKER = 8
+} CompilerErrorCode;
+
+Compiler compiler;
 
 #ifdef DEBUG_MODE 
 
@@ -94,17 +100,28 @@ std::string LoadFile(std::string filename)
     return source;
 }
 
+std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
+{
+    std::shared_ptr<CodeGenerator> codegen = NULL;
+    // Check for built in code generators
+    if (codegen_name == "goblin_bytecode")
+    {
+        codegen = std::shared_ptr<CodeGenerator>(new GoblinByteCodeGenerator(&compiler));
+    }
+    else
+    {
+        // Ok the generator is not a built in code generator so look for a library for it
+        throw Exception("The code generator: " + codegen_name + " could not be found");
+    }
+    return codegen;
+}
+
 int main(int argc, char** argv)
 {
-    std::string codegen;
+    std::string codegen_name;
     std::string input_file;
     std::string output_file;
     std::string source_file_data;
-        
-    Compiler compiler;
-    Lexer* lexer = compiler.getLexer();
-    Parser* parser = compiler.getParser();
-    TypeChecker* typeChecker = compiler.getTypeChecker();
 
     std::cout << COMPILER_FULLNAME << std::endl;
     if (argc == 1)
@@ -116,53 +133,71 @@ int main(int argc, char** argv)
     {
         try
         {
-           ArgumentContainer arguments = GoblinArgumentParser_GetArguments(argc, argv);
-           if (!arguments.hasArgument("input"))
-           {
-               std::cout << "You must provide an input file, use -input filename" << std::endl;
-               return PROBLEM_WITH_ARGUMENT;
-           }
-           
-           if (!arguments.hasArgument("output"))
-           {
-               std::cout << "You must provide an output file, use -output filename" << std::endl;
-               return PROBLEM_WITH_ARGUMENT;
-           }
-           
-           if (!arguments.hasArgument("codegen"))
-           {
-               std::cout << "No code generator provided, defaulting to standard code generator" << std::endl;
-               codegen = "goblin_bytecode";
-           }
-           else
-           {
-               codegen = arguments.getArgumentValue("codegen");
-           }
-           
-           input_file = arguments.getArgumentValue("input");
-           output_file = arguments.getArgumentValue("output");
-           
-           if (input_file == output_file)
-           {
-               std::cout << "The input file and the output file may not be the same" << std::endl;
-               return PROBLEM_WITH_ARGUMENT;
-           }
-           std::cout << "Compiling: " << input_file << " to " << output_file << ", code generator: " << codegen << std::endl;
-        } catch(GoblinArgumentException ex)
+            ArgumentContainer arguments = GoblinArgumentParser_GetArguments(argc, argv);
+            if (!arguments.hasArgument("input"))
+            {
+                std::cout << "You must provide an input file, use -input filename" << std::endl;
+                return PROBLEM_WITH_ARGUMENT;
+            }
+
+            if (!arguments.hasArgument("output"))
+            {
+                std::cout << "You must provide an output file, use -output filename" << std::endl;
+                return PROBLEM_WITH_ARGUMENT;
+            }
+
+            if (!arguments.hasArgument("codegen"))
+            {
+                std::cout << "No code generator provided, defaulting to standard code generator" << std::endl;
+                codegen_name = "goblin_bytecode";
+            }
+            else
+            {
+                codegen_name = arguments.getArgumentValue("codegen");
+            }
+
+            input_file = arguments.getArgumentValue("input");
+            output_file = arguments.getArgumentValue("output");
+
+            if (input_file == output_file)
+            {
+                std::cout << "The input file and the output file may not be the same" << std::endl;
+                return PROBLEM_WITH_ARGUMENT;
+            }
+            std::cout << "Compiling: " << input_file << " to " << output_file << ", code generator: " << codegen_name << std::endl;
+        }
+        catch (GoblinArgumentException ex)
         {
             std::cout << "Error parsing arguments: " + ex.getMessage() << std::endl;
             return ARGUMENT_PARSE_PROBLEM;
         }
     }
-    try 
+    try
     {
         source_file_data = LoadFile(input_file);
-    } catch(Exception ex)
+    }
+    catch (Exception ex)
     {
         std::cout << "Problem loading source file: " << ex.getMessage() << std::endl;
         return SOURCE_FILE_LOAD_FAILURE;
     }
-    
+
+    std::shared_ptr<CodeGenerator> codegen;
+    try
+    {
+        codegen = getCodeGenerator(codegen_name);
+        compiler.setCodeGenerator(codegen);
+    }
+    catch (Exception ex)
+    {
+        std::cout << "Problem loading code generator: " << ex.getMessage() << std::endl;
+        return CODEGENERATOR_LOAD_PROBLEM;
+    }
+
+    Lexer* lexer = compiler.getLexer();
+    Parser* parser = compiler.getParser();
+    TypeChecker* typeChecker = compiler.getTypeChecker();
+
     lexer->setInput(source_file_data);
     try
     {
@@ -228,6 +263,9 @@ int main(int argc, char** argv)
         std::cout << "Error with types: " << ex.getMessage() << std::endl;
         return ERROR_WITH_TYPE_CHECKER;
     }
+    
+    Stream* stream = codegen->generate(parser->getTree());
+    
     return 0;
 }
 

@@ -25,19 +25,25 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
+#include <memory>
 #include "Lexer.h"
 #include "Parser.h"
 #include "TypeChecker.h"
 #include "ASTAssistant.h"
+#include "CodeGenerator.h"
+#include "Exception.h"
 
 class Compiler {
 public:
     Compiler();
     virtual ~Compiler();
+    
+    void setCodeGenerator(std::shared_ptr<CodeGenerator> codegen);
     Lexer* getLexer();
     Parser* getParser();
     TypeChecker* getTypeChecker();
     ASTAssistant* getASTAssistant();
+    std::shared_ptr<CodeGenerator> getCodeGenerator();
 private:
     /* Ideally these do not have to be pointers but since arguments now exist in the constructors of these objects I have ran into issues calling them.
      * I plan to change this soon */
@@ -45,6 +51,9 @@ private:
     Parser* parser;
     TypeChecker* typeChecker;
     ASTAssistant* astAssistant;
+    
+    // The code generator must be shared as we are not the sole owner of it and it would be unsafe to not have this as a shared pointer.
+    std::shared_ptr<CodeGenerator> codeGenerator;
 };
 
 #endif /* COMPILER_H */

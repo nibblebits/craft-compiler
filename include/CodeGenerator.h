@@ -24,13 +24,20 @@
 
 #ifndef CODEGENERATOR_H
 #define CODEGENERATOR_H
+#include "Tree.h"
+#include "Stream.h"
 #include "CompilerEntity.h"
 class CodeGenerator : public CompilerEntity {
 public:
     CodeGenerator(Compiler* compiler);
     virtual ~CodeGenerator();
+    
+    Stream* getStream();
+    virtual Stream* generate(std::shared_ptr<Tree> tree) = 0;
+protected:
+    Stream* stream;
 private:
-
+            
 };
 
 #endif /* CODEGENERATOR_H */

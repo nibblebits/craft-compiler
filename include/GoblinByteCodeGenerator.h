@@ -16,32 +16,26 @@
  */
 
 /* 
- * File:   CodeGenerator.cpp
+ * File:   GoblinByteCodeGenerator.h
  * Author: Daniel McCarthy
  *
- * Created on 18 June 2016, 19:49
- * 
- * Description: The base class for all code generators.
- * 
- * Code generators are objects that take in an AST(Abstract Syntax Tree) and convert it to some form of output
- * weather that be byte code, machine code or even source code.
+ * Created on 20 June 2016, 01:07
  */
 
+#ifndef GOBLINBYTECODEGENERATOR_H
+#define GOBLINBYTECODEGENERATOR_H
+
 #include "CodeGenerator.h"
-
-CodeGenerator::CodeGenerator(Compiler* compiler) : CompilerEntity(compiler) 
+class GoblinByteCodeGenerator : public CodeGenerator
 {
-    this->stream = new Stream();
-}
+public:
+    GoblinByteCodeGenerator(Compiler* compiler);
+    virtual ~GoblinByteCodeGenerator();
+    
+    virtual Stream* generate(std::shared_ptr<Tree> tree);
+private:
 
-CodeGenerator::~CodeGenerator() 
-{
-    delete this->stream;
-}
+};
 
-
-Stream* CodeGenerator::getStream()
-{
-    return this->stream;
-}
+#endif /* GOBLINBYTECODEGENERATOR_H */
 

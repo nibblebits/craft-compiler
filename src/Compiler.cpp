@@ -21,7 +21,7 @@
  *
  * Created on 18 June 2016, 18:53
  * 
- * Description: 
+ * Description: Holds all major entities to the compiler
  */
 
 #include "Compiler.h"
@@ -32,11 +32,22 @@ Compiler::Compiler()
     this->parser = new Parser(this);
     this->typeChecker = new TypeChecker(this);
     this->astAssistant = new ASTAssistant(this);
+    this->codeGenerator = NULL;
 }
 
 Compiler::~Compiler() 
 {
     delete this->typeChecker;
+}
+
+void Compiler::setCodeGenerator(std::shared_ptr<CodeGenerator> codegen)
+{
+    if(this->codeGenerator != NULL)
+        throw Exception("An existing code generator has already been set! Only one code generator may be set to the compiler");
+    if(codegen == NULL)
+        throw Exception("The code generator may not be NULL!");
+    
+    this->codeGenerator = codegen;
 }
 
 Lexer* Compiler::getLexer()
@@ -55,4 +66,10 @@ TypeChecker* Compiler::getTypeChecker()
 ASTAssistant* Compiler::getASTAssistant()
 {
     return this->astAssistant;
+}
+
+
+std::shared_ptr<CodeGenerator> Compiler::getCodeGenerator()
+{
+    return this->codeGenerator;
 }

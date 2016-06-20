@@ -41,7 +41,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/CodeGenerator.o \
 	${OBJECTDIR}/src/Compiler.o \
 	${OBJECTDIR}/src/CompilerEntity.o \
-	${OBJECTDIR}/src/GoblinBytecodeGenerator.o \
+	${OBJECTDIR}/src/GoblinByteCodeGenerator.o \
 	${OBJECTDIR}/src/Helper.o \
 	${OBJECTDIR}/src/Lexer.o \
 	${OBJECTDIR}/src/Parser.o \
@@ -107,10 +107,10 @@ ${OBJECTDIR}/src/CompilerEntity.o: src/CompilerEntity.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CompilerEntity.o src/CompilerEntity.cpp
 
-${OBJECTDIR}/src/GoblinBytecodeGenerator.o: src/GoblinBytecodeGenerator.cpp 
+${OBJECTDIR}/src/GoblinByteCodeGenerator.o: src/GoblinByteCodeGenerator.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinBytecodeGenerator.o src/GoblinBytecodeGenerator.cpp
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinByteCodeGenerator.o src/GoblinByteCodeGenerator.cpp
 
 ${OBJECTDIR}/src/Helper.o: src/Helper.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
