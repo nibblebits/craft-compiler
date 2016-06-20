@@ -79,3 +79,9 @@ uint32_t Stream::read32()
     uint32_t result = (s1 << 16 | s2);
     return result;
 }
+
+
+size_t Stream::getSize()
+{
+    return this->stack.size();
+}

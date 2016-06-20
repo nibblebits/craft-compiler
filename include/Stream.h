@@ -26,6 +26,7 @@
 #define STREAM_H
 
 #include <stdint.h>
+#include <cstring>
 #include <deque>
 class Stream {
 public:
@@ -37,6 +38,7 @@ public:
     uint8_t read8();
     uint16_t read16();
     uint32_t read32();
+    size_t getSize();
 private:
     std::deque<uint8_t> stack;
 };
