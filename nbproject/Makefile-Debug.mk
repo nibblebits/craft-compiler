@@ -41,11 +41,13 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/CodeGenerator.o \
 	${OBJECTDIR}/src/Compiler.o \
 	${OBJECTDIR}/src/CompilerEntity.o \
+	${OBJECTDIR}/src/GoblinBytecodeGenerator.o \
 	${OBJECTDIR}/src/Helper.o \
 	${OBJECTDIR}/src/Lexer.o \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
+	${OBJECTDIR}/src/Stream.o \
 	${OBJECTDIR}/src/Token.o \
 	${OBJECTDIR}/src/Tree.o \
 	${OBJECTDIR}/src/TypeChecker.o
@@ -105,6 +107,11 @@ ${OBJECTDIR}/src/CompilerEntity.o: src/CompilerEntity.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CompilerEntity.o src/CompilerEntity.cpp
 
+${OBJECTDIR}/src/GoblinBytecodeGenerator.o: src/GoblinBytecodeGenerator.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinBytecodeGenerator.o src/GoblinBytecodeGenerator.cpp
+
 ${OBJECTDIR}/src/Helper.o: src/Helper.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -129,6 +136,11 @@ ${OBJECTDIR}/src/ParserRuleRequirement.o: src/ParserRuleRequirement.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ParserRuleRequirement.o src/ParserRuleRequirement.cpp
+
+${OBJECTDIR}/src/Stream.o: src/Stream.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Stream.o src/Stream.cpp
 
 ${OBJECTDIR}/src/Token.o: src/Token.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
