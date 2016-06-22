@@ -1,3 +1,5 @@
 *.o.d
 *.o
 *.exe
+*.dll
+goblincompilerv1.0
