@@ -16,43 +16,25 @@
  */
 
 /* 
- * File:   Branch.h
+ * File:   CallBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 29 May 2016, 20:41
+ * Created on 21 June 2016, 21:02
  */
 
-#ifndef BRANCH_H
-#define BRANCH_H
+#ifndef CALLBRANCH_H
+#define CALLBRANCH_H
 
-#include <cstddef>
-#include <string>
-#include <vector>
-#include <memory>
-
-#define BRANCH_TYPE_BRANCH 0
-#define BRANCH_TYPE_TOKEN 1
-class Branch : public std::enable_shared_from_this<Branch>
-{
+#include "CustomBranch.h"
+class CallBranch : public CustomBranch {
 public:
-    Branch(std::string type, std::string value);
-    virtual ~Branch();
-
-    void addChild(std::shared_ptr<Branch> branch);
-    void exclude(bool excluded);
-    bool excluded();
-    std::vector<std::shared_ptr<Branch>> getChildren();
-    std::string getType();
-    std::string getValue();
-    
-    std::shared_ptr<Branch> getptr();
-    virtual int getBranchType();
+    CallBranch(Compiler* compiler);
+    virtual ~CallBranch();
+    std::shared_ptr<Branch> getFunctionNameBranch();
+    std::vector<std::shared_ptr<Branch>> getFunctionArgumentBranches();
 private:
-    std::string type;
-    std::string value;
-    std::vector<std::shared_ptr<Branch>> children;
-    bool excluded_from_tree;
+    
 };
 
-#endif /* BRANCH_H */
+#endif /* CALLBRANCH_H */
 

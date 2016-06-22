@@ -16,30 +16,32 @@
  */
 
 /* 
- * File:   CodeGenerator.h
+ * File:   CallBranch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 18 June 2016, 19:49
+ * Created on 21 June 2016, 21:02
+ * 
+ * Description: The branch object for a "CALL" branch.
  */
 
-#ifndef CODEGENERATOR_H
-#define CODEGENERATOR_H
-#include "Tree.h"
-#include "Stream.h"
-#include "CompilerEntity.h"
-class CodeGenerator : public CompilerEntity {
-public:
-    CodeGenerator(Compiler* compiler);
-    virtual ~CodeGenerator();
-    
-    Stream* getStream();
-    virtual void generate(std::shared_ptr<Tree> tree);
-    virtual void generateFromBranch(std::shared_ptr<Branch> branch) = 0;
-protected:
-    Stream* stream;
-private:
-    
-};
+#include "CallBranch.h"
 
-#endif /* CODEGENERATOR_H */
+CallBranch::CallBranch(Compiler* compiler) : CustomBranch(compiler, "CALL", "") {
+}
 
+CallBranch::~CallBranch() {
+}
+
+
+std::shared_ptr<Branch> CallBranch::getFunctionNameBranch()
+{
+    std::shared_ptr<Branch> name_branch = this->getChildren()[0]->getChildren()[0];
+    return name_branch;
+}
+
+std::vector<std::shared_ptr<Branch>> CallBranch::getFunctionArgumentBranches()
+{
+    std::vector<std::shared_ptr<Branch>> argument_children = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(this->getptr()->getChildren()[1], "identifier");
+    return argument_children;
+}
+    

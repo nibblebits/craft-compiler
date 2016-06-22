@@ -68,6 +68,11 @@ std::string Branch::getValue()
     return this->value;
 }
 
+std::shared_ptr<Branch> Branch::getptr()
+{
+    return shared_from_this();
+}
+
 int Branch::getBranchType()
 {
     return BRANCH_TYPE_BRANCH;

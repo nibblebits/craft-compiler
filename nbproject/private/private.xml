@@ -7,12 +7,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/Compiler.h</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/CompilerEntity.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/SourceCodeRelatedException.h</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/Exception.h</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/TypeChecker.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/GoblinByteCodeGenerator.h</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/ParserRuleRequirement.h</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/CodeGeneratorException.h</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/Lexer.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/Compiler.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/Parser.h</file>
@@ -26,6 +28,7 @@
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/GoblinByteCodeGenerator.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/main.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/Stream.h</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/CodeGenerator.h</file>
         </group>
     </open-files>
 </project-private>

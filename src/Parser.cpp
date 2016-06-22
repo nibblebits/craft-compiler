@@ -25,6 +25,7 @@
  */
 
 #include "Parser.h"
+#include "CallBranch.h"
 
 Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
 {
@@ -162,8 +163,15 @@ void Parser::reductBranches()
                 if (tmp_list.size() == total_requirements)
                 {
                     // We have a match
-                    std::shared_ptr<Branch> root = std::shared_ptr<Branch>(new Branch(rule->getName(), ""));
-
+                    std::shared_ptr<Branch> root;
+                    if (rule->getName() == "CALL")
+                    {
+                        root = std::shared_ptr<CallBranch>(new CallBranch(this->getCompiler()));
+                    }
+                    else
+                    {
+                        root = std::shared_ptr<Branch>(new Branch(rule->getName(), ""));
+                    }
                     // Add the branches in the tmp_list to the branch
                     for (std::shared_ptr<Branch> branch : tmp_list)
                     {

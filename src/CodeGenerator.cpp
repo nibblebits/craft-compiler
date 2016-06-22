@@ -28,7 +28,6 @@
  */
 
 #include "CodeGenerator.h"
-
 CodeGenerator::CodeGenerator(Compiler* compiler) : CompilerEntity(compiler) 
 {
     this->stream = new Stream();
@@ -40,6 +39,20 @@ CodeGenerator::~CodeGenerator()
 }
 
 
+void CodeGenerator::generate(std::shared_ptr<Tree> tree)
+{
+    this->generateFromBranch(tree->root);
+}
+
+void CodeGenerator::generateFromBranch(std::shared_ptr<Branch> branch)
+{
+    std::vector<std::shared_ptr<Branch>> children = branch->getChildren();
+    for (std::shared_ptr<Branch> child : children)
+    {
+        generateFromBranch(child);
+    }
+}
+    
 Stream* CodeGenerator::getStream()
 {
     return this->stream;

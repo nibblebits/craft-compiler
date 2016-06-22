@@ -43,6 +43,7 @@
 #define PARSER_RULE_COMPATIBLE_NO_BRANCH 1
 #define PARSER_RULE_INCOMPATIBLE 2
 
+class CompilerEntity;
 class Parser : public CompilerEntity {
 public:
     Parser(Compiler* compiler);

@@ -26,17 +26,32 @@
  */
 
 #include "GoblinByteCodeGenerator.h"
+#include <iostream>
+#include "CallBranch.h"
 
-GoblinByteCodeGenerator::GoblinByteCodeGenerator(Compiler* compiler) : CodeGenerator(compiler) 
+GoblinByteCodeGenerator::GoblinByteCodeGenerator(Compiler* compiler) : CodeGenerator(compiler)
 {
 }
 
-GoblinByteCodeGenerator::~GoblinByteCodeGenerator() 
+GoblinByteCodeGenerator::~GoblinByteCodeGenerator()
 {
 }
 
-
-Stream* GoblinByteCodeGenerator::generate(std::shared_ptr<Tree> tree)
+void GoblinByteCodeGenerator::generate(std::shared_ptr<Tree> tree)
 {
-    
+    CodeGenerator::generate(tree);
+}
+
+void GoblinByteCodeGenerator::generateFromBranch(std::shared_ptr<Branch> branch)
+{
+    CodeGenerator::generateFromBranch(branch);
+    if (branch->getType() == "CALL")
+    {
+        std::shared_ptr<CallBranch> callBranch = std::dynamic_pointer_cast<CallBranch>(branch);
+        std::cout << "Function call name: " << callBranch->getFunctionNameBranch()->getValue() << std::endl;
+        for (std::shared_ptr<Branch> branch : callBranch->getFunctionArgumentBranches())
+        {
+            std::cout << "Argument name: " << branch->getValue() << std::endl;
+        }
+    }
 }

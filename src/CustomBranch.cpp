@@ -16,30 +16,28 @@
  */
 
 /* 
- * File:   CodeGenerator.h
+ * File:   CustomBranch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 18 June 2016, 19:49
+ * Created on 21 June 2016, 21:21
+ * 
+ * Description: Custom branches are those who provide particular methods for a particular branch.
+ * Any branch wishing to be a custom branch need only to extend this class.
  */
 
-#ifndef CODEGENERATOR_H
-#define CODEGENERATOR_H
-#include "Tree.h"
-#include "Stream.h"
-#include "CompilerEntity.h"
-class CodeGenerator : public CompilerEntity {
-public:
-    CodeGenerator(Compiler* compiler);
-    virtual ~CodeGenerator();
-    
-    Stream* getStream();
-    virtual void generate(std::shared_ptr<Tree> tree);
-    virtual void generateFromBranch(std::shared_ptr<Branch> branch) = 0;
-protected:
-    Stream* stream;
-private:
-    
-};
+#include "CustomBranch.h"
 
-#endif /* CODEGENERATOR_H */
+CustomBranch::CustomBranch(Compiler* compiler, std::string name, std::string value) : Branch(name, value)
+{
+    this->compiler = compiler;
+}
 
+CustomBranch::~CustomBranch()
+{
+    
+}
+
+Compiler* CustomBranch::getCompiler()
+{
+    return this->compiler;
+}

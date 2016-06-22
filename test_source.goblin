@@ -1,3 +1,7 @@
-int32 a
-int32 c
-c = (c + a)
+int32 x
+
+int32 #print(int32 b)
+{
+}
+
+x = #print(x)

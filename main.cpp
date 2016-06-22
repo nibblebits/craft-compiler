@@ -32,6 +32,7 @@
 #include "Exception.h"
 #include "GoblinLibraryLoader.h"
 #include "GoblinArgumentParser.h"
+#include "CodeGeneratorException.h"
 
 // Built in code generators
 #include "GoblinByteCodeGenerator.h"
@@ -47,7 +48,9 @@ enum
     CODEGENERATOR_LOAD_PROBLEM = 5,
     ERROR_WITH_LEXER = 6,
     ERROR_WITH_PARSER = 7,
-    ERROR_WITH_TYPE_CHECKER = 8
+    ERROR_WITH_TYPE_CHECKER = 8,
+    ERROR_WITH_OUTPUT_FILE = 9,
+    ERROR_WITH_CODEGENERATOR = 10
 } CompilerErrorCode;
 
 Compiler compiler;
@@ -100,6 +103,22 @@ std::string LoadFile(std::string filename)
     return source;
 }
 
+void WriteFile(std::string filename, Stream* stream)
+{
+    std::ofstream ofs;
+    ofs.open(filename);
+    if (!ofs.is_open())
+    {
+        throw Exception("Failed to open: " + filename + " for writing");
+    }
+    while(stream->getSize() != 0)
+    {
+        ofs << stream->read8();
+    }
+    
+    ofs.close();
+}
+
 std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
 {
     std::shared_ptr<CodeGenerator> codegen = NULL;
@@ -119,8 +138,8 @@ std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
 int main(int argc, char** argv)
 {
     std::string codegen_name;
-    std::string input_file;
-    std::string output_file;
+    std::string input_file_name;
+    std::string output_file_name;
     std::string source_file_data;
 
     std::cout << COMPILER_FULLNAME << std::endl;
@@ -156,15 +175,15 @@ int main(int argc, char** argv)
                 codegen_name = arguments.getArgumentValue("codegen");
             }
 
-            input_file = arguments.getArgumentValue("input");
-            output_file = arguments.getArgumentValue("output");
+            input_file_name = arguments.getArgumentValue("input");
+            output_file_name = arguments.getArgumentValue("output");
 
-            if (input_file == output_file)
+            if (input_file_name == output_file_name)
             {
                 std::cout << "The input file and the output file may not be the same" << std::endl;
                 return PROBLEM_WITH_ARGUMENT;
             }
-            std::cout << "Compiling: " << input_file << " to " << output_file << ", code generator: " << codegen_name << std::endl;
+            std::cout << "Compiling: " << input_file_name << " to " << output_file_name << ", code generator: " << codegen_name << std::endl;
         }
         catch (GoblinArgumentException ex)
         {
@@ -174,7 +193,7 @@ int main(int argc, char** argv)
     }
     try
     {
-        source_file_data = LoadFile(input_file);
+        source_file_data = LoadFile(input_file_name);
     }
     catch (Exception ex)
     {
@@ -264,8 +283,29 @@ int main(int argc, char** argv)
         return ERROR_WITH_TYPE_CHECKER;
     }
     
-    Stream* stream = codegen->generate(parser->getTree());
-    
+    try
+    {
+        codegen->generate(parser->getTree());
+        Stream* stream = codegen->getStream();
+        size_t stream_size = stream->getSize();
+        if (stream_size == 0)
+        {
+            throw CodeGeneratorException("No output was generated");
+        }
+        
+        try
+        {
+            WriteFile(output_file_name, stream);
+        } catch(Exception ex)
+        {
+            std::cout << ex.getMessage() << std::endl;
+            return ERROR_WITH_OUTPUT_FILE;
+        }
+    } catch(CodeGeneratorException ex)
+    {
+        std::cout << "Error with code generator: " << ex.getMessage() << std::endl;
+        return ERROR_WITH_CODEGENERATOR;
+    }
     return 0;
 }
 

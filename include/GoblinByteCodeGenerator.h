@@ -32,7 +32,8 @@ public:
     GoblinByteCodeGenerator(Compiler* compiler);
     virtual ~GoblinByteCodeGenerator();
     
-    virtual Stream* generate(std::shared_ptr<Tree> tree);
+    virtual void generate(std::shared_ptr<Tree> tree);
+    virtual void generateFromBranch(std::shared_ptr<Branch> branch);
 private:
 
 };
