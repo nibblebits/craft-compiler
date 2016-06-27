@@ -28,14 +28,16 @@
 #include <vector>
 #include "Branch.h"
 #include "CompilerEntity.h"
-class ASTAssistant : public CompilerEntity 
+
+class ASTAssistant : public CompilerEntity
 {
 public:
     ASTAssistant(Compiler* compiler);
     virtual ~ASTAssistant();
     std::vector<std::shared_ptr<Branch>> findAllChildrenOfType(std::shared_ptr<Branch> root, std::string branch_type);
+    std::vector<std::shared_ptr<Branch>> findAllChildrenOfType(std::shared_ptr<Branch> root, std::vector<std::string> branch_types);
 private:
-    
+
 };
 
 #endif /* ASTASSISTANT_H */
