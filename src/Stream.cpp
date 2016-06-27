@@ -32,15 +32,21 @@
 
 Stream::Stream()
 {
+    setPosition(0);
 }
 
 Stream::~Stream()
 {
 }
 
+void Stream::setPosition(size_t position)
+{
+    this->stack.setSP(position);
+}
+
 void Stream::write8(uint8_t c)
 {
-    this->stack.push_back(c);
+    this->stack.push(c);
 }
 void Stream::write16(uint16_t s)
 {
@@ -58,8 +64,7 @@ void Stream::write32(uint32_t i)
 }
 uint8_t Stream::read8()
 {
-    uint8_t c = this->stack.at(0);
-    this->stack.pop_front();
+    uint8_t c = this->stack.pop_first();
     return c;
 }
 uint16_t Stream::read16()
