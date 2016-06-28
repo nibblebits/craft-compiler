@@ -43,6 +43,7 @@ public:
     bool isEmpty();
     void empty();
     int size();
+    int getSP();
 private:
     std::vector<T> elements;
     int sp = 0;
@@ -118,6 +119,12 @@ template <class T>
 int Stack<T>::size()
 {
     return elements.size();
+}
+
+template <class T>
+int Stack<T>::getSP()
+{
+    return this->sp;
 }
 
 
