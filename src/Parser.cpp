@@ -26,6 +26,11 @@
 
 #include "Parser.h"
 #include "CallBranch.h"
+#include "FuncBranch.h"
+#include "VDEFBranch.h"
+#include "AssignBranch.h"
+#include "MathEBranch.h"
+#include "EBranch.h"
 
 Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
 {
@@ -167,6 +172,26 @@ void Parser::reductBranches()
                     if (rule->getName() == "CALL")
                     {
                         root = std::shared_ptr<CallBranch>(new CallBranch(this->getCompiler()));
+                    }
+                    else if(rule->getName() == "FUNC")
+                    {
+                        root = std::shared_ptr<FuncBranch>(new FuncBranch(this->getCompiler()));
+                    }
+                    else if(rule->getName() == "V_DEF")
+                    {
+                        root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler())); 
+                    }
+                    else if(rule->getName() == "ASSIGN")
+                    {
+                        root = std::shared_ptr<AssignBranch>(new AssignBranch(this->getCompiler()));
+                    }
+                    else if(rule->getName() == "MATH_E")
+                    {
+                        root = std::shared_ptr<MathEBranch>(new MathEBranch(this->getCompiler()));
+                    }
+                    else if(rule->getName() == "E")
+                    {
+                        root = std::shared_ptr<EBranch>(new EBranch(this->getCompiler()));
                     }
                     else
                     {
