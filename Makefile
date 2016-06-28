@@ -49,7 +49,6 @@ MKDIR=mkdir
 CP=cp
 CCADMIN=CCadmin
 
-
 # build
 build: .build-post
 
@@ -88,7 +87,6 @@ all: .all-post
 
 .all-post: .all-impl
 # Add your post 'all' code here...
-
 
 # build tests
 build-tests: .build-tests-post

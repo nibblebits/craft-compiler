@@ -37,22 +37,27 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/ASTAssistant.o \
+	${OBJECTDIR}/src/AssignBranch.o \
 	${OBJECTDIR}/src/Branch.o \
 	${OBJECTDIR}/src/CallBranch.o \
 	${OBJECTDIR}/src/CodeGenerator.o \
 	${OBJECTDIR}/src/Compiler.o \
 	${OBJECTDIR}/src/CompilerEntity.o \
 	${OBJECTDIR}/src/CustomBranch.o \
+	${OBJECTDIR}/src/EBranch.o \
+	${OBJECTDIR}/src/FuncBranch.o \
 	${OBJECTDIR}/src/GoblinByteCodeGenerator.o \
 	${OBJECTDIR}/src/Helper.o \
 	${OBJECTDIR}/src/Lexer.o \
+	${OBJECTDIR}/src/MathEBranch.o \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
 	${OBJECTDIR}/src/Stream.o \
 	${OBJECTDIR}/src/Token.o \
 	${OBJECTDIR}/src/Tree.o \
-	${OBJECTDIR}/src/TypeChecker.o
+	${OBJECTDIR}/src/TypeChecker.o \
+	${OBJECTDIR}/src/VDEFBranch.o
 
 
 # C Compiler Flags
@@ -89,6 +94,11 @@ ${OBJECTDIR}/src/ASTAssistant.o: src/ASTAssistant.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASTAssistant.o src/ASTAssistant.cpp
 
+${OBJECTDIR}/src/AssignBranch.o: src/AssignBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/AssignBranch.o src/AssignBranch.cpp
+
 ${OBJECTDIR}/src/Branch.o: src/Branch.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -119,6 +129,16 @@ ${OBJECTDIR}/src/CustomBranch.o: src/CustomBranch.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CustomBranch.o src/CustomBranch.cpp
 
+${OBJECTDIR}/src/EBranch.o: src/EBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/EBranch.o src/EBranch.cpp
+
+${OBJECTDIR}/src/FuncBranch.o: src/FuncBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncBranch.o src/FuncBranch.cpp
+
 ${OBJECTDIR}/src/GoblinByteCodeGenerator.o: src/GoblinByteCodeGenerator.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -133,6 +153,11 @@ ${OBJECTDIR}/src/Lexer.o: src/Lexer.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Lexer.o src/Lexer.cpp
+
+${OBJECTDIR}/src/MathEBranch.o: src/MathEBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MathEBranch.o src/MathEBranch.cpp
 
 ${OBJECTDIR}/src/Parser.o: src/Parser.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -168,6 +193,11 @@ ${OBJECTDIR}/src/TypeChecker.o: src/TypeChecker.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/TypeChecker.o src/TypeChecker.cpp
+
+${OBJECTDIR}/src/VDEFBranch.o: src/VDEFBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VDEFBranch.o src/VDEFBranch.cpp
 
 # Subprojects
 .build-subprojects:
