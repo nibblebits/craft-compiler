@@ -111,11 +111,11 @@ void WriteFile(std::string filename, Stream* stream)
     {
         throw Exception("Failed to open: " + filename + " for writing");
     }
-    while(stream->getSize() != 0)
+    while (stream->getSize() != 0)
     {
         ofs << stream->read8();
     }
-    
+
     ofs.close();
 }
 
@@ -241,14 +241,17 @@ int main(int argc, char** argv)
     {
         parser->addRule("E:identifier");
         parser->addRule("E:number");
-        parser->addRule("E:E:operator:E");
+        parser->addRule("E:MATH_E");
+        parser->addRule("MATH_E:E:operator:E");
         parser->addRule("V_DEF:keyword:E");
         parser->addRule("E:'symbol@(:E:'symbol@)");
         parser->addRule("E:E:'symbol@,:E");
+        parser->addRule("E:E:'symbol@,:STMT");
         parser->addRule("PD:'symbol@(:V_DEF:'symbol@)");
         parser->addRule("FUNC:keyword:'symbol@#:E:PD:SCOPE");
         parser->addRule("ASSIGN:E:symbol@=:E");
         parser->addRule("ASSIGN:E:symbol@=:STMT");
+        parser->addRule("ASSIGN:STMT:symbol@=:STMT");
         parser->addRule("CALL:'symbol@#:E:E");
         parser->addRule("CALL:'symbol@#:E:ZERO_ARGS");
         parser->addRule("ZERO_ARGS:'symbol@(:'symbol@)");
@@ -282,26 +285,29 @@ int main(int argc, char** argv)
         std::cout << "Error with types: " << ex.getMessage() << std::endl;
         return ERROR_WITH_TYPE_CHECKER;
     }
-    
+
     try
     {
         codegen->generate(parser->getTree());
         Stream* stream = codegen->getStream();
+        
         size_t stream_size = stream->getSize();
         if (stream_size == 0)
         {
             throw CodeGeneratorException("No output was generated");
         }
-        
+
         try
         {
             WriteFile(output_file_name, stream);
-        } catch(Exception ex)
+        }
+        catch (Exception ex)
         {
             std::cout << ex.getMessage() << std::endl;
             return ERROR_WITH_OUTPUT_FILE;
         }
-    } catch(CodeGeneratorException ex)
+    }
+    catch (CodeGeneratorException ex)
     {
         std::cout << "Error with code generator: " << ex.getMessage() << std::endl;
         return ERROR_WITH_CODEGENERATOR;
