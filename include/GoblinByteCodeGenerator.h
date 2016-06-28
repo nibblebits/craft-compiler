@@ -26,16 +26,40 @@
 #define GOBLINBYTECODEGENERATOR_H
 
 #include "CodeGenerator.h"
+
+// Instruction set
+enum
+{
+    NOP,
+    JMP,
+    CALL,
+    SPUSH,
+    SPOP,
+    APUSH,
+    APOP,
+    MEMSET_SP_RELATIVE,
+    SUBSP,
+    ADDSP,
+    SADD,
+    SSUB,
+    SMUL,
+    SDIV
+};
+
 class GoblinByteCodeGenerator : public CodeGenerator
 {
 public:
     GoblinByteCodeGenerator(Compiler* compiler);
     virtual ~GoblinByteCodeGenerator();
     
+    void handleScope(std::shared_ptr<Branch> branch);
+    void handleExpression(std::shared_ptr<Branch> branch);
+    // Unsure what to name this at the moment
+    void handleEntity(std::shared_ptr<Branch> branch);
     virtual void generate(std::shared_ptr<Tree> tree);
     virtual void generateFromBranch(std::shared_ptr<Branch> branch);
 private:
-
+    int saved_pos;
 };
 
 #endif /* GOBLINBYTECODEGENERATOR_H */
