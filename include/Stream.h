@@ -27,11 +27,14 @@
 
 #include <stdint.h>
 #include <cstring>
-#include <deque>
+#include "Stack.h"
+#include "Exception.h"
+
 class Stream {
 public:
     Stream();
     virtual ~Stream();
+    void setPosition(size_t position);
     void write8(uint8_t c);
     void write16(uint16_t s);
     void write32(uint32_t i);
@@ -39,8 +42,14 @@ public:
     uint16_t read16();
     uint32_t read32();
     size_t getSize();
+    int getPosition();
+    void startLoggingOffset();
+    void stopLoggingOffset();
+    bool isLoggingOffset();
+    int getLoggedOffset();
 private:
-    std::deque<uint8_t> stack;
+    Stack<uint8_t> stack;
+    int offset;
 };
 
 #endif /* STREAM_H */

@@ -29,10 +29,10 @@
  */
 
 #include "Stream.h"
-
 Stream::Stream()
 {
     setPosition(0);
+    this->offset = -1;
 }
 
 Stream::~Stream()
@@ -47,7 +47,12 @@ void Stream::setPosition(size_t position)
 void Stream::write8(uint8_t c)
 {
     this->stack.push(c);
+    if (this->isLoggingOffset())
+    {
+        this->offset++;
+    }
 }
+
 void Stream::write16(uint16_t s)
 {
     uint8_t c1 = s & 0xff;
@@ -55,6 +60,7 @@ void Stream::write16(uint16_t s)
     write8(c1);
     write8(c2);
 }
+
 void Stream::write32(uint32_t i)
 {
     uint16_t s1 = i & 0xffff;
@@ -62,16 +68,18 @@ void Stream::write32(uint32_t i)
     write16(s1);
     write16(s2);
 }
+
 uint8_t Stream::read8()
 {
     uint8_t c = this->stack.pop_first();
     return c;
 }
+
 uint16_t Stream::read16()
 {
     uint8_t c1 = read8();
     uint8_t c2 = read8();
-    
+
     uint16_t result = (c2 << 8 | c1);
     return result;
 }
@@ -80,13 +88,42 @@ uint32_t Stream::read32()
 {
     uint16_t s1 = read16();
     uint16_t s2 = read16();
-    
+
     uint32_t result = (s1 << 16 | s2);
     return result;
 }
 
-
 size_t Stream::getSize()
 {
     return this->stack.size();
+}
+
+int Stream::getPosition()
+{
+    return this->stack.getSP();
+}
+
+/* Some helper methods for people using the stream class, it helps with offsetting */
+void Stream::startLoggingOffset()
+{
+    this->offset = 0;
+}
+void Stream::stopLoggingOffset()
+{
+    this->offset = -1;
+}
+
+bool Stream::isLoggingOffset()
+{
+    return this->offset != -1;
+}
+
+int Stream::getLoggedOffset()
+{
+    if (!isLoggingOffset())
+    {
+        throw Exception("Stream::getLoggedOffset(): Offset logging has not been started");
+    }
+    
+    return this->offset;
 }
