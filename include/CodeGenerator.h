@@ -24,21 +24,50 @@
 
 #ifndef CODEGENERATOR_H
 #define CODEGENERATOR_H
+#include <vector>
+#include <string>
 #include "Tree.h"
 #include "Stream.h"
+#include <Branch.h>
+#include "CodeGeneratorException.h"
 #include "CompilerEntity.h"
+
+struct location
+{
+    int location;
+    std::shared_ptr<Branch> branch;
+};
+
+struct scope_variable
+{
+    std::string type;
+    std::string name;
+    int size;
+    int index;
+};
+
 class CodeGenerator : public CompilerEntity {
 public:
     CodeGenerator(Compiler* compiler);
     virtual ~CodeGenerator();
     
     Stream* getStream();
+    void startRegistrationProcess();
+    void registerMemoryLocation(std::shared_ptr<Branch> branch);
+    bool isFunctionRegistered(std::string func_name);
+    int getFunctionMemoryLocation(std::string func_name);
+    void registerScopeVariable(std::shared_ptr<Branch> branch);
+    std::shared_ptr<struct scope_variable> getScopeVariable(std::string name);
+    int getScopeVariablesSize();
+    void clearScopeVariables();
     virtual void generate(std::shared_ptr<Tree> tree);
     virtual void generateFromBranch(std::shared_ptr<Branch> branch) = 0;
 protected:
     Stream* stream;
 private:
-    
+    int current_index;
+    std::vector<location> locations;
+    std::vector<std::shared_ptr<struct scope_variable>> scope_variables;
 };
 
 #endif /* CODEGENERATOR_H */

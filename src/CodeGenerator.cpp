@@ -28,31 +28,143 @@
  */
 
 #include "CodeGenerator.h"
-CodeGenerator::CodeGenerator(Compiler* compiler) : CompilerEntity(compiler) 
+#include "FuncBranch.h"
+#include "VDEFBranch.h"
+
+CodeGenerator::CodeGenerator(Compiler* compiler) : CompilerEntity(compiler)
 {
     this->stream = new Stream();
+    this->current_index = -1;
 }
 
-CodeGenerator::~CodeGenerator() 
+CodeGenerator::~CodeGenerator()
 {
     delete this->stream;
 }
 
+void CodeGenerator::startRegistrationProcess()
+{
+    if (this->current_index != -1)
+        throw CodeGeneratorException("Registration process has already started");
+
+    this->current_index = this->stream->getSize();
+}
+
+void CodeGenerator::registerMemoryLocation(std::shared_ptr<Branch> branch)
+{
+    if (branch == NULL)
+    {
+        throw CodeGeneratorException("Attempting to register a memory location for a NULL branch..");
+    }
+
+    if (branch->getType() == "FUNC")
+    {
+        if (isFunctionRegistered(branch->getValue()))
+        {
+            throw CodeGeneratorException("Attempting to register an already registered branch");
+        }
+    }
+    else
+    {
+        throw CodeGeneratorException("Cannot register branch type: " + branch->getType() + " as it is unknown how to register this particular branch");
+    }
+
+    if (this->current_index == -1)
+        throw CodeGeneratorException("You must invoke the startRegistrationProcess() method first");
+
+    struct location loc;
+    loc.branch = branch;
+    loc.location = this->current_index;
+    this->locations.push_back(loc);
+    this->current_index = -1;
+}
+
+bool CodeGenerator::isFunctionRegistered(std::string func_name)
+{
+    for (struct location loc : this->locations)
+    {
+        std::shared_ptr<Branch> branch = loc.branch;
+        if (branch->getType() == "FUNC")
+        {
+            std::shared_ptr<FuncBranch> func_branch = std::dynamic_pointer_cast<FuncBranch>(branch);
+            if (func_branch->getFunctionNameBranch()->getValue() == func_name)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+int CodeGenerator::getFunctionMemoryLocation(std::string func_name)
+{
+    for (struct location loc : this->locations)
+    {
+        std::shared_ptr<Branch> branch = loc.branch;
+        if (branch->getType() == "FUNC")
+        {
+            std::shared_ptr<FuncBranch> func_branch = std::dynamic_pointer_cast<FuncBranch>(branch);
+            if (func_branch->getFunctionNameBranch()->getValue() == func_name)
+            {
+                return loc.location;
+            }
+        }
+    }
+    return -1;
+}
 
 void CodeGenerator::generate(std::shared_ptr<Tree> tree)
 {
-    this->generateFromBranch(tree->root);
-}
-
-void CodeGenerator::generateFromBranch(std::shared_ptr<Branch> branch)
-{
-    std::vector<std::shared_ptr<Branch>> children = branch->getChildren();
-    for (std::shared_ptr<Branch> child : children)
+    std::shared_ptr<Branch> root = tree->root;
+    for (std::shared_ptr<Branch> branch : root->getChildren())
     {
-        generateFromBranch(child);
+        this->generateFromBranch(branch);
     }
 }
+
+int CodeGenerator::getScopeVariablesSize()
+{
+    int size = 0;
+    for (std::shared_ptr<struct scope_variable> var : this->scope_variables)
+    {
+        size += var->size;
+    }
+    return size;
+}
+
+void CodeGenerator::registerScopeVariable(std::shared_ptr<Branch> branch)
+{
+    if (branch->getType() != "V_DEF")
+    {
+        throw CodeGeneratorException("The branch: " + branch->getType() + " cannot be converted to a scope variable");
+    }
+
+    std::shared_ptr<struct scope_variable> variable = std::shared_ptr<struct scope_variable>(new struct scope_variable);
+    std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+    variable->name = vdef_branch->getDefinitionNameBranch()->getValue();
+    variable->type = vdef_branch->getDefinitionTypeBranch()->getValue();
+    variable->size = this->getCompiler()->getDataTypeSize(variable->type);
+    variable->index = this->scope_variables.size();
+    this->scope_variables.push_back(variable);
+}
+
+std::shared_ptr<struct scope_variable> CodeGenerator::getScopeVariable(std::string name)
+{
+    for (std::shared_ptr<struct scope_variable> variable : this->scope_variables)
+    {
+        if (variable->name == name)
+            return variable;
+    }
     
+    return NULL;
+}
+
+void CodeGenerator::clearScopeVariables()
+{
+    this->scope_variables.clear();
+}
+
 Stream* CodeGenerator::getStream()
 {
     return this->stream;
