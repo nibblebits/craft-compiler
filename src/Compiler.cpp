@@ -26,7 +26,7 @@
 
 #include "Compiler.h"
 
-Compiler::Compiler() 
+Compiler::Compiler()
 {
     this->lexer = new Lexer(this);
     this->parser = new Parser(this);
@@ -35,18 +35,18 @@ Compiler::Compiler()
     this->codeGenerator = NULL;
 }
 
-Compiler::~Compiler() 
+Compiler::~Compiler()
 {
     delete this->typeChecker;
 }
 
 void Compiler::setCodeGenerator(std::shared_ptr<CodeGenerator> codegen)
 {
-    if(this->codeGenerator != NULL)
+    if (this->codeGenerator != NULL)
         throw Exception("An existing code generator has already been set! Only one code generator may be set to the compiler");
-    if(codegen == NULL)
+    if (codegen == NULL)
         throw Exception("The code generator may not be NULL!");
-    
+
     this->codeGenerator = codegen;
 }
 
@@ -54,10 +54,12 @@ Lexer* Compiler::getLexer()
 {
     return this->lexer;
 }
+
 Parser* Compiler::getParser()
 {
     return this->parser;
 }
+
 TypeChecker* Compiler::getTypeChecker()
 {
     return this->typeChecker;
@@ -68,8 +70,33 @@ ASTAssistant* Compiler::getASTAssistant()
     return this->astAssistant;
 }
 
-
 std::shared_ptr<CodeGenerator> Compiler::getCodeGenerator()
 {
     return this->codeGenerator;
+}
+
+int Compiler::getDataTypeSize(std::string type)
+{
+    /* Note for now data types such as bit and nibble will consume 1 byte, this will hopefully be changed in the future to work at the bit level*/
+    if (type == "bit" || type == "nibble" || type == "uint8" || type == "int8")
+    {
+        return 1;
+    }
+    else if (type == "uint16" || type == "int16")
+    {
+        return 2;
+    }
+    else if (type == "uint32" || type == "int32")
+    {
+        return 4;
+    }
+    else if (type == "uint64" || type == "int64")
+    {
+        return 8;
+    }
+    else
+    {
+        return -1;
+    }
+
 }

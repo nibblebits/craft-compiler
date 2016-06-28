@@ -26,6 +26,7 @@
 #define COMPILER_H
 
 #include <memory>
+#include <string>
 #include "Lexer.h"
 #include "Parser.h"
 #include "TypeChecker.h"
@@ -44,6 +45,7 @@ public:
     TypeChecker* getTypeChecker();
     ASTAssistant* getASTAssistant();
     std::shared_ptr<CodeGenerator> getCodeGenerator();
+    int getDataTypeSize(std::string type);
 private:
     /* Ideally these do not have to be pointers but since arguments now exist in the constructors of these objects I have ran into issues calling them.
      * I plan to change this soon */
