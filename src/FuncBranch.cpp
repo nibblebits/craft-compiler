@@ -16,36 +16,37 @@
  */
 
 /* 
- * File:   CallBranch.cpp
+ * File:   FuncBranch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 21 June 2016, 21:02
+ * Created on 25 June 2016, 01:30
  * 
- * Description: The branch object for a "CALL" branch.
+ * Description: The branch object for a "FUNC" branch.
  */
 
-#include "CallBranch.h"
+#include "FuncBranch.h"
 
-CallBranch::CallBranch(Compiler* compiler) : CustomBranch(compiler, "CALL", "") {
-}
-
-CallBranch::~CallBranch() {
-}
-
-
-std::shared_ptr<Branch> CallBranch::getFunctionNameBranch()
+FuncBranch::FuncBranch(Compiler* compiler) : CustomBranch(compiler, "FUNC", "")
 {
-    std::shared_ptr<Branch> name_branch = this->getChildren()[0]->getChildren()[0];
+}
+
+FuncBranch::~FuncBranch()
+{
+}
+
+std::shared_ptr<Branch> FuncBranch::getFunctionNameBranch()
+{
+    std::shared_ptr<Branch> name_branch = this->getChildren()[1]->getChildren()[0];
     return name_branch;
 }
 
-std::vector<std::shared_ptr<Branch>> CallBranch::getFunctionArgumentBranches()
+std::vector<std::shared_ptr<Branch>> FuncBranch::getFunctionArgumentBranches()
 {
-    std::vector<std::string> search_for;
-    search_for.push_back("identifier");
-    search_for.push_back("number");
-    
-    std::vector<std::shared_ptr<Branch>> argument_children = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(this->getptr()->getChildren()[1], search_for);
+    std::vector<std::shared_ptr < Branch>> argument_children = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(this->getptr()->getChildren()[2], "V_DEF");
     return argument_children;
 }
-    
+
+std::shared_ptr<Branch> FuncBranch::getFunctionScopeBranches()
+{
+    return this->getChildren()[3];
+}
