@@ -21,7 +21,7 @@
  *
  * Created on 29 May 2016, 20:41
  * 
- * Description: Holds child branches
+ * Description: This is a branch and it also holds its parent and child branches.
  */
 
 #include "Branch.h"
@@ -30,6 +30,7 @@ Branch::Branch(std::string type, std::string value)
 {
     this->type = type;
     this->value = value;
+    this->parent = NULL;
     this->excluded_from_tree = false;
 }
 
@@ -53,9 +54,72 @@ bool Branch::excluded()
     return this->excluded_from_tree;
 }
 
+void Branch::setParent(std::shared_ptr<Branch> branch)
+{
+    if (this->parent != NULL)
+    {
+        throw Exception("Branch::setParent(std::shared_ptr<Branch> branch): The parent has already been set");
+    }
+    this->parent = branch;
+}
+
 std::vector<std::shared_ptr<Branch>> Branch::getChildren()
 {
     return this->children;
+}
+
+std::shared_ptr<Branch> Branch::getParent()
+{
+    return this->parent;
+}
+
+std::shared_ptr<Branch> Branch::lookUpTreeUntilParentTypeFound(std::string parent_type_to_find)
+{
+    if (this->parent == NULL)
+    {
+        // Not found
+        return NULL;
+    }
+
+    if (this->parent->getType() == parent_type_to_find)
+    {
+        return this->parent;
+    }
+    else
+    {
+        return this->parent->lookUpTreeUntilParentTypeFound(parent_type_to_find);
+    }
+}
+
+std::shared_ptr<Branch> Branch::lookDownTreeUntilFirstChildOfType(std::string type)
+{
+    for (std::shared_ptr<Branch> child : this->getChildren())
+    {
+        if (child->getType() == type)
+        {
+            return child;
+        }
+
+        child = child->lookDownTreeUntilFirstChildOfType(type);
+        return child;
+    }
+
+    return NULL;
+}
+
+std::shared_ptr<Branch> Branch::lookDownTreeUntilLastChildOfType(std::string type)
+{
+    std::shared_ptr<Branch> branch = this->getptr();
+    std::shared_ptr<Branch> last_valid_branch = NULL;
+    do
+    {
+        branch = branch->lookDownTreeUntilFirstChildOfType(type);
+        if (branch != NULL)
+            last_valid_branch = branch;
+    }
+    while(branch != NULL);
+    
+    return last_valid_branch;
 }
 
 std::string Branch::getType()

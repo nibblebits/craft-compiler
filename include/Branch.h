@@ -41,7 +41,12 @@ public:
     void addChild(std::shared_ptr<Branch> branch);
     void exclude(bool excluded);
     bool excluded();
+    void setParent(std::shared_ptr<Branch> branch);
     std::vector<std::shared_ptr<Branch>> getChildren();
+    std::shared_ptr<Branch> getParent();
+    std::shared_ptr<Branch> lookUpTreeUntilParentTypeFound(std::string parent_type_to_find);
+    std::shared_ptr<Branch> lookDownTreeUntilFirstChildOfType(std::string type);
+    std::shared_ptr<Branch> lookDownTreeUntilLastChildOfType(std::string type);
     std::string getType();
     std::string getValue();
     
@@ -51,6 +56,7 @@ private:
     std::string type;
     std::string value;
     std::vector<std::shared_ptr<Branch>> children;
+    std::shared_ptr<Branch> parent;
     bool excluded_from_tree;
 };
 
