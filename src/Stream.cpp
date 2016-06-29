@@ -29,6 +29,7 @@
  */
 
 #include "Stream.h"
+
 Stream::Stream()
 {
     setPosition(0);
@@ -98,6 +99,11 @@ size_t Stream::getSize()
     return this->stack.size();
 }
 
+bool Stream::isEmpty()
+{
+    return this->getSize() == 0;
+}
+
 int Stream::getPosition()
 {
     return this->stack.getSP();
@@ -108,6 +114,7 @@ void Stream::startLoggingOffset()
 {
     this->offset = 0;
 }
+
 void Stream::stopLoggingOffset()
 {
     this->offset = -1;
@@ -124,6 +131,6 @@ int Stream::getLoggedOffset()
     {
         throw Exception("Stream::getLoggedOffset(): Offset logging has not been started");
     }
-    
+
     return this->offset;
 }

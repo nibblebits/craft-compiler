@@ -42,6 +42,7 @@ public:
     uint16_t read16();
     uint32_t read32();
     size_t getSize();
+    bool isEmpty();
     int getPosition();
     void startLoggingOffset();
     void stopLoggingOffset();
