@@ -106,12 +106,12 @@ std::string LoadFile(std::string filename)
 void WriteFile(std::string filename, Stream* stream)
 {
     std::ofstream ofs;
-    ofs.open(filename);
+    ofs.open(filename, ios::binary);
     if (!ofs.is_open())
     {
         throw Exception("Failed to open: " + filename + " for writing");
     }
-    while (stream->getSize() != 0)
+    while (!stream->isEmpty())
     {
         ofs << stream->read8();
     }
@@ -290,7 +290,6 @@ int main(int argc, char** argv)
     {
         codegen->generate(parser->getTree());
         Stream* stream = codegen->getStream();
-        
         size_t stream_size = stream->getSize();
         if (stream_size == 0)
         {
