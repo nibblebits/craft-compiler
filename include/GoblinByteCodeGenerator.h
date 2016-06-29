@@ -30,20 +30,21 @@
 // Instruction set
 enum
 {
-    NOP,
-    JMP,
-    CALL,
-    SPUSH,
-    SPOP,
-    APUSH,
-    APOP,
-    MEMSET_SP_RELATIVE,
-    SUBSP,
-    ADDSP,
-    SADD,
-    SSUB,
-    SMUL,
-    SDIV
+    NOP = 0x0,
+    JMP = 0x50,
+    CALL = 0x51,
+    SPUSH = 0x52,
+    SPOP = 0x53,
+    APUSH = 0x54,
+    APOP = 0x55,
+    SPOP_TO_DP_RELATIVE = 0x56,
+    SUBDP = 0x57,
+    ADDDP = 0x58,
+    SADD = 0x59,
+    SSUB = 0x60,
+    SMUL = 0x61,
+    SDIV = 0x62,
+    SPUSH_MEMORY_VALUE_DP_RELATIVE = 0x63
 };
 
 class GoblinByteCodeGenerator : public CodeGenerator
@@ -55,7 +56,8 @@ public:
     void handleScope(std::shared_ptr<Branch> branch);
     void handleExpression(std::shared_ptr<Branch> branch);
     // Unsure what to name this at the moment
-    void handleEntity(std::shared_ptr<Branch> branch);
+    bool handleEntity(std::shared_ptr<Branch> branch);
+    void createStackMathInstruction(std::string op);
     virtual void generate(std::shared_ptr<Tree> tree);
     virtual void generateFromBranch(std::shared_ptr<Branch> branch);
 private:
