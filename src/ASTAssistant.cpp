@@ -39,16 +39,16 @@ std::vector<std::shared_ptr<Branch>> ASTAssistant::findAllChildrenOfType(std::sh
     std::vector<std::shared_ptr < Branch>> branch_list;
     std::vector<std::shared_ptr < Branch>> children = root->getChildren();
 
-    if (root->getType() == branch_type)
-    {
-        // We have a match add it to the branch list
-        branch_list.push_back(root);
-    }
-
     for (std::shared_ptr<Branch> child : children)
     {
         std::vector<std::shared_ptr < Branch>> childs_child_branch_list = findAllChildrenOfType(child, branch_type);
         branch_list.insert(branch_list.end(), childs_child_branch_list.begin(), childs_child_branch_list.end());
+    }
+    
+    if (root->getType() == branch_type)
+    {
+        // We have a match add it to the branch list
+        branch_list.push_back(root);
     }
 
     return branch_list;
@@ -67,7 +67,7 @@ std::vector<std::shared_ptr<Branch>> ASTAssistant::findAllChildrenOfType(std::sh
             branch_list.push_back(root);
         }
     }
-    
+
     for (std::shared_ptr<Branch> child : children)
     {
         std::vector<std::shared_ptr < Branch>> childs_child_branch_list = findAllChildrenOfType(child, branch_types);
