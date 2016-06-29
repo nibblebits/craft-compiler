@@ -200,6 +200,7 @@ void Parser::reductBranches()
                     // Add the branches in the tmp_list to the branch
                     for (std::shared_ptr<Branch> branch : tmp_list)
                     {
+                        branch->setParent(root);
                         if (!branch->excluded())
                             root->addChild(branch);
                     }
