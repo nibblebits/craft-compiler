@@ -112,6 +112,7 @@ bool Stack<T>::isEmpty()
 template <class T>
 void Stack<T>::empty()
 {
+    sp = 0;
     elements.clear();
 }
 
