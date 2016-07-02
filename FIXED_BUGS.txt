@@ -1,0 +1,25 @@
+What happens: On the side with non even attributes only one "SPUSH" instruction is generated. 
+Immediatley after a "SADD" instruction is generated this leads to problems as when the interperter pops a value from the stack,
+you cannot be sure it is zero. Leading to an invalid result and possibly a program breaking.
+
+Example:
+; Below here is wrong. No first attribute is pushed to a stack
+SPUSH 18
+SADD
+
+; Below here is fine
+SPUSH 3 
+SPUSH 10
+SADD
+
+Fixed on 01/07/2016
+
+--------------------------------------------
+
+File: Stack.h
+
+Problem:
+The sp(stack pointer) does not reset to zero when calling the "empty" method.
+
+Fixed on 02/07/2016
+--------------------------------------------
