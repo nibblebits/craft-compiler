@@ -28,6 +28,7 @@
 #include "CodeGenerator.h"
 
 // Instruction set
+
 enum
 {
     NOP = 0x0,
@@ -50,16 +51,24 @@ enum
 class GoblinByteCodeGenerator : public CodeGenerator
 {
 public:
-    GoblinByteCodeGenerator(Compiler* compiler);
+    GoblinByteCodeGenerator(Compiler* compiler, std::string code_gen_desc);
     virtual ~GoblinByteCodeGenerator();
-    
-    void handleScope(std::shared_ptr<Branch> branch);
-    void handleExpression(std::shared_ptr<Branch> branch);
+
     // Unsure what to name this at the moment
     bool handleEntity(std::shared_ptr<Branch> branch);
     void createStackMathInstruction(std::string op);
     virtual void generate(std::shared_ptr<Tree> tree);
     virtual void generateFromBranch(std::shared_ptr<Branch> branch);
+
+
+    virtual void scope_start(std::shared_ptr<Branch> branch);
+    virtual void scope_assign_start(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> var);
+    virtual void scope_assign_end(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> var);
+    virtual void scope_func_call(std::shared_ptr<Branch> branch, std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments);
+    virtual void scope_end(std::shared_ptr<Branch> branch);
+    virtual void scope_handle_exp(std::shared_ptr<Branch> branch);
+    virtual void scope_handle_number(std::shared_ptr<Branch> branch);
+
 private:
     int saved_pos;
 };

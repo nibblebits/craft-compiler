@@ -32,7 +32,7 @@
 #include "AssignBranch.h"
 #include "MathEBranch.h"
 
-GoblinByteCodeGenerator::GoblinByteCodeGenerator(Compiler* compiler) : CodeGenerator(compiler)
+GoblinByteCodeGenerator::GoblinByteCodeGenerator(Compiler* compiler, std::string code_gen_desc) : CodeGenerator(compiler, code_gen_desc)
 {
     this->saved_pos = 0;
 }
@@ -48,105 +48,54 @@ void GoblinByteCodeGenerator::generate(std::shared_ptr<Tree> tree)
 
 void GoblinByteCodeGenerator::generateFromBranch(std::shared_ptr<Branch> branch)
 {
-    if (branch->getType() == "FUNC")
-    {
-        std::shared_ptr<FuncBranch> funcBranch = std::dynamic_pointer_cast<FuncBranch>(branch);
-        std::vector<std::shared_ptr < Branch>> func_argument_branches = funcBranch->getFunctionArgumentBranches();
-        std::shared_ptr<Branch> scopeBranch = funcBranch->getFunctionScopeBranches();
-        this->startRegistrationProcess();
-        // Generate the scope
-        this->saved_pos = this->stream->getPosition();
-        // Register the function arguments as a scope variable
-        for (std::shared_ptr<Branch> branch : func_argument_branches)
-        {
-            this->registerScopeVariable(branch);
-        }
-        this->handleScope(scopeBranch);
-        // Write some instructions just before the data that was written in handleScope, this will set the data pointer accordingly.
-        int new_pos = this->stream->getPosition();
-        this->stream->setPosition(this->saved_pos);
-        this->stream->startLoggingOffset();
-        this->stream->write8(SUBDP);
-        this->stream->write32(this->getScopeVariablesSize());
-
-        // Add the stream difference to the new_pos variable since we just did some writing
-        new_pos += this->stream->getLoggedOffset();
-        this->stream->stopLoggingOffset();
-
-        // Now set the position to what it should be
-        this->stream->setPosition(new_pos);
-
-        // Finally readjust the DP
-        this->stream->write8(ADDDP);
-        this->stream->write32(this->getScopeVariablesSize());
-
-
-        this->clearScopeVariables();
-        this->registerMemoryLocation(funcBranch);
-    }
+    CodeGenerator::generateFromBranch(branch);
 }
 
-void GoblinByteCodeGenerator::handleScope(std::shared_ptr<Branch> branch)
+void GoblinByteCodeGenerator::scope_start(std::shared_ptr<Branch> branch)
 {
-    if (branch->getType() == "V_DEF")
-    {
-        this->registerScopeVariable(branch);
-    }
-    else if (branch->getType() == "ASSIGN")
-    {
-        std::shared_ptr<AssignBranch> assign_branch = std::dynamic_pointer_cast<AssignBranch>(branch);
-        std::string var_name = branch->getChildren()[0]->getChildren()[0]->getValue();
-        std::shared_ptr<struct scope_variable> var = this->getScopeVariable(var_name);
-        // Handle the expression
-        std::vector<std::shared_ptr<Branch>> e_branches = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(assign_branch->getValueBranch(), "MATH_E");
-        for (std::shared_ptr<Branch> e_branch : e_branches)
-        {
-            std::shared_ptr<MathEBranch> math_e_branch = std::dynamic_pointer_cast<MathEBranch>(e_branch);
-            handleExpression(math_e_branch);
-        }
-        // Now pop it from the stack and stick it into the correct memory location
-        int mpos_rel = var->index * var->size;
-        this->stream->write8(SPOP_TO_DP_RELATIVE);
-        this->stream->write32(mpos_rel);
-    }
-    else if (branch->getType() == "CALL")
-    {
-        std::shared_ptr<CallBranch> callBranch = std::dynamic_pointer_cast<CallBranch>(branch);
-        std::string name = callBranch->getFunctionNameBranch()->getValue();
-        std::vector<std::shared_ptr < Branch>> arguments = callBranch->getFunctionArgumentBranches();
-        if (this->isFunctionRegistered(name))
-        {
-            // This is a local function call
-            int func_mem_loc = this->getFunctionMemoryLocation(name);
-            for (std::shared_ptr<Branch> argument : arguments)
-            {
-                if (argument->getType() == "number")
-                {
-                    int number = std::stoi(argument->getValue(), NULL);
-                    this->stream->write8(SPUSH);
-                    this->stream->write32(number);
-                }
-            }
-            this->stream->write8(CALL);
-            this->stream->write32(func_mem_loc);
-        }
-        else
-        {
-            // This is a system function call
-            throw CodeGeneratorException("System calls are currently not compatible");
-        }
-    }
-
-    std::vector<std::shared_ptr < Branch>> children = branch->getChildren();
-    for (std::shared_ptr<Branch> child : children)
-    {
-        handleScope(child);
-    }
+    this->saved_pos = this->stream->getPosition();
 }
 
-/* Handles only one part of an expression for example: 5 + 5 it would handle but 5 + 5 + 5 it would not. #
- * the method is only responsible for handling one part of an expression. */
-void GoblinByteCodeGenerator::handleExpression(std::shared_ptr<Branch> branch)
+void GoblinByteCodeGenerator::scope_assign_start(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> var)
+{
+
+}
+
+void GoblinByteCodeGenerator::scope_assign_end(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> var)
+{
+    // Now pop it from the stack and stick it into the correct memory location
+    int mpos_rel = var->index * var->size;
+    this->stream->write8(SPOP_TO_DP_RELATIVE);
+    this->stream->write32(mpos_rel);
+}
+
+void GoblinByteCodeGenerator::scope_end(std::shared_ptr<Branch> branch)
+{
+    // Write some instructions just before the data that was written in handleScope, this will set the data pointer accordingly.
+    int new_pos = this->stream->getPosition();
+    this->stream->setPosition(this->saved_pos);
+    this->stream->startLoggingOffset();
+    this->stream->write8(SUBDP);
+    this->stream->write32(this->getScopeVariablesSize());
+
+    // Add the stream difference to the new_pos variable since we just did some writing
+    new_pos += this->stream->getLoggedOffset();
+    this->stream->stopLoggingOffset();
+
+    // Now set the position to what it should be
+    this->stream->setPosition(new_pos);
+
+    // Finally readjust the DP
+    this->stream->write8(ADDDP);
+    this->stream->write32(this->getScopeVariablesSize());
+}
+
+void GoblinByteCodeGenerator::scope_func_call(std::shared_ptr<Branch> branch, std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments)
+{ 
+
+}
+
+void GoblinByteCodeGenerator::scope_handle_exp(std::shared_ptr<Branch> branch)
 {
     if (branch->getType() == "MATH_E")
     {
@@ -169,6 +118,13 @@ void GoblinByteCodeGenerator::handleExpression(std::shared_ptr<Branch> branch)
     }
 }
 
+void GoblinByteCodeGenerator::scope_handle_number(std::shared_ptr<Branch> branch)
+{
+    int number = std::stoi(branch->getValue(), NULL);
+    this->stream->write8(SPUSH);
+    this->stream->write32(number);
+}
+
 bool GoblinByteCodeGenerator::handleEntity(std::shared_ptr<Branch> branch)
 {
     if (branch->getType() == "number")
@@ -184,6 +140,7 @@ bool GoblinByteCodeGenerator::handleEntity(std::shared_ptr<Branch> branch)
         // Get the address of the variable
         std::shared_ptr<struct scope_variable> var = this->getScopeVariable(branch->getValue());
         int mpos_rel = var->index * var->size;
+        // Push the value of the memory pointed to by that address to the stack
         this->stream->write8(SPUSH_MEMORY_VALUE_DP_RELATIVE);
         this->stream->write32(mpos_rel);
         return true;
