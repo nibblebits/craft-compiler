@@ -42,6 +42,7 @@ std::shared_ptr<Branch> CallBranch::getFunctionNameBranch()
 std::vector<std::shared_ptr<Branch>> CallBranch::getFunctionArgumentBranches()
 {
     std::vector<std::string> search_for;
+    search_for.push_back("MATH_E");
     search_for.push_back("identifier");
     search_for.push_back("number");
     
