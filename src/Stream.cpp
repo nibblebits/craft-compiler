@@ -70,6 +70,36 @@ void Stream::write32(uint32_t i)
     write16(s2);
 }
 
+void Stream::writeStr(std::string str, size_t fill_to)
+{
+    writeStr(str.c_str(), fill_to);
+}
+
+/* Should probably try to write this better when I am a bit
+ more awake. A bit sleepy at the moment*/
+void Stream::writeStr(const char* str, size_t fill_to)
+{
+    int i = 0;
+    do
+    {
+        write8(str[i]);
+        i++;
+    }
+    while(str[i] != 0);
+    
+    write8(0);
+    i++;
+    
+    if (fill_to != -1 && fill_to - i > 0)
+    {
+        // We need to fill it to a maximum point
+        for(; i < fill_to; i++)
+        {
+            write8(0);
+        }
+    }
+}
+
 uint8_t Stream::read8()
 {
     uint8_t c = this->stack.pop_first();
@@ -102,6 +132,11 @@ size_t Stream::getSize()
 bool Stream::isEmpty()
 {
     return this->getSize() == 0;
+}
+
+void Stream::empty()
+{
+    this->stack.empty();
 }
 
 int Stream::getPosition()
