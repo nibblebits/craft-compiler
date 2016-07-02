@@ -33,6 +33,7 @@
 #include "GoblinLibraryLoader.h"
 #include "GoblinArgumentParser.h"
 #include "CodeGeneratorException.h"
+#include "GoblinObject.h"
 
 // Built in code generators
 #include "GoblinByteCodeGenerator.h"
@@ -125,7 +126,7 @@ std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
     // Check for built in code generators
     if (codegen_name == "goblin_bytecode")
     {
-        codegen = std::shared_ptr<CodeGenerator>(new GoblinByteCodeGenerator(&compiler));
+        codegen = std::shared_ptr<CodeGenerator>(new GoblinByteCodeGenerator(&compiler, codegen_name));
     }
     else
     {
@@ -248,6 +249,10 @@ int main(int argc, char** argv)
         parser->addRule("E:E:'symbol@,:E");
         parser->addRule("E:E:'symbol@,:STMT");
         parser->addRule("PD:'symbol@(:V_DEF:'symbol@)");
+        parser->addRule("PD:'symbol@(:'symbol@)");
+        parser->addRule("PD:V_DEF:'symbol@,:V_DEF");
+        parser->addRule("PD:PD:'symbol@,:V_DEF");
+        parser->addRule("PD:'symbol@(:PD:'symbol@)");
         parser->addRule("FUNC:keyword:'symbol@#:E:PD:SCOPE");
         parser->addRule("ASSIGN:E:symbol@=:E");
         parser->addRule("ASSIGN:E:symbol@=:STMT");
