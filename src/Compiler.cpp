@@ -98,5 +98,38 @@ int Compiler::getDataTypeSize(std::string type)
     {
         return -1;
     }
+}
 
+std::string Compiler::getTypeFromNumber(int number)
+{
+    if (number >= 0)
+    {
+        if (number <= 0xff)
+        {
+            return "uint8";
+        }
+        else if(number <= 0xffff)
+        {
+            return "uint16";
+        }
+        else if(number <= 0xffffffff)
+        {
+            return "uint32";
+        }
+    }
+    else
+    {
+        if (number >= -0xff)
+        {
+            return "int8";
+        }
+        else if(number >= -0xffff)
+        {
+            return "int16";
+        }
+        else if(number >= -0xffffffff)
+        {
+            return "int32";
+        }
+    }
 }

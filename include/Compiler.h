@@ -46,6 +46,7 @@ public:
     ASTAssistant* getASTAssistant();
     std::shared_ptr<CodeGenerator> getCodeGenerator();
     int getDataTypeSize(std::string type);
+    std::string getTypeFromNumber(int number);
 private:
     /* Ideally these do not have to be pointers but since arguments now exist in the constructors of these objects I have ran into issues calling them.
      * I plan to change this soon */
