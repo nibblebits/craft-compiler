@@ -44,7 +44,7 @@ std::vector<std::shared_ptr<Branch>> ASTAssistant::findAllChildrenOfType(std::sh
         std::vector<std::shared_ptr < Branch>> childs_child_branch_list = findAllChildrenOfType(child, branch_type);
         branch_list.insert(branch_list.end(), childs_child_branch_list.begin(), childs_child_branch_list.end());
     }
-    
+
     if (root->getType() == branch_type)
     {
         // We have a match add it to the branch list
@@ -58,6 +58,7 @@ std::vector<std::shared_ptr<Branch>> ASTAssistant::findAllChildrenOfType(std::sh
 {
     std::vector<std::shared_ptr < Branch>> branch_list;
     std::vector<std::shared_ptr < Branch>> children = root->getChildren();
+    bool found = false;
 
     for (std::string branch_type : branch_types)
     {
@@ -65,13 +66,18 @@ std::vector<std::shared_ptr<Branch>> ASTAssistant::findAllChildrenOfType(std::sh
         {
             // We have a match add it to the branch list
             branch_list.push_back(root);
+            found = true;
         }
     }
 
-    for (std::shared_ptr<Branch> child : children)
+    // We do not wish to find children of a valid child.
+    if (!found)
     {
-        std::vector<std::shared_ptr < Branch>> childs_child_branch_list = findAllChildrenOfType(child, branch_types);
-        branch_list.insert(branch_list.end(), childs_child_branch_list.begin(), childs_child_branch_list.end());
+        for (std::shared_ptr<Branch> child : children)
+        {
+            std::vector<std::shared_ptr < Branch>> childs_child_branch_list = findAllChildrenOfType(child, branch_types);
+            branch_list.insert(branch_list.end(), childs_child_branch_list.begin(), childs_child_branch_list.end());
+        }
     }
 
 
