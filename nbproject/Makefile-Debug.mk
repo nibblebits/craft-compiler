@@ -47,8 +47,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/EBranch.o \
 	${OBJECTDIR}/src/FuncBranch.o \
 	${OBJECTDIR}/src/GoblinByteCodeGenerator.o \
+	${OBJECTDIR}/src/GoblinObject.o \
 	${OBJECTDIR}/src/Helper.o \
 	${OBJECTDIR}/src/Lexer.o \
+	${OBJECTDIR}/src/Linker.o \
 	${OBJECTDIR}/src/MathEBranch.o \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
@@ -144,6 +146,11 @@ ${OBJECTDIR}/src/GoblinByteCodeGenerator.o: src/GoblinByteCodeGenerator.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinByteCodeGenerator.o src/GoblinByteCodeGenerator.cpp
 
+${OBJECTDIR}/src/GoblinObject.o: src/GoblinObject.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinObject.o src/GoblinObject.cpp
+
 ${OBJECTDIR}/src/Helper.o: src/Helper.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -153,6 +160,11 @@ ${OBJECTDIR}/src/Lexer.o: src/Lexer.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Lexer.o src/Lexer.cpp
+
+${OBJECTDIR}/src/Linker.o: src/Linker.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Linker.o src/Linker.cpp
 
 ${OBJECTDIR}/src/MathEBranch.o: src/MathEBranch.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
