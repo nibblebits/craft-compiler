@@ -32,8 +32,10 @@
 #include "Exception.h"
 #include "GoblinLibraryLoader.h"
 #include "GoblinArgumentParser.h"
+#include "CodeGenerator.h"
 #include "CodeGeneratorException.h"
 #include "GoblinObject.h"
+#include "Linker.h"
 
 // Built in code generators
 #include "GoblinByteCodeGenerator.h"
@@ -142,6 +144,8 @@ int main(int argc, char** argv)
     std::string input_file_name;
     std::string output_file_name;
     std::string source_file_data;
+    bool object_file_output = false;
+    std::vector<std::string> file_names_to_link;
 
     std::cout << COMPILER_FULLNAME << std::endl;
     if (argc == 1)
@@ -176,6 +180,25 @@ int main(int argc, char** argv)
                 codegen_name = arguments.getArgumentValue("codegen");
             }
 
+            if (arguments.hasArgument("O"))
+            {
+                object_file_output = true;
+            }
+            
+            if (arguments.hasArgument("L"))
+            {
+                if (object_file_output)
+                {
+                    std::cout << "You cannot link objects while outputting as an object file." << std::endl;
+                    return PROBLEM_WITH_ARGUMENT;
+                }
+                else
+                {
+                    std::string to_link_str = arguments.getArgumentValue("L");
+                    file_names_to_link = Helper::split(to_link_str, ',');
+                }
+            }
+
             input_file_name = arguments.getArgumentValue("input");
             output_file_name = arguments.getArgumentValue("output");
 
@@ -184,7 +207,6 @@ int main(int argc, char** argv)
                 std::cout << "The input file and the output file may not be the same" << std::endl;
                 return PROBLEM_WITH_ARGUMENT;
             }
-            std::cout << "Compiling: " << input_file_name << " to " << output_file_name << ", code generator: " << codegen_name << std::endl;
         }
         catch (GoblinArgumentException ex)
         {
@@ -192,6 +214,9 @@ int main(int argc, char** argv)
             return ARGUMENT_PARSE_PROBLEM;
         }
     }
+
+    std::cout << "Compiling: " << input_file_name << " to " << output_file_name 
+            << (object_file_output ? " as an object file " : "") << ", code generator: " << codegen_name << std::endl;
     try
     {
         source_file_data = LoadFile(input_file_name);
@@ -203,9 +228,11 @@ int main(int argc, char** argv)
     }
 
     std::shared_ptr<CodeGenerator> codegen;
+    std::shared_ptr<Linker> linker;
     try
     {
         codegen = getCodeGenerator(codegen_name);
+        linker = codegen->getLinker();
         compiler.setCodeGenerator(codegen);
     }
     catch (Exception ex)
@@ -262,6 +289,8 @@ int main(int argc, char** argv)
         parser->addRule("ZERO_ARGS:'symbol@(:'symbol@)");
         parser->addRule("SCOPE:'symbol@{:STMT:'symbol@}");
         parser->addRule("SCOPE:'symbol@{:'symbol@}");
+        parser->addRule("ASM:'keyword@__asm:SCOPE");
+        parser->addRule("STMT:ASM");
         parser->addRule("STMT:CALL");
         parser->addRule("STMT:ASSIGN");
         parser->addRule("STMT:V_DEF");
@@ -294,22 +323,39 @@ int main(int argc, char** argv)
     try
     {
         codegen->generate(parser->getTree());
-        Stream* stream = codegen->getStream();
-        size_t stream_size = stream->getSize();
+        Stream* obj_stream = codegen->getStream();
+        size_t stream_size = obj_stream->getSize();
         if (stream_size == 0)
         {
             throw CodeGeneratorException("No output was generated");
         }
 
-        try
+        // This is an object file output so there is no need for any linking
+        if (object_file_output)
         {
-            WriteFile(output_file_name, stream);
+            WriteFile(output_file_name, obj_stream);
         }
-        catch (Exception ex)
+        else
         {
-            std::cout << ex.getMessage() << std::endl;
-            return ERROR_WITH_OUTPUT_FILE;
+            try
+            {
+                linker->addObjectFileStream(obj_stream);
+                for (std::string filename_to_link : file_names_to_link)
+                {
+                    std::cout << "Will link with: " << filename_to_link << std::endl;
+                    linker->addObjectFile(filename_to_link);
+                }
+                linker->link();
+                Stream* executable_stream = linker->getExecutableStream();
+                WriteFile(output_file_name, executable_stream);
+            }
+            catch (Exception ex)
+            {
+                std::cout << ex.getMessage() << std::endl;
+                return ERROR_WITH_OUTPUT_FILE;
+            }
         }
+        
     }
     catch (CodeGeneratorException ex)
     {
