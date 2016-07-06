@@ -35,6 +35,7 @@
 GoblinByteCodeGenerator::GoblinByteCodeGenerator(Compiler* compiler, std::string code_gen_desc) : CodeGenerator(compiler, code_gen_desc)
 {
     this->saved_pos = 0;
+    this->linker = std::shared_ptr<Linker>(new GoblinByteCodeLinker(compiler));
 }
 
 GoblinByteCodeGenerator::~GoblinByteCodeGenerator()
@@ -51,9 +52,19 @@ void GoblinByteCodeGenerator::generateFromBranch(std::shared_ptr<Branch> branch)
     CodeGenerator::generateFromBranch(branch);
 }
 
+std::shared_ptr<Linker> GoblinByteCodeGenerator::getLinker()
+{
+    return this->linker;
+}
+
 void GoblinByteCodeGenerator::scope_start(std::shared_ptr<Branch> branch)
 {
     this->saved_pos = this->stream->getPosition();
+    // This instruction will be replaced at the end of a scope.
+    // It is required to keep the offsets correct for other calculations previously done.
+    // See section 5 in the "FIXED_BUGS" file
+    this->stream->write8(SUBDP);
+    this->stream->write32(0);
 }
 
 void GoblinByteCodeGenerator::scope_assign_start(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> var)
@@ -71,28 +82,23 @@ void GoblinByteCodeGenerator::scope_assign_end(std::shared_ptr<Branch> branch, s
 
 void GoblinByteCodeGenerator::scope_end(std::shared_ptr<Branch> branch)
 {
-    // Write some instructions just before the data that was written in handleScope, this will set the data pointer accordingly.
-    int new_pos = this->stream->getPosition();
     this->stream->setPosition(this->saved_pos);
-    this->stream->startLoggingOffset();
+    this->stream->setEraseMode(true);
     this->stream->write8(SUBDP);
     this->stream->write32(this->getScopeVariablesSize());
-
-    // Add the stream difference to the new_pos variable since we just did some writing
-    new_pos += this->stream->getLoggedOffset();
-    this->stream->stopLoggingOffset();
-
-    // Now set the position to what it should be
-    this->stream->setPosition(new_pos);
-
+    this->stream->setEraseMode(false);
+    
+    this->stream->setPosition(this->stream->getSize());
     // Finally readjust the DP
     this->stream->write8(ADDDP);
     this->stream->write32(this->getScopeVariablesSize());
 }
 
 void GoblinByteCodeGenerator::scope_func_call(std::shared_ptr<Branch> branch, std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments)
-{ 
-
+{
+    this->stream->write8(CALL);
+    // Placeholder address until the actual address is known during link time.
+    this->stream->write32(0);
 }
 
 void GoblinByteCodeGenerator::scope_handle_exp(std::shared_ptr<Branch> branch)

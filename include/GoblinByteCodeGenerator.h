@@ -25,6 +25,7 @@
 #ifndef GOBLINBYTECODEGENERATOR_H
 #define GOBLINBYTECODEGENERATOR_H
 
+#include "GoblinByteCodeLinker.h"
 #include "CodeGenerator.h"
 
 // Instruction set
@@ -60,7 +61,7 @@ public:
     virtual void generate(std::shared_ptr<Tree> tree);
     virtual void generateFromBranch(std::shared_ptr<Branch> branch);
 
-
+    virtual std::shared_ptr<Linker> getLinker();
     virtual void scope_start(std::shared_ptr<Branch> branch);
     virtual void scope_assign_start(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> var);
     virtual void scope_assign_end(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> var);
@@ -71,6 +72,7 @@ public:
 
 private:
     int saved_pos;
+    std::shared_ptr<Linker> linker;
 };
 
 #endif /* GOBLINBYTECODEGENERATOR_H */
