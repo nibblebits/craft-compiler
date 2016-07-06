@@ -56,9 +56,12 @@ struct goblin_function_call
     std::string func_name;
     size_t t_arguments;
     struct goblin_argument* arguments;
+    int mem_pos;
 
     goblin_function_call();
     virtual ~goblin_function_call();
+
+    struct goblin_argument* getArgument(int index);
 };
 
 struct goblin_function_declaration
@@ -67,9 +70,11 @@ struct goblin_function_declaration
     size_t t_arguments;
     struct goblin_argument* arguments;
     int mem_pos;
-    
+
     goblin_function_declaration();
     virtual ~goblin_function_declaration();
+
+    struct goblin_argument* getArgument(int index);
 };
 
 struct goblin_functions_declaration_header
@@ -79,6 +84,9 @@ struct goblin_functions_declaration_header
 
     goblin_functions_declaration_header();
     virtual ~goblin_functions_declaration_header();
+
+    bool hasFunction(std::string func_name);
+    struct goblin_function_declaration* getFunction(std::string func_name);
 };
 
 struct goblin_function_calls_header
@@ -94,7 +102,7 @@ struct goblin_obj_header
 {
     const char* descriptor = {"GOB"};
     std::string code_generator_descriptor;
-    struct goblin_functions_declaration_header func_declarations_header; 
+    struct goblin_functions_declaration_header func_declarations_header;
     struct goblin_function_calls_header func_calls_header;
     size_t code_size;
     Stream code;
@@ -114,6 +122,9 @@ public:
     void write();
     /* Reads data from an input stream into this goblin object*/
     void read(std::ifstream ifs);
+    /* Reads data from a Stream into the goblin object*/
+    void read(Stream* stream);
+
     Stream* getStream();
 private:
     Stream stream;
