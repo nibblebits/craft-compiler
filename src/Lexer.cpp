@@ -30,7 +30,7 @@ const char operators[] = {'+', '-', '/', '*'};
 const char symbols[] = {'=', '(', ')', ',', '#', '{', '}'};
 const std::string keywords[] = {
     "nibble", "bit", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64",
-    "if", "for", "do", "while", "next", "continue", "break", "switch"
+    "if", "for", "do", "while", "next", "continue", "break", "switch", "__asm"
 };
 
 Lexer::Lexer(Compiler* compiler) : CompilerEntity(compiler)
@@ -200,7 +200,7 @@ bool Lexer::isSymbol(char op)
 
 bool Lexer::isCharacter(char op)
 {
-    if ((op >= 65 && op <= 90) || (op >= 97 && op <= 122))
+    if ((op >= 65 && op <= 90) || (op >= 97 && op <= 122) || op == 95)
         return true;
     return false;
 }
