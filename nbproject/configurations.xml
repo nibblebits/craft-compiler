@@ -18,11 +18,14 @@
       <itemPath>include/Exception.h</itemPath>
       <itemPath>include/FuncBranch.h</itemPath>
       <itemPath>include/GoblinByteCodeGenerator.h</itemPath>
+      <itemPath>include/GoblinByteCodeLinker.h</itemPath>
       <itemPath>include/GoblinObject.h</itemPath>
+      <itemPath>include/GoblinObjectLinker.h</itemPath>
       <itemPath>include/Helper.h</itemPath>
       <itemPath>include/Lexer.h</itemPath>
       <itemPath>include/LexerException.h</itemPath>
       <itemPath>include/Linker.h</itemPath>
+      <itemPath>include/LinkerException.h</itemPath>
       <itemPath>include/MathEBranch.h</itemPath>
       <itemPath>include/Parser.h</itemPath>
       <itemPath>include/ParserException.h</itemPath>
@@ -56,7 +59,9 @@
       <itemPath>src/EBranch.cpp</itemPath>
       <itemPath>src/FuncBranch.cpp</itemPath>
       <itemPath>src/GoblinByteCodeGenerator.cpp</itemPath>
+      <itemPath>src/GoblinByteCodeLinker.cpp</itemPath>
       <itemPath>src/GoblinObject.cpp</itemPath>
+      <itemPath>src/GoblinObjectLinker.cpp</itemPath>
       <itemPath>src/Helper.cpp</itemPath>
       <itemPath>src/Lexer.cpp</itemPath>
       <itemPath>src/Linker.cpp</itemPath>
@@ -144,7 +149,11 @@
       </item>
       <item path="include/GoblinByteCodeGenerator.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/GoblinByteCodeLinker.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/GoblinObject.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinObjectLinker.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -153,6 +162,8 @@
       <item path="include/LexerException.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Linker.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/LinkerException.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/MathEBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -207,7 +218,11 @@
       </item>
       <item path="src/GoblinByteCodeGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/GoblinByteCodeLinker.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/GoblinObject.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GoblinObjectLinker.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -284,7 +299,11 @@
       </item>
       <item path="include/GoblinByteCodeGenerator.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/GoblinByteCodeLinker.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/GoblinObject.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinObjectLinker.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -293,6 +312,8 @@
       <item path="include/LexerException.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Linker.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/LinkerException.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/MathEBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -347,7 +368,11 @@
       </item>
       <item path="src/GoblinByteCodeGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/GoblinByteCodeLinker.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/GoblinObject.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GoblinObjectLinker.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
       </item>

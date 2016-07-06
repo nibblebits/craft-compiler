@@ -47,7 +47,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/EBranch.o \
 	${OBJECTDIR}/src/FuncBranch.o \
 	${OBJECTDIR}/src/GoblinByteCodeGenerator.o \
+	${OBJECTDIR}/src/GoblinByteCodeLinker.o \
 	${OBJECTDIR}/src/GoblinObject.o \
+	${OBJECTDIR}/src/GoblinObjectLinker.o \
 	${OBJECTDIR}/src/Helper.o \
 	${OBJECTDIR}/src/Lexer.o \
 	${OBJECTDIR}/src/Linker.o \
@@ -146,10 +148,20 @@ ${OBJECTDIR}/src/GoblinByteCodeGenerator.o: src/GoblinByteCodeGenerator.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinByteCodeGenerator.o src/GoblinByteCodeGenerator.cpp
 
+${OBJECTDIR}/src/GoblinByteCodeLinker.o: src/GoblinByteCodeLinker.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinByteCodeLinker.o src/GoblinByteCodeLinker.cpp
+
 ${OBJECTDIR}/src/GoblinObject.o: src/GoblinObject.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinObject.o src/GoblinObject.cpp
+
+${OBJECTDIR}/src/GoblinObjectLinker.o: src/GoblinObjectLinker.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinObjectLinker.o src/GoblinObjectLinker.cpp
 
 ${OBJECTDIR}/src/Helper.o: src/Helper.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

@@ -13,8 +13,6 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
-        <gdb_signals>
-        </gdb_signals>
         <gdb_options>
           <DebugOptions>
           </DebugOptions>
@@ -26,16 +24,16 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" test_source.gob</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" test_source.goblin</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -A -B
 </runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -A woop</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -A</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblina -output test_source.goblino</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblin</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -O -I "test.o,fire.o,cool.o"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -L "test.o,fire.o,cool.o"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -L "test.goblino"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -O</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino</runcommandpicklistitem>
         </runcommandpicklist>
         <runcommand>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino</runcommand>
