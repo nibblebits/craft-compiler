@@ -1,0 +1,82 @@
+1. What happens: On the side with non even attributes only one "SPUSH" instruction is generated. 
+Immediatley after a "SADD" instruction is generated this leads to problems as when the interperter pops a value from the stack,
+you cannot be sure it is zero. Leading to an invalid result and possibly a program breaking.
+
+Example:
+; Below here is wrong. No first attribute is pushed to a stack
+SPUSH 18
+SADD
+
+; Below here is fine
+SPUSH 3 
+SPUSH 10
+SADD
+
+Fixed on 01/07/2016
+
+--------------------------------------------
+
+2. File: Stack.h
+
+Problem:
+The sp(stack pointer) does not reset to zero when calling the "empty" method.
+
+Fixed on 02/07/2016
+--------------------------------------------
+
+
+3. Bug in Stream class
+
+Problem:
+Reading an integer 32 will give a value different than that was written to it.
+
+Fix:
+    uint32_t result = (s1 << 16 | s2);
+should have been
+    uint32_t result = (s2 << 16 | s1);
+
+Fixed on 03/07/2016
+--------------------------------------------
+
+
+4. Bug with Linker, upon linking with multiple objects the stack ends up empty
+
+Problem:
+	In both while statements they both accessed obj1_head when each while statement should have handled a different head from eachother.
+Fix:
+
+    // Write the code Streams of both objects to the result object
+    while (!obj1_head->code.isEmpty())
+    {
+        result_obj_head->code.write8(obj1_head->code.read8());
+    }
+
+
+    while (!obj1_head->code.isEmpty())
+    {
+        result_obj_head->code.write8(obj2_head->code.read8());
+    }
+Should have been:
+    // Write the code Streams of both objects to the result object
+    while (!obj1_head->code.isEmpty())
+    {
+        result_obj_head->code.write8(obj1_head->code.read8());
+    }
+
+
+    while (!obj2_head->code.isEmpty())
+    {
+        result_obj_head->code.write8(obj2_head->code.read8());
+    }
+
+Fixed on: 03/07/2016
+-------------------------------------------------
+
+
+5. Bug with code generator.
+
+Problem: Changing of stream position to insert new bytes will make already calculated offsets invalid.
+Solution: Generate a placeholder for every part of the program that will be replaced so that offsets remain the same.
+
+Fixed on 06/07/2016
+--------------------------------------------------

@@ -3,3 +3,4 @@ Parser cannot generate a valid tree, when expressions of a certain format exist.
 Input:
 	c = (50 + 19) * 8
 
+----------------------------------
