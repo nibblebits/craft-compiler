@@ -33,6 +33,7 @@ Compiler::Compiler()
     this->typeChecker = new TypeChecker(this);
     this->astAssistant = new ASTAssistant(this);
     this->codeGenerator = NULL;
+    this->linker = NULL;
 }
 
 Compiler::~Compiler()
@@ -48,6 +49,11 @@ void Compiler::setCodeGenerator(std::shared_ptr<CodeGenerator> codegen)
         throw Exception("The code generator may not be NULL!");
 
     this->codeGenerator = codegen;
+}
+
+void Compiler::setLinker(std::shared_ptr<Linker> linker)
+{
+    this->linker = linker;
 }
 
 Lexer* Compiler::getLexer()
@@ -73,6 +79,11 @@ ASTAssistant* Compiler::getASTAssistant()
 std::shared_ptr<CodeGenerator> Compiler::getCodeGenerator()
 {
     return this->codeGenerator;
+}
+
+std::shared_ptr<Linker> Compiler::getLinker()
+{
+    return this->linker;
 }
 
 int Compiler::getDataTypeSize(std::string type)
@@ -108,11 +119,11 @@ std::string Compiler::getTypeFromNumber(int number)
         {
             return "uint8";
         }
-        else if(number <= 0xffff)
+        else if (number <= 0xffff)
         {
             return "uint16";
         }
-        else if(number <= 0xffffffff)
+        else if (number <= 0xffffffff)
         {
             return "uint32";
         }
@@ -123,13 +134,33 @@ std::string Compiler::getTypeFromNumber(int number)
         {
             return "int8";
         }
-        else if(number >= -0xffff)
+        else if (number >= -0xffff)
         {
             return "int16";
         }
-        else if(number >= -0xffffffff)
+        else if (number >= -0xffffffff)
         {
             return "int32";
         }
     }
+}
+
+bool Compiler::canCast(std::string type1, std::string type2)
+{
+    if (type1 == "uint8" || type1 == "int8")
+    {
+        if (type2 == "uint8" || type2 == "int8" || type2 == "uint16" || type2 == "int16" || type2 == "uint32" || type2 == "int32")
+        {
+            return true;
+        }
+    }
+    else if (type1 == "uint16" || type1 == "int16")
+    {
+        if (type2 == "uint32" || type2 == "int32")
+        {
+            return true;
+        }
+    }
+    
+    return false;
 }

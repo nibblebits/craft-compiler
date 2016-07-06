@@ -33,6 +33,7 @@
 #include "ASTAssistant.h"
 #include "CodeGenerator.h"
 #include "Exception.h"
+#include "Linker.h"
 
 class Compiler {
 public:
@@ -40,13 +41,16 @@ public:
     virtual ~Compiler();
     
     void setCodeGenerator(std::shared_ptr<CodeGenerator> codegen);
+    void setLinker(std::shared_ptr<Linker> linker);
     Lexer* getLexer();
     Parser* getParser();
     TypeChecker* getTypeChecker();
     ASTAssistant* getASTAssistant();
     std::shared_ptr<CodeGenerator> getCodeGenerator();
+    std::shared_ptr<Linker> getLinker();
     int getDataTypeSize(std::string type);
     std::string getTypeFromNumber(int number);
+    bool canCast(std::string type1, std::string type2);
 private:
     /* Ideally these do not have to be pointers but since arguments now exist in the constructors of these objects I have ran into issues calling them.
      * I plan to change this soon */
@@ -57,6 +61,8 @@ private:
     
     // The code generator must be shared as we are not the sole owner of it and it would be unsafe to not have this as a shared pointer.
     std::shared_ptr<CodeGenerator> codeGenerator;
+    
+    std::shared_ptr<Linker> linker;
 };
 
 #endif /* COMPILER_H */
