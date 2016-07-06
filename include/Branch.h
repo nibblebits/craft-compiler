@@ -30,6 +30,8 @@
 #include <vector>
 #include <memory>
 
+#include "Exception.h"
+
 #define BRANCH_TYPE_BRANCH 0
 #define BRANCH_TYPE_TOKEN 1
 class Branch : public std::enable_shared_from_this<Branch>
