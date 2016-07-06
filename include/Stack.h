@@ -36,9 +36,11 @@ class Stack
 public:
     void push(T elem);
     T pop();
+    void erase(int start, int end);
     T top();
     T first();
     T pop_first();
+    void setEraseMode(bool erase_mode);
     void setSP(int pos);
     bool isEmpty();
     void empty();
@@ -47,12 +49,17 @@ public:
 private:
     std::vector<T> elements;
     int sp = 0;
+    bool erase_mode = false;
 
 };
 
 template <class T>
 void Stack<T>::push(T elem)
 {
+    if (erase_mode)
+    {
+        elements.erase(elements.begin() + sp);
+    }
     elements.insert(elements.begin() + sp, elem);
     sp++;
 }
@@ -64,6 +71,14 @@ T Stack<T>::pop()
     T element = top();
     elements.erase(elements.begin() + sp);
     return element;
+}
+
+template <class T>
+void Stack<T>::erase(int start, int end)
+{
+    int size = end-start;
+    sp -= size;
+    elements.erase(elements.begin() + start, elements.begin() + start + end);
 }
 
 template <class T>
@@ -95,6 +110,12 @@ T Stack<T>::pop_first()
     elements.erase(elements.begin());
     
     return element;
+}
+
+template <class T>
+void Stack<T>::setEraseMode(bool erase_mode)
+{
+    this->erase_mode = erase_mode;
 }
 
 template <class T>
