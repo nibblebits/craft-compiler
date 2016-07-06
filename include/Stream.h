@@ -27,19 +27,26 @@
 
 #include <stdint.h>
 #include <cstring>
+#include <fstream>
 #include "Stack.h"
 #include "Exception.h"
 
-class Stream {
+class Stream
+{
 public:
     Stream();
     virtual ~Stream();
+    void loadFromFile(std::string filename);
+    void loadFrom_ifstream(std::ifstream* stream);
     void setPosition(size_t position);
     void write8(uint8_t c);
     void write16(uint16_t s);
     void write32(uint32_t i);
     void writeStr(std::string str, size_t fill_to = -1);
     void writeStr(const char* str, size_t fill_to = -1);
+    void erase(int start, int end);
+    
+    void setEraseMode(bool erase_mode);
     uint8_t read8();
     uint16_t read16();
     uint32_t read32();

@@ -40,6 +40,26 @@ Stream::~Stream()
 {
 }
 
+void Stream::loadFromFile(std::string filename)
+{
+    std::ifstream ifs;
+    ifs.open(filename, std::ios::binary);
+    if (!ifs.is_open())
+    {
+        throw Exception("Failed to open: " + filename);
+    }
+
+    this->loadFrom_ifstream(&ifs);
+}
+
+void Stream::loadFrom_ifstream(std::ifstream* stream)
+{
+    while (stream->good())
+    {
+        this->write8(stream->get());
+    }
+}
+
 void Stream::setPosition(size_t position)
 {
     this->stack.setSP(position);
@@ -85,21 +105,31 @@ void Stream::writeStr(const char* str, size_t fill_to)
         write8(str[i]);
         i++;
     }
-    while(str[i] != 0);
-    
+    while (str[i] != 0);
+
     write8(0);
     i++;
-    
+
     if (fill_to != -1 && fill_to - i > 0)
     {
         // We need to fill it to a maximum point
-        for(; i < fill_to; i++)
+        for (; i < fill_to; i++)
         {
             write8(0);
         }
     }
 }
 
+void Stream::erase(int start, int end)
+{
+    this->stack.erase(start, end);
+}
+
+ void Stream::setEraseMode(bool erase_mode)
+ {
+     this->stack.setEraseMode(erase_mode);
+ }
+ 
 uint8_t Stream::read8()
 {
     uint8_t c = this->stack.pop_first();
@@ -120,8 +150,20 @@ uint32_t Stream::read32()
     uint16_t s1 = read16();
     uint16_t s2 = read16();
 
-    uint32_t result = (s1 << 16 | s2);
+    uint32_t result = (s2 << 16 | s1);
     return result;
+}
+
+std::string Stream::readStr()
+{
+    std::string str = "";
+    uint8_t c;
+    while((c = read8()) != 0)
+    {
+        str += c;
+    }
+    
+    return str;
 }
 
 size_t Stream::getSize()
