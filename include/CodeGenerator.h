@@ -32,6 +32,7 @@
 #include "Branch.h"
 #include "CodeGeneratorException.h"
 #include "GoblinObject.h"
+#include "Linker.h"
 #include "CompilerEntity.h"
 
 
@@ -86,6 +87,7 @@ public:
     virtual void generateFromBranch(std::shared_ptr<Branch> branch);
     virtual void handleScope(std::shared_ptr<Branch> branch);
 
+    virtual std::shared_ptr<Linker> getLinker() = 0;
     virtual void scope_start(std::shared_ptr<Branch> branch) = 0;
     virtual void scope_assign_start(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable>) = 0;
     virtual void scope_assign_end(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable>) = 0;

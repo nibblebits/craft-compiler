@@ -164,25 +164,26 @@ void CodeGenerator::generate(std::shared_ptr<Tree> tree)
     if (total_func_calls > 0)
     {
         func_calls_header->func_calls = new goblin_function_call[total_func_calls];
-    }
 
-    for (int i = 0; i < total_func_calls; i++)
-    {
-        struct function_call* func_call = &this->function_calls[i];
-        struct goblin_function_call* gob_func_call = &func_calls_header->func_calls[i];
-        int total_arguments = func_call->func_arguments.size();
-        gob_func_call->func_name = func_call->func_name;
-        gob_func_call->t_arguments = func_call->func_arguments.size();
-        if (total_arguments > 0)
-        {
-            gob_func_call->arguments = new goblin_argument[total_arguments];
-        }
 
-        for (int b = 0; b < total_arguments; b++)
+        for (int i = 0; i < total_func_calls; i++)
         {
-            struct function_argument* argument = &func_call->func_arguments[b];
-            struct goblin_argument* gob_argument = &gob_func_call->arguments[b];
-            gob_argument->type = argument->type;
+            struct function_call* func_call = &this->function_calls[i];
+            struct goblin_function_call* gob_func_call = &func_calls_header->func_calls[i];
+            int total_arguments = func_call->func_arguments.size();
+            gob_func_call->func_name = func_call->func_name;
+            gob_func_call->t_arguments = func_call->func_arguments.size();
+            if (total_arguments > 0)
+            {
+                gob_func_call->arguments = new goblin_argument[total_arguments];
+                for (int b = 0; b < total_arguments; b++)
+                {
+                    struct function_argument* argument = &func_call->func_arguments[b];
+                    struct goblin_argument* gob_argument = &gob_func_call->arguments[b];
+                    gob_argument->type = argument->type;
+                }
+            }
+            gob_func_call->mem_pos = func_call->memory_pos;
         }
     }
 
