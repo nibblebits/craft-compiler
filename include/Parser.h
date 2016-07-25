@@ -51,6 +51,8 @@ public:
     void addRule(std::string rule_exp);
     void setInput(std::vector<std::shared_ptr<Token>> tokens);
     void buildTree();
+    void cleanTree();
+    void cleanBranch(std::shared_ptr<Branch> branch);
     std::shared_ptr<Tree> getTree();
 private:
     std::vector<std::shared_ptr<Token>> input;
@@ -59,6 +61,7 @@ private:
     std::vector<std::shared_ptr<Branch>> branches;
     
     int isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos);
+    void reductBranch(std::shared_ptr<Branch> branch);
     void reductBranches();
 };
 

@@ -31,6 +31,11 @@
 #include "AssignBranch.h"
 #include "MathEBranch.h"
 #include "EBranch.h"
+#include "ASMBranch.h"
+#include "StructBranch.h"
+#include "StructAssignBranch.h"
+#include "SElementBranch.h"
+#include "ArrayBranch.h"
 
 Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
 {
@@ -130,6 +135,11 @@ int Parser::isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branc
     return PARSER_RULE_INCOMPATIBLE;
 }
 
+void Parser::reductBranch(std::shared_ptr<Branch> branch)
+{
+
+}
+
 void Parser::reductBranches()
 {
     while (this->branches.size() != 1)
@@ -173,25 +183,45 @@ void Parser::reductBranches()
                     {
                         root = std::shared_ptr<CallBranch>(new CallBranch(this->getCompiler()));
                     }
-                    else if(rule->getName() == "FUNC")
+                    else if (rule->getName() == "FUNC")
                     {
                         root = std::shared_ptr<FuncBranch>(new FuncBranch(this->getCompiler()));
                     }
-                    else if(rule->getName() == "V_DEF")
+                    else if (rule->getName() == "V_DEF")
                     {
-                        root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler())); 
+                        root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
                     }
-                    else if(rule->getName() == "ASSIGN")
+                    else if (rule->getName() == "ASSIGN")
                     {
                         root = std::shared_ptr<AssignBranch>(new AssignBranch(this->getCompiler()));
                     }
-                    else if(rule->getName() == "MATH_E")
+                    else if (rule->getName() == "MATH_E")
                     {
                         root = std::shared_ptr<MathEBranch>(new MathEBranch(this->getCompiler()));
                     }
-                    else if(rule->getName() == "E")
+                    else if (rule->getName() == "E")
                     {
                         root = std::shared_ptr<EBranch>(new EBranch(this->getCompiler()));
+                    }
+                    else if (rule->getName() == "ASM")
+                    {
+                        root = std::shared_ptr<ASMBranch>(new ASMBranch(this->getCompiler()));
+                    }
+                    else if (rule->getName() == "STRUCT")
+                    {
+                        root = std::shared_ptr<StructBranch>(new StructBranch(this->getCompiler()));
+                    }
+                    else if (rule->getName() == "STRUCT_ASSIGN")
+                    {
+                        root = std::shared_ptr<StructAssignBranch>(new StructAssignBranch(this->getCompiler()));
+                    }
+                    else if (rule->getName() == "S_ELEMENT")
+                    {
+                        root = std::shared_ptr<SElementBranch>(new SElementBranch(this->getCompiler()));
+                    }
+                    else if (rule->getName() == "ARRAY")
+                    {
+                        root = std::shared_ptr<ArrayBranch>(new ArrayBranch(this->getCompiler()));
                     }
                     else
                     {
@@ -223,7 +253,7 @@ void Parser::reductBranches()
                 if (branch->getBranchType() == BRANCH_TYPE_TOKEN)
                 {
                     std::shared_ptr<Token> token = std::dynamic_pointer_cast<Token>(branch);
-                    throw ParserException(token->getPosition(), "the token '" + token->getValue() + "' may not be expected or something nearby.");
+                    //     throw ParserException(token->getPosition(), "the token '" + token->getValue() + "' may not be expected or something nearby.");
                 }
             }
 
@@ -250,6 +280,40 @@ void Parser::buildTree()
     {
         std::shared_ptr<Branch> branch = this->branches.at(i);
         this->tree->root->addChild(branch);
+    }
+
+    cleanTree();
+}
+
+void Parser::cleanTree()
+{
+    std::shared_ptr<Branch> root = this->tree->root;
+    cleanBranch(root);
+}
+
+void Parser::cleanBranch(std::shared_ptr<Branch> branch)
+{
+    /* Removes pointless branches. */
+    std::shared_ptr<Branch> parent = branch->getParent();
+    if (parent != NULL)
+    {
+        if (parent->getType() == branch->getType())
+        {
+            int parent_child_size = parent->getChildren().size();
+            if (parent_child_size == 1)
+            {
+                std::shared_ptr<Branch> parents_parent = parent->getParent();
+                if (parents_parent != NULL)
+                {
+                    parents_parent->replaceChild(parent, branch);
+                }
+            }
+        }
+    }
+    /* Clean all the children */
+    for (std::shared_ptr<Branch> child : branch->getChildren())
+    {
+        this->cleanBranch(child);
     }
 }
 
