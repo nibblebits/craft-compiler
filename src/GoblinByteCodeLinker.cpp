@@ -184,7 +184,7 @@ void GoblinByteCodeLinker::final_merge(Stream* executable_stream, GoblinObject* 
         // Fill in the gaps where the call instruction needs to go
         code->setPosition(gob_func_call->mem_pos);
         code->setEraseMode(true);
-        code->write8(CALL);
+//        code->write8(CALL);
         code->write32(gob_func_decl->mem_pos);
         code->setEraseMode(false);
         code->setPosition(0);

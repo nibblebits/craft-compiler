@@ -16,34 +16,25 @@
  */
 
 /* 
- * File:   VDEFBranch.h
+ * File:   ASMBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 25 June 2016, 02:31
+ * Created on 06 July 2016, 19:39
  */
 
-#ifndef VDEFBRANCH_H
-#define VDEFBRANCH_H
+#ifndef ASMBRANCH_H
+#define ASMBRANCH_H
 
 #include "CustomBranch.h"
-struct array_def
-{
-    int dimensions;
-    size_t t_size;
-    std::vector<size_t> sizes;
-};
-class VDEFBranch : public CustomBranch {
+class ASMBranch : public CustomBranch {
 public:
-    VDEFBranch(Compiler* compiler);
-    virtual ~VDEFBranch();
+    ASMBranch(Compiler* compiler);
+    virtual ~ASMBranch();
     
-    std::shared_ptr<Branch> getDefinitionTypeBranch();
-    std::shared_ptr<Branch> getDefinitionNameBranch();
-    bool isArray();
-    struct array_def getArray();
+   std::vector<std::shared_ptr<Branch>> getASMInstructions();
 private:
 
 };
 
-#endif /* VDEFBRANCH_H */
+#endif /* ASMBRANCH_H */
 

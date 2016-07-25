@@ -4,7 +4,9 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>include/ASMBranch.h</itemPath>
       <itemPath>include/ASTAssistant.h</itemPath>
+      <itemPath>include/ArrayBranch.h</itemPath>
       <itemPath>include/AssignBranch.h</itemPath>
       <itemPath>include/Branch.h</itemPath>
       <itemPath>include/CallBranch.h</itemPath>
@@ -31,9 +33,12 @@
       <itemPath>include/ParserException.h</itemPath>
       <itemPath>include/ParserRule.h</itemPath>
       <itemPath>include/ParserRuleRequirement.h</itemPath>
+      <itemPath>include/SElementBranch.h</itemPath>
       <itemPath>include/SourceCodeRelatedException.h</itemPath>
       <itemPath>include/Stack.h</itemPath>
       <itemPath>include/Stream.h</itemPath>
+      <itemPath>include/StructAssignBranch.h</itemPath>
+      <itemPath>include/StructBranch.h</itemPath>
       <itemPath>include/Token.h</itemPath>
       <itemPath>include/Tree.h</itemPath>
       <itemPath>include/TypeChecker.h</itemPath>
@@ -48,7 +53,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>src/ASMBranch.cpp</itemPath>
       <itemPath>src/ASTAssistant.cpp</itemPath>
+      <itemPath>src/ArrayBranch.cpp</itemPath>
       <itemPath>src/AssignBranch.cpp</itemPath>
       <itemPath>src/Branch.cpp</itemPath>
       <itemPath>src/CallBranch.cpp</itemPath>
@@ -69,7 +76,10 @@
       <itemPath>src/Parser.cpp</itemPath>
       <itemPath>src/ParserRule.cpp</itemPath>
       <itemPath>src/ParserRuleRequirement.cpp</itemPath>
+      <itemPath>src/SElementBranch.cpp</itemPath>
       <itemPath>src/Stream.cpp</itemPath>
+      <itemPath>src/StructAssignBranch.cpp</itemPath>
+      <itemPath>src/StructBranch.cpp</itemPath>
       <itemPath>src/Token.cpp</itemPath>
       <itemPath>src/Tree.cpp</itemPath>
       <itemPath>src/TypeChecker.cpp</itemPath>
@@ -121,7 +131,11 @@
       </compileType>
       <item path="def.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/ASMBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/ASTAssistant.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ArrayBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -175,6 +189,8 @@
       </item>
       <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SElementBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SourceCodeRelatedException.h"
             ex="false"
             tool="3"
@@ -183,6 +199,10 @@
       <item path="include/Stack.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Stream.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/StructAssignBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/StructBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Token.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -196,7 +216,11 @@
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/ASMBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/ASTAssistant.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ArrayBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -238,7 +262,13 @@
       </item>
       <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SElementBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Stream.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/StructAssignBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/StructBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Token.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -271,7 +301,11 @@
       </compileType>
       <item path="def.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/ASMBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/ASTAssistant.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ArrayBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -325,6 +359,8 @@
       </item>
       <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SElementBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SourceCodeRelatedException.h"
             ex="false"
             tool="3"
@@ -333,6 +369,10 @@
       <item path="include/Stack.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Stream.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/StructAssignBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/StructBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Token.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -346,7 +386,11 @@
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/ASMBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/ASTAssistant.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ArrayBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -388,7 +432,13 @@
       </item>
       <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SElementBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Stream.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/StructAssignBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/StructBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Token.cpp" ex="false" tool="1" flavor2="0">
       </item>

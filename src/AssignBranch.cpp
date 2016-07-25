@@ -25,6 +25,7 @@
  */
 
 #include "AssignBranch.h"
+#include "ArrayBranch.h"
 
 AssignBranch::AssignBranch(Compiler* compiler) : CustomBranch(compiler, "ASSIGN", "")
 {
@@ -36,7 +37,24 @@ AssignBranch::~AssignBranch()
 
 std::shared_ptr<Branch> AssignBranch::getVariableToAssignBranch()
 {
-    return this->getChildren()[0]->getChildren()[0];
+    std::shared_ptr<Branch> var_root_branch = this->getChildren()[0]->getChildren()[0];
+    if (this->isVariableToAssignInArray())
+    {
+        // Would be set to the array name e.g array[0] the name is "array"
+        var_root_branch = var_root_branch->getChildren()[0];
+    }
+    return var_root_branch;
+}
+
+/* Returns the root branch for an array index.*/
+std::shared_ptr<Branch> AssignBranch::getArrayIndexRootBranch()
+{
+    if (!this->isVariableToAssignInArray())
+    {
+        throw Exception("AssignBranch::getArrayIndexRootBranch(): Variable to assign is not in an array.");
+    }
+
+    return this->getChildren()[0]->getChildren()[1];
 }
 
 std::shared_ptr<Branch> AssignBranch::getAssignmentTypeBranch()
@@ -46,5 +64,16 @@ std::shared_ptr<Branch> AssignBranch::getAssignmentTypeBranch()
 
 std::shared_ptr<Branch> AssignBranch::getValueBranch()
 {
-    return this->getChildren()[2]->getChildren()[0];
+    return this->getChildren()[2];
+}
+
+bool AssignBranch::isVariableToAssignInArray()
+{
+    std::shared_ptr<Branch> branch = this->getChildren()[0]->getChildren()[0];
+    if (branch->getType() != "identifier")
+    {
+        return true;
+    }
+
+    return false;
 }

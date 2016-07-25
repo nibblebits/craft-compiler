@@ -34,6 +34,7 @@
 
 #define BRANCH_TYPE_BRANCH 0
 #define BRANCH_TYPE_TOKEN 1
+
 class Branch : public std::enable_shared_from_this<Branch>
 {
 public:
@@ -41,9 +42,11 @@ public:
     virtual ~Branch();
 
     void addChild(std::shared_ptr<Branch> branch);
+    void replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch);
     void exclude(bool excluded);
     bool excluded();
     void setParent(std::shared_ptr<Branch> branch);
+    std::shared_ptr<Branch> getFirstChild();
     std::vector<std::shared_ptr<Branch>> getChildren();
     std::shared_ptr<Branch> getParent();
     std::shared_ptr<Branch> lookUpTreeUntilParentTypeFound(std::string parent_type_to_find);
@@ -51,7 +54,7 @@ public:
     std::shared_ptr<Branch> lookDownTreeUntilLastChildOfType(std::string type);
     std::string getType();
     std::string getValue();
-    
+
     std::shared_ptr<Branch> getptr();
     virtual int getBranchType();
 private:

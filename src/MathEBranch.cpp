@@ -36,7 +36,7 @@ MathEBranch::~MathEBranch()
 
 std::shared_ptr<Branch> MathEBranch::getLeftBranch()
 {
-    return this->getChildren()[0]->getChildren()[0];
+    return this->getChildren()[0];
 }
 
 std::shared_ptr<Branch> MathEBranch::getOperatorBranch()
@@ -46,5 +46,5 @@ std::shared_ptr<Branch> MathEBranch::getOperatorBranch()
 
 std::shared_ptr<Branch> MathEBranch::getRightBranch()
 {
-    return this->getChildren()[2]->getChildren()[0];
+    return this->getChildren()[2];
 }

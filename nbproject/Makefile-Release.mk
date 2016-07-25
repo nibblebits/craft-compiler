@@ -36,7 +36,9 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/src/ASMBranch.o \
 	${OBJECTDIR}/src/ASTAssistant.o \
+	${OBJECTDIR}/src/ArrayBranch.o \
 	${OBJECTDIR}/src/AssignBranch.o \
 	${OBJECTDIR}/src/Branch.o \
 	${OBJECTDIR}/src/CallBranch.o \
@@ -57,7 +59,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
+	${OBJECTDIR}/src/SElementBranch.o \
 	${OBJECTDIR}/src/Stream.o \
+	${OBJECTDIR}/src/StructAssignBranch.o \
+	${OBJECTDIR}/src/StructBranch.o \
 	${OBJECTDIR}/src/Token.o \
 	${OBJECTDIR}/src/Tree.o \
 	${OBJECTDIR}/src/TypeChecker.o \
@@ -93,10 +98,20 @@ ${OBJECTDIR}/main.o: main.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
 
+${OBJECTDIR}/src/ASMBranch.o: src/ASMBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASMBranch.o src/ASMBranch.cpp
+
 ${OBJECTDIR}/src/ASTAssistant.o: src/ASTAssistant.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASTAssistant.o src/ASTAssistant.cpp
+
+${OBJECTDIR}/src/ArrayBranch.o: src/ArrayBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArrayBranch.o src/ArrayBranch.cpp
 
 ${OBJECTDIR}/src/AssignBranch.o: src/AssignBranch.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -198,10 +213,25 @@ ${OBJECTDIR}/src/ParserRuleRequirement.o: src/ParserRuleRequirement.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ParserRuleRequirement.o src/ParserRuleRequirement.cpp
 
+${OBJECTDIR}/src/SElementBranch.o: src/SElementBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/SElementBranch.o src/SElementBranch.cpp
+
 ${OBJECTDIR}/src/Stream.o: src/Stream.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Stream.o src/Stream.cpp
+
+${OBJECTDIR}/src/StructAssignBranch.o: src/StructAssignBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/StructAssignBranch.o src/StructAssignBranch.cpp
+
+${OBJECTDIR}/src/StructBranch.o: src/StructBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/StructBranch.o src/StructBranch.cpp
 
 ${OBJECTDIR}/src/Token.o: src/Token.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

@@ -16,34 +16,24 @@
  */
 
 /* 
- * File:   VDEFBranch.h
+ * File:   ASMBranch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 25 June 2016, 02:31
+ * Created on 06 July 2016, 19:39
+ * 
+ * Description: The branch object that represents an "ASM" branch
  */
 
-#ifndef VDEFBRANCH_H
-#define VDEFBRANCH_H
+#include "ASMBranch.h"
 
-#include "CustomBranch.h"
-struct array_def
+ASMBranch::ASMBranch(Compiler* compiler) : CustomBranch(compiler, "ASM", "") {
+}
+
+ASMBranch::~ASMBranch() {
+}
+
+
+std::vector<std::shared_ptr<Branch>> ASMBranch::getASMInstructions()
 {
-    int dimensions;
-    size_t t_size;
-    std::vector<size_t> sizes;
-};
-class VDEFBranch : public CustomBranch {
-public:
-    VDEFBranch(Compiler* compiler);
-    virtual ~VDEFBranch();
-    
-    std::shared_ptr<Branch> getDefinitionTypeBranch();
-    std::shared_ptr<Branch> getDefinitionNameBranch();
-    bool isArray();
-    struct array_def getArray();
-private:
-
-};
-
-#endif /* VDEFBRANCH_H */
-
+    return this->getCompiler()->getASTAssistant()->findAllChildrenOfType(this->getptr(), "string");
+}

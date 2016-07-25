@@ -61,7 +61,6 @@ private:
     std::vector<std::shared_ptr<Branch>> branches;
     
     int isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos);
-    void reductBranch(std::shared_ptr<Branch> branch);
     void reductBranches();
 };
 

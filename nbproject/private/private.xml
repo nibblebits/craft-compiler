@@ -7,21 +7,17 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/GoblinObject.h</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/Lexer.h</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/GoblinByteCodeLinker.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/GoblinObjectLinker.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/GoblinByteCodeGenerator.h</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/Compiler.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/Stream.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/MathEBranch.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/AssignBranch.h</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/CodeGenerator.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/Linker.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/Helper.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/AssignBranch.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/Parser.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/GoblinByteCodeGenerator.h</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/GoblinByteCodeGenerator.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/main.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/Stream.h</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/Stack.h</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/GoblinObject.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/CodeGenerator.h</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/src/Compiler.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/include/Parser.h</file>
         </group>
     </open-files>
 </project-private>

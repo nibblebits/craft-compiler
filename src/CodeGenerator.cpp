@@ -33,6 +33,12 @@
 #include "VDEFBranch.h"
 #include "AssignBranch.h"
 #include "MathEBranch.h"
+#include "EBranch.h"
+#include "ASMBranch.h"
+#include "StructBranch.h"
+#include "StructAssignBranch.h"
+#include "SElementBranch.h"
+#include "ArrayBranch.h"
 
 CodeGenerator::CodeGenerator(Compiler* compiler, std::string code_gen_desc) : CompilerEntity(compiler)
 {
@@ -44,6 +50,64 @@ CodeGenerator::CodeGenerator(Compiler* compiler, std::string code_gen_desc) : Co
 CodeGenerator::~CodeGenerator()
 {
     delete this->stream;
+}
+
+scope_variable::scope_variable()
+{
+
+}
+
+scope_variable::~scope_variable()
+{
+
+}
+
+array_scope_variable::array_scope_variable()
+{
+
+}
+
+array_scope_variable::~array_scope_variable()
+{
+
+}
+
+struct_scope_variable::struct_scope_variable()
+{
+
+}
+
+struct_scope_variable::~struct_scope_variable()
+{
+
+}
+
+node::node()
+{
+
+}
+
+node::~node()
+{
+
+}
+
+bool structure::hasVariable(std::string name)
+{
+    return getVariable(name) != NULL;
+}
+
+std::shared_ptr<struct scope_variable> structure::getVariable(std::string name)
+{
+    for (int i = 0; i < this->variables.size(); i++)
+    {
+        std::shared_ptr<struct scope_variable> variable = this->variables[i];
+        if (variable->name == name)
+        {
+            return variable;
+        }
+    }
+    return NULL;
 }
 
 void CodeGenerator::registerFunction(std::string func_name, std::vector<std::shared_ptr<Branch>> func_arguments, int func_mem_pos)
@@ -230,10 +294,18 @@ void CodeGenerator::generateFromBranch(std::shared_ptr<Branch> branch)
         this->clearScopeVariables();
         this->registerFunction(funcBranch->getFunctionNameBranch()->getValue(), func_argument_branches, func_mem_pos);
     }
+    else if (branch->getType() == "STRUCT")
+    {
+        std::shared_ptr<StructBranch> struct_branch = std::dynamic_pointer_cast<StructBranch>(branch);
+        this->registerStructure(struct_branch->getNameBranch()->getValue(), struct_branch->getScopeBranch());
+        this->clearScopeVariables();
+    }
 }
 
 void CodeGenerator::handleScope(std::shared_ptr<Branch> branch)
 {
+    bool handle_children = true;
+
     if (branch->getType() == "V_DEF")
     {
         this->registerScopeVariable(branch);
@@ -241,17 +313,9 @@ void CodeGenerator::handleScope(std::shared_ptr<Branch> branch)
     else if (branch->getType() == "ASSIGN")
     {
         std::shared_ptr<AssignBranch> assign_branch = std::dynamic_pointer_cast<AssignBranch>(branch);
-        std::string var_name = branch->getChildren()[0]->getChildren()[0]->getValue();
+        std::string var_name = assign_branch->getVariableToAssignBranch()->getValue();
         std::shared_ptr<struct scope_variable> var = this->getScopeVariable(var_name);
-        this->scope_assign_start(branch, var);
-        // Handle the expression
-        std::vector<std::shared_ptr < Branch>> e_branches = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(assign_branch->getValueBranch(), "MATH_E");
-        for (std::shared_ptr<Branch> e_branch : e_branches)
-        {
-            std::shared_ptr<MathEBranch> math_e_branch = std::dynamic_pointer_cast<MathEBranch>(e_branch);
-            this->scope_handle_exp(math_e_branch);
-        }
-        this->scope_assign_end(branch, var);
+        this->scope_assignment(var, assign_branch, assign_branch->getValueBranch());
     }
     else if (branch->getType() == "CALL")
     {
@@ -279,12 +343,22 @@ void CodeGenerator::handleScope(std::shared_ptr<Branch> branch)
         this->registerFunctionCall(name, arguments);
         this->scope_func_call(branch, name, arguments);
     }
-
-    std::vector<std::shared_ptr < Branch>> children = branch->getChildren();
-    for (std::shared_ptr<Branch> child : children)
+    else if (branch->getType() == "ASM")
     {
-        handleScope(child);
+        this->scope_handle_inline_asm(branch);
     }
+
+
+    if (handle_children)
+    {
+        std::vector<std::shared_ptr < Branch>> children = branch->getChildren();
+        for (std::shared_ptr<Branch> child : children)
+        {
+            handleScope(child);
+        }
+    }
+
+    handle_children = true;
 }
 
 int CodeGenerator::getScopeVariablesSize()
@@ -297,20 +371,78 @@ int CodeGenerator::getScopeVariablesSize()
     return size;
 }
 
-void CodeGenerator::registerScopeVariable(std::shared_ptr<Branch> branch)
+std::shared_ptr<struct scope_variable> CodeGenerator::registerScopeVariable(std::shared_ptr<Branch> branch)
 {
     if (branch->getType() != "V_DEF")
     {
         throw CodeGeneratorException("The branch: " + branch->getType() + " cannot be converted to a scope variable");
     }
 
-    std::shared_ptr<struct scope_variable> variable = std::shared_ptr<struct scope_variable>(new struct scope_variable);
-    std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
-    variable->name = vdef_branch->getDefinitionNameBranch()->getValue();
-    variable->type = vdef_branch->getDefinitionTypeBranch()->getValue();
-    variable->size = this->getCompiler()->getDataTypeSize(variable->type);
-    variable->index = this->scope_variables.size();
+
+    std::shared_ptr<struct scope_variable> variable = this->createScopeVariable(branch);
+    if (this->scope_variables.empty())
+    {
+        variable->mem_pos = 0;
+    }
+    else
+    {
+        std::shared_ptr<struct scope_variable> last_var = this->scope_variables.back();
+        variable->mem_pos = last_var->mem_pos + last_var->size;
+    }
     this->scope_variables.push_back(variable);
+
+    return variable;
+}
+
+std::shared_ptr<struct scope_variable> CodeGenerator::createScopeVariable(std::shared_ptr<Branch> branch)
+{
+    std::shared_ptr<struct scope_variable> variable = NULL;
+    std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+    std::shared_ptr<Token> name_branch = std::dynamic_pointer_cast<Token>(vdef_branch->getDefinitionNameBranch());
+    std::shared_ptr<Token> type_branch = std::dynamic_pointer_cast<Token>(vdef_branch->getDefinitionTypeBranch());
+    std::string type_value = type_branch->getValue();
+
+    if (type_branch->getType() == "keyword")
+    {
+        int size_per_elem = this->getCompiler()->getDataTypeSize(type_value);
+        if (vdef_branch->isArray())
+        {
+            std::shared_ptr<struct array_scope_variable> array_variable = std::shared_ptr<struct array_scope_variable > (new struct array_scope_variable());
+            struct array_def arr = vdef_branch->getArray();
+            array_variable->size = size_per_elem * arr.t_size;
+            array_variable->size_per_element = size_per_elem;
+            array_variable->is_array = true;
+            variable = array_variable;
+        }
+        else
+        {
+            variable = std::shared_ptr<struct scope_variable > (new struct scope_variable);
+            variable->size = size_per_elem;
+            variable->is_array = false;
+        }
+
+        // Its a keyword so its a primitive type
+        variable->custom = NOT_CUSTOM;
+
+    }
+    else
+    {
+        variable = std::shared_ptr<struct struct_scope_variable> (new struct struct_scope_variable);
+        // It is not a keyword so it must be a custom type such as a struct ...
+        struct structure* stru = this->getStructure(type_value);
+        if (stru == NULL)
+        {
+            throw CodeGeneratorException(type_branch->getPosition(), "could not find structure \"" + type_value + "\" it is not declared");
+        }
+
+        variable->custom = CUSTOM_STRUCT;
+        variable->size = stru->size;
+    }
+
+    variable->name = name_branch->getValue();
+    variable->type = type_value;
+
+    return variable;
 }
 
 std::shared_ptr<struct scope_variable> CodeGenerator::getScopeVariable(std::string name)
@@ -329,6 +461,147 @@ void CodeGenerator::clearScopeVariables()
     this->scope_variables.clear();
 }
 
+/* DEPRECATED */
+int CodeGenerator::getRelativeIndexFromArrayBranch(std::shared_ptr<Branch> branch)
+{
+    int index = 0;
+    std::shared_ptr<ArrayBranch> root_array_branch = std::dynamic_pointer_cast<ArrayBranch>(branch);
+    if (root_array_branch->isBranchAnArrayHolder())
+    {
+        std::vector<std::shared_ptr < Branch>> children = root_array_branch->getChildren();
+        std::shared_ptr<ArrayBranch> first_child = std::dynamic_pointer_cast<ArrayBranch>(children[0]);
+        index = first_child->getIndexBranchNumber();
+        for (int i = 1; i < children.size(); i++)
+        {
+            std::shared_ptr<ArrayBranch> child = std::dynamic_pointer_cast<ArrayBranch>(children[i]);
+            index *= child->getIndexBranchNumber();
+        }
+    }
+    else
+    {
+        index = root_array_branch->getIndexBranchNumber();
+    }
+
+    return index;
+}
+
+void CodeGenerator::registerStructure(std::string name, std::shared_ptr<Branch> scope)
+{
+    struct structure stru;
+    std::vector<std::shared_ptr<struct scope_variable>> variables;
+    std::vector<std::shared_ptr < Branch>> children = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(scope, "V_DEF");
+    stru.name = name;
+
+    // This is still a part of the scope
+    size_t t_size = 0;
+    for (std::shared_ptr<Branch> branch : children)
+    {
+        std::shared_ptr<struct scope_variable> var = this->registerScopeVariable(branch);
+        variables.push_back(var);
+        t_size += var->size;
+    }
+
+    stru.size = t_size;
+
+    stru.variables = variables;
+    this->structures.push_back(stru);
+}
+
+void CodeGenerator::handleExp(std::shared_ptr<Branch> value_branch)
+{
+    std::vector<std::shared_ptr < Branch >> e_branches = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(value_branch, "MATH_E");
+    if (e_branches.size() != 0)
+    {
+        this->scope_exp_start();
+    }
+    for (std::shared_ptr<Branch> e_branch : e_branches)
+    {
+        std::shared_ptr<MathEBranch> math_e_branch = std::dynamic_pointer_cast<MathEBranch>(e_branch);
+        this->scope_handle_exp(math_e_branch);
+    }
+    if (e_branches.size() != 0)
+    {
+        this->scope_exp_end();
+    }
+}
+
+std::shared_ptr<struct node> CodeGenerator::handleObject(std::shared_ptr<Branch> branch)
+{
+    std::shared_ptr<struct node> root_node;
+    std::string branch_type = branch->getType();
+    if (branch_type == "number")
+    {
+        // Handle the number
+        int number = std::stoi(branch->getValue(), NULL);
+        std::shared_ptr<struct direct_integer_node> node = std::shared_ptr<direct_integer_node>(new struct direct_integer_node);
+        root_node->type = TYPE_INTEGER_DIRECT;
+        node->value = number;
+        root_node = node;
+    }
+    else if (branch_type == "identifier")
+    {
+        // Handle the identifier
+        this->scope_handle_identifier(branch);
+    }
+    else if (branch_type == "E")
+    {
+        // Handle the array
+        std::shared_ptr<Branch> array_name_branch = branch->getChildren()[0]->getChildren()[0];
+        std::shared_ptr<Branch> array_root_index_branch = branch->getChildren()[1];
+   //     this->scope_handle_array_access(array_name_branch->getValue(), array_root_index_branch);
+    }
+    else
+    {
+        goto error;
+    }
+
+    return root_node;
+
+
+error:
+    throw CodeGeneratorException("CodeGenerator::handleObject(std::shared_ptr<Branch> branch): cannot handle branch: " + branch_type);
+}
+
+struct structure* CodeGenerator::getStructure(std::string name)
+{
+    for (int i = 0; i < this->structures.size(); i++)
+    {
+        struct structure* stru = &this->structures[i];
+        if (stru->name == name)
+        {
+            return stru;
+        }
+    }
+
+    return NULL;
+}
+
+int CodeGenerator::getMemoryLocationForArrayAccess(std::string array_var_name, std::shared_ptr<Branch> array_index_root_branch)
+{
+    std::shared_ptr<struct array_scope_variable> array_scope_var = std::dynamic_pointer_cast<struct array_scope_variable>(this->getScopeVariable(array_var_name));
+    std::vector<std::shared_ptr < Branch>> root_index_branch_children = array_index_root_branch->getChildren();
+    if (array_scope_var == NULL)
+    {
+        throw CodeGeneratorException("CodeGenerator::getMemoryLocationForArrayAccess(std::string array_var_name, std::shared_ptr<Branch> array_index_root_branch): array variable not found.");
+    }
+    int mem_pos = array_scope_var->mem_pos;
+
+    // Only supports one dimension at the moment.
+    if (root_index_branch_children.size() != 1)
+    {
+        throw CodeGeneratorException("CodeGenerator::getMemoryLocationForArrayAccess(std::string array_var_name, std::shared_ptr<Branch> array_index_root_branch): Only one index is supported at the moment");
+    }
+
+    std::shared_ptr<Branch> index_number_branch = root_index_branch_children[0]->getChildren()[0];
+    if (index_number_branch->getType() != "number")
+    {
+        throw CodeGeneratorException("CodeGenerator::getMemoryLocationForArrayAccess(std::string array_var_name, std::shared_ptr<Branch> array_index_root_branch): only numbers can be used as indexes at the moment");
+    }
+
+    mem_pos += std::stoi(index_number_branch->getValue()) * array_scope_var->size_per_element;
+    return mem_pos;
+}
+
 GoblinObject* CodeGenerator::getGoblinObject()
 {
     return &this->gob_obj;
@@ -343,4 +616,3 @@ Stream* CodeGenerator::getStream()
 {
     return this->stream;
 }
-

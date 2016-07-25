@@ -33,6 +33,8 @@ public:
     std::shared_ptr<Branch> getVariableToAssignBranch();
     std::shared_ptr<Branch> getAssignmentTypeBranch();
     std::shared_ptr<Branch> getValueBranch();
+    std::shared_ptr<Branch> getArrayIndexRootBranch();
+    bool isVariableToAssignInArray();
 private:
 
 };

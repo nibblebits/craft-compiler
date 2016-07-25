@@ -32,46 +32,29 @@
 
 enum
 {
-    NOP = 0x0,
-    JMP = 0x50,
-    CALL = 0x51,
-    SPUSH = 0x52,
-    SPOP = 0x53,
-    APUSH = 0x54,
-    APOP = 0x55,
-    SPOP_TO_DP_RELATIVE = 0x56,
-    SUBDP = 0x57,
-    ADDDP = 0x58,
-    SADD = 0x59,
-    SSUB = 0x60,
-    SMUL = 0x61,
-    SDIV = 0x62,
-    SPUSH_MEMORY_VALUE_DP_RELATIVE = 0x63
 };
 
 class GoblinByteCodeGenerator : public CodeGenerator
 {
 public:
-    GoblinByteCodeGenerator(Compiler* compiler, std::string code_gen_desc);
+    GoblinByteCodeGenerator(Compiler* compiler);
     virtual ~GoblinByteCodeGenerator();
 
-    // Unsure what to name this at the moment
-    bool handleEntity(std::shared_ptr<Branch> branch);
-    void createStackMathInstruction(std::string op);
-    virtual void generate(std::shared_ptr<Tree> tree);
-    virtual void generateFromBranch(std::shared_ptr<Branch> branch);
-
-    virtual std::shared_ptr<Linker> getLinker();
     virtual void scope_start(std::shared_ptr<Branch> branch);
-    virtual void scope_assign_start(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> var);
-    virtual void scope_assign_end(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> var);
+    virtual void scope_assignment(std::shared_ptr<struct scope_variable> var, std::shared_ptr<Branch> assign_root, std::shared_ptr<Branch> assign_to);
     virtual void scope_func_call(std::shared_ptr<Branch> branch, std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments);
     virtual void scope_end(std::shared_ptr<Branch> branch);
+    virtual void scope_exp_start();
     virtual void scope_handle_exp(std::shared_ptr<Branch> branch);
+    virtual void scope_exp_end();
     virtual void scope_handle_number(std::shared_ptr<Branch> branch);
-
+    virtual void scope_handle_identifier(std::shared_ptr<Branch> branch);
+    virtual void scope_handle_inline_asm(std::shared_ptr<Branch> branch);
+    virtual void scope_struct_assign_start(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> struct_ins_var, std::shared_ptr<struct scope_variable> struct_attr_var);
+    virtual void scope_struct_assign_end(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> struct_ins_var, std::shared_ptr<struct scope_variable> struct_attr_var);
+    virtual std::shared_ptr<Linker> getLinker();
 private:
-    int saved_pos;
+
     std::shared_ptr<Linker> linker;
 };
 

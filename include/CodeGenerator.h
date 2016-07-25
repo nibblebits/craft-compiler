@@ -35,13 +35,51 @@
 #include "Linker.h"
 #include "CompilerEntity.h"
 
+enum
+{
+    NOT_CUSTOM,
+    CUSTOM_STRUCT
+};
 
+enum
+{
+    TYPE_INTEGER_DIRECT = 0
+};
 struct scope_variable
 {
+    scope_variable();
+    virtual ~scope_variable();
     std::string type;
     std::string name;
+    int custom;
     int size;
-    int index;
+    int mem_pos;
+    bool is_array;
+
+};
+
+struct array_scope_variable : public scope_variable
+{
+    array_scope_variable();
+    virtual ~array_scope_variable();
+    int size_per_element;
+};
+
+struct struct_scope_variable : public scope_variable
+{
+    struct_scope_variable();
+    virtual ~struct_scope_variable();
+
+};
+
+struct structure
+{
+    std::string name;
+    int size;
+    std::vector<std::shared_ptr<struct scope_variable>> variables;
+
+    bool hasVariable(std::string name);
+    std::shared_ptr<struct scope_variable> getVariable(std::string name);
 };
 
 struct function
@@ -64,6 +102,19 @@ struct function_call
     int memory_pos;
 };
 
+struct node
+{
+    int type;
+    node();
+    virtual ~node() = 0;
+};
+
+struct direct_integer_node : public node
+{
+    int value;
+
+};
+
 class CodeGenerator : public CompilerEntity
 {
 public:
@@ -75,33 +126,49 @@ public:
     void registerFunctionCall(std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments);
     bool isFunctionRegistered(std::string func_name);
     int getFunctionIndex(std::string func_name);
-    void registerScopeVariable(std::shared_ptr<Branch> branch);
+    std::shared_ptr<struct scope_variable> registerScopeVariable(std::shared_ptr<Branch> branch);
+    std::shared_ptr<struct scope_variable> createScopeVariable(std::shared_ptr<Branch> branch);
     std::shared_ptr<struct scope_variable> getScopeVariable(std::string name);
     int getScopeVariablesSize();
     void clearScopeVariables();
+    int getRelativeIndexFromArrayBranch(std::shared_ptr<Branch> branch);
     
+
+    void registerStructure(std::string name, std::shared_ptr<Branch> scope);
+    struct structure* getStructure(std::string name);
+
     GoblinObject* getGoblinObject();
     std::string getCodeGeneratorDescriptor();
-    
+
     virtual void generate(std::shared_ptr<Tree> tree);
     virtual void generateFromBranch(std::shared_ptr<Branch> branch);
     virtual void handleScope(std::shared_ptr<Branch> branch);
 
     virtual std::shared_ptr<Linker> getLinker() = 0;
     virtual void scope_start(std::shared_ptr<Branch> branch) = 0;
-    virtual void scope_assign_start(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable>) = 0;
-    virtual void scope_assign_end(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable>) = 0;
+    virtual void scope_assignment(std::shared_ptr<struct scope_variable> var, std::shared_ptr<Branch> assign_root, std::shared_ptr<Branch> assign_to) = 0;
     virtual void scope_func_call(std::shared_ptr<Branch> branch, std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments) = 0;
     virtual void scope_end(std::shared_ptr<Branch> branch) = 0;
+    virtual void scope_exp_start() = 0;
     virtual void scope_handle_exp(std::shared_ptr<Branch> branch) = 0;
+    virtual void scope_exp_end() = 0;
     virtual void scope_handle_number(std::shared_ptr<Branch> branch) = 0;
+    virtual void scope_handle_identifier(std::shared_ptr<Branch> branch) = 0;
+    virtual void scope_handle_inline_asm(std::shared_ptr<Branch> branch) = 0;
+    virtual void scope_struct_assign_start(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> struct_ins_var, std::shared_ptr<struct scope_variable> struct_attr_var) = 0;
+    virtual void scope_struct_assign_end(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> struct_ins_var, std::shared_ptr<struct scope_variable> struct_attr_var) = 0;
 protected:
     Stream* stream;
+    
+    int getMemoryLocationForArrayAccess(std::string array_var_name, std::shared_ptr<Branch> array_index_root_branch);
 private:
+    void handleExp(std::shared_ptr<Branch> value_branch);
+    std::shared_ptr<struct node> handleObject(std::shared_ptr<Branch> branch);
     std::string code_gen_desc;
     int current_index;
     std::vector<struct function> functions;
     std::vector<struct function_call> function_calls;
+    std::vector<struct structure> structures;
     std::vector<std::shared_ptr<struct scope_variable>> scope_variables;
     GoblinObject gob_obj;
 };

@@ -16,34 +16,28 @@
  */
 
 /* 
- * File:   VDEFBranch.h
+ * File:   StructAssignBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 25 June 2016, 02:31
+ * Created on 09 July 2016, 01:50
  */
 
-#ifndef VDEFBRANCH_H
-#define VDEFBRANCH_H
+#ifndef STRUCTASSIGNBRANCH_H
+#define STRUCTASSIGNBRANCH_H
 
 #include "CustomBranch.h"
-struct array_def
+
+class StructAssignBranch : public CustomBranch
 {
-    int dimensions;
-    size_t t_size;
-    std::vector<size_t> sizes;
-};
-class VDEFBranch : public CustomBranch {
 public:
-    VDEFBranch(Compiler* compiler);
-    virtual ~VDEFBranch();
-    
-    std::shared_ptr<Branch> getDefinitionTypeBranch();
-    std::shared_ptr<Branch> getDefinitionNameBranch();
-    bool isArray();
-    struct array_def getArray();
+    StructAssignBranch(Compiler* compiler);
+    virtual ~StructAssignBranch();
+
+    std::shared_ptr<Branch> getStructureNameBranch();
+    std::shared_ptr<Branch> getAssignmentBranch();
 private:
 
 };
 
-#endif /* VDEFBRANCH_H */
+#endif /* STRUCTASSIGNBRANCH_H */
 

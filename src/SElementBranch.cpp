@@ -16,34 +16,26 @@
  */
 
 /* 
- * File:   VDEFBranch.h
+ * File:   SElementBranch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 25 June 2016, 02:31
+ * Created on 11 July 2016, 02:32
+ * 
+ * Description: 
  */
 
-#ifndef VDEFBRANCH_H
-#define VDEFBRANCH_H
+#include "SElementBranch.h"
 
-#include "CustomBranch.h"
-struct array_def
+SElementBranch::SElementBranch(Compiler* compiler) : CustomBranch(compiler, "S_ELEMENT", "")
 {
-    int dimensions;
-    size_t t_size;
-    std::vector<size_t> sizes;
-};
-class VDEFBranch : public CustomBranch {
-public:
-    VDEFBranch(Compiler* compiler);
-    virtual ~VDEFBranch();
-    
-    std::shared_ptr<Branch> getDefinitionTypeBranch();
-    std::shared_ptr<Branch> getDefinitionNameBranch();
-    bool isArray();
-    struct array_def getArray();
-private:
+}
 
-};
+SElementBranch::~SElementBranch()
+{
+}
 
-#endif /* VDEFBRANCH_H */
-
+std::vector<std::shared_ptr<Branch>> SElementBranch::getStructureVariableBranches()
+{
+    std::vector<std::shared_ptr<Branch>> struct_var_branches = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(this->getptr(), "identifier");
+    return struct_var_branches;
+}

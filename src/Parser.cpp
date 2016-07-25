@@ -135,11 +135,6 @@ int Parser::isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branc
     return PARSER_RULE_INCOMPATIBLE;
 }
 
-void Parser::reductBranch(std::shared_ptr<Branch> branch)
-{
-
-}
-
 void Parser::reductBranches()
 {
     while (this->branches.size() != 1)
@@ -282,7 +277,7 @@ void Parser::buildTree()
         this->tree->root->addChild(branch);
     }
 
-    cleanTree();
+   cleanTree();
 }
 
 void Parser::cleanTree()

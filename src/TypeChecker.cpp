@@ -59,6 +59,10 @@ void TypeChecker::validate()
 
 void TypeChecker::Check(std::shared_ptr<Branch> branch)
 {
+    // To be written another time :)
+    
+    return;
+    
     if (branch != NULL)
     {
         std::string branch_type = branch->getType();

@@ -44,6 +44,18 @@ void Branch::addChild(std::shared_ptr<Branch> branch)
     this->children.push_back(branch);
 }
 
+void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)
+{
+    for (int i = 0; i < this->children.size(); i++)
+    {
+        std::shared_ptr<Branch> c = this->children.at(i);
+        if (c == child)
+        {
+            this->children[i] = new_branch;
+        }
+    }
+}
+
 void Branch::exclude(bool excluded)
 {
     this->excluded_from_tree = excluded;
@@ -61,6 +73,11 @@ void Branch::setParent(std::shared_ptr<Branch> branch)
         throw Exception("Branch::setParent(std::shared_ptr<Branch> branch): The parent has already been set");
     }
     this->parent = branch;
+}
+
+std::shared_ptr<Branch> Branch::getFirstChild()
+{
+    return this->getChildren()[0];
 }
 
 std::vector<std::shared_ptr<Branch>> Branch::getChildren()
@@ -117,8 +134,8 @@ std::shared_ptr<Branch> Branch::lookDownTreeUntilLastChildOfType(std::string typ
         if (branch != NULL)
             last_valid_branch = branch;
     }
-    while(branch != NULL);
-    
+    while (branch != NULL);
+
     return last_valid_branch;
 }
 
