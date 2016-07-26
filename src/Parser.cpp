@@ -280,18 +280,15 @@ void Parser::buildTree()
     cleanTree();
 }
 
+/* Cleans the tree of branches who only have one child*/
 void Parser::cleanTree()
 {
     std::shared_ptr<Branch> root = this->tree->root;
     cleanBranch(root);
 }
 
-/* Cleans the tree of branches who have only one child. That child gets pushed back up the tree.
-   In this parser branches with one child are considered pointless
-        e.g the branches
-        E
-          identifier
-        becomes just identifier.
+/* Cleans the tree of branches who have only one child, starting at the branch passed to it.
+ * The branch with only one child is replaced by its child.
  */
 void Parser::cleanBranch(std::shared_ptr<Branch> branch)
 {
