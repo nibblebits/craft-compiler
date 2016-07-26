@@ -277,7 +277,7 @@ void Parser::buildTree()
         this->tree->root->addChild(branch);
     }
 
-   cleanTree();
+    cleanTree();
 }
 
 void Parser::cleanTree()
@@ -286,30 +286,30 @@ void Parser::cleanTree()
     cleanBranch(root);
 }
 
+/* Cleans the tree of branches who have only one child. That child gets pushed back up the tree.
+   In this parser branches with one child are considered pointless
+        e.g the branches
+        E
+          identifier
+        becomes just identifier.
+ */
 void Parser::cleanBranch(std::shared_ptr<Branch> branch)
 {
-    /* Removes pointless branches. */
-    std::shared_ptr<Branch> parent = branch->getParent();
-    if (parent != NULL)
+    int children_size = branch->getChildren().size();
+    if (children_size == 1)
     {
-        if (parent->getType() == branch->getType())
+        if (branch->hasParent())
         {
-            int parent_child_size = parent->getChildren().size();
-            if (parent_child_size == 1)
-            {
-                std::shared_ptr<Branch> parents_parent = parent->getParent();
-                if (parents_parent != NULL)
-                {
-                    parents_parent->replaceChild(parent, branch);
-                }
-            }
+            // Replace this branch with its only child.
+            branch->getParent()->replaceChild(branch, branch->getChildren()[0]);
         }
     }
-    /* Clean all the children */
+    
     for (std::shared_ptr<Branch> child : branch->getChildren())
     {
         this->cleanBranch(child);
     }
+    
 }
 
 std::shared_ptr<Tree> Parser::getTree()
