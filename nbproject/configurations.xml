@@ -33,18 +33,18 @@
       <itemPath>include/ParserException.h</itemPath>
       <itemPath>include/ParserRule.h</itemPath>
       <itemPath>include/ParserRuleRequirement.h</itemPath>
-      <itemPath>include/SElementBranch.h</itemPath>
+      <itemPath>include/Scope.h</itemPath>
       <itemPath>include/SourceCodeRelatedException.h</itemPath>
       <itemPath>include/Stack.h</itemPath>
       <itemPath>include/Stream.h</itemPath>
-      <itemPath>include/StructAssignBranch.h</itemPath>
-      <itemPath>include/StructBranch.h</itemPath>
       <itemPath>include/Token.h</itemPath>
       <itemPath>include/Tree.h</itemPath>
       <itemPath>include/TypeChecker.h</itemPath>
       <itemPath>include/TypeCheckerException.h</itemPath>
       <itemPath>include/VDEFBranch.h</itemPath>
+      <itemPath>include/branches.h</itemPath>
       <itemPath>def.h</itemPath>
+      <itemPath>include/structs.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -76,10 +76,8 @@
       <itemPath>src/Parser.cpp</itemPath>
       <itemPath>src/ParserRule.cpp</itemPath>
       <itemPath>src/ParserRuleRequirement.cpp</itemPath>
-      <itemPath>src/SElementBranch.cpp</itemPath>
+      <itemPath>src/Scope.cpp</itemPath>
       <itemPath>src/Stream.cpp</itemPath>
-      <itemPath>src/StructAssignBranch.cpp</itemPath>
-      <itemPath>src/StructBranch.cpp</itemPath>
       <itemPath>src/Token.cpp</itemPath>
       <itemPath>src/Tree.cpp</itemPath>
       <itemPath>src/TypeChecker.cpp</itemPath>
@@ -189,7 +187,7 @@
       </item>
       <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/SElementBranch.h" ex="false" tool="3" flavor2="0">
+      <item path="include/Scope.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SourceCodeRelatedException.h"
             ex="false"
@@ -200,10 +198,6 @@
       </item>
       <item path="include/Stream.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/StructAssignBranch.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/StructBranch.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/Token.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Tree.h" ex="false" tool="3" flavor2="0">
@@ -213,6 +207,10 @@
       <item path="include/TypeCheckerException.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/VDEFBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/branches.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/structs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -262,13 +260,9 @@
       </item>
       <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/SElementBranch.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/Scope.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Stream.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/StructAssignBranch.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/StructBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Token.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -359,7 +353,7 @@
       </item>
       <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/SElementBranch.h" ex="false" tool="3" flavor2="0">
+      <item path="include/Scope.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SourceCodeRelatedException.h"
             ex="false"
@@ -370,10 +364,6 @@
       </item>
       <item path="include/Stream.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/StructAssignBranch.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/StructBranch.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/Token.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Tree.h" ex="false" tool="3" flavor2="0">
@@ -383,6 +373,10 @@
       <item path="include/TypeCheckerException.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/VDEFBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/branches.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/structs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -432,13 +426,9 @@
       </item>
       <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/SElementBranch.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/Scope.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Stream.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/StructAssignBranch.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/StructBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Token.cpp" ex="false" tool="1" flavor2="0">
       </item>

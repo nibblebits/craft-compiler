@@ -59,10 +59,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
-	${OBJECTDIR}/src/SElementBranch.o \
+	${OBJECTDIR}/src/Scope.o \
 	${OBJECTDIR}/src/Stream.o \
-	${OBJECTDIR}/src/StructAssignBranch.o \
-	${OBJECTDIR}/src/StructBranch.o \
 	${OBJECTDIR}/src/Token.o \
 	${OBJECTDIR}/src/Tree.o \
 	${OBJECTDIR}/src/TypeChecker.o \
@@ -213,25 +211,15 @@ ${OBJECTDIR}/src/ParserRuleRequirement.o: src/ParserRuleRequirement.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ParserRuleRequirement.o src/ParserRuleRequirement.cpp
 
-${OBJECTDIR}/src/SElementBranch.o: src/SElementBranch.cpp 
+${OBJECTDIR}/src/Scope.o: src/Scope.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/SElementBranch.o src/SElementBranch.cpp
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Scope.o src/Scope.cpp
 
 ${OBJECTDIR}/src/Stream.o: src/Stream.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Stream.o src/Stream.cpp
-
-${OBJECTDIR}/src/StructAssignBranch.o: src/StructAssignBranch.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/StructAssignBranch.o src/StructAssignBranch.cpp
-
-${OBJECTDIR}/src/StructBranch.o: src/StructBranch.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/StructBranch.o src/StructBranch.cpp
 
 ${OBJECTDIR}/src/Token.o: src/Token.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
