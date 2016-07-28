@@ -52,6 +52,7 @@ void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch>
         if (c == child)
         {
             this->children[i] = new_branch;
+            new_branch->setParent(this->getptr());
         }
     }
 }
@@ -68,16 +69,27 @@ bool Branch::excluded()
 
 void Branch::setParent(std::shared_ptr<Branch> branch)
 {
-    if (this->parent != NULL)
-    {
-        throw Exception("Branch::setParent(std::shared_ptr<Branch> branch): The parent has already been set");
-    }
     this->parent = branch;
 }
 
 std::shared_ptr<Branch> Branch::getFirstChild()
 {
     return this->getChildren()[0];
+}
+
+std::shared_ptr<Branch> Branch::getSecondChild()
+{
+    return this->getChildren()[1];
+}
+
+std::shared_ptr<Branch> Branch::getThirdChild()
+{
+    return this->getChildren()[2];
+}
+
+std::shared_ptr<Branch> Branch::getFourthChild()
+{
+    return this->getChildren()[3];
 }
 
 std::vector<std::shared_ptr<Branch>> Branch::getChildren()
@@ -88,6 +100,11 @@ std::vector<std::shared_ptr<Branch>> Branch::getChildren()
 std::shared_ptr<Branch> Branch::getParent()
 {
     return this->parent;
+}
+
+bool Branch::hasParent()
+{
+    return this->parent != NULL;
 }
 
 std::shared_ptr<Branch> Branch::lookUpTreeUntilParentTypeFound(std::string parent_type_to_find)

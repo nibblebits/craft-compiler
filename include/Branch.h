@@ -47,8 +47,12 @@ public:
     bool excluded();
     void setParent(std::shared_ptr<Branch> branch);
     std::shared_ptr<Branch> getFirstChild();
+    std::shared_ptr<Branch> getSecondChild();
+    std::shared_ptr<Branch> getThirdChild();
+    std::shared_ptr<Branch> getFourthChild();
     std::vector<std::shared_ptr<Branch>> getChildren();
     std::shared_ptr<Branch> getParent();
+    bool hasParent();
     std::shared_ptr<Branch> lookUpTreeUntilParentTypeFound(std::string parent_type_to_find);
     std::shared_ptr<Branch> lookDownTreeUntilFirstChildOfType(std::string type);
     std::shared_ptr<Branch> lookDownTreeUntilLastChildOfType(std::string type);

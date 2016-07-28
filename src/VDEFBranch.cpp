@@ -27,6 +27,7 @@
 #include "VDEFBranch.h"
 #include "ArrayBranch.h"
 
+
 VDEFBranch::VDEFBranch(Compiler* compiler) : CustomBranch(compiler, "V_DEF", "")
 {
 }
@@ -37,55 +38,43 @@ VDEFBranch::~VDEFBranch()
 
 std::shared_ptr<Branch> VDEFBranch::getDefinitionTypeBranch()
 {
-    std::shared_ptr<Branch> branch = this->getChildren()[0];
-    if (branch->getType() == "E")
-    {
-        /* This is a different type of variable declaration 
-           likely a struct or something alike*/
-
-        branch = branch->getChildren()[0];
-    }
-
-    return branch;
+    return this->getFirstChild();
 }
 
 std::shared_ptr<Branch> VDEFBranch::getDefinitionNameBranch()
 {
-    return this->getChildren()[1]->getChildren()[0];
+    if (isArray())
+    {
+        // Return the array name.
+        return this->getSecondChild()->getFirstChild();
+    }
+    return this->getSecondChild();
+}
+
+std::shared_ptr<Branch> VDEFBranch::getDefinitionArrayBranch()
+{
+    if (!isArray())
+    {
+        throw Exception("std::shared_ptr<Branch> VDEFBranch::getDefinitionArrayBranch(): The V_DEF branch is not a variable declaration for an array");
+    }
+
+    return this->getSecondChild();
 }
 
 bool VDEFBranch::isArray()
 {
-    std::vector<std::shared_ptr < Branch>> children = this->getChildren();
-    if (children.size() >= 3)
-    {
-        std::shared_ptr<Branch> third_branch = this->getChildren()[2];
-        if (third_branch->getType() == "ARRAY")
-        {
-            return true;
-        }
-    }
-    
-    return false;
+    return this->getSecondChild()->getType() == "ARRAY";
 }
 
 struct array_def VDEFBranch::getArray()
 {
-    struct array_def arr;
-    std::vector<std::shared_ptr < Branch>> children = this->getChildren();
-    if (children.size() >= 3)
+    if (!this->isArray())
     {
-        // Index 2 is where the first array dimension is defined
-        for (int i = 2; i < children.size(); i++)
-        {
-            std::shared_ptr<ArrayBranch> branch = std::dynamic_pointer_cast<ArrayBranch>(children[i]);
-            if (branch->getType() == "ARRAY")
-            {
-                arr.sizes.push_back(std::atoi(branch->getIndexBranch()->getValue().c_str()));
-            }
-        }
+        throw Exception("struct array_def VDEFBranch::getArray(): The V_DEF branch is not a variable declaration for an array");
     }
-
+    /*
+    struct array_def arr;
+    std::shared_ptr<ArrayBranch> array_branch = this->getDefinitionArrayBranch();
     arr.dimensions = arr.sizes.size();
 
     arr.t_size = arr.sizes[0];
@@ -94,4 +83,6 @@ struct array_def VDEFBranch::getArray()
         arr.t_size *= arr.sizes[i];
     }
     return arr;
+     */
 }
+  
