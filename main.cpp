@@ -267,23 +267,13 @@ int main(int argc, char** argv)
 
     try
     {
+      /* Warning: no look ahead system, first rule found will be used!, be-careful with the order.*/
         parser->addRule("E:identifier");
         parser->addRule("E:number");
-        parser->addRule("S_ELEMENT:E:'symbol@.:E");
-        parser->addRule("S_ELEMENT:S_ELEMENT:'symbol@.:E");
-        parser->addRule("S_ELEMENT:S_ELEMENT:'symbol@.:S_ELEMENT");
-        parser->addRule("E:S_ELEMENT");
-        parser->addRule("ARRAY:ARRAY:ARRAY:ARRAY");
-        parser->addRule("ARRAY:ARRAY:ARRAY");
-        parser->addRule("E:E:ARRAY");
-        parser->addRule("E:MATH_E");
-        parser->addRule("MATH_E:E:operator:E");
-        parser->addRule("ARRAY:'symbol@[:E:'symbol@]");
-        parser->addRule("V_DEF:keyword@int32@uint32@int16@uint16@int8@uint8:E:ARRAY:ARRAY:ARRAY");
-        parser->addRule("V_DEF:keyword@int32@uint32@int16@uint16@int8@uint8:E:ARRAY:ARRAY");
-        parser->addRule("V_DEF:keyword@int32@uint32@int16@uint16@int8@uint8:E:ARRAY");
+        parser->addRule("ARRAY:E:'symbol@[:E:'symbol@]");
+        parser->addRule("V_DEF:keyword@int32@uint32@int16@uint16@int8@uint8:ARRAY");
         parser->addRule("V_DEF:keyword@int32@uint32@int16@uint16@int8@uint8:E");
-        parser->addRule("V_DEF:'keyword@struct:E:E");
+        parser->addRule("E:ARRAY");
         parser->addRule("E:'symbol@(:E:'symbol@)");
         parser->addRule("E:E:'symbol@,:E");
         parser->addRule("E:E:'symbol@,:STMT");
@@ -297,22 +287,23 @@ int main(int argc, char** argv)
         parser->addRule("ASSIGN:E:symbol@=:E");
         parser->addRule("ASSIGN:E:symbol@=:STMT");
         parser->addRule("ASSIGN:STMT:symbol@=:STMT");
-        //  parser->addRule("STRUCT_ASSIGN:");
         parser->addRule("CALL:'symbol@#:E:E");
         parser->addRule("CALL:'symbol@#:E:ZERO_ARGS");
         parser->addRule("ZERO_ARGS:'symbol@(:'symbol@)");
         parser->addRule("SCOPE:'symbol@{:STMT:'symbol@}");
         parser->addRule("SCOPE:'symbol@{:'symbol@}");
         parser->addRule("ASM:'keyword@__asm:SCOPE");
-        parser->addRule("STRING:string");
-        parser->addRule("STRING:STRING:STRING");
-        parser->addRule("STMT:STRUCT_ASSIGN");
-        parser->addRule("STMT:STRING");
+
+        parser->addRule("E:MATH_E");
+        parser->addRule("MATH_E:E:operator:E");
+        parser->addRule("MATH_E:MATH_E:operator:E");
+        
         parser->addRule("STMT:ASM");
         parser->addRule("STMT:CALL");
         parser->addRule("STMT:ASSIGN");
         parser->addRule("STMT:V_DEF");
         parser->addRule("STMT:STMT:STMT");
+        
         parser->setInput(lexer->getTokens());
         parser->buildTree();
 
