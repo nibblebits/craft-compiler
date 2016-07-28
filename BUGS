@@ -4,3 +4,7 @@ Input:
 	c = (50 + 19) * 8
 
 ----------------------------------
+
+
+Problem with function calls inside function call arguments
+e.g: #call(#print(3, 1), a)
