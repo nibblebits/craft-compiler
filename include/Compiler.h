@@ -48,7 +48,7 @@ public:
     ASTAssistant* getASTAssistant();
     std::shared_ptr<CodeGenerator> getCodeGenerator();
     std::shared_ptr<Linker> getLinker();
-    int getDataTypeSize(std::string type);
+    static int getDataTypeSize(std::string type);
     std::string getTypeFromNumber(int number);
     bool canCast(std::string type1, std::string type2);
 private:
