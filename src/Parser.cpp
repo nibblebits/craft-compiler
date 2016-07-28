@@ -25,14 +25,7 @@
  */
 
 #include "Parser.h"
-#include "CallBranch.h"
-#include "FuncBranch.h"
-#include "VDEFBranch.h"
-#include "AssignBranch.h"
-#include "MathEBranch.h"
-#include "EBranch.h"
-#include "ASMBranch.h"
-#include "ArrayBranch.h"
+#include "branches.h"
 
 Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
 {
