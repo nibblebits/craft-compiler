@@ -32,6 +32,14 @@
 
 enum
 {
+    NOP = 0x00,
+    SUBDP = 0x10,
+    ADDDP = 0x11,
+    SET_REG_A_DIRECT_8_BIT = 12,
+    SET_REG_A_DIRECT_16_BIT = 13,
+    SET_REG_A_DIRECT_32_BIT = 14,
+    SET_REG_A_DIRECT_64_BIT = 15
+
 };
 
 class GoblinByteCodeGenerator : public CodeGenerator
@@ -40,18 +48,13 @@ public:
     GoblinByteCodeGenerator(Compiler* compiler);
     virtual ~GoblinByteCodeGenerator();
 
+
     virtual void scope_start(std::shared_ptr<Branch> branch);
-    virtual void scope_assignment(std::shared_ptr<struct scope_variable> var, std::shared_ptr<Branch> assign_root, std::shared_ptr<Branch> assign_to);
-    virtual void scope_func_call(std::shared_ptr<Branch> branch, std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments);
     virtual void scope_end(std::shared_ptr<Branch> branch);
-    virtual void scope_exp_start();
+    virtual void scope_assignment(std::shared_ptr<struct variable> var, std::shared_ptr<Branch> assign_root, std::shared_ptr<Branch> assign_to);
+    virtual void scope_func_call(std::shared_ptr<Branch> branch, std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments);
     virtual void scope_handle_exp(std::shared_ptr<Branch> branch);
-    virtual void scope_exp_end();
-    virtual void scope_handle_number(std::shared_ptr<Branch> branch);
-    virtual void scope_handle_identifier(std::shared_ptr<Branch> branch);
     virtual void scope_handle_inline_asm(std::shared_ptr<Branch> branch);
-    virtual void scope_struct_assign_start(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> struct_ins_var, std::shared_ptr<struct scope_variable> struct_attr_var);
-    virtual void scope_struct_assign_end(std::shared_ptr<Branch> branch, std::shared_ptr<struct scope_variable> struct_ins_var, std::shared_ptr<struct scope_variable> struct_attr_var);
     virtual std::shared_ptr<Linker> getLinker();
 private:
 
