@@ -39,6 +39,7 @@ public:
     
     std::shared_ptr<Branch> getDefinitionTypeBranch();
     std::shared_ptr<Branch> getDefinitionNameBranch();
+    std::shared_ptr<Branch> getDefinitionArrayBranch();
     bool isArray();
     struct array_def getArray();
 private:

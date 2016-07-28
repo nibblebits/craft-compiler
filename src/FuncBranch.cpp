@@ -36,17 +36,17 @@ FuncBranch::~FuncBranch()
 
 std::shared_ptr<Branch> FuncBranch::getFunctionNameBranch()
 {
-    std::shared_ptr<Branch> name_branch = this->getChildren()[1]->getChildren()[0];
+    std::shared_ptr<Branch> name_branch = this->getSecondChild();
     return name_branch;
 }
 
 std::vector<std::shared_ptr<Branch>> FuncBranch::getFunctionArgumentBranches()
 {
-    std::vector<std::shared_ptr < Branch>> argument_children = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(this->getptr()->getChildren()[2], "V_DEF");
+    std::vector<std::shared_ptr < Branch>> argument_children = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(this->getThirdChild(), "V_DEF");
     return argument_children;
 }
 
 std::shared_ptr<Branch> FuncBranch::getFunctionScopeBranches()
 {
-    return this->getChildren()[3];
+    return this->getFourthChild();
 }
