@@ -25,11 +25,12 @@
 #ifndef EXCEPTION_H
 #define EXCEPTION_H
 
-class Exception
+#include <stdexcept>
+class Exception : public std::logic_error
 {
 public:
 
-    Exception(std::string message)
+    Exception(std::string message) : logic_error(message)
     {
         this->msg = message;
     }
