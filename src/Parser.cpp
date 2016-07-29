@@ -140,7 +140,7 @@ std::vector<std::shared_ptr<ParserRule>> Parser::getRulesForNextBranchSequence(i
             {
                 break;
             }
-            
+
             for (int b = 0; b < total_requirements; b++)
             {
                 int index = i + b;
@@ -149,6 +149,11 @@ std::vector<std::shared_ptr<ParserRule>> Parser::getRulesForNextBranchSequence(i
                 int result = this->isPartOfRule(rule, branch, b);
                 if (result == PARSER_RULE_COMPATIBLE || result == PARSER_RULE_COMPATIBLE_NO_BRANCH)
                 {
+                    if (result == PARSER_RULE_COMPATIBLE_NO_BRANCH)
+                    {
+                        branch->exclude(true);
+                    }
+
                     total_found++;
                 }
                 else
@@ -202,8 +207,8 @@ std::shared_ptr<ParserRule> Parser::getNextValidRule()
         int rule_req_size = rule->getRequirements().size();
         if (rule_req_size == valid_rule_req_size)
         {
-            // Not sure what to output here?
-            //     throw ParserException("Problem with rules, two valid rules have the same size. " + rule->getName() + ":" + valid_rule->getName());
+            // This is not working correctly
+           // throw ParserException("Problem with rules, two valid rules have the same size. " + rule->getName() + ":" + valid_rule->getName());
         }
 
         if (rule_req_size > valid_rule_req_size)
@@ -220,10 +225,6 @@ std::vector<std::shared_ptr<Branch>> Parser::getBranches(int s_index, size_t tot
     int ind_t = s_index + total;
     if (ind_t > this->branches.size())
     {
-        std::cout << "Branch size: " << this->branches.size() << std::endl;
-        std::cout << "s_index: " << s_index << std::endl;
-        std::cout << "total: " << total << std::endl;
-
         throw ParserException("std::vector<std::shared_ptr<Branch>> Parser::getBranches(size_t total): attempting to get more branches than exist");
     }
 
@@ -246,7 +247,7 @@ void Parser::reductBranches()
         if (rule != NULL)
         {
             std::vector<std::shared_ptr < Branch>> rule_branches = this->getBranches(this->current_branch_index, rule->getRequirements().size());
-            // std::cout << rule->getName() << std::endl;
+
             // We have a match
             std::shared_ptr<Branch> root;
             if (rule->getName() == "CALL")
@@ -301,13 +302,13 @@ void Parser::reductBranches()
         }
         else
         {
-              // Find the first element that is still a token and use it as a base for the error
+            // Find the first element that is still a token and use it as a base for the error
             for (std::shared_ptr<Branch> branch : this->branches)
             {
                 if (branch->getBranchType() == BRANCH_TYPE_TOKEN)
                 {
                     std::shared_ptr<Token> token = std::dynamic_pointer_cast<Token>(branch);
-                    //throw ParserException(token->getPosition(), "the token '" + token->getValue() + "' may not be expected or something nearby.");
+                    throw ParserException(token->getPosition(), "the token '" + token->getValue() + "' may not be expected or something nearby.");
                 }
             }
             break;
