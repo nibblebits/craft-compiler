@@ -59,7 +59,12 @@ private:
     std::vector<std::shared_ptr<ParserRule>> rules;
     std::shared_ptr<Tree> tree;
     std::vector<std::shared_ptr<Branch>> branches;
+    int current_branch_index;
     
+    std::vector<std::shared_ptr<ParserRule>> getRulesForNextBranchSequence(int s_index);
+    std::vector<std::shared_ptr<ParserRule>> getRulesForNextBranchSequence();
+    std::shared_ptr<ParserRule> getNextValidRule();
+    std::vector<std::shared_ptr<Branch>> getBranches(int s_index, size_t total);
     int isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos);
     void reductBranches();
 };
