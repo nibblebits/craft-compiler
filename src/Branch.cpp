@@ -67,8 +67,29 @@ bool Branch::excluded()
     return this->excluded_from_tree;
 }
 
+bool Branch::hasChild(std::shared_ptr<Branch> branch)
+{
+    for (int i = 0; i < this->children.size(); i++)
+    {
+        std::shared_ptr<Branch> c = this->children.at(i);
+        if (c == branch)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void Branch::setParent(std::shared_ptr<Branch> branch)
 {
+    if (this->parent != NULL)
+    {
+        if (!this->parent->hasChild(branch))
+        {
+            this->parent->addChild(branch);
+        }
+    }
     this->parent = branch;
 }
 
