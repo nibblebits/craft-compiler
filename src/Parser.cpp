@@ -22,6 +22,7 @@
  * Created on 29 May 2016, 20:31
  * 
  * Description: Takes token input and converts it to an AST(Abstract Syntax Tree)
+ * 
  */
 
 #include "Parser.h"
@@ -29,8 +30,10 @@
 
 Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
 {
-    this->tree = NULL;
-    this->current_branch_index = 0;
+    this->tree = std::shared_ptr<Tree>(new Tree());
+    this->look_ahead = NULL;
+    this->last_matching_rule = NULL;
+    this->reduce_position = -1;
 }
 
 Parser::~Parser()
@@ -88,284 +91,96 @@ void Parser::addRule(std::string rule_exp)
 
 void Parser::setInput(std::vector<std::shared_ptr<Token>> tokens)
 {
-    this->input = tokens;
+    // Push the tokens to the input stack.
+    for (std::shared_ptr<Token> token : tokens)
+    {
+        this->input.push(token);
+    }
 }
 
-int Parser::isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos)
+void Parser::shift()
 {
-    bool ok = false;
-    std::vector<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
-    if (requirements.size() < pos + 1)
-        return PARSER_RULE_INCOMPATIBLE;
-
-    std::shared_ptr<ParserRuleRequirement> requirement = requirements[pos];
-    if (requirement->getClassName() == branch->getType())
+    this->parse_stack.push(this->look_ahead);
+    if (!this->input.isEmpty())
     {
-        if (requirement->hasValueRequirements())
-        {
-            ok = requirement->allowed(branch->getValue());
-        }
-        else
-        {
-            ok = true;
-        }
+        this->look_ahead = this->input.pop();
+    }
+    else
+    {
+        this->look_ahead = NULL;
+    }
+}
 
-        if (ok)
-        {
-            if (requirement->excluded())
-            {
-                return PARSER_RULE_COMPATIBLE_NO_BRANCH;
-            }
-            else
-            {
-                return PARSER_RULE_COMPATIBLE;
-            }
-        }
+void Parser::reduce(std::shared_ptr<ParserRule> rule)
+{
+    std::shared_ptr<Branch> root(new Branch(rule->getName(), ""));
+    std::vector<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
+    for (int i = 0; i < requirements.size(); i++)
+    {
+        root->addChild(this->parse_stack.pop());
     }
 
-    return PARSER_RULE_INCOMPATIBLE;
+    // Finally add the root back to the parse stack
+    this->parse_stack.push(root);
 }
 
-std::vector<std::shared_ptr<ParserRule>> Parser::getRulesForNextBranchSequence(int s_index)
+void Parser::tryToReduce()
 {
-    std::vector<std::shared_ptr < ParserRule>> compatible_rules;
     for (std::shared_ptr<ParserRule> rule : this->rules)
     {
-        for (int i = s_index; i < this->branches.size(); i++)
+        int matched = 0;
+        Stack<std::shared_ptr < Branch>> stack_cpy = this->parse_stack;
+        std::vector<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
+        for (std::shared_ptr<ParserRuleRequirement> rule_req : requirements)
         {
-            int total_requirements = rule->getRequirements().size();
-            int total_found = 0;
-
-            if (this->branches.size() < i + total_requirements)
+            // Empty stack we cannot do anything here. Maybe the next rule will be different?
+            if (stack_cpy.isEmpty())
             {
                 break;
             }
-
-            for (int b = 0; b < total_requirements; b++)
+            
+            std::shared_ptr<Branch> branch = stack_cpy.pop();
+            if (rule_req->getClassName() == branch->getType()
+                    && rule_req->allowed(branch->getValue()))
             {
-                int index = i + b;
-                std::shared_ptr<Branch> branch = this->branches.at(index);
-
-                int result = this->isPartOfRule(rule, branch, b);
-                if (result == PARSER_RULE_COMPATIBLE || result == PARSER_RULE_COMPATIBLE_NO_BRANCH)
-                {
-                    if (result == PARSER_RULE_COMPATIBLE_NO_BRANCH)
-                    {
-                        branch->exclude(true);
-                    }
-
-                    total_found++;
-                }
-                else
-                {
-
-                    break;
-                }
-            }
-
-
-            if (total_found == total_requirements)
-            {
-                compatible_rules.push_back(rule);
-            }
-            break;
-        }
-    }
-
-    return compatible_rules;
-}
-
-std::vector<std::shared_ptr<ParserRule>> Parser::getRulesForNextBranchSequence()
-{
-    // Search for compatible rules in the branches, if none is found then move to the next branch until a compatible rule is found
-    std::vector<std::shared_ptr < ParserRule>> compatible_rules;
-    for (int i = 0; i < this->branches.size(); i++)
-    {
-        compatible_rules = this->getRulesForNextBranchSequence(i);
-        // If there are compatible rules then break
-        if (compatible_rules.size() != 0)
-        {
-            break;
-        }
-        this->current_branch_index++;
-    }
-    return compatible_rules;
-}
-
-std::shared_ptr<ParserRule> Parser::getNextValidRule()
-{
-    std::shared_ptr<ParserRule> valid_rule = NULL;
-    for (std::shared_ptr<ParserRule> rule : this->getRulesForNextBranchSequence())
-    {
-        if (valid_rule == NULL)
-        {
-            valid_rule = rule;
-            continue;
-        }
-
-        int valid_rule_req_size = valid_rule->getRequirements().size();
-        int rule_req_size = rule->getRequirements().size();
-        if (rule_req_size == valid_rule_req_size)
-        {
-            // This is not working correctly
-           // throw ParserException("Problem with rules, two valid rules have the same size. " + rule->getName() + ":" + valid_rule->getName());
-        }
-
-        if (rule_req_size > valid_rule_req_size)
-        {
-            valid_rule = rule;
-        }
-    }
-
-    return valid_rule;
-}
-
-std::vector<std::shared_ptr<Branch>> Parser::getBranches(int s_index, size_t total)
-{
-    int ind_t = s_index + total;
-    if (ind_t > this->branches.size())
-    {
-        throw ParserException("std::vector<std::shared_ptr<Branch>> Parser::getBranches(size_t total): attempting to get more branches than exist");
-    }
-
-    std::vector<std::shared_ptr < Branch>> branches;
-    for (int i = s_index; i < ind_t; i++)
-    {
-        branches.push_back(this->branches.at(i));
-    }
-
-    return branches;
-}
-
-void Parser::reductBranches()
-{
-    // We only want one root branch once we have finished parsing
-    while (branches.size() != 1)
-    {
-        std::shared_ptr<ParserRule> rule = this->getNextValidRule();
-
-        if (rule != NULL)
-        {
-            std::vector<std::shared_ptr < Branch>> rule_branches = this->getBranches(this->current_branch_index, rule->getRequirements().size());
-
-            // We have a match
-            std::shared_ptr<Branch> root;
-            if (rule->getName() == "CALL")
-            {
-                root = std::shared_ptr<CallBranch>(new CallBranch(this->getCompiler()));
-            }
-            else if (rule->getName() == "FUNC")
-            {
-                root = std::shared_ptr<FuncBranch>(new FuncBranch(this->getCompiler()));
-            }
-            else if (rule->getName() == "V_DEF")
-            {
-                root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
-            }
-            else if (rule->getName() == "ASSIGN")
-            {
-                root = std::shared_ptr<AssignBranch>(new AssignBranch(this->getCompiler()));
-            }
-            else if (rule->getName() == "MATH_E")
-            {
-                root = std::shared_ptr<MathEBranch>(new MathEBranch(this->getCompiler()));
-            }
-            else if (rule->getName() == "E")
-            {
-                root = std::shared_ptr<EBranch>(new EBranch(this->getCompiler()));
-            }
-            else if (rule->getName() == "ASM")
-            {
-                root = std::shared_ptr<ASMBranch>(new ASMBranch(this->getCompiler()));
-            }
-            else if (rule->getName() == "ARRAY")
-            {
-                root = std::shared_ptr<ArrayBranch>(new ArrayBranch(this->getCompiler()));
+                matched++;
             }
             else
             {
-                root = std::shared_ptr<Branch>(new Branch(rule->getName(), ""));
+                break;
             }
-            // Add the branches in the tmp_list to the branch
-            for (std::shared_ptr<Branch> branch : rule_branches)
-            {
-                branch->setParent(root);
-                if (!branch->excluded())
-                    root->addChild(branch);
-            }
-
-            // Erase the parsed branches from the vector
-            this->branches.erase(this->branches.begin() + this->current_branch_index, this->branches.begin() + this->current_branch_index + rule_branches.size());
-            // Add the new branch into the branches list
-            this->branches.insert(this->branches.begin() + this->current_branch_index, root);
-            this->current_branch_index = 0;
         }
-        else
+        if (matched == requirements.size())
         {
-            // Find the first element that is still a token and use it as a base for the error
-            for (std::shared_ptr<Branch> branch : this->branches)
-            {
-                if (branch->getBranchType() == BRANCH_TYPE_TOKEN)
-                {
-                    std::shared_ptr<Token> token = std::dynamic_pointer_cast<Token>(branch);
-                    throw ParserException(token->getPosition(), "the token '" + token->getValue() + "' may not be expected or something nearby.");
-                }
-            }
-            break;
+            // Rule has matched!
+            this->reduce(rule);
         }
     }
 }
 
 void Parser::buildTree()
 {
-    if (this->input.size() == 0)
-        throw ParserException("No token input has been specified.");
-
-    this->tree = std::shared_ptr<Tree>(new Tree());
-    this->tree->root = std::shared_ptr<Branch>(new Branch("root", ""));
-    for (std::shared_ptr<Token> token : this->input)
+    if (this->input.isEmpty())
     {
-        this->branches.push_back(token);
+        throw ParserException("No input given to parser");
     }
 
-    reductBranches();
+    this->look_ahead = this->input.pop();
 
-    for (int i = 0; i < this->branches.size(); i++)
+    while (true)
     {
-        std::shared_ptr<Branch> branch = this->branches.at(i);
-        this->tree->root->addChild(branch);
-    }
+        shift();
+        tryToReduce();
 
-    cleanTree();
-}
-
-/* Cleans the tree of branches who only have one child*/
-void Parser::cleanTree()
-{
-    std::shared_ptr<Branch> root = this->tree->root;
-    cleanBranch(root);
-}
-
-/* Cleans the tree of branches who have only one child, starting at the branch passed to it.
- * The branch with only one child is replaced by its child.
- */
-void Parser::cleanBranch(std::shared_ptr<Branch> branch)
-{
-    int children_size = branch->getChildren().size();
-    if (children_size == 1)
-    {
-        if (branch->hasParent())
+        if (this->input.isEmpty() && this->look_ahead == NULL)
         {
-            // Replace this branch with its only child.
-            branch->getParent()->replaceChild(branch, branch->getChildren()[0]);
+            break;
         }
+
     }
 
-    for (std::shared_ptr<Branch> child : branch->getChildren())
-    {
-        this->cleanBranch(child);
-    }
-
+    this->tree->root = std::shared_ptr<Branch>(new Branch("root", ""));
+    this->tree->root->addChild(this->parse_stack.pop());
 }
 
 std::shared_ptr<Tree> Parser::getTree()

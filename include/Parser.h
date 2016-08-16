@@ -30,6 +30,7 @@
 #include <queue>
 #include <memory>
 #include <algorithm>
+#include "Stack.h"
 #include "Helper.h"
 #include "ParserRule.h"
 #include "ParserRuleRequirement.h"
@@ -51,22 +52,21 @@ public:
     void addRule(std::string rule_exp);
     void setInput(std::vector<std::shared_ptr<Token>> tokens);
     void buildTree();
-    void cleanTree();
-    void cleanBranch(std::shared_ptr<Branch> branch);
     std::shared_ptr<Tree> getTree();
 private:
-    std::vector<std::shared_ptr<Token>> input;
-    std::vector<std::shared_ptr<ParserRule>> rules;
-    std::shared_ptr<Tree> tree;
-    std::vector<std::shared_ptr<Branch>> branches;
-    int current_branch_index;
+    void shift();
+    void reduce(std::shared_ptr<ParserRule> rule);
+    void tryToReduce();
     
-    std::vector<std::shared_ptr<ParserRule>> getRulesForNextBranchSequence(int s_index);
-    std::vector<std::shared_ptr<ParserRule>> getRulesForNextBranchSequence();
-    std::shared_ptr<ParserRule> getNextValidRule();
-    std::vector<std::shared_ptr<Branch>> getBranches(int s_index, size_t total);
-    int isPartOfRule(std::shared_ptr<ParserRule> rule, std::shared_ptr<Branch> branch, int pos);
-    void reductBranches();
+    Stack<std::shared_ptr<Token>> input;
+    Stack<std::shared_ptr<Branch>> parse_stack;
+    
+    std::shared_ptr<Token> look_ahead;
+    
+    std::vector<std::shared_ptr<ParserRule>> rules;
+    std::shared_ptr<ParserRule> last_matching_rule;
+    int reduce_position;
+    std::shared_ptr<Tree> tree;
 };
 
 #endif /* PARSER_H */
