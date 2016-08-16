@@ -37,6 +37,7 @@ public:
     void push(T elem);
     T pop();
     void erase(int start, int end);
+    void reverse();
     T top();
     T first();
     T pop_first();
@@ -46,6 +47,9 @@ public:
     void empty();
     int size();
     int getSP();
+    T getByIndex(int index);
+    Stack<T> copy(int start, int end);
+    std::vector<T> getElementsAsVector();
 private:
     std::vector<T> elements;
     int sp = 0;
@@ -67,8 +71,8 @@ void Stack<T>::push(T elem)
 template <class T>
 T Stack<T>::pop()
 {
-    sp--;
     T element = top();
+    sp--;
     elements.erase(elements.begin() + sp);
     return element;
 }
@@ -76,9 +80,23 @@ T Stack<T>::pop()
 template <class T>
 void Stack<T>::erase(int start, int end)
 {
-    int size = end-start;
+    int size = end - start;
     sp -= size;
     elements.erase(elements.begin() + start, elements.begin() + start + end);
+}
+
+template <class T>
+void Stack<T>::reverse()
+{
+    Stack<T> reversed_elements;
+    int sp = this->getSP();
+    while (!this->isEmpty())
+    {
+        reversed_elements.push(this->pop());
+    }
+    this->elements = reversed_elements.getElementsAsVector();
+    this->setSP(sp);
+
 }
 
 template <class T>
@@ -88,8 +106,12 @@ T Stack<T>::top()
     {
         throw std::out_of_range("Stack<>::top(): stack is empty");
     }
-    
-    return this->elements.at(sp);
+
+    if (sp - 1 >= this->elements.size())
+    {
+        throw std::out_of_range("Stack<>::top(): Stack pointer is above total existing elements");
+    }
+    return this->elements.at(sp - 1);
 }
 
 template <class T>
@@ -99,7 +121,7 @@ T Stack<T>::first()
     {
         throw std::out_of_range("Stack<>::first(): stack is empty");
     }
-    
+
     return this->elements.at(0);
 }
 
@@ -108,7 +130,6 @@ T Stack<T>::pop_first()
 {
     T element = first();
     elements.erase(elements.begin());
-    
     return element;
 }
 
@@ -149,6 +170,31 @@ int Stack<T>::getSP()
     return this->sp;
 }
 
+template <class T>
+T Stack<T>::getByIndex(int index)
+{
+    if (index < elements.size())
+        return elements.at(index);
+
+    return NULL;
+}
+
+template <class T>
+Stack<T> Stack<T>::copy(int start, int end)
+{
+    Stack<T> stack;
+    for (int i = start; i < end; i++)
+    {
+        stack.push(this->getByIndex(i));
+    }
+    return stack;
+}
+
+template <class T>
+std::vector<T> Stack<T>::getElementsAsVector()
+{
+    return this->elements;
+}
 
 #endif /* STACK_H */
 
