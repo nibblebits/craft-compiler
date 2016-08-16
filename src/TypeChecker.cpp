@@ -50,11 +50,7 @@ void TypeChecker::validate()
     }
     std::shared_ptr<Branch> root = this->tree->root;
 
-    // Push a blank entity vector to represent the global scope
-    std::vector<struct entity> entities;
-    this->scopes.push(entities);
-    this->global_scope = &this->scopes.top();
-    Check(root);
+
 }
 
 void TypeChecker::Check(std::shared_ptr<Branch> branch)
@@ -63,73 +59,6 @@ void TypeChecker::Check(std::shared_ptr<Branch> branch)
     
     return;
     
-    if (branch != NULL)
-    {
-        std::string branch_type = branch->getType();
-        std::vector<std::shared_ptr < Branch>> children = branch->getChildren();
-
-        if (branch_type == "V_DEF")
-        {
-            std::shared_ptr<Branch> var_name_branch = children[1]->getChildren()[0];
-            std::string var_type = children[0]->getValue();
-            std::string var_name = var_name_branch->getValue();
-            if (isEntityRegistered(var_name))
-            {
-                throwAlreadyDeclaredException(var_name_branch);
-            }
-            registerEntity(var_type, var_name);
-        }
-        else if (branch_type == "ASSIGN")
-        {
-            std::shared_ptr<Branch> variable_name_branch = children[0]->getChildren()[0];
-            std::vector<std::shared_ptr<Branch>> all_identifiers_of_assignment = astAssistant->findAllChildrenOfType(children[2], "identifier");
-
-            if (!isEntityRegistered(variable_name_branch->getValue()))
-            {
-                throwUndeclaredException(variable_name_branch);
-            }
-          
-            for (std::shared_ptr<Branch> identifier : all_identifiers_of_assignment)
-            {
-                if(!isEntityRegistered(identifier->getValue()))
-                {
-                    throwUndeclaredException(identifier);
-                }
-            }
-        }
-        else if (branch_type == "SCOPE")
-        {
-            // Push a new entity scope as we are in a new scope now
-            std::vector<struct entity> entities;
-            this->scopes.push(entities);
-        } else if(branch_type == "FUNC")
-        {
-            std::shared_ptr<Branch> func_return_type_branch = children[0];
-            std::shared_ptr<Branch> func_name_branch = children[1]->getChildren()[0];
-            
-            std::string func_return_type_value = func_return_type_branch->getValue();
-            std::string func_name_value = func_name_branch->getValue();
-            
-            if (isEntityRegistered(func_name_value))
-            {
-                throwAlreadyDeclaredException(func_name_branch);
-            }
-            
-            registerEntity(func_return_type_value, func_name_value);
-        }
-
-        // Check its children.
-        for (std::shared_ptr<Branch> child_branch : children)
-        {
-            Check(child_branch);
-        }
-        
-        if (branch_type == "SCOPE")
-        {
-            // At this point all children would have assigned/used variables of the scope and now we need to pop it off
-            this->scopes.pop();
-        }
-    }
 }
 
 bool TypeChecker::isEntityRegistered(std::string name)
