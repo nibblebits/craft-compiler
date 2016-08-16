@@ -55,6 +55,7 @@ public:
     std::shared_ptr<Tree> getTree();
 private:
     void shift();
+    bool ruleCheck(std::shared_ptr<ParserRule> rule, Stack<std::shared_ptr<Branch>> stack);
     void reduce(std::shared_ptr<ParserRule> rule);
     void tryToReduce();
     

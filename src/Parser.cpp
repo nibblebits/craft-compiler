@@ -124,36 +124,48 @@ void Parser::reduce(std::shared_ptr<ParserRule> rule)
     this->parse_stack.push(root);
 }
 
+bool Parser::ruleCheck(std::shared_ptr<ParserRule> rule, Stack<std::shared_ptr<Branch>> stack)
+{
+    int matched = 0;
+    std::vector<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
+    for (std::shared_ptr<ParserRuleRequirement> rule_req : requirements)
+    {
+        // Empty stack we cannot do anything here. Maybe the next rule will be different?
+        if (stack.isEmpty())
+        {
+            break;
+        }
+
+        std::shared_ptr<Branch> branch = stack.pop();
+        if (rule_req->getClassName() == branch->getType()
+                && rule_req->allowed(branch->getValue()))
+        {
+            matched++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    if (matched == requirements.size())
+    {
+        return true;
+    }
+
+    return false;
+}
+
 void Parser::tryToReduce()
 {
     for (std::shared_ptr<ParserRule> rule : this->rules)
     {
-        int matched = 0;
         Stack<std::shared_ptr < Branch>> stack_cpy = this->parse_stack;
-        std::vector<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
-        for (std::shared_ptr<ParserRuleRequirement> rule_req : requirements)
+        if (this->ruleCheck(rule, stack_cpy))
         {
-            // Empty stack we cannot do anything here. Maybe the next rule will be different?
-            if (stack_cpy.isEmpty())
-            {
-                break;
-            }
-            
-            std::shared_ptr<Branch> branch = stack_cpy.pop();
-            if (rule_req->getClassName() == branch->getType()
-                    && rule_req->allowed(branch->getValue()))
-            {
-                matched++;
-            }
-            else
-            {
-                break;
-            }
-        }
-        if (matched == requirements.size())
-        {
-            // Rule has matched!
             this->reduce(rule);
+            // Try to reduce further
+            this->tryToReduce();
+            break;
         }
     }
 }
