@@ -131,10 +131,10 @@ void CodeGenerator::generate(std::shared_ptr<Tree> tree)
     gob_head->code_generator_descriptor = this->code_gen_desc;
 
     int total_func_decl = this->functions.size();
-    func_declarations_header->t_functions = total_func_decl;
-    func_declarations_header->functions = new goblin_function_declaration[total_func_decl];
     if (total_func_decl > 0)
     {
+        func_declarations_header->t_functions = total_func_decl;
+        func_declarations_header->functions = new goblin_function_declaration[total_func_decl];
         for (int i = 0; i < total_func_decl; i++)
         {
             struct function* function = &this->functions[i];
