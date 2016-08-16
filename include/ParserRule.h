@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "Stack.h"
+#include "Branch.h"
 #include "ParserRuleRequirement.h"
 
 class ParserRule {
@@ -39,6 +41,9 @@ public:
     std::string getName();
     void addRequirement(std::shared_ptr<ParserRuleRequirement> requirement);
     std::vector<std::shared_ptr<ParserRuleRequirement>> getRequirements();
+    std::shared_ptr<ParserRuleRequirement> getRequirementByIndex(int index);
+    bool isValid(Stack<std::shared_ptr<Branch>>* stack);
+    bool isValid(std::shared_ptr<Branch> branch, int s_pos);
 private:
     std::string name;
     std::vector<std::shared_ptr<ParserRuleRequirement>> requirements;
