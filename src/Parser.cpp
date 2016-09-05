@@ -113,10 +113,25 @@ void Parser::shift()
 
 void Parser::reduce(std::shared_ptr<ParserRule> rule)
 {
-    std::shared_ptr<Branch> root(new Branch(rule->getName(), ""));
-    Stack<std::shared_ptr<Branch>> tmp_stack;
+    std::shared_ptr<Branch> root = NULL;
+    Compiler* compiler = this->getCompiler();
+    std::string rule_name = rule->getName();
+    if (rule_name == "E")
+    {
+        root = std::shared_ptr<EBranch>(new EBranch(compiler));
+    }
+    else if (rule_name == "V_DEF")
+    {
+        root = std::shared_ptr<VDEFBranch>(new VDEFBranch(compiler));
+    }
+    else
+    {
+        root = std::shared_ptr<Branch>(new Branch(rule->getName(), ""));
+    }
+
+    Stack<std::shared_ptr < Branch>> tmp_stack;
     Stack<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
-    
+
     /* Look through the requirements, 
      * pop from the stack and store in the tmp_stack so it will be popped off the right way around */
     for (int i = 0; i < requirements.size(); i++)
@@ -124,7 +139,7 @@ void Parser::reduce(std::shared_ptr<ParserRule> rule)
         std::shared_ptr<Branch> branch = this->parse_stack.pop();
         tmp_stack.push(branch);
     }
-   
+
     // Now loop through the tmp_stack and pop from it, the result will be the right away around now.
     int stack_size = tmp_stack.size();
     for (int i = 0; i < stack_size; i++)
@@ -132,7 +147,7 @@ void Parser::reduce(std::shared_ptr<ParserRule> rule)
         std::shared_ptr<Branch> branch = tmp_stack.pop();
         root->addChild(branch);
     }
-    
+
     this->parse_stack.push(root);
 }
 
@@ -143,17 +158,21 @@ std::shared_ptr<ParserRule> Parser::matchRule(Stack<std::shared_ptr<Branch>> sta
     {
         if (this->ruleCheck(rule, stack))
         {
-            if (selected_rule == NULL) {
+            if (selected_rule == NULL)
+            {
                 selected_rule = rule;
-            } else {
-                if (rule->getTotalRequirements() > selected_rule->getTotalRequirements()) {
+            }
+            else
+            {
+                if (rule->getTotalRequirements() > selected_rule->getTotalRequirements())
+                {
                     selected_rule = rule;
                 }
             }
         }
     }
 
-    
+
     return selected_rule;
 }
 
@@ -195,7 +214,8 @@ void Parser::tryToReduce()
         // Push the look ahead to the stack
         stack_cpy.push(this->look_ahead);
         std::shared_ptr<ParserRule> stack_look_ahead_rule = this->matchRule(stack_cpy);
-        if (stack_rule != NULL && stack_look_ahead_rule != NULL)
+        if (stack_rule != NULL && stack_look_ahead_rule != NULL
+                && stack_rule != stack_look_ahead_rule)
         {
             // Stack + look ahead rule found.
             // Shift the look ahead to the real stack
@@ -236,7 +256,21 @@ void Parser::buildTree()
 
     }
 
+    // Syntax error checking
+
+    if (this->parse_stack.size() != 1)
+    {
+        /* All we do at the moment is show a syntax error message
+         I plan to make this find where the problem is but I need to think about it more before I attempt it.
+         * One solution that may be possible is to find the nearest branch with zero or one child
+         */
+    //    throw ParserException("Syntax error.");
+    }
+
+
     this->tree->root = std::shared_ptr<Branch>(new Branch("root", ""));
+    int size = this->parse_stack.size();
+    for (int i = 0; i < size; i++)
     this->tree->root->addChild(this->parse_stack.pop());
 }
 
