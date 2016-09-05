@@ -103,7 +103,7 @@ void Parser::shift()
     this->parse_stack.push(this->look_ahead);
     if (!this->input.isEmpty())
     {
-        this->look_ahead = this->input.pop();
+        this->look_ahead = this->input.pop_first();
     }
     else
     {
@@ -114,59 +114,104 @@ void Parser::shift()
 void Parser::reduce(std::shared_ptr<ParserRule> rule)
 {
     std::shared_ptr<Branch> root(new Branch(rule->getName(), ""));
-    std::vector<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
+    Stack<std::shared_ptr<Branch>> tmp_stack;
+    Stack<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
+    
+    /* Look through the requirements, 
+     * pop from the stack and store in the tmp_stack so it will be popped off the right way around */
     for (int i = 0; i < requirements.size(); i++)
     {
-        root->addChild(this->parse_stack.pop());
+        std::shared_ptr<Branch> branch = this->parse_stack.pop();
+        tmp_stack.push(branch);
+    }
+   
+    // Now loop through the tmp_stack and pop from it, the result will be the right away around now.
+    int stack_size = tmp_stack.size();
+    for (int i = 0; i < stack_size; i++)
+    {
+        std::shared_ptr<Branch> branch = tmp_stack.pop();
+        root->addChild(branch);
+    }
+    
+    this->parse_stack.push(root);
+}
+
+std::shared_ptr<ParserRule> Parser::matchRule(Stack<std::shared_ptr<Branch>> stack)
+{
+    std::shared_ptr<ParserRule> selected_rule = NULL;
+    for (std::shared_ptr<ParserRule> rule : this->rules)
+    {
+        if (this->ruleCheck(rule, stack))
+        {
+            if (selected_rule == NULL) {
+                selected_rule = rule;
+            } else {
+                if (rule->getTotalRequirements() > selected_rule->getTotalRequirements()) {
+                    selected_rule = rule;
+                }
+            }
+        }
     }
 
-    // Finally add the root back to the parse stack
-    this->parse_stack.push(root);
+    
+    return selected_rule;
 }
 
 bool Parser::ruleCheck(std::shared_ptr<ParserRule> rule, Stack<std::shared_ptr<Branch>> stack)
 {
+    Stack<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
+    int total_req = requirements.size();
     int matched = 0;
-    std::vector<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
-    for (std::shared_ptr<ParserRuleRequirement> rule_req : requirements)
+    while (!requirements.isEmpty() && !stack.isEmpty())
     {
-        // Empty stack we cannot do anything here. Maybe the next rule will be different?
-        if (stack.isEmpty())
-        {
-            break;
-        }
-
+        std::shared_ptr<ParserRuleRequirement> requirement = requirements.pop();
         std::shared_ptr<Branch> branch = stack.pop();
-        if (rule_req->getClassName() == branch->getType()
-                && rule_req->allowed(branch->getValue()))
+        if (branch->getType() == requirement->getClassName()
+                && requirement->allowed(branch->getValue()))
         {
             matched++;
         }
-        else
-        {
-            break;
-        }
     }
-    if (matched == requirements.size())
+
+    if (matched == total_req)
     {
         return true;
     }
-
-    return false;
+    else
+    {
+        return false;
+    }
 }
 
 void Parser::tryToReduce()
 {
-    for (std::shared_ptr<ParserRule> rule : this->rules)
+    Stack<std::shared_ptr < Branch>> stack_cpy = this->parse_stack;
+    std::shared_ptr<ParserRule> stack_rule = this->matchRule(stack_cpy);
+
+    /* Now try to a match with the look ahead*/
+    bool lookahead_exists = this->look_ahead != NULL;
+    if (lookahead_exists)
     {
-        Stack<std::shared_ptr < Branch>> stack_cpy = this->parse_stack;
-        if (this->ruleCheck(rule, stack_cpy))
+        // Push the look ahead to the stack
+        stack_cpy.push(this->look_ahead);
+        std::shared_ptr<ParserRule> stack_look_ahead_rule = this->matchRule(stack_cpy);
+        if (stack_rule != NULL && stack_look_ahead_rule != NULL)
         {
-            this->reduce(rule);
+            // Stack + look ahead rule found.
+            // Shift the look ahead to the real stack
+            shift();
+            this->reduce(stack_look_ahead_rule);
             // Try to reduce further
             this->tryToReduce();
-            break;
+            return;
         }
+    }
+
+    if (stack_rule != NULL)
+    {
+        this->reduce(stack_rule);
+        // Try to reduce further
+        this->tryToReduce();
     }
 }
 
@@ -177,7 +222,7 @@ void Parser::buildTree()
         throw ParserException("No input given to parser");
     }
 
-    this->look_ahead = this->input.pop();
+    this->look_ahead = this->input.pop_first();
 
     while (true)
     {
