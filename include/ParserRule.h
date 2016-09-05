@@ -40,13 +40,12 @@ public:
     bool isBranchable();
     std::string getName();
     void addRequirement(std::shared_ptr<ParserRuleRequirement> requirement);
-    std::vector<std::shared_ptr<ParserRuleRequirement>> getRequirements();
+    Stack<std::shared_ptr<ParserRuleRequirement>> getRequirements();
+    size_t getTotalRequirements();
     std::shared_ptr<ParserRuleRequirement> getRequirementByIndex(int index);
-    bool isValid(Stack<std::shared_ptr<Branch>>* stack);
-    bool isValid(std::shared_ptr<Branch> branch, int s_pos);
 private:
     std::string name;
-    std::vector<std::shared_ptr<ParserRuleRequirement>> requirements;
+    Stack<std::shared_ptr<ParserRuleRequirement>> requirements;
     bool branchable;
 
 };
