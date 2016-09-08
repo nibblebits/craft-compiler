@@ -31,9 +31,9 @@
 Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
 {
     this->tree = std::shared_ptr<Tree>(new Tree());
-    this->look_ahead = NULL;
-    this->last_matching_rule = NULL;
-    this->reduce_position = -1;
+    this->logger = std::shared_ptr<Logger>(new Logger());
+    this->token = NULL;
+
 }
 
 Parser::~Parser()
@@ -41,240 +41,442 @@ Parser::~Parser()
 
 }
 
-void Parser::addRule(std::string rule_exp)
-{
-    bool branchable = true;
-    std::vector<std::string> split;
-    if (rule_exp.find(" ") != -1)
-    {
-        throw ParserException("Rules may not contain spaces");
-    }
-
-    split = Helper::split(rule_exp, ':');
-    if (split.size() == 0)
-    {
-        throw ParserException("Parser rule not formatted correctly");
-    }
-
-    if (split[0][0] == '\'')
-    {
-        branchable = false;
-        split[0] = Helper::str_remove(split[0], 0);
-    }
-
-    std::shared_ptr<ParserRule> rule = std::shared_ptr<ParserRule>(new ParserRule(split[0]));
-    for (int i = 1; i < split.size(); i++)
-    {
-        std::vector<std::string> allowed_values = Helper::split(split[i], '@');
-        std::string requirement_name = Helper::str_remove(allowed_values[0], '\'');
-        std::shared_ptr<ParserRuleRequirement> requirement = std::shared_ptr<ParserRuleRequirement>(new ParserRuleRequirement(requirement_name));
-        for (int i = 1; i < allowed_values.size(); i++)
-        {
-            std::string allowed_value = allowed_values[i];
-            requirement->allow(allowed_value);
-        }
-
-        if (split[i][0] == '\'')
-        {
-            requirement->excludeFromTree(true);
-        }
-
-        rule->addRequirement(requirement);
-    }
-
-    if (!branchable)
-    {
-        rule->canCreateBranch(false);
-    }
-    this->rules.push_back(rule);
-}
-
 void Parser::setInput(std::vector<std::shared_ptr<Token>> tokens)
 {
     // Push the tokens to the input stack.
     for (std::shared_ptr<Token> token : tokens)
     {
-        this->input.push(token);
+        this->input.push_back(token);
     }
+}
+
+/* 
+ * \brief Processes the root of the input
+ * 
+ * Processes the top of the input, the root is where a programmer would declare global variables and functions
+ */
+void Parser::process_top()
+{
+    peak();
+    if (this->peak_token_type == "keyword")
+    {
+        peak(1);
+        if (this->peak_token_type == "identifier")
+        {
+            // Check to see if this is a function or a variable declaration
+            peak(2);
+            if (is_peak_symbol(";"))
+            {
+                // The peak ends with a semicolon so it must be a variable declaration
+
+                process_variable_declaration();
+
+                // Shift and pop the semicolon off the stack. This is safe to do as it is not yet on the branch stack
+                shift_pop();
+            }
+            else
+            {
+                process_function();
+            }
+        }
+    }
+    else
+    {
+        error_unexpected_token();
+    }
+}
+
+/* 
+ * \brief Processes the function of the input
+ * 
+ */
+void Parser::process_function()
+{
+    // Pop the function name and return type from the stack
+    shift_pop();
+    std::shared_ptr<Branch> func_return_type = this->branch;
+    shift_pop();
+    std::shared_ptr<Branch> func_name = this->branch;
+
+    // Shift and pop the next symbol we need to make sure its a left bracket
+    this->shift_pop();
+    if (!is_branch_symbol("("))
+    {
+        error_expecting("(", this->branch_value);
+    }
+
+    std::shared_ptr<Branch> func_arguments = std::shared_ptr<Branch>(new Branch("FUNC_ARGUMENTS", ""));
+    // Process all the function parameters
+    while (true)
+    {
+        /* If the next token is a keyword then process a variable declaration*/
+        peak();
+        if (this->peak_token_type == "keyword")
+        {
+            process_variable_declaration();
+
+            // Pop the resulting variable declaration and put it in the function arguments branch
+            pop_branch();
+            func_arguments->addChild(this->branch);
+        }
+        else
+        {
+            /* Its not a keyword so check for a right bracket or a comma*/
+            if (is_peak_symbol(")"))
+            {
+                // Looks like we are done here so shift and pop the bracket from the stack then break
+                shift_pop();
+                break;
+            }
+            else if (is_peak_symbol(","))
+            {
+                // shift and pop the comma from the stack
+                shift_pop();
+            }
+            else
+            {
+                // Neither were provided we have a syntax error
+                error_expecting(", or )", this->branch_value);
+                break;
+            }
+        }
+    }
+
+
+    // Process the function body
+    process_body();
+
+    // Pop off the body
+    pop_branch();
+
+    std::shared_ptr<Branch> body = this->branch;
+
+    // Finally create the function branch and merge it all together
+    std::shared_ptr<Branch> func_branch = std::shared_ptr<Branch>(new Branch("FUNC", ""));
+    func_branch->addChild(func_return_type);
+    func_branch->addChild(func_name);
+    func_branch->addChild(func_arguments);
+    func_branch->addChild(body);
+
+    // Now push it back to the stack
+    push_branch(func_branch);
+}
+
+void Parser::process_body()
+{
+    // Check that the next branch is a left bracket all bodys must start with them.
+    shift_pop();
+    if (!is_branch_symbol("{"))
+    {
+        error_expecting("{", this->branch_value);
+    }
+
+    std::shared_ptr<Branch> body_root = std::shared_ptr<Branch>(new Branch("BODY", ""));
+
+    while (true)
+    {
+        // Check to see if we are at the end of the body
+        peak();
+        if (is_peak_symbol("}"))
+        {
+            // Shift and pop the right bracket
+            shift_pop();
+
+            // We are done.
+            break;
+        }
+        else
+        {
+            // Nope so process the statement
+            process_stmt();
+
+            // Pop off the result and store it in the body_root
+            pop_branch();
+            body_root->addChild(this->branch);
+        }
+    }
+
+    // Push the body root onto the branch stack
+    push_branch(body_root);
+}
+
+// All possible body statements
+
+void Parser::process_stmt()
+{
+    peak();
+    if (this->peak_token_type == "keyword")
+    {
+        // Has to be a variable or its a syntax error
+        peak(1);
+        if (this->peak_token_type == "identifier")
+        {
+            // Its a variable
+            process_variable_declaration();
+            // Shift the semicolon onto the stack and then pop it off
+            shift_pop();
+        }
+        else
+        {
+            error_expecting("identifier", this->peak_token_value);
+        }
+    }
+    else if (this->peak_token_type == "identifier")
+    {
+        peak(1);
+        if (this->peak_token_type == "operator")
+        {
+            // This is an assignment
+            process_assignment();
+
+            // Shift the semicolon onto the stack and then pop it off
+            shift_pop();
+        }
+        else
+        {
+            error("expecting an assignment or function call");
+        }
+    }
+    else
+    {
+        error_unexpected_token();
+    }
+}
+
+/* 
+ * \brief Processes a variable of the input
+ * 
+ */
+void Parser::process_variable_declaration()
+{
+    std::shared_ptr<Branch> var_name;
+    std::shared_ptr<Branch> var_keyword;
+
+    // Shift the keyword and identifier of the parameter on to the stack
+    shift_pop();
+    if (branch_type != "keyword")
+    {
+        error_expecting("keyword", this->branch_value);
+    }
+
+    var_keyword = this->branch;
+
+    shift_pop();
+    if (branch_type != "identifier")
+    {
+        error_expecting("identifier", this->branch_value);
+    }
+    var_name = this->branch;
+
+    /* 
+     * Now that we have popped to variable name and keyword of the variable
+     * we need to create a branch for, lets create a branch for them  */
+
+    std::shared_ptr<Branch> var_root = std::shared_ptr<Branch>(new Branch("VDEF", ""));
+    var_root->addChild(var_keyword);
+    var_root->addChild(var_name);
+
+    // Push that root back to the branches
+    push_branch(var_root);
+
+}
+
+void Parser::process_assignment()
+{
+    shift_pop();
+    if (this->branch_type != "identifier")
+    {
+        error_expecting("identifier", this->branch_type);
+    }
+
+    std::shared_ptr<Branch> var_name = this->branch;
+
+    shift_pop();
+    if (this->branch_type != "operator")
+    {
+        error_expecting("operator", this->branch_type);
+    }
+    else
+    {
+        if (this->branch_value != "=")
+        {
+            error("assignments must only use the equal sign '='");
+        }
+    }
+
+    std::shared_ptr<Branch> a_operator = this->branch;
+    
+    shift_pop();
+    if (this->branch_type != "number")
+    {
+        // Temporary
+        error("variables can only be assigned to numbers");
+    }
+
+    std::shared_ptr<Branch> value = this->branch;
+    
+    std::shared_ptr<Branch> assign_root = std::shared_ptr<Branch>(new Branch("ASSIGN", ""));
+    assign_root->addChild(var_name);
+    assign_root->addChild(a_operator);
+    assign_root->addChild(value);
+    
+    // Finally push the assign root to the stack
+    push_branch(assign_root);
+    
+}
+
+void Parser::error(std::string message, bool token)
+{
+    if (token)
+    {
+        CharPos position = this->token->getPosition();
+        message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
+    }
+    this->logger->error(message);
+
+    throw ParserException("Error with source cannot continue");
+}
+
+void Parser::warn(std::string message, bool token)
+{
+    if (token)
+    {
+        CharPos position = this->token->getPosition();
+        message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
+    }
+    this->logger->warn(message);
+}
+
+void Parser::error_unexpected_token()
+{
+    error("Unexpected token: " + this->token_value + " maybe you have forgot a semicolon? ';'");
+}
+
+void Parser::error_expecting(std::string expecting, std::string given)
+{
+    error("Expecting: '" + expecting + "' but '" + given + "' was given");
 }
 
 void Parser::shift()
 {
-    this->parse_stack.push(this->look_ahead);
-    if (!this->input.isEmpty())
+    if (!this->input.empty())
     {
-        this->look_ahead = this->input.pop_first();
+        this->token = this->input.front();
+        this->token_type = this->token->getType();
+        this->token_value = this->token->getValue();
+        push_branch(this->token);
+        this->input.pop_front();
     }
     else
     {
-        this->look_ahead = NULL;
+
+        error("no more input with unfinished parse", false);
+        throw ParserException("End of file reached.");
     }
 }
 
-void Parser::reduce(std::shared_ptr<ParserRule> rule)
+void Parser::peak(int offset)
 {
-    std::shared_ptr<Branch> root = NULL;
-    Compiler* compiler = this->getCompiler();
-    std::string rule_name = rule->getName();
-    if (rule_name == "E")
+    if (!this->input.empty())
     {
-        root = std::shared_ptr<EBranch>(new EBranch(compiler));
-    }
-    else if (rule_name == "V_DEF")
-    {
-        root = std::shared_ptr<VDEFBranch>(new VDEFBranch(compiler));
-    }
-    else
-    {
-        root = std::shared_ptr<Branch>(new Branch(rule->getName(), ""));
-    }
-
-    Stack<std::shared_ptr < Branch>> tmp_stack;
-    Stack<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
-
-    /* Look through the requirements, 
-     * pop from the stack and store in the tmp_stack so it will be popped off the right way around */
-    for (int i = 0; i < requirements.size(); i++)
-    {
-        std::shared_ptr<Branch> branch = this->parse_stack.pop();
-        tmp_stack.push(branch);
-    }
-
-    // Now loop through the tmp_stack and pop from it, the result will be the right away around now.
-    int stack_size = tmp_stack.size();
-    for (int i = 0; i < stack_size; i++)
-    {
-        std::shared_ptr<Branch> branch = tmp_stack.pop();
-        root->addChild(branch);
-    }
-
-    this->parse_stack.push(root);
-}
-
-std::shared_ptr<ParserRule> Parser::matchRule(Stack<std::shared_ptr<Branch>> stack)
-{
-    std::shared_ptr<ParserRule> selected_rule = NULL;
-    for (std::shared_ptr<ParserRule> rule : this->rules)
-    {
-        if (this->ruleCheck(rule, stack))
+        if (offset == -1)
         {
-            if (selected_rule == NULL)
+            this->peak_token = this->input.front();
+        }
+        else
+        {
+            if (offset < this->input.size())
             {
-                selected_rule = rule;
+                this->peak_token = this->input.at(offset);
             }
             else
             {
-                if (rule->getTotalRequirements() > selected_rule->getTotalRequirements())
-                {
-                    selected_rule = rule;
-                }
+                goto _peak_error;
             }
         }
-    }
-
-
-    return selected_rule;
-}
-
-bool Parser::ruleCheck(std::shared_ptr<ParserRule> rule, Stack<std::shared_ptr<Branch>> stack)
-{
-    Stack<std::shared_ptr < ParserRuleRequirement>> requirements = rule->getRequirements();
-    int total_req = requirements.size();
-    int matched = 0;
-    while (!requirements.isEmpty() && !stack.isEmpty())
-    {
-        std::shared_ptr<ParserRuleRequirement> requirement = requirements.pop();
-        std::shared_ptr<Branch> branch = stack.pop();
-        if (branch->getType() == requirement->getClassName()
-                && requirement->allowed(branch->getValue()))
-        {
-            matched++;
-        }
-    }
-
-    if (matched == total_req)
-    {
-        return true;
+        this->peak_token_type = this->peak_token->getType();
+        this->peak_token_value = this->peak_token->getValue();
     }
     else
     {
-        return false;
+
+        goto _peak_error;
+    }
+
+    return;
+
+_peak_error:
+    error("peek failed, no more input with unfinished parse", false);
+    throw ParserException("End of file reached.");
+
+}
+
+void Parser::pop_branch()
+{
+    if (!this->branches.empty())
+    {
+        this->branch = this->branches.back();
+        this->branch_type = this->branch->getType();
+        this->branch_value = this->branch->getValue();
+        this->branches.pop_back();
+    }
+    else
+    {
+        error("no more branches on the stack", false);
+        throw ParserException("No branches on the stack");
     }
 }
 
-void Parser::tryToReduce()
+void Parser::push_branch(std::shared_ptr<Branch> branch)
 {
-    Stack<std::shared_ptr < Branch>> stack_cpy = this->parse_stack;
-    std::shared_ptr<ParserRule> stack_rule = this->matchRule(stack_cpy);
+    this->branches.push_back(branch);
+}
 
-    /* Now try to a match with the look ahead*/
-    bool lookahead_exists = this->look_ahead != NULL;
-    if (lookahead_exists)
-    {
-        // Push the look ahead to the stack
-        stack_cpy.push(this->look_ahead);
-        std::shared_ptr<ParserRule> stack_look_ahead_rule = this->matchRule(stack_cpy);
-        if (stack_rule != NULL && stack_look_ahead_rule != NULL
-                && stack_rule != stack_look_ahead_rule)
-        {
-            // Stack + look ahead rule found.
-            // Shift the look ahead to the real stack
-            shift();
-            this->reduce(stack_look_ahead_rule);
-            // Try to reduce further
-            this->tryToReduce();
-            return;
-        }
-    }
+void Parser::shift_pop()
+{
+    this->shift();
+    this->pop_branch();
+}
 
-    if (stack_rule != NULL)
-    {
-        this->reduce(stack_rule);
-        // Try to reduce further
-        this->tryToReduce();
-    }
+bool Parser::is_branch_symbol(std::string symbol)
+{
+    return this->branch_type == "symbol" && this->branch_value == symbol;
+}
+
+bool Parser::is_peak_symbol(std::string symbol)
+{
+    return this->peak_token_type == "symbol" && this->peak_token_value == symbol;
 }
 
 void Parser::buildTree()
 {
-    if (this->input.isEmpty())
+    if (this->input.empty())
     {
-        throw ParserException("No input given to parser");
+        throw ParserException("Nothing to parse.");
     }
 
-    this->look_ahead = this->input.pop_first();
-
-    while (true)
+    while (!this->input.empty())
     {
-        shift();
-        tryToReduce();
-
-        if (this->input.isEmpty() && this->look_ahead == NULL)
-        {
-            break;
-        }
-
+        this->process_top();
     }
 
-    // Syntax error checking
-
-    if (this->parse_stack.size() != 1)
+    std::shared_ptr<Branch> root = std::shared_ptr<Branch>(new Branch("root", ""));
+    while (!this->branches.empty())
     {
-        /* All we do at the moment is show a syntax error message
-         I plan to make this find where the problem is but I need to think about it more before I attempt it.
-         * One solution that may be possible is to find the nearest branch with zero or one child
-         */
-    //    throw ParserException("Syntax error.");
+        std::shared_ptr<Branch> branch = this->branches.front();
+        root->addChild(branch);
+        this->branches.pop_front();
     }
+    this->tree->root = root;
 
-
-    this->tree->root = std::shared_ptr<Branch>(new Branch("root", ""));
-    int size = this->parse_stack.size();
-    for (int i = 0; i < size; i++)
-    this->tree->root->addChild(this->parse_stack.pop());
 }
 
 std::shared_ptr<Tree> Parser::getTree()
 {
     return this->tree;
+}
+
+std::shared_ptr<Logger> Parser::getLogger()
+{
+    return this->logger;
 }

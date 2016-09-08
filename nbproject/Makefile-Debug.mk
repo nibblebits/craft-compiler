@@ -55,6 +55,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Helper.o \
 	${OBJECTDIR}/src/Lexer.o \
 	${OBJECTDIR}/src/Linker.o \
+	${OBJECTDIR}/src/Logger.o \
 	${OBJECTDIR}/src/MathEBranch.o \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
@@ -190,6 +191,11 @@ ${OBJECTDIR}/src/Linker.o: src/Linker.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Linker.o src/Linker.cpp
+
+${OBJECTDIR}/src/Logger.o: src/Logger.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Logger.o src/Logger.cpp
 
 ${OBJECTDIR}/src/MathEBranch.o: src/MathEBranch.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

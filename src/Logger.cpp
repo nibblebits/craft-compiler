@@ -16,42 +16,46 @@
  */
 
 /* 
- * File:   ParserRuleRequirement.h
+ * File:   Logger.cpp
  * Author: Daniel McCarthy
  *
- * Created on 30 May 2016, 02:39
+ * Created on 07 September 2016, 21:44
+ * 
+ * Description: Provides the ability to log and view logs
  */
 
-#ifndef PARSERRULEREQUIREMENT_H
-#define PARSERRULEREQUIREMENT_H
-
-#include <string>
 #include <vector>
 
-class ParserRuleRequirement
+#include "Logger.h"
+
+Logger::Logger()
 {
-public:
-    ParserRuleRequirement(std::string _class);
-    virtual ~ParserRuleRequirement();
+    this->total_errors = 0;
+}
 
-    void allow(std::string value);
-    bool allowed(std::string value);
-    void excludeFromTree(bool exclude);
-    bool hasValueRequirements();
-    bool excluded();
-    std::string getClassName();
-    std::vector<std::string> getAllowedValues();
+Logger::~Logger()
+{
+}
 
 
-    void setCanBeInfinite(bool can_be_infinite);
-    bool canBeInfinite();
-private:
-    std::string _class;
-    std::vector<std::string> allowed_classes;
-    bool exclude_from_tree;
-    bool can_be_infinite;
+void Logger::error(std::string message)
+{
+    message = "error: " + message;
+    this->log.push_back(message);
+}
 
-};
+void Logger::warn(std::string message)
+{
+    message = "warning: " + message;
+    this->log.push_back(message);
+}
 
-#endif /* PARSERRULEREQUIREMENT_H */
+std::vector<std::string> Logger::getLog()
+{
+    return this->log;
+}
 
+bool Logger::hasAnError()
+{
+    return this->total_errors != 0;
+}

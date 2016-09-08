@@ -30,6 +30,7 @@ ParserRuleRequirement::ParserRuleRequirement(std::string _class)
 {
     this->_class = _class;
     this->exclude_from_tree = false;
+    this->can_be_infinite = false;
 }
 
 ParserRuleRequirement::~ParserRuleRequirement()
@@ -82,4 +83,14 @@ std::string ParserRuleRequirement::getClassName()
 std::vector<std::string> ParserRuleRequirement::getAllowedValues()
 {
     return this->allowed_classes;
+}
+
+void ParserRuleRequirement::setCanBeInfinite(bool can_be_infinite)
+{
+    this->can_be_infinite = can_be_infinite;
+}
+
+bool ParserRuleRequirement::canBeInfinite()
+{
+    return this->can_be_infinite;
 }

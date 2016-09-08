@@ -16,42 +16,31 @@
  */
 
 /* 
- * File:   ParserRuleRequirement.h
+ * File:   Logger.h
  * Author: Daniel McCarthy
  *
- * Created on 30 May 2016, 02:39
+ * Created on 07 September 2016, 21:44
  */
 
-#ifndef PARSERRULEREQUIREMENT_H
-#define PARSERRULEREQUIREMENT_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <string>
 #include <vector>
-
-class ParserRuleRequirement
-{
+class Logger {
 public:
-    ParserRuleRequirement(std::string _class);
-    virtual ~ParserRuleRequirement();
+    Logger();
+    virtual ~Logger();
 
-    void allow(std::string value);
-    bool allowed(std::string value);
-    void excludeFromTree(bool exclude);
-    bool hasValueRequirements();
-    bool excluded();
-    std::string getClassName();
-    std::vector<std::string> getAllowedValues();
+    void error(std::string message);
+    void warn(std::string message);
 
-
-    void setCanBeInfinite(bool can_be_infinite);
-    bool canBeInfinite();
+    std::vector<std::string> getLog();
+    bool hasAnError();
 private:
-    std::string _class;
-    std::vector<std::string> allowed_classes;
-    bool exclude_from_tree;
-    bool can_be_infinite;
-
+    int total_errors;
+    std::vector<std::string> log;
 };
 
-#endif /* PARSERRULEREQUIREMENT_H */
+#endif /* LOGGER_H */
 
