@@ -41,6 +41,10 @@ Branch::~Branch()
 
 void Branch::addChild(std::shared_ptr<Branch> branch)
 {
+    if (branch == NULL)
+    {
+        throw Exception("Branch::addChild(std::shared_ptr<Branch> branch): NULL children are not allowed!");
+    }
     this->children.push_back(branch);
 }
 

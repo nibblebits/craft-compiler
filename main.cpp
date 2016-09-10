@@ -60,6 +60,11 @@ Compiler compiler;
 
 #ifdef DEBUG_MODE 
 
+
+Lexer* lexer;
+Parser* parser;
+TypeChecker* typeChecker;
+    
 void debug_output_tokens(std::vector<std::shared_ptr<Token>> tokens)
 {
     std::cout << "DEBUG TOKEN OUTPUT" << std::endl;
@@ -78,7 +83,7 @@ void debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs = 0)
         std::cout << "\t";
     }
 
-    std::cout << branch->getType() << ":" << branch->getValue() << std::endl;
+    std::cout << branch->getType() << ":" << branch->getValue() << " -> " << branch->getChildren().size() << std::endl;
 
     for (std::shared_ptr<Branch> child : branch->getChildren())
         debug_output_branch(child, no_tabs + 1);
@@ -136,6 +141,24 @@ std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
         throw Exception("The code generator: " + codegen_name + " could not be found");
     }
     return codegen;
+}
+
+bool handle_parser_errors_and_warnings()
+{
+    std::shared_ptr<Logger> logger = parser->getLogger();
+    std::vector<std::string> log = logger->getLog();
+    for (std::string message : log)
+    {
+        std::cout << message << std::endl;
+    }
+    
+    if (logger->hasAnError())
+    {
+        return false;
+    }
+    
+    return true;
+    
 }
 
 int main(int argc, char** argv)
@@ -241,9 +264,9 @@ int main(int argc, char** argv)
         return CODEGENERATOR_LOAD_PROBLEM;
     }
 
-    Lexer* lexer = compiler.getLexer();
-    Parser* parser = compiler.getParser();
-    TypeChecker* typeChecker = compiler.getTypeChecker();
+    lexer = compiler.getLexer();
+    parser = compiler.getParser();
+    typeChecker = compiler.getTypeChecker();
 
     lexer->setInput(source_file_data);
     try
@@ -267,9 +290,12 @@ int main(int argc, char** argv)
 
     try
     {
-      /* Warning: no look ahead system, first rule found will be used!, be-careful with the order.*/
-        parser->addRule("E:identifier");
-        parser->addRule("E:number");
+
+
+
+
+        // parser->addRule("A:T:identifier");
+        /*
         parser->addRule("ARRAY:E:'symbol@[:E:'symbol@]");
         parser->addRule("V_DEF:keyword@int32@uint32@int16@uint16@int8@uint8:ARRAY");
         parser->addRule("V_DEF:keyword@int32@uint32@int16@uint16@int8@uint8:E");
@@ -283,7 +309,6 @@ int main(int argc, char** argv)
         parser->addRule("PD:PD:'symbol@,:V_DEF");
         parser->addRule("PD:'symbol@(:PD:'symbol@)");
         parser->addRule("FUNC:keyword:'symbol@#:E:PD:SCOPE");
-        parser->addRule("STRUCT:'keyword@struct:E:SCOPE");
         parser->addRule("ASSIGN:E:symbol@=:E");
         parser->addRule("ASSIGN:E:symbol@=:STMT");
         parser->addRule("ASSIGN:STMT:symbol@=:STMT");
@@ -303,20 +328,26 @@ int main(int argc, char** argv)
         parser->addRule("STMT:ASSIGN");
         parser->addRule("STMT:V_DEF");
         parser->addRule("STMT:STMT:STMT");
-        
+         */
+
         parser->setInput(lexer->getTokens());
         parser->buildTree();
 
 #ifdef DEBUG_MODE
         debug_output_branch(parser->getTree()->root);
 #endif
+
     }
     catch (ParserException ex)
     {
         std::cout << "Error parsing: " << ex.getMessage() << std::endl;
+        handle_parser_errors_and_warnings();
         return ERROR_WITH_PARSER;
     }
 
+    // Handle parsing warnings and errors
+    handle_parser_errors_and_warnings();
+    
 
     try
     {
@@ -373,4 +404,3 @@ int main(int argc, char** argv)
     }
     return 0;
 }
-

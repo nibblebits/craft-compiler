@@ -26,7 +26,7 @@
 
 #include "Lexer.h"
 #include <iostream>
-const char operators[] = {'=','+', '-', '/', '*'};
+const char operators[] = {'=','+', '-', '/', '*', '<', '>'};
 const char symbols[] = {'(', ')', ',', '#', '{', '}', '.', '[', ']', ';'};
 const std::string keywords[] = {
     "nibble", "bit", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64",

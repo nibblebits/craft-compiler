@@ -1,7 +1,10 @@
-int32 x
-
-int32 #print(int32 b)
+uint8 abc()
 {
+   if (5 + 10)
+   {
+	  uint8 a;
+	  if (6 / 2)
+	  {
+	  }
+	}
 }
-
-x = #print(x)

@@ -62,6 +62,12 @@ private:
     void process_stmt();
     void process_variable_declaration();
     void process_assignment();
+    void process_expression();
+    std::shared_ptr<Branch> process_expression_operand();
+    std::shared_ptr<Branch> process_expression_operator();
+    void process_function_call();
+    void process_if_stmt();
+    
     void error(std::string message, bool token = true);
     void warn(std::string message, bool token = true);
     void error_unexpected_token();
@@ -72,7 +78,11 @@ private:
     void push_branch(std::shared_ptr<Branch> branch);
     void shift_pop();
     inline bool is_branch_symbol(std::string symbol);
+    inline bool is_branch_type(std::string type);
+    inline bool is_branch_value(std::string value);
     inline bool is_peak_symbol(std::string symbol);
+    inline bool is_peak_type(std::string type);
+    inline bool is_peak_value(std::string value);
 
     std::shared_ptr<Logger> logger;
     std::deque<std::shared_ptr<Token>> input;
