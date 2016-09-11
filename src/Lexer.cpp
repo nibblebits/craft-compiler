@@ -30,7 +30,7 @@ const char operators[] = {'=','+', '-', '/', '*', '<', '>'};
 const char symbols[] = {'(', ')', ',', '#', '{', '}', '.', '[', ']', ';'};
 const std::string keywords[] = {
     "nibble", "bit", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64",
-    "struct", "if", "for", "do", "while", "next", "continue", "break", "switch", "__asm", "string"
+    "struct", "if", "for", "do", "while", "next", "continue", "break", "switch", "__asm", "string", "else"
 };
 
 Lexer::Lexer(Compiler* compiler) : CompilerEntity(compiler)

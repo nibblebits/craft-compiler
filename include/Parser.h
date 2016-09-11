@@ -80,10 +80,13 @@ private:
     inline bool is_branch_symbol(std::string symbol);
     inline bool is_branch_type(std::string type);
     inline bool is_branch_value(std::string value);
+    inline bool is_branch_keyword(std::string keyword);
+    inline bool is_branch_identifier(std::string identifier);
     inline bool is_peak_symbol(std::string symbol);
     inline bool is_peak_type(std::string type);
     inline bool is_peak_value(std::string value);
-
+    inline bool is_peak_keyword(std::string keyword);
+    inline bool is_peak_identifier(std::string identifier);
     std::shared_ptr<Logger> logger;
     std::deque<std::shared_ptr<Token>> input;
     std::deque<std::shared_ptr<Branch>> branches;

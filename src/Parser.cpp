@@ -220,7 +220,8 @@ void Parser::process_stmt()
         }
         else
         {
-            // Has to be an identifier or its a syntax error
+            // Check to see if this is a variable declaration 
+            // The next token has to be an identifier or its a syntax error
             peak(1);
             if (is_peak_type("identifier"))
             {
@@ -347,8 +348,8 @@ void Parser::process_expression()
     {
         peak();
         // If the next token is one of the following then set either the left or right branches, which ever one of them is free
-        if (is_peak_type("number") || 
-                is_peak_type("identifier") || 
+        if (is_peak_type("number") ||
+                is_peak_type("identifier") ||
                 is_peak_type("string"))
         {
             if (left == NULL)
@@ -569,6 +570,38 @@ void Parser::process_if_stmt()
     if_stmt->addChild(if_exp);
     if_stmt->addChild(if_body);
 
+    // Check for an else statement
+    peak();
+    if (is_peak_keyword("else"))
+    {
+        // Shift and pop the else keyword we do not need it anymore
+        shift_pop();
+
+        // Peak to see if its an else if statement
+        peak();
+        if (is_peak_keyword("if"))
+        {
+            // No need to shift and pop the "if" keyword as the "process_if_stmt()" method requires it present
+            process_if_stmt();
+            // Pop off the if statement
+            pop_branch();
+
+            // Add it to this "if" statement
+            if_stmt->addChild(this->branch);
+        }
+        else
+        {
+            std::shared_ptr<Branch> else_stmt = std::shared_ptr<Branch>(new Branch("ELSE", ""));
+            // Process the body of the else statement
+            process_body();
+            // Pop the result off the stack
+            pop_branch();
+            // Add the body to the else statement
+            else_stmt->addChild(this->branch);
+            // Add the else statement to the if statement
+            if_stmt->addChild(else_stmt);
+        }
+    }
     // Push the complete "if" statement to the tree
     push_branch(if_stmt);
 }
@@ -700,14 +733,22 @@ bool Parser::is_branch_symbol(std::string symbol)
 
 bool Parser::is_branch_type(std::string type)
 {
-
     return this->branch_type == type;
 }
 
 bool Parser::is_branch_value(std::string value)
 {
-
     return this->branch_value == value;
+}
+
+bool Parser::is_branch_keyword(std::string keyword)
+{
+    return is_branch_type("keyword") && is_branch_value(keyword);
+}
+
+bool Parser::is_branch_identifier(std::string identifier)
+{
+    return is_branch_type("identifier") && is_branch_value(identifier);
 }
 
 bool Parser::is_peak_symbol(std::string symbol)
@@ -718,14 +759,22 @@ bool Parser::is_peak_symbol(std::string symbol)
 
 bool Parser::is_peak_type(std::string type)
 {
-
     return this->peak_token_type == type;
 }
 
 bool Parser::is_peak_value(std::string value)
 {
-
     return this->peak_token_value == value;
+}
+
+bool Parser::is_peak_keyword(std::string keyword)
+{
+    return is_peak_type("keyword") && is_peak_value(keyword);
+}
+
+bool Parser::is_peak_identifier(std::string identifier)
+{
+    return is_peak_type("identifier") && is_peak_value(identifier);
 }
 
 void Parser::buildTree()
