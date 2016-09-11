@@ -26,16 +26,20 @@
 
 #include "Lexer.h"
 #include <iostream>
-const char operators[] = {'=','+', '-', '/', '*', '<', '>'};
+const char operators[] = {'=', '+', '-', '/', '*', '<', '>'};
 const char symbols[] = {'(', ')', ',', '#', '{', '}', '.', '[', ']', ';'};
-const std::string keywords[] = {
+const std::string general_keywords[] = {
+    "if", "for", "do", "while", "next", "continue", "break", "switch", "__asm", "string", "else"
+};
+
+const std::string data_type_keywords[] = {
     "nibble", "bit", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64",
-    "struct", "if", "for", "do", "while", "next", "continue", "break", "switch", "__asm", "string", "else"
+    "struct"
 };
 
 Lexer::Lexer(Compiler* compiler) : CompilerEntity(compiler)
 {
-    
+
 }
 
 Lexer::~Lexer()
@@ -219,11 +223,28 @@ bool Lexer::isWhitespace(char op)
 
 bool Lexer::isKeyword(std::string op)
 {
-    for (std::string c : keywords)
+    for (std::string c : data_type_keywords)
     {
         if (c == op)
             return true;
     }
 
+    for (std::string c : general_keywords)
+    {
+        if (c == op)
+            return true;
+    }
+
+    return false;
+}
+
+bool Lexer::isDataTypeKeyword(std::string value)
+{
+    for (std::string c : data_type_keywords)
+    {
+        if (c == value)
+            return true;
+    }
+    
     return false;
 }

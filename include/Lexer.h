@@ -42,6 +42,7 @@ public:
     void setInput(std::string input);
     void tokenize();
     std::vector<std::shared_ptr<Token>> getTokens();
+    static bool isDataTypeKeyword(std::string value);
     virtual ~Lexer();
 private:
     std::string input;
@@ -51,14 +52,14 @@ private:
     CharPos position;
     std::string::iterator it;
     void fillTokenWhile(callback_func callback);
-    
+
     static bool isOperator(char op);
     static bool isSymbol(char op);
     static bool isCharacter(char op);
     static bool isNumber(char op);
     static bool isWhitespace(char op);
     static bool isKeyword(std::string op);
-    
+
 
 };
 

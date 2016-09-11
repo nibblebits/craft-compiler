@@ -26,6 +26,7 @@
  */
 
 #include "Parser.h"
+#include "Lexer.h"
 #include "branches.h"
 
 Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
@@ -276,15 +277,22 @@ void Parser::process_variable_declaration()
     std::shared_ptr<Branch> var_name;
     std::shared_ptr<Branch> var_keyword;
 
-    // Shift the keyword and identifier of the parameter on to the stack
+    // Shift the keyword of the variable onto the stack
     shift_pop();
     if (!is_branch_type("keyword"))
     {
         error_expecting("keyword", this->branch_value);
     }
+    
+    // Check that the keyword is a data type
+    if (!Lexer::isDataTypeKeyword(this->branch_value))
+    {
+        error("Expecting a data type keyword for a variable declaration");
+    }
 
     var_keyword = this->branch;
 
+    // Shift the identifier of the variable onto the stack
     shift_pop();
     if (!is_branch_type("identifier"))
     {
@@ -402,7 +410,6 @@ void Parser::process_expression()
 
         if (left != NULL && op != NULL && right != NULL)
         {
-
             exp_root = std::shared_ptr<Branch>(new Branch("E", ""));
             exp_root->addChild(left);
             exp_root->addChild(op);
@@ -720,7 +727,6 @@ void Parser::push_branch(std::shared_ptr<Branch> branch)
 
 void Parser::shift_pop()
 {
-
     this->shift();
     this->pop_branch();
 }
