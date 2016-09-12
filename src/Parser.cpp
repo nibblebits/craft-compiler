@@ -230,6 +230,11 @@ void Parser::process_stmt()
                 process_variable_declaration();
                 // Shift the semicolon onto the stack and then pop it off
                 shift_pop();
+                // Was it a semicolon?
+                if (!is_branch_symbol(";"))
+                {
+                    error("expecting a semicolon after a variable declaration, token: \"" + this->branch_value + "\"");
+                }
             }
             else
             {
