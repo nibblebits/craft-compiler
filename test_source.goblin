@@ -1,10 +1,6 @@
+uint8* a = 10;
 uint8 abc()
 {
-   if (5 + 10)
-   {
-	  uint8 a;
-	  if (6 / 2)
-	  {
-	  }
-	}
+	uint8* a = 10;
+	
 }

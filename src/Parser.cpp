@@ -250,19 +250,9 @@ void Parser::process_stmt()
         }
         else
         {
-            // Check to see if this is a variable declaration 
-            // The next token has to be an identifier or its a syntax error
-            peak(1);
-            if (is_peak_type("identifier"))
-            {
-                // Its a variable
-                process_variable_declaration();
-                process_semicolon();
-            }
-            else
-            {
-                error_expecting("identifier", this->peak_token_value);
-            }
+            // This is a variable declaration so process it
+            process_variable_declaration();
+            process_semicolon();
         }
     }
     else if (is_peak_type("identifier"))
@@ -301,6 +291,7 @@ void Parser::process_variable_declaration()
     std::shared_ptr<Branch> var_name = NULL;
     std::shared_ptr<Branch> var_keyword = NULL;
     std::shared_ptr<Branch> var_value = NULL;
+    bool is_pointer = false;
 
     // Shift the keyword of the variable onto the stack
     shift_pop();
@@ -317,8 +308,17 @@ void Parser::process_variable_declaration()
 
     var_keyword = this->branch;
 
-    // Shift the identifier of the variable onto the stack
+    // Shift the identifier or "*" symbol of the variable onto the stack
     shift_pop();
+    if (is_branch_operator("*"))
+    {
+        // Its actually a pointer so just set a boolean so we know
+        is_pointer = true;
+
+        // Shift and pop the next token as it will be the variable name, handled below
+        shift_pop();
+    }
+
     if (!is_branch_type("identifier"))
     {
         error_expecting("identifier", this->branch_value);
