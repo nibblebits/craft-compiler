@@ -404,8 +404,7 @@ void Parser::process_expression()
         }
         else
         {
-            // Just break we can't handle this any further, if its an error it will be dealt with else where
-            break;
+            error("Token \"" + this->peak_token_value + "\" is not valid for an expression");
         }
 
         if (left != NULL && op != NULL && right != NULL)
