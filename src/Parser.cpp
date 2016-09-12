@@ -66,7 +66,7 @@ void Parser::process_top()
         {
             // Check to see if this is a function or a variable declaration
             peak(2);
-            if (is_peak_symbol(";"))
+            if (is_peak_symbol("=") || is_peak_symbol(";"))
             {
                 // The peak ends with a semicolon so it must be a variable declaration
 
@@ -274,8 +274,9 @@ void Parser::process_stmt()
  */
 void Parser::process_variable_declaration()
 {
-    std::shared_ptr<Branch> var_name;
-    std::shared_ptr<Branch> var_keyword;
+    std::shared_ptr<Branch> var_name = NULL;
+    std::shared_ptr<Branch> var_keyword = NULL;
+    std::shared_ptr<Branch> var_value = NULL;
 
     // Shift the keyword of the variable onto the stack
     shift_pop();
@@ -300,6 +301,21 @@ void Parser::process_variable_declaration()
     }
     var_name = this->branch;
 
+    // Check if this is just a variable declaration or that we are also setting it to a value
+    peak();
+    if (is_peak_operator("="))
+    {
+        // Their is an equal sign so we are setting it to something
+        // Shift and pop that "=" sign we do not need it anymore
+        shift_pop();
+
+        // Process the expression we are setting this variable too
+        process_expression();
+        // Pop the expression from the stack
+        pop_branch();
+        var_value = this->branch;
+    }
+
     /* 
      * Now that we have popped to variable name and keyword of the variable
      * we need to create a branch for, lets create a branch for them  */
@@ -307,7 +323,13 @@ void Parser::process_variable_declaration()
     std::shared_ptr<Branch> var_root = std::shared_ptr<Branch>(new Branch("VDEF", ""));
     var_root->addChild(var_keyword);
     var_root->addChild(var_name);
-
+    
+    // Do we have a variable assignment?
+    if (var_value != NULL)
+    {
+        var_root->addChild(var_value);
+    }
+    
     // Push that root back to the branches
     push_branch(var_root);
 
