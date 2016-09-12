@@ -67,7 +67,9 @@ private:
     std::shared_ptr<Branch> process_expression_operator();
     void process_function_call();
     void process_if_stmt();
-    
+    void process_structure();
+    void process_structure_declaration();
+
     void error(std::string message, bool token = true);
     void warn(std::string message, bool token = true);
     void error_unexpected_token();

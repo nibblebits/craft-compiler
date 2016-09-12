@@ -61,34 +61,61 @@ void Parser::process_top()
     peak();
     if (is_peak_type("keyword"))
     {
-        peak(1);
-        if (is_peak_type("identifier"))
+        std::string keyword_value = this->peak_token_value;
+        // Is it a structure definition or declaration?
+        if (keyword_value == "struct")
         {
-            // Check to see if this is a function or a variable declaration
-            peak(2);
-            if (is_peak_symbol("=") || is_peak_symbol(";"))
+            // Peak further to see if their is an identifier
+            peak(1);
+            if (is_peak_type("identifier"))
             {
-                // The peak ends with a semicolon so it must be a variable declaration
-
-                process_variable_declaration();
-
-                // Shift and pop the semicolon off the stack. This is safe to do as it is not yet on the branch stack
-                shift_pop();
-                
-                // Check that it was a semicolon
-                if (!is_branch_symbol(";"))
+                // Peak further again to see if their is yet another identifier
+                peak(2);
+                if (is_peak_type("identifier"))
                 {
-                    error("expecting a semicolon after a variable declaration, token: \"" + this->token_value + "\" was provided");
+                    // This is a structure variable declaration to process it
+                   process_structure_declaration();
+                   // Pop off the semicolon
+                   shift_pop();
+                }
+                else
+                {
+                    // This is a structure so process it
+                    process_structure();
                 }
             }
-            else if (is_peak_symbol("("))
+        }
+        else
+        {
+            peak(1);
+            if (is_peak_type("identifier"))
             {
-                // It is looking like a function call.
-                process_function();
-            }
-            else
-            {
-                error_unexpected_token();
+                // Check to see if this is a function or a variable declaration
+                peak(2);
+                if (is_peak_symbol("=") || is_peak_symbol(";"))
+                {
+                    // The peak ends with a semicolon so it must be a variable declaration
+
+                    process_variable_declaration();
+
+                    // Shift and pop the semicolon off the stack. This is safe to do as it is not yet on the branch stack
+                    shift_pop();
+
+                    // Check that it was a semicolon
+                    if (!is_branch_symbol(";"))
+                    {
+                        error("expecting a semicolon after a variable declaration, token: \"" + this->token_value + "\" was provided");
+                    }
+                }
+                else if (is_peak_symbol("("))
+                {
+                    // It is looking like a function call.
+                    process_function();
+                }
+                else
+                {
+                    error_unexpected_token();
+                }
             }
         }
     }
@@ -225,6 +252,14 @@ void Parser::process_stmt()
             // Process the "if" statement
             process_if_stmt();
         }
+        else if (is_peak_value("struct"))
+        {
+            // Its a structure variable declaration
+            process_structure_declaration();
+
+            // Shift the semicolon onto the stack and then pop it off
+            shift_pop();
+        }
         else
         {
             // Check to see if this is a variable declaration 
@@ -334,13 +369,13 @@ void Parser::process_variable_declaration()
     std::shared_ptr<Branch> var_root = std::shared_ptr<Branch>(new Branch("VDEF", ""));
     var_root->addChild(var_keyword);
     var_root->addChild(var_name);
-    
+
     // Do we have a variable assignment?
     if (var_value != NULL)
     {
         var_root->addChild(var_value);
     }
-    
+
     // Push that root back to the branches
     push_branch(var_root);
 
@@ -650,6 +685,108 @@ void Parser::process_if_stmt()
     push_branch(if_stmt);
 }
 
+void Parser::process_structure()
+{
+    // Shift and pop off the "struct" keyword we do not need it anymore
+    shift_pop();
+    // Check that it is actually a "struct" keyword
+    if (!is_branch_keyword("struct"))
+    {
+        error("Expecting \"struct\" keyword but token: " + this->branch_value + " was given");
+    }
+
+    // Shift and pop off the name of the structure and check that it is an identifier
+    shift_pop();
+    if (!is_branch_type("identifier"))
+    {
+        error("Expecting identifier for \"struct\" name but token type: "
+              + this->branch_type + " of value: " + this->branch_value + " was provided");
+    }
+
+    std::shared_ptr<Branch> struct_name = this->branch;
+
+    // Process the body of the structure
+    process_body();
+
+    // Pop off the resulting body
+    pop_branch();
+    std::shared_ptr<Branch> struct_body = this->branch;
+
+    // Create the structure branch
+    std::shared_ptr<Branch> struct_root = std::shared_ptr<Branch>(new Branch("STRUCT", ""));
+    // Add the structure name to the structure
+    struct_root->addChild(struct_name);
+    // Add the body to the structure
+    struct_root->addChild(struct_body);
+
+    // Finally add the structure root to the main tree
+    push_branch(struct_root);
+}
+
+void Parser::process_structure_declaration()
+{
+    // Shift and pop the token and check that it is a "keyword" equal to "struct"
+    shift_pop();
+    if (!is_branch_keyword("struct"))
+    {
+        error_expecting("struct", this->token_value);
+    }
+
+    // Shift and pop the token and check that it is an "identifier" this is the structure name
+    shift_pop();
+    if (!is_branch_type("identifier"))
+    {
+        error_expecting("identifier", this->token_value);
+    }
+
+    std::shared_ptr<Branch> struct_name = this->branch;
+
+    // Shift and pop the token and check that it is an "identifier" this is the variable name
+    shift_pop();
+    if (!is_branch_type("identifier"))
+    {
+        error_expecting("identifier", this->token_value);
+    }
+
+    std::shared_ptr<Branch> var_name = this->branch;
+
+    std::shared_ptr<Branch> var_value = NULL;
+    // Peak ahead to see if their is an = sign it may be a structure declaration
+    peak();
+    if (is_peak_operator("="))
+    {
+        // Ok their is an equal sign so we must be assigning this declaration
+        // Shift and pop the equal sign we no longer need it
+        shift_pop();
+
+        // Peak further to check if we have an identifier
+        peak();
+        if (is_peak_type("identifier"))
+        {
+            // Shift and pop the identifier from the stack
+            shift_pop();
+            var_value = this->branch;
+        }
+        else
+        {
+            error_expecting("identifier", this->peak_token_value);
+        }
+    }
+
+    // Create the structure variable declaration
+    std::shared_ptr<Branch> struct_declaration = std::shared_ptr<Branch>(new Branch("STRUCT_DEF", ""));
+    struct_declaration->addChild(struct_name);
+    struct_declaration->addChild(var_name);
+    // Does this structure variable declaration also have an assignment?
+    if (var_value != NULL)
+    {
+        // Add the value to the structure declaration branch
+        struct_declaration->addChild(var_value);
+    }
+    // Now push it to the stack
+    push_branch(struct_declaration);
+}
+
 void Parser::error(std::string message, bool token)
 {
     if (token)
@@ -681,7 +818,6 @@ void Parser::error_unexpected_token()
 
 void Parser::error_expecting(std::string expecting, std::string given)
 {
-
     error("Expecting: '" + expecting + "' but '" + given + "' was given");
 }
 
