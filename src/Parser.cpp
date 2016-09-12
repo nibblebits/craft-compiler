@@ -404,7 +404,10 @@ void Parser::process_expression()
         // If the next token is one of the following then set either the left or right branches, which ever one of them is free
         if (is_peak_type("number") ||
                 is_peak_type("identifier") ||
-                is_peak_type("string"))
+                is_peak_type("string") ||
+                // This is used for addresses, e.g &test get the address of variable test
+                is_peak_operator("&")
+                )
         {
             if (left == NULL)
             {
@@ -509,6 +512,18 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
             shift_pop();
             b = this->branch;
         }
+    }
+    else if(is_peak_operator("&"))
+    {
+        // We are getting the address of a declaration here
+        // Shift and pop the "&" symbol we do not need it anymore
+        shift_pop();
+        
+        // Shift and pop the identifier
+        shift_pop();
+        std::shared_ptr<Branch> address_of_branch = std::shared_ptr<Branch>(new Branch("ADDRESS_OF", ""));
+        address_of_branch->addChild(this->branch);
+        b = address_of_branch;
     }
     else if (is_peak_type("string"))
     {
