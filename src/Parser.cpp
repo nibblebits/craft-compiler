@@ -404,7 +404,7 @@ void Parser::process_expression()
         }
         else
         {
-            error("Token \"" + this->peak_token_value + "\" is not valid for an expression");
+            break;
         }
 
         if (left != NULL && op != NULL && right != NULL)
@@ -424,6 +424,11 @@ void Parser::process_expression()
     // The expression was never complete so it must be just a number
     if (exp_root == NULL)
     {
+        // Check for an error with the expression
+        if (left == NULL)
+        {
+            error("invalid expression");
+        }
         exp_root = left;
     }
 
