@@ -73,10 +73,9 @@ void Parser::process_top()
                 peak(2);
                 if (is_peak_type("identifier"))
                 {
-                    // This is a structure variable declaration to process it
-                   process_structure_declaration();
-                   // Pop off the semicolon
-                   shift_pop();
+                    // This is a structure variable declaration so process it
+                    process_structure_declaration();
+                    process_semicolon();
                 }
                 else
                 {
@@ -94,18 +93,9 @@ void Parser::process_top()
                 peak(2);
                 if (is_peak_symbol("=") || is_peak_symbol(";"))
                 {
-                    // The peak ends with a semicolon so it must be a variable declaration
-
                     process_variable_declaration();
+                    process_semicolon();
 
-                    // Shift and pop the semicolon off the stack. This is safe to do as it is not yet on the branch stack
-                    shift_pop();
-
-                    // Check that it was a semicolon
-                    if (!is_branch_symbol(";"))
-                    {
-                        error("expecting a semicolon after a variable declaration, token: \"" + this->token_value + "\" was provided");
-                    }
                 }
                 else if (is_peak_symbol("("))
                 {
@@ -256,9 +246,7 @@ void Parser::process_stmt()
         {
             // Its a structure variable declaration
             process_structure_declaration();
-
-            // Shift the semicolon onto the stack and then pop it off
-            shift_pop();
+            process_semicolon();
         }
         else
         {
@@ -269,13 +257,7 @@ void Parser::process_stmt()
             {
                 // Its a variable
                 process_variable_declaration();
-                // Shift the semicolon onto the stack and then pop it off
-                shift_pop();
-                // Was it a semicolon?
-                if (!is_branch_symbol(";"))
-                {
-                    error("expecting a semicolon after a variable declaration, token: \"" + this->branch_value + "\"");
-                }
+                process_semicolon();
             }
             else
             {
@@ -290,17 +272,13 @@ void Parser::process_stmt()
         {
             // This is an assignment
             process_assignment();
-
-            // Shift the semicolon onto the stack and then pop it off
-            shift_pop();
+            process_semicolon();
         }
         else if (is_peak_symbol("("))
         {
             // A left bracket was found so it must be a function call
             process_function_call();
-
-            // Shift the semicolon off the stack and then pop it off
-            shift_pop();
+            process_semicolon();
         }
         else
         {
@@ -785,6 +763,18 @@ void Parser::process_structure_declaration()
     }
     // Now push it to the stack
     push_branch(struct_declaration);
+}
+
+void Parser::process_semicolon()
+{
+    // Shift and pop the semicolon off the stack.
+    shift_pop();
+
+    // Check that it was a semicolon
+    if (!is_branch_symbol(";"))
+    {
+        error("expecting a semicolon, however token: \"" + this->token_value + "\" was provided");
+    }
 }
 
 void Parser::error(std::string message, bool token)
