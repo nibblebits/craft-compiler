@@ -74,6 +74,12 @@ void Parser::process_top()
 
                 // Shift and pop the semicolon off the stack. This is safe to do as it is not yet on the branch stack
                 shift_pop();
+                
+                // Check that it was a semicolon
+                if (!is_branch_symbol(";"))
+                {
+                    error("expecting a semicolon after a variable declaration, token: \"" + this->token_value + "\" was provided");
+                }
             }
             else if (is_peak_symbol("("))
             {
