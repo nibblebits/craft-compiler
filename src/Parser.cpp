@@ -283,7 +283,7 @@ void Parser::process_variable_declaration()
     {
         error_expecting("keyword", this->branch_value);
     }
-    
+
     // Check that the keyword is a data type
     if (!Lexer::isDataTypeKeyword(this->branch_value))
     {
@@ -324,7 +324,7 @@ void Parser::process_assignment()
     std::shared_ptr<Branch> var_name = this->branch;
 
     shift_pop();
-    if (!is_branch_type("operator") || !is_branch_value("="))
+    if (!is_branch_operator("="))
     {
         error("expecting an operator '=' for assignments");
     }
@@ -539,7 +539,7 @@ void Parser::process_if_stmt()
 {
     // Check to see if the next token is an identifier and its value is "if"
     shift_pop();
-    if (!is_branch_type("keyword") || !is_branch_value("if"))
+    if (!is_branch_keyword("if"))
     {
         error("expecting an identifier of value \"if\" for an if statement");
     }
@@ -732,7 +732,6 @@ void Parser::shift_pop()
 
 bool Parser::is_branch_symbol(std::string symbol)
 {
-
     return is_branch_type("symbol") && is_branch_value(symbol);
 }
 
@@ -749,6 +748,11 @@ bool Parser::is_branch_value(std::string value)
 bool Parser::is_branch_keyword(std::string keyword)
 {
     return is_branch_type("keyword") && is_branch_value(keyword);
+}
+
+bool Parser::is_branch_operator(std::string op)
+{
+    return is_branch_type("operator") && is_branch_value(op);
 }
 
 bool Parser::is_branch_identifier(std::string identifier)
@@ -775,6 +779,11 @@ bool Parser::is_peak_value(std::string value)
 bool Parser::is_peak_keyword(std::string keyword)
 {
     return is_peak_type("keyword") && is_peak_value(keyword);
+}
+
+bool Parser::is_peak_operator(std::string op)
+{
+    return is_peak_type("operator") && is_peak_value(op);
 }
 
 bool Parser::is_peak_identifier(std::string identifier)
