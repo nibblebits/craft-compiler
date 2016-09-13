@@ -70,6 +70,7 @@ private:
     void process_structure();
     void process_structure_declaration();
     void process_while_stmt();
+    void process_for_stmt();
     void process_semicolon();
     
     

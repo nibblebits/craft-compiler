@@ -250,8 +250,13 @@ void Parser::process_stmt()
         }
         else if (is_peak_value("while"))
         {
-            // This is a while statement so process it
+            // This is a "while" statement so process it
             process_while_stmt();
+        }
+        else if (is_peak_value("for"))
+        {
+            // This is a "for" statement so process it
+            process_for_stmt();
         }
         else
         {
@@ -826,6 +831,125 @@ void Parser::process_while_stmt()
 
     // Finally push the while statement to the tree
     push_branch(while_stmt);
+}
+
+void Parser::process_for_stmt()
+{
+    std::shared_ptr<Branch> init_var = NULL;
+    std::shared_ptr<Branch> cond_exp = NULL;
+    std::shared_ptr<Branch> loop_stmt = NULL;
+    std::shared_ptr<Branch> body = NULL;
+
+    // Handle the init part of the statement
+
+    // Shift and pop the next token and check its a "for" keyword
+    shift_pop();
+    if (!is_branch_keyword("for"))
+    {
+        error_expecting("for", this->branch_value);
+    }
+
+    // Shift and pop the next token it should be a left bracket
+    shift_pop();
+    if (!is_branch_symbol("("))
+    {
+        error_expecting("(", this->branch_value);
+    }
+
+    /* Now we are either expecting a variable declaration, assignment or both.
+     * We also allow just a semicolon if the programmer does not wish to define or set anything*/
+    peak();
+    if (is_peak_type("keyword") || is_peak_type("identifier"))
+    {
+        if (is_peak_type("keyword"))
+        {
+            // Ok their is a variable declaration here
+            // Process the variable declaration
+            process_variable_declaration();
+            // Pop off the result
+            pop_branch();
+        }
+        else
+        {
+            // Ok its a variable assignment
+            // Process the variable assignment
+            process_assignment();
+            // Pop off the result
+            pop_branch();
+        }
+        
+        // Store the result of the variable declaration, assignment or both in the init_var branch
+        init_var = this->branch;
+    }
+
+    // Process and pop off the semicolon
+    process_semicolon();
+
+    // Process the condition if any.
+    peak();
+    if (!is_peak_symbol(";"))
+    {
+        // Now process the condition
+        process_expression();
+        // Pop off the condition expression
+        pop_branch();
+        cond_exp = this->branch;
+    }
+
+    // Process and pop off the semicolon
+    process_semicolon();
+
+    // Process the loop part of the "for" statement, if any
+    peak();
+    if (!is_peak_symbol(")"))
+    {
+        // Process the assignment
+        process_assignment();
+        // Pop off the result and store it in the "loop_stmt" variable
+        pop_branch();
+        loop_stmt = this->branch;
+    }
+
+    // Shift and pop off the right bracket we do not need it anymore
+    shift_pop();
+    // Check that it was actually a right bracket
+    if (!is_branch_symbol(")"))
+    {
+        error_expecting(")", this->branch_value);
+    }
+
+    // Process the "for" loop body
+    process_body();
+    // Pop the resulting body from the stack
+    pop_branch();
+    body = this->branch;
+
+    // Put it all together
+    std::shared_ptr<Branch> for_stmt = std::shared_ptr<Branch>(new Branch("FOR", ""));
+    std::shared_ptr<Branch> init = std::shared_ptr<Branch>(new Branch("INIT", ""));
+    std::shared_ptr<Branch> cond = std::shared_ptr<Branch>(new Branch("COND", ""));
+    std::shared_ptr<Branch> loop = std::shared_ptr<Branch>(new Branch("LOOP", ""));
+
+    if (init_var != NULL)
+    {
+        init->addChild(init_var);
+    }
+    if (cond_exp != NULL)
+    {
+        cond->addChild(cond_exp);
+    }
+    if (loop_stmt != NULL)
+    {
+        loop->addChild(loop_stmt);
+    }
+
+    for_stmt->addChild(init);
+    for_stmt->addChild(cond);
+    for_stmt->addChild(loop);
+    for_stmt->addChild(body);
+
+    // Push the for statement to the stack
+    push_branch(for_stmt);
 }
 
 void Parser::process_semicolon()
