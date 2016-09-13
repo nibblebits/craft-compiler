@@ -380,9 +380,14 @@ void Parser::process_assignment()
     std::shared_ptr<Branch> var_name = this->branch;
 
     shift_pop();
-    if (!is_branch_operator("="))
+    // Check for a valid assignment, e.g =, +=, -=
+    if (!is_branch_operator("=") &&
+            !is_branch_operator("+=") &&
+            !is_branch_operator("-=") &&
+            !is_branch_operator("*=") &&
+            !is_branch_operator("/="))
     {
-        error("expecting an operator '=' for assignments");
+        error("expecting one of the following operators for assignments: =,+=,-=,*=,/=");
     }
 
     std::shared_ptr<Branch> op = this->branch;
