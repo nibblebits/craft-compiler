@@ -69,7 +69,9 @@ private:
     void process_if_stmt();
     void process_structure();
     void process_structure_declaration();
+    void process_while_stmt();
     void process_semicolon();
+    
     
     void error(std::string message, bool token = true);
     void warn(std::string message, bool token = true);

@@ -248,6 +248,11 @@ void Parser::process_stmt()
             process_structure_declaration();
             process_semicolon();
         }
+        else if (is_peak_value("while"))
+        {
+            // This is a while statement so process it
+            process_while_stmt();
+        }
         else
         {
             // This is a variable declaration so process it
@@ -513,12 +518,12 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
             b = this->branch;
         }
     }
-    else if(is_peak_operator("&"))
+    else if (is_peak_operator("&"))
     {
         // We are getting the address of a declaration here
         // Shift and pop the "&" symbol we do not need it anymore
         shift_pop();
-        
+
         // Shift and pop the identifier
         shift_pop();
         std::shared_ptr<Branch> address_of_branch = std::shared_ptr<Branch>(new Branch("ADDRESS_OF", ""));
@@ -778,6 +783,50 @@ void Parser::process_structure_declaration()
     }
     // Now push it to the stack
     push_branch(struct_declaration);
+}
+
+void Parser::process_while_stmt()
+{
+    // shift and pop the next token and make sure its a "while" keyword
+    shift_pop();
+    if (!is_branch_keyword("while"))
+    {
+        error_expecting("while", this->branch_value);
+    }
+
+    // shift and pop the next token and make sure its a left bracket.
+    shift_pop();
+    if (!is_branch_symbol("("))
+    {
+        error_expecting("(", this->branch_value);
+    }
+
+    // Process the expression
+    process_expression();
+    // Pop off the expression result
+    pop_branch();
+    std::shared_ptr<Branch> exp = this->branch;
+
+    // Shift and pop the right bracket and make sure it is a right bracket
+    shift_pop();
+    if (!is_branch_symbol(")"))
+    {
+        error_expecting(")", this->branch_value);
+    }
+
+    // Process the body
+    process_body();
+    // Pop off the body result
+    pop_branch();
+    std::shared_ptr<Branch> body = this->branch;
+
+    // Time to put it all together
+    std::shared_ptr<Branch> while_stmt = std::shared_ptr<Branch>(new Branch("WHILE", ""));
+    while_stmt->addChild(exp);
+    while_stmt->addChild(body);
+
+    // Finally push the while statement to the tree
+    push_branch(while_stmt);
 }
 
 void Parser::process_semicolon()
