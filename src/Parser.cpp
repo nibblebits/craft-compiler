@@ -463,9 +463,8 @@ void Parser::process_expression()
 
         if (left != NULL && op != NULL && right != NULL)
         {
-            exp_root = std::shared_ptr<Branch>(new Branch("E", ""));
+            exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
             exp_root->addChild(left);
-            exp_root->addChild(op);
             exp_root->addChild(right);
 
             // Set the left to exp_root, and the op and right to NULL ready for future expressions
