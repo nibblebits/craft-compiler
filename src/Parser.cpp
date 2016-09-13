@@ -392,9 +392,8 @@ void Parser::process_assignment()
     pop_branch();
     std::shared_ptr<Branch> expression = this->branch;
 
-    std::shared_ptr<Branch> assign_branch = std::shared_ptr<Branch>(new Branch("ASSIGN", ""));
+    std::shared_ptr<Branch> assign_branch = std::shared_ptr<Branch>(new Branch("ASSIGN", op->getValue()));
     assign_branch->addChild(var_name);
-    assign_branch->addChild(op);
     assign_branch->addChild(expression);
 
     // Now finally push the assign branch to the stack
