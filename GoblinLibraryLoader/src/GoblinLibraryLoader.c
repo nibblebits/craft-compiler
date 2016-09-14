@@ -21,18 +21,21 @@
 #endif
 #include <stdio.h>
 
-void* DLL_EXPORT GoblinLoadLibrary(const char* filename)
-{
+void* DLL_EXPORT GoblinLoadLibrary(const char* filename) {
     void* lib_ptr = 0;
 #ifdef _WIN32
     lib_ptr = LoadLibrary(filename);
+#else
+#error "not yet supported in linux"
 #endif
-    
+
     return lib_ptr;
 }
-void* DLL_EXPORT GoblinGetAddress(void* library, const char* entryPoint)
-{
+
+void* DLL_EXPORT GoblinGetAddress(void* library, const char* entryPoint) {
 #ifdef _WIN32
-    return (void*)GetProcAddress(library, entryPoint);
+    return (void*) GetProcAddress(library, entryPoint);
+#else
+#error "not yet supported in linux"
 #endif
 }

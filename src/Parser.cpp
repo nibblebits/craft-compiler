@@ -55,8 +55,8 @@ void Parser::setInput(std::vector<std::shared_ptr<Token>> tokens)
 void Parser::merge(std::shared_ptr<Branch> root)
 {
     /* Lets merge this root with this tree */
-    
-    for(std::shared_ptr<Branch> branch : root->getChildren())
+
+    for (std::shared_ptr<Branch> branch : root->getChildren())
     {
         push_branch(branch);
     }
@@ -177,7 +177,7 @@ void Parser::process_macro()
             Parser sub_parser(this->getCompiler());
             sub_parser.setInput(lexer.getTokens());
             sub_parser.buildTree();
-            
+
             // Finally merge the result with this tree
             merge(sub_parser.getTree()->root);
         }
@@ -334,6 +334,12 @@ void Parser::process_stmt()
         {
             // This is a "for" statement so process it
             process_for_stmt();
+        }
+        else if (is_peak_value("return"))
+        {
+            // This is a "return" statement so process it
+            process_return_stmt();
+            process_semicolon();
         }
         else
         {
@@ -766,6 +772,40 @@ void Parser::process_if_stmt()
     }
     // Push the complete "if" statement to the tree
     push_branch(if_stmt);
+}
+
+
+void Parser::process_return_stmt()
+{
+    // Check that the return keyword is present
+    shift_pop();
+    if (!is_branch_keyword("return"))
+    {
+        error_expecting("return", this->branch_value);
+    }
+    
+    std::shared_ptr<Branch> exp = NULL;
+    // Peak ahead do we have a semicolon? if so we are done otherwise their is an expression that is being returned
+    peak();
+    if (!is_peak_symbol(";"))
+    {
+        // We do not have a semicolon so their is an expression to parse
+        process_expression();
+        // Pop off the result
+        pop_branch();
+        exp = this->branch;
+    }
+    
+    // Create the return branch
+    std::shared_ptr<Branch> return_branch = std::shared_ptr<Branch>(new Branch("RETURN", ""));
+    // If their was an expression then we need to add it to the return branch
+    if (exp != NULL)
+    {
+        return_branch->addChild(exp);
+    }
+    
+    // Finally push the return branch to the stack
+    push_branch(return_branch);
 }
 
 void Parser::process_structure()

@@ -2,7 +2,7 @@
 <configurationDescriptor version="97">
   <projectmakefile>Makefile</projectmakefile>
   <confs>
-    <conf name="Debug" type="1">
+    <conf name="Debug" type="2">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
         <platform>3</platform>
@@ -13,8 +13,6 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
-        <gdb_signals>
-        </gdb_signals>
         <gdb_options>
           <DebugOptions>
           </DebugOptions>
@@ -26,18 +24,9 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -A woop</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -A</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblina -output test_source.goblino</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblin</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -O -I "test.o,fire.o,cool.o"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -L "test.o,fire.o,cool.o"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -L "test.goblino"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -O</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -codegen 8086CodeGen</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -codegen 8086CodeGen</runcommand>
+        <runcommand>"${OUTPUT_PATH}"</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>
@@ -46,7 +35,7 @@
         </environment>
       </runprofile>
     </conf>
-    <conf name="Release" type="1">
+    <conf name="Release" type="2">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
         <platform>3</platform>

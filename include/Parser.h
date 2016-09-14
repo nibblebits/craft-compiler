@@ -69,6 +69,7 @@ private:
     std::shared_ptr<Branch> process_expression_operator();
     void process_function_call();
     void process_if_stmt();
+    void process_return_stmt();
     void process_structure();
     void process_structure_declaration();
     void process_while_stmt();

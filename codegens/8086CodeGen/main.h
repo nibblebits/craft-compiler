@@ -16,39 +16,29 @@
  */
 
 /* 
- * File:   def.h
+ * File:   main.h
  * Author: Daniel McCarthy
  *
- * Created on 28 May 2016, 19:48
+ * Created on 14 September 2016, 03:16
  * 
- * Description: This header contains definitions such as debug mode and other compiler related settings.
+ * Description: 
  */
 
-#ifndef DEF_H
-#define DEF_H
+#include "CodeGenerator.h"
+#ifndef MAIN_H
+#define MAIN_H
 
-#define COMPILER_NAME "Craft compiler"
-#define COMPILER_VERSION "v1.0 beta"
-#define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
+#define DLL_EXPORT __declspec(dllexport)
 
-// Uncomment this line to enable debug mode, this will display debug related information related to the compiler
-#define DEBUG_MODE
-// Only uncomment the below if this is a release
-//#define RELEASE
-
-
-#ifdef RELEASE
-#define CODEGEN_DIR "./codegens"
-#else
-#define CODEGEN_DIR "../../../codegens"
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#ifdef _WIN32
-#define CODEGEN_EXT ".dll"
-#else
-#define CODEGEN_EXT ".so"
+    CodeGenerator* DLL_EXPORT Init();
+
+#ifdef __cplusplus
+}
 #endif
 
-
-#endif /* DEF_H */
+#endif
 
