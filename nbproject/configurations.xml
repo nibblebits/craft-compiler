@@ -45,6 +45,7 @@
       <itemPath>include/VDEFBranch.h</itemPath>
       <itemPath>include/branches.h</itemPath>
       <itemPath>def.h</itemPath>
+      <itemPath>main.h</itemPath>
       <itemPath>include/structs.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -116,6 +117,7 @@
             <pElem>include</pElem>
             <pElem>GoblinLibraryLoader/include</pElem>
             <pElem>GoblinArgumentParser/include</pElem>
+            <pElem>.</pElem>
           </incDir>
         </ccTool>
         <linkerTool>
@@ -217,6 +219,8 @@
       <item path="include/structs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="main.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/ASMBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -387,6 +391,8 @@
       <item path="include/structs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="main.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/ASMBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

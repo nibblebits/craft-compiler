@@ -52,11 +52,13 @@ public:
     Parser(Compiler* compiler);
     virtual ~Parser();
     void setInput(std::vector<std::shared_ptr<Token>> tokens);
+    void merge(std::shared_ptr<Branch> root);
     void buildTree();
     std::shared_ptr<Tree> getTree();
     std::shared_ptr<Logger> getLogger();
 private:
     void process_top();
+    void process_macro();
     void process_function();
     void process_body();
     void process_stmt();
@@ -72,7 +74,6 @@ private:
     void process_while_stmt();
     void process_for_stmt();
     void process_semicolon();
-    
     
     void error(std::string message, bool token = true);
     void warn(std::string message, bool token = true);

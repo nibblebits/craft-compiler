@@ -28,6 +28,7 @@
 #include "Parser.h"
 #include "Lexer.h"
 #include "branches.h"
+#include "main.h"
 
 Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
 {
@@ -48,6 +49,16 @@ void Parser::setInput(std::vector<std::shared_ptr<Token>> tokens)
     for (std::shared_ptr<Token> token : tokens)
     {
         this->input.push_back(token);
+    }
+}
+
+void Parser::merge(std::shared_ptr<Branch> root)
+{
+    /* Lets merge this root with this tree */
+    
+    for(std::shared_ptr<Branch> branch : root->getChildren())
+    {
+        push_branch(branch);
     }
 }
 
@@ -109,9 +120,75 @@ void Parser::process_top()
             }
         }
     }
+    else if (is_peak_symbol("#"))
+    {
+        // Its a macro so process it
+        process_macro();
+    }
     else
     {
         error_unexpected_token();
+    }
+}
+
+void Parser::process_macro()
+{
+    // Check that the next token is a hash as all macros require them
+    shift_pop();
+    if (!is_branch_symbol("#"))
+    {
+        error_expecting("#", this->branch_value);
+    }
+
+    // Check that the next token is an identifier all macros will start with them
+    shift_pop();
+    if (!is_branch_type("identifier"))
+    {
+        error_expecting("identifier", this->branch_value);
+    }
+
+    if (is_branch_value("include"))
+    {
+        // This is a macro include we will be required to include a file.
+        // Get the filename
+        shift_pop();
+        if (!is_branch_type("string"))
+        {
+            error_expecting("string", this->token_value);
+        }
+
+        std::string filename = this->branch->getValue();
+        process_semicolon();
+
+        /*
+         *  We are now ready to load that file include, we will create a new parser to parse it 
+         * then merge the result with our main tree */
+
+        try
+        {
+            // Load the file
+            std::string input = LoadFile(filename);
+            // Perform lexical analysis on the input file
+            Lexer lexer(this->getCompiler());
+            lexer.setInput(input);
+            lexer.tokenize();
+
+            // Parse the token stream
+            Parser sub_parser(this->getCompiler());
+            sub_parser.setInput(lexer.getTokens());
+            sub_parser.buildTree();
+            
+            // Finally merge the result with this tree
+            merge(sub_parser.getTree()->root);
+        }
+        catch (Exception ex)
+        {
+            error("failed to load file: " + filename + " with include");
+        }
+    }
+    else
+    {
+        error("invalid macro.");
     }
 }
 
@@ -881,7 +958,7 @@ void Parser::process_for_stmt()
             // Pop off the result
             pop_branch();
         }
-        
+
         // Store the result of the variable declaration, assignment or both in the init_var branch
         init_var = this->branch;
     }
