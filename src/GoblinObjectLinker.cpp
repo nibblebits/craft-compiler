@@ -44,6 +44,7 @@ void GoblinObjectLinker::link_merge(Stream* obj1, Stream* obj2, Stream* result_o
     gob_obj1.read(obj1);
     gob_obj2.read(obj2);
    
+    // Invokes the extending class, this in turn will fill the gob_result_obj
     this->link_merge(&gob_obj1, &gob_obj2, &gob_result_obj);
 
     // Write the new stream to the resulting object stream
