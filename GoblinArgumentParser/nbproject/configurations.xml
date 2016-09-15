@@ -47,6 +47,9 @@
             <pElem>include</pElem>
           </incDir>
         </ccTool>
+        <linkerTool>
+          <output>../bin/GoblinArgumentParser.${CND_DLIB_EXT}</output>
+        </linkerTool>
       </compileType>
       <item path="GoblinArgumentParser.cpp" ex="false" tool="1" flavor2="0">
       </item>

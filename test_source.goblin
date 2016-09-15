@@ -1,6 +1,0 @@
-uint8* a = 10;
-uint8 abc()
-{
-	uint8* a = 10;
-	
-}

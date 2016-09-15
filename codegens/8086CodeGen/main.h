@@ -28,13 +28,13 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#define DLL_EXPORT __declspec(dllexport)
+#define EXPORT __declspec(dllexport)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-    CodeGenerator* DLL_EXPORT Init();
+    CodeGenerator* EXPORT Init(Compiler* compiler);
 
 #ifdef __cplusplus
 }

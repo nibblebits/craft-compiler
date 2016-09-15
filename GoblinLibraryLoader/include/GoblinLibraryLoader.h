@@ -18,7 +18,7 @@
 #ifndef GOBLINLIBRARYLOADER_H
 #define GOBLINLIBRARYLOADER_H
 
-#define DLL_EXPORT __declspec(dllexport)
+#define EXPORT __declspec(dllexport)
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,8 +28,8 @@ extern "C" {
     #error Goblin Library Loader is only compatible with windows at the moment
 #endif
 
-    void* DLL_EXPORT GoblinLoadLibrary(const char* filename);
-    void* DLL_EXPORT GoblinGetAddress(void* library, const char* entity_name);
+    void* EXPORT GoblinLoadLibrary(const char* filename);
+    void* EXPORT GoblinGetAddress(void* library, const char* entity_name);
 
 #ifdef __cplusplus
 }

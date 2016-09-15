@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="97">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>include/ASMBranch.h</itemPath>
+      <itemPath>include/ASTAssistant.h</itemPath>
+      <itemPath>include/ArrayBranch.h</itemPath>
+      <itemPath>include/AssignBranch.h</itemPath>
+      <itemPath>include/Branch.h</itemPath>
+      <itemPath>include/CallBranch.h</itemPath>
+      <itemPath>include/CharPos.h</itemPath>
+      <itemPath>include/CodeGenerator.h</itemPath>
+      <itemPath>include/CodeGeneratorException.h</itemPath>
+      <itemPath>include/Compiler.h</itemPath>
+      <itemPath>include/CompilerEntity.h</itemPath>
+      <itemPath>include/CustomBranch.h</itemPath>
+      <itemPath>include/EBranch.h</itemPath>
+      <itemPath>include/Exception.h</itemPath>
+      <itemPath>include/FuncBranch.h</itemPath>
+      <itemPath>include/GoblinByteCodeGenerator.h</itemPath>
+      <itemPath>include/GoblinByteCodeLinker.h</itemPath>
+      <itemPath>include/GoblinObject.h</itemPath>
+      <itemPath>include/GoblinObjectLinker.h</itemPath>
+      <itemPath>include/Helper.h</itemPath>
+      <itemPath>include/Lexer.h</itemPath>
+      <itemPath>include/LexerException.h</itemPath>
+      <itemPath>include/Linker.h</itemPath>
+      <itemPath>include/LinkerException.h</itemPath>
+      <itemPath>include/Logger.h</itemPath>
+      <itemPath>include/MathEBranch.h</itemPath>
+      <itemPath>include/Parser.h</itemPath>
+      <itemPath>include/ParserException.h</itemPath>
+      <itemPath>include/ParserRule.h</itemPath>
+      <itemPath>include/ParserRuleRequirement.h</itemPath>
+      <itemPath>include/Scope.h</itemPath>
+      <itemPath>include/SourceCodeRelatedException.h</itemPath>
+      <itemPath>include/Stack.h</itemPath>
+      <itemPath>include/Stream.h</itemPath>
+      <itemPath>include/Token.h</itemPath>
+      <itemPath>include/Tree.h</itemPath>
+      <itemPath>include/TypeChecker.h</itemPath>
+      <itemPath>include/TypeCheckerException.h</itemPath>
+      <itemPath>include/VDEFBranch.h</itemPath>
+      <itemPath>include/branches.h</itemPath>
+      <itemPath>include/common.h</itemPath>
+      <itemPath>include/def.h</itemPath>
+      <itemPath>include/structs.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>src/ASMBranch.cpp</itemPath>
+      <itemPath>src/ASTAssistant.cpp</itemPath>
+      <itemPath>src/ArrayBranch.cpp</itemPath>
+      <itemPath>src/AssignBranch.cpp</itemPath>
+      <itemPath>src/Branch.cpp</itemPath>
+      <itemPath>src/CallBranch.cpp</itemPath>
+      <itemPath>src/CodeGenerator.cpp</itemPath>
+      <itemPath>src/Compiler.cpp</itemPath>
+      <itemPath>src/CompilerEntity.cpp</itemPath>
+      <itemPath>src/CustomBranch.cpp</itemPath>
+      <itemPath>src/EBranch.cpp</itemPath>
+      <itemPath>src/FuncBranch.cpp</itemPath>
+      <itemPath>src/GoblinByteCodeGenerator.cpp</itemPath>
+      <itemPath>src/GoblinByteCodeLinker.cpp</itemPath>
+      <itemPath>src/GoblinObject.cpp</itemPath>
+      <itemPath>src/GoblinObjectLinker.cpp</itemPath>
+      <itemPath>src/Helper.cpp</itemPath>
+      <itemPath>src/Lexer.cpp</itemPath>
+      <itemPath>src/Linker.cpp</itemPath>
+      <itemPath>src/Logger.cpp</itemPath>
+      <itemPath>src/MathEBranch.cpp</itemPath>
+      <itemPath>src/Parser.cpp</itemPath>
+      <itemPath>src/ParserRule.cpp</itemPath>
+      <itemPath>src/ParserRuleRequirement.cpp</itemPath>
+      <itemPath>src/Scope.cpp</itemPath>
+      <itemPath>src/Stream.cpp</itemPath>
+      <itemPath>src/Token.cpp</itemPath>
+      <itemPath>src/Tree.cpp</itemPath>
+      <itemPath>src/TypeChecker.cpp</itemPath>
+      <itemPath>src/VDEFBranch.cpp</itemPath>
+      <itemPath>src/common.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>src</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="2">
+      <toolsSet>
+        <compilerSet>MinGW|MinGW</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <standard>11</standard>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>GoblinLibraryLoader/include</pElem>
+            <pElem>GoblinArgumentParser/include</pElem>
+            <pElem>.</pElem>
+          </incDir>
+          <commandLine>-shared</commandLine>
+        </ccTool>
+        <linkerTool>
+          <output>../bin/Compiler.${CND_DLIB_EXT}</output>
+          <linkerLibItems>
+            <linkerLibFileItem>../bin/GoblinArgumentParser.dll</linkerLibFileItem>
+            <linkerLibFileItem>../bin/GoblinLibraryLoader.dll</linkerLibFileItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="include/ASMBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ASTAssistant.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ArrayBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CallBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CharPos.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CodeGenerator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CodeGeneratorException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Compiler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CompilerEntity.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CustomBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Exception.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/FuncBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinByteCodeGenerator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinByteCodeLinker.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinObject.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinObjectLinker.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Lexer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/LexerException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Linker.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/LinkerException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MathEBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Scope.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SourceCodeRelatedException.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="include/Stack.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Stream.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Token.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Tree.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/TypeChecker.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/TypeCheckerException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/VDEFBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/branches.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/common.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/def.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/structs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/ASMBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ASTAssistant.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ArrayBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CallBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CodeGenerator.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Compiler.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CompilerEntity.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CustomBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/EBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/FuncBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GoblinByteCodeGenerator.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GoblinByteCodeLinker.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GoblinObject.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GoblinObjectLinker.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Lexer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Linker.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Logger.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MathEBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ParserRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Scope.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Stream.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Token.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Tree.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/TypeChecker.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VDEFBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/common.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+      <item path="include/ASMBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ASTAssistant.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ArrayBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CallBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CharPos.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CodeGenerator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CodeGeneratorException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Compiler.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CompilerEntity.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/CustomBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/EBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Exception.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/FuncBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinByteCodeGenerator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinByteCodeLinker.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinObject.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/GoblinObjectLinker.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Lexer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/LexerException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Linker.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/LinkerException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MathEBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserRule.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Scope.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SourceCodeRelatedException.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="include/Stack.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Stream.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Token.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Tree.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/TypeChecker.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/TypeCheckerException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/VDEFBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/branches.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/common.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/def.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/structs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/ASMBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ASTAssistant.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ArrayBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CallBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CodeGenerator.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Compiler.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CompilerEntity.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/CustomBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/EBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/FuncBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GoblinByteCodeGenerator.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GoblinByteCodeLinker.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GoblinObject.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GoblinObjectLinker.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Lexer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Linker.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Logger.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MathEBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ParserRule.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Scope.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Stream.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Token.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Tree.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/TypeChecker.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VDEFBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/common.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

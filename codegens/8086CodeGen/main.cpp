@@ -23,7 +23,9 @@
  */
 
 #include "main.h"
-CodeGenerator* DLL_EXPORT Init()
+#include "Compiler.h"
+#include "CodeGen8086.h"
+CodeGenerator* EXPORT Init(Compiler* compiler)
 {
-    return NULL;
+    return new CodeGen8086(compiler);
 }

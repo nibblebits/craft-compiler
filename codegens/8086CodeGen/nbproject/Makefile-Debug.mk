@@ -35,7 +35,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/main.o
+	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/src/CodeGen8086.o
 
 
 # C Compiler Flags
@@ -52,20 +53,27 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=../../bin/Compiler.dll
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../8086CodeGen.${CND_DLIB_EXT}
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../bin/codegens/8086CodeGen.${CND_DLIB_EXT}
 
-../8086CodeGen.${CND_DLIB_EXT}: ${OBJECTFILES}
-	${MKDIR} -p ..
-	${LINK.cc} -o ../8086CodeGen.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
+../../bin/codegens/8086CodeGen.${CND_DLIB_EXT}: ../../bin/Compiler.dll
+
+../../bin/codegens/8086CodeGen.${CND_DLIB_EXT}: ${OBJECTFILES}
+	${MKDIR} -p ../../bin/codegens
+	${LINK.cc} -o ../../bin/codegens/8086CodeGen.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
 
 ${OBJECTDIR}/main.o: main.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../../include -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -g -Iinclude -I../../Compiler/include -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+
+${OBJECTDIR}/src/CodeGen8086.o: src/CodeGen8086.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -I../../Compiler/include -std=c++11  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CodeGen8086.o src/CodeGen8086.cpp
 
 # Subprojects
 .build-subprojects:
@@ -73,7 +81,7 @@ ${OBJECTDIR}/main.o: main.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ../8086CodeGen.${CND_DLIB_EXT}
+	${RM} ../../bin/codegens/8086CodeGen.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:

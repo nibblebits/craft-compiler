@@ -45,6 +45,9 @@
             <pElem>include</pElem>
           </incDir>
         </cTool>
+        <linkerTool>
+          <output>../bin/GoblinLibraryLoader.${CND_DLIB_EXT}</output>
+        </linkerTool>
       </compileType>
       <item path="include/GoblinLibraryLoader.h" ex="false" tool="3" flavor2="0">
       </item>
