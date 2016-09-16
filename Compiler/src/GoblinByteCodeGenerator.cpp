@@ -21,20 +21,7 @@ void GoblinByteCodeGenerator::scope_start(std::shared_ptr<Branch> branch)
 
 void GoblinByteCodeGenerator::scope_end(std::shared_ptr<Branch> branch)
 {
-    std::shared_ptr<Scope> scope = this->getCurrentScope();
-    size_t variables_size = scope->getVariablesSize();
-    
-    // Set the position to the beginning of the scope now that we know the correct variable size
-    this->stream->setEraseMode(true);
-    this->stream->setPosition(scope->getMemoryPosition());
-    this->stream->write8(SUBDP);
-    this->stream->write32(variables_size);
-    this->stream->setEraseMode(false);
-    
-    // Jump back to the end of the stream to add to the data pointer
-    this->stream->setPosition(this->stream->getSize());
-    this->stream->write8(ADDDP);
-    this->stream->write32(variables_size);
+   
     
 }
 

@@ -38,9 +38,6 @@
 #include "Stream.h"
 #include "def.h"
 
-
-#define EXPORT __declspec(dllexport)
-
 std::string EXPORT LoadFile(std::string filename);
 void EXPORT debug_output_tokens(std::vector<std::shared_ptr<Token>> tokens);
 void EXPORT debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs = 0);

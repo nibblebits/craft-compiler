@@ -39,25 +39,6 @@
 #include "Scope.h"
 #include "def.h"
 
-struct function
-{
-    std::string func_name;
-    std::vector<struct function_argument> func_arguments;
-    int memory_pos;
-};
-
-struct function_argument
-{
-    std::string type;
-    std::string value;
-};
-
-struct function_call
-{
-    std::string func_name;
-    std::vector<struct function_argument> func_arguments;
-    int memory_pos;
-};
 
 class EXPORT CodeGenerator : public CompilerEntity
 {
@@ -65,38 +46,16 @@ public:
     CodeGenerator(Compiler* compiler, std::string code_gen_desc);
     virtual ~CodeGenerator();
     Stream* getStream();
-    void registerFunction(std::string func_name, std::vector<std::shared_ptr<Branch>> func_arguments, int func_mem_pos);
-    void registerFunctionCall(std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments);
-    bool isFunctionRegistered(std::string func_name);
-    int getFunctionIndex(std::string func_name);
-
-    GoblinObject* getGoblinObject();
-    std::string getCodeGeneratorDescriptor();
 
     virtual void generate(std::shared_ptr<Tree> tree);
-    virtual void generateFromBranch(std::shared_ptr<Branch> branch);
-    virtual void handleScope(std::shared_ptr<Branch> branch);
-
     virtual std::shared_ptr<Linker> getLinker() = 0;
-    virtual void scope_start(std::shared_ptr<Branch> branch) = 0;
-    virtual void scope_end(std::shared_ptr<Branch> branch) = 0;
-    virtual void scope_assignment(std::shared_ptr<struct variable> var, std::shared_ptr<Branch> assign_root, std::shared_ptr<Branch> assign_to) = 0;
-    virtual void scope_func_call(std::shared_ptr<Branch> branch, std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments) = 0;
-    virtual void scope_handle_inline_asm(std::shared_ptr<Branch> branch) = 0;
 protected:
+    void do_asm(std::string asm_ins);
+    virtual void generate_global_branch(std::shared_ptr<Branch> branch) = 0;
+    virtual void assemble(std::string assembly) = 0;
     Stream* stream;
-    std::shared_ptr<Scope> getCurrentScope();
 private:
-    void startScope(std::shared_ptr<Branch> branch);
-    void endScope(std::shared_ptr<Branch> branch);
-
-    std::string code_gen_desc;
-    int current_index;
-    int current_scope_stream_pos;
-    std::vector<struct function> functions;
-    std::vector<struct function_call> function_calls;
-    GoblinObject gob_obj;
-    std::shared_ptr<Scope> current_scope;
+    std::string assembly;
 };
 
 #endif /* CODEGENERATOR_H */

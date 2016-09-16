@@ -102,7 +102,7 @@ void Parser::process_top()
             {
                 // Check to see if this is a function or a variable declaration
                 peak(2);
-                if (is_peak_symbol("=") || is_peak_symbol(";"))
+                if (is_peak_operator("=") || is_peak_symbol(";"))
                 {
                     process_variable_declaration();
                     process_semicolon();
@@ -437,15 +437,10 @@ void Parser::process_variable_declaration()
      * Now that we have popped to variable name and keyword of the variable
      * we need to create a branch for, lets create a branch for them  */
 
-    std::shared_ptr<Branch> var_root = std::shared_ptr<Branch>(new Branch("VDEF", ""));
-    var_root->addChild(var_keyword);
-    var_root->addChild(var_name);
-
-    // Do we have a variable assignment?
-    if (var_value != NULL)
-    {
-        var_root->addChild(var_value);
-    }
+    std::shared_ptr<VDEFBranch> var_root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
+    var_root->setKeywordBranch(var_keyword);
+    var_root->setNameBranch(var_name);
+    var_root->setValueExpBranch(var_value);
 
     // Push that root back to the branches
     push_branch(var_root);
@@ -555,6 +550,27 @@ void Parser::process_expression()
 
         if (left != NULL && op != NULL && right != NULL)
         {
+            // Check to see if BODMAS applies
+            peak();
+            if (is_peak_operator("*") 
+                    || is_peak_operator("/"))
+            {
+                std::shared_ptr<Branch> l = right;
+
+                // Shift and pop the operator
+                shift_pop();
+                std::shared_ptr<Branch> o = this->branch;
+                // Shift and pop the right
+                shift_pop();
+                std::shared_ptr<Branch> r = this->branch;
+                
+                exp_root = std::shared_ptr<Branch>(new Branch("E", o->getValue()));
+                exp_root->addChild(l);
+                exp_root->addChild(r);
+                right = exp_root;
+
+            }
+
             exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
             exp_root->addChild(left);
             exp_root->addChild(right);
@@ -774,7 +790,6 @@ void Parser::process_if_stmt()
     push_branch(if_stmt);
 }
 
-
 void Parser::process_return_stmt()
 {
     // Check that the return keyword is present
@@ -783,7 +798,7 @@ void Parser::process_return_stmt()
     {
         error_expecting("return", this->branch_value);
     }
-    
+
     std::shared_ptr<Branch> exp = NULL;
     // Peak ahead do we have a semicolon? if so we are done otherwise their is an expression that is being returned
     peak();
@@ -795,7 +810,7 @@ void Parser::process_return_stmt()
         pop_branch();
         exp = this->branch;
     }
-    
+
     // Create the return branch
     std::shared_ptr<Branch> return_branch = std::shared_ptr<Branch>(new Branch("RETURN", ""));
     // If their was an expression then we need to add it to the return branch
@@ -803,7 +818,7 @@ void Parser::process_return_stmt()
     {
         return_branch->addChild(exp);
     }
-    
+
     // Finally push the return branch to the stack
     push_branch(return_branch);
 }
@@ -1087,9 +1102,8 @@ void Parser::process_semicolon()
 
 void Parser::error(std::string message, bool token)
 {
-    if (token)
+    if (token && this->token != NULL)
     {
-
         CharPos position = this->token->getPosition();
         message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
     }

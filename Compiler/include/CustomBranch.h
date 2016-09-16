@@ -25,6 +25,7 @@
 #ifndef CUSTOMBRANCH_H
 #define CUSTOMBRANCH_H
 
+#include <map>
 #include "Compiler.h"
 #include "Branch.h"
 class CustomBranch : public Branch {
@@ -32,8 +33,11 @@ public:
     CustomBranch(Compiler* compiler, std::string name, std::string value);
     virtual ~CustomBranch();
     
+    void registerBranch(std::string name, std::shared_ptr<Branch> branch);
+    std::shared_ptr<Branch> getRegisteredBranchByName(std::string name);
     Compiler* getCompiler();
 private:
+    std::map<std::string, std::shared_ptr<Branch>> registered_branches;
     Compiler* compiler;
 };
 

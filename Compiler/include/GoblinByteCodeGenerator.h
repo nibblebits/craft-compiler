@@ -57,6 +57,16 @@ public:
     virtual void scope_handle_exp(std::shared_ptr<Branch> branch);
     virtual void scope_handle_inline_asm(std::shared_ptr<Branch> branch);
     virtual std::shared_ptr<Linker> getLinker();
+    
+    // TODO THIS FILE IS ABSOLUTE
+    virtual void generate_global_branch(std::shared_ptr<Branch> branch)
+    {
+        
+    }
+    virtual void assemble(std::string assembly)
+    {
+        
+    }
 private:
 
     std::shared_ptr<Linker> linker;

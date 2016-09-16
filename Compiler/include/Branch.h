@@ -44,6 +44,7 @@ public:
 
     void addChild(std::shared_ptr<Branch> branch);
     void replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch);
+    virtual void removeChild(std::shared_ptr<Branch> child);
     void exclude(bool excluded);
     bool excluded();
     void setParent(std::shared_ptr<Branch> branch);

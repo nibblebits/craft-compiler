@@ -32,16 +32,18 @@ struct array_def
     size_t t_size;
     std::vector<size_t> sizes;
 };
-class VDEFBranch : public CustomBranch {
+class EXPORT VDEFBranch : public CustomBranch {
 public:
     VDEFBranch(Compiler* compiler);
     virtual ~VDEFBranch();
     
-    std::shared_ptr<Branch> getDefinitionTypeBranch();
-    std::shared_ptr<Branch> getDefinitionNameBranch();
-    std::shared_ptr<Branch> getDefinitionArrayBranch();
-    bool isArray();
-    struct array_def getArray();
+    void setKeywordBranch(std::shared_ptr<Branch> branch);
+    void setNameBranch(std::shared_ptr<Branch> branch);
+    void setValueExpBranch(std::shared_ptr<Branch> branch);
+    
+    std::shared_ptr<Branch> getKeywordBranch();
+    std::shared_ptr<Branch> getNameBranch();
+    std::shared_ptr<Branch> getValueExpBranch();
 private:
 
 };

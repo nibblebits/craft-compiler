@@ -61,6 +61,18 @@ void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch>
     }
 }
 
+
+void Branch::removeChild(std::shared_ptr<Branch> child)
+{
+    for (int i = 0; i < this->children.size(); i++)
+    {
+        std::shared_ptr<Branch> c = this->children.at(i);
+        if (c == child)
+        {
+            this->children.erase(this->children.begin()+i);
+        }
+    }
+}
 void Branch::exclude(bool excluded)
 {
     this->excluded_from_tree = excluded;

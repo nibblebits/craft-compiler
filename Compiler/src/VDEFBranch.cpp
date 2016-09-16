@@ -27,7 +27,6 @@
 #include "VDEFBranch.h"
 #include "ArrayBranch.h"
 
-
 VDEFBranch::VDEFBranch(Compiler* compiler) : CustomBranch(compiler, "V_DEF", "")
 {
 }
@@ -36,53 +35,32 @@ VDEFBranch::~VDEFBranch()
 {
 }
 
-std::shared_ptr<Branch> VDEFBranch::getDefinitionTypeBranch()
+void VDEFBranch::setKeywordBranch(std::shared_ptr<Branch> branch)
 {
-    return this->getFirstChild();
+    this->registerBranch("keyword_branch", branch);
 }
 
-std::shared_ptr<Branch> VDEFBranch::getDefinitionNameBranch()
+void VDEFBranch::setNameBranch(std::shared_ptr<Branch> branch)
 {
-    if (isArray())
-    {
-        // Return the array name.
-        return this->getSecondChild()->getFirstChild();
-    }
-    return this->getSecondChild();
+    this->registerBranch("name_branch", branch);
 }
 
-std::shared_ptr<Branch> VDEFBranch::getDefinitionArrayBranch()
+void VDEFBranch::setValueExpBranch(std::shared_ptr<Branch> branch)
 {
-    if (!isArray())
-    {
-        throw Exception("std::shared_ptr<Branch> VDEFBranch::getDefinitionArrayBranch(): The V_DEF branch is not a variable declaration for an array");
-    }
-
-    return this->getSecondChild();
+    this->registerBranch("value_exp_branch", branch);
 }
 
-bool VDEFBranch::isArray()
+std::shared_ptr<Branch> VDEFBranch::getKeywordBranch()
 {
-    return this->getSecondChild()->getType() == "ARRAY";
+    return this->getRegisteredBranchByName("keyword_branch");
 }
 
-struct array_def VDEFBranch::getArray()
+std::shared_ptr<Branch> VDEFBranch::getNameBranch()
 {
-    if (!this->isArray())
-    {
-        throw Exception("struct array_def VDEFBranch::getArray(): The V_DEF branch is not a variable declaration for an array");
-    }
-    /*
-    struct array_def arr;
-    std::shared_ptr<ArrayBranch> array_branch = this->getDefinitionArrayBranch();
-    arr.dimensions = arr.sizes.size();
-
-    arr.t_size = arr.sizes[0];
-    for (int i = 1; i < arr.dimensions; i++)
-    {
-        arr.t_size *= arr.sizes[i];
-    }
-    return arr;
-     */
+    return this->getRegisteredBranchByName("name_branch");
 }
-  
+
+std::shared_ptr<Branch> VDEFBranch::getValueExpBranch()
+{
+    return this->getRegisteredBranchByName("value_exp_branch");
+}

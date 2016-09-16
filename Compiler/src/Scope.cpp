@@ -163,29 +163,16 @@ std::shared_ptr<struct variable> Scope::createVariableFromBranch(std::shared_ptr
 {
     std::shared_ptr<struct variable> variable = NULL;
     std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
-    std::shared_ptr<Token> name_branch = std::dynamic_pointer_cast<Token>(vdef_branch->getDefinitionNameBranch());
-    std::shared_ptr<Token> type_branch = std::dynamic_pointer_cast<Token>(vdef_branch->getDefinitionTypeBranch());
+    std::shared_ptr<Token> name_branch = std::dynamic_pointer_cast<Token>(vdef_branch->getKeywordBranch());
+    std::shared_ptr<Token> type_branch = std::dynamic_pointer_cast<Token>(vdef_branch->getNameBranch());
     std::string type_value = type_branch->getValue();
 
     if (type_branch->getType() == "keyword")
     {
         int size_per_elem = Compiler::getDataTypeSize(type_value);
-        if (vdef_branch->isArray())
-        {
-            std::shared_ptr<struct array_scope_variable> array_variable = std::shared_ptr<struct array_scope_variable > (new struct array_scope_variable());
-            struct array_def arr = vdef_branch->getArray();
-            array_variable->size = size_per_elem * arr.t_size;
-            array_variable->size_per_element = size_per_elem;
-            array_variable->is_array = true;
-            variable = array_variable;
-        }
-        else
-        {
-            variable = std::shared_ptr<struct variable > (new struct variable);
-            variable->size = size_per_elem;
-            variable->is_array = false;
-        }
-
+        variable = std::shared_ptr<struct variable > (new struct variable);
+        variable->size = size_per_elem;
+        variable->is_array = false;
     }
 
     variable->name = name_branch->getValue();

@@ -34,7 +34,25 @@ CustomBranch::CustomBranch(Compiler* compiler, std::string name, std::string val
 
 CustomBranch::~CustomBranch()
 {
-    
+
+}
+
+void CustomBranch::registerBranch(std::string name, std::shared_ptr<Branch> branch)
+{
+    if (branch != NULL)
+    {
+        // If the branch getting registered is currently not a child then make it one
+        if (!this->hasChild(branch))
+        {
+            this->addChild(branch);
+        }
+    }
+    this->registered_branches[name] = branch;
+}
+
+std::shared_ptr<Branch> CustomBranch::getRegisteredBranchByName(std::string name)
+{
+    return this->registered_branches[name];
 }
 
 Compiler* CustomBranch::getCompiler()
