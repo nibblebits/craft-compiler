@@ -550,27 +550,29 @@ void Parser::process_expression()
 
         if (left != NULL && op != NULL && right != NULL)
         {
-            // Check to see if BODMAS applies
-            peak();
-            if (is_peak_operator("*") 
-                    || is_peak_operator("/"))
+            if (op->getValue() != "*" && op->getValue() != "/")
             {
-                std::shared_ptr<Branch> l = right;
+                // Check to see if BODMAS applies
+                peak();
+                if (is_peak_operator("*")
+                        || is_peak_operator("/"))
+                {
+                    std::shared_ptr<Branch> l = right;
 
-                // Shift and pop the operator
-                shift_pop();
-                std::shared_ptr<Branch> o = this->branch;
-                // Shift and pop the right
-                shift_pop();
-                std::shared_ptr<Branch> r = this->branch;
-                
-                exp_root = std::shared_ptr<Branch>(new Branch("E", o->getValue()));
-                exp_root->addChild(l);
-                exp_root->addChild(r);
-                right = exp_root;
+                    // Shift and pop the operator
+                    shift_pop();
+                    std::shared_ptr<Branch> o = this->branch;
+                    // Shift and pop the right
+                    shift_pop();
+                    std::shared_ptr<Branch> r = this->branch;
 
+                    exp_root = std::shared_ptr<Branch>(new Branch("E", o->getValue()));
+                    exp_root->addChild(l);
+                    exp_root->addChild(r);
+                    right = exp_root;
+                }
             }
-
+            
             exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
             exp_root->addChild(left);
             exp_root->addChild(right);
