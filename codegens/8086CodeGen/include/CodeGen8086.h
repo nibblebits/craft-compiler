@@ -29,19 +29,23 @@
 
 #include "GoblinByteCodeLinker.h"
 #include "CodeGenerator.h"
+#include "VDEFBranch.h"
 
 class CodeGen8086 : public CodeGenerator {
 public:
     CodeGen8086(Compiler* compiler);
     virtual ~CodeGen8086();
-
-    virtual void generateFromBranch(std::shared_ptr<Branch> branch);
-    virtual std::shared_ptr<Linker> getLinker();
-    virtual void scope_start(std::shared_ptr<Branch> branch);
-    virtual void scope_end(std::shared_ptr<Branch> branch);
-    virtual void scope_assignment(std::shared_ptr<struct variable> var, std::shared_ptr<Branch> assign_root, std::shared_ptr<Branch> assign_to);
-    virtual void scope_func_call(std::shared_ptr<Branch> branch, std::string func_name, std::vector<std::shared_ptr < Branch>> func_arguments);
-    virtual void scope_handle_inline_asm(std::shared_ptr<Branch> branch);
+    
+    void make_label(std::string label);
+    void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
+    void make_assignment(std::string var_name, std::shared_ptr<Branch> value_exp);
+    void make_expression(std::shared_ptr<Branch> exp);
+    void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
+    
+    void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
+    void generate_global_branch(std::shared_ptr<Branch> branch);
+    void assemble(std::string assembly);
+    std::shared_ptr<Linker> getLinker();
 private:
     std::shared_ptr<Linker> linker;
 };
