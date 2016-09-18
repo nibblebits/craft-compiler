@@ -34,19 +34,41 @@ FuncBranch::~FuncBranch()
 {
 }
 
-std::shared_ptr<Branch> FuncBranch::getFunctionNameBranch()
+    void FuncBranch::setReturnTypeBranch(std::shared_ptr<Branch> returnTypeBranch)
+    {
+        this->registerBranch("func_return_type_branch", returnTypeBranch);
+    }
+void FuncBranch::setNameBranch(std::shared_ptr<Branch> nameBranch)
 {
-    std::shared_ptr<Branch> name_branch = this->getSecondChild();
-    return name_branch;
+    this->registerBranch("func_name_branch", nameBranch);
 }
 
-std::vector<std::shared_ptr<Branch>> FuncBranch::getFunctionArgumentBranches()
+void FuncBranch::setArgumentsBranch(std::shared_ptr<Branch> argumentsBranch)
 {
-    std::vector<std::shared_ptr < Branch>> argument_children = this->getCompiler()->getASTAssistant()->findAllChildrenOfType(this->getThirdChild(), "V_DEF");
-    return argument_children;
+    this->registerBranch("func_arguments_branch", argumentsBranch);
 }
 
-std::shared_ptr<Branch> FuncBranch::getFunctionScopeBranches()
+void FuncBranch::setBodyBranch(std::shared_ptr<Branch> bodyBranch)
 {
-    return this->getFourthChild();
+    this->registerBranch("func_body_branch", bodyBranch);
+}
+
+std::shared_ptr<Branch> FuncBranch::getReturnTypeBranch()
+{
+    return this->getRegisteredBranchByName("func_return_type_branch");
+}
+
+std::shared_ptr<Branch> FuncBranch::getNameBranch()
+{
+    return this->getRegisteredBranchByName("func_name_branch");
+}
+
+std::shared_ptr<Branch> FuncBranch::getArgumentsBranch()
+{
+    return this->getRegisteredBranchByName("func_arguments_branch");
+}
+
+std::shared_ptr<Branch> FuncBranch::getBodyBranch()
+{
+    return this->getRegisteredBranchByName("func_body_branch");
 }

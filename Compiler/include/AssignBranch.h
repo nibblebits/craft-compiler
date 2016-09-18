@@ -26,12 +26,14 @@
 #define ASSIGNBRANCH_H
 
 #include "CustomBranch.h"
-class AssignBranch : public CustomBranch {
+class EXPORT AssignBranch : public CustomBranch {
 public:
     AssignBranch(Compiler* compiler);
     virtual ~AssignBranch();
+    
+    void setVariableToAssignBranch(std::shared_ptr<Branch> var_branch);
+    void setValueBranch(std::shared_ptr<Branch> value_branch);
     std::shared_ptr<Branch> getVariableToAssignBranch();
-    std::shared_ptr<Branch> getAssignmentTypeBranch();
     std::shared_ptr<Branch> getValueBranch();
 private:
 

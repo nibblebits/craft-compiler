@@ -35,18 +35,22 @@ AssignBranch::~AssignBranch()
 {
 }
 
-std::shared_ptr<Branch> AssignBranch::getVariableToAssignBranch()
+void AssignBranch::setVariableToAssignBranch(std::shared_ptr<Branch> var_branch)
 {
-    std::shared_ptr<Branch> var_root_branch = this->getFirstChild();
-    return var_root_branch;
+    this->registerBranch("variable_to_assign_branch", var_branch);
 }
 
-std::shared_ptr<Branch> AssignBranch::getAssignmentTypeBranch()
+void AssignBranch::setValueBranch(std::shared_ptr<Branch> value_branch)
 {
-    return this->getSecondChild();
+    this->registerBranch("value_to_assign_branch", value_branch);
+}
+
+std::shared_ptr<Branch> AssignBranch::getVariableToAssignBranch()
+{
+    return this->getRegisteredBranchByName("variable_to_assign_branch");
 }
 
 std::shared_ptr<Branch> AssignBranch::getValueBranch()
 {
-    return this->getThirdChild();
+    return this->getRegisteredBranchByName("value_to_assign_branch");
 }

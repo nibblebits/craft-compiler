@@ -258,11 +258,11 @@ void Parser::process_function()
     std::shared_ptr<Branch> body = this->branch;
 
     // Finally create the function branch and merge it all together
-    std::shared_ptr<Branch> func_branch = std::shared_ptr<Branch>(new Branch("FUNC", ""));
-    func_branch->addChild(func_return_type);
-    func_branch->addChild(func_name);
-    func_branch->addChild(func_arguments);
-    func_branch->addChild(body);
+    std::shared_ptr<FuncBranch> func_branch = std::shared_ptr<FuncBranch>(new FuncBranch(this->getCompiler()));
+    func_branch->setReturnTypeBranch(func_return_type);
+    func_branch->setNameBranch(func_name);
+    func_branch->setArgumentsBranch(func_arguments);
+    func_branch->setBodyBranch(body);
 
     // Now push it back to the stack
     push_branch(func_branch);
@@ -475,9 +475,9 @@ void Parser::process_assignment()
     pop_branch();
     std::shared_ptr<Branch> expression = this->branch;
 
-    std::shared_ptr<Branch> assign_branch = std::shared_ptr<Branch>(new Branch("ASSIGN", op->getValue()));
-    assign_branch->addChild(var_name);
-    assign_branch->addChild(expression);
+    std::shared_ptr<AssignBranch> assign_branch = std::shared_ptr<AssignBranch>(new AssignBranch(this->getCompiler()));
+    assign_branch->setVariableToAssignBranch(var_name);
+    assign_branch->setValueBranch(expression);
 
     // Now finally push the assign branch to the stack
     push_branch(assign_branch);

@@ -54,6 +54,7 @@ public:
     std::shared_ptr<Branch> getFourthChild();
     std::vector<std::shared_ptr<Branch>> getChildren();
     bool hasChild(std::shared_ptr<Branch> branch);
+    bool hasChildren();
     std::shared_ptr<Branch> getParent();
     bool hasParent();
     std::shared_ptr<Branch> lookUpTreeUntilParentTypeFound(std::string parent_type_to_find);

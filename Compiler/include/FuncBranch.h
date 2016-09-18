@@ -26,13 +26,18 @@
 #define FUNCBRANCH_H
 
 #include "CustomBranch.h"
-class FuncBranch : public CustomBranch {
+class EXPORT FuncBranch : public CustomBranch {
 public:
     FuncBranch(Compiler* compiler);
     virtual ~FuncBranch();
-    std::shared_ptr<Branch> getFunctionNameBranch();
-    std::vector<std::shared_ptr<Branch>> getFunctionArgumentBranches();
-    std::shared_ptr<Branch> getFunctionScopeBranches();
+    void setReturnTypeBranch(std::shared_ptr<Branch> returnTypeBranch);
+    void setNameBranch(std::shared_ptr<Branch> nameBranch);
+    void setArgumentsBranch(std::shared_ptr<Branch> argumentsBranch);
+    void setBodyBranch(std::shared_ptr<Branch> bodyBranch);
+    std::shared_ptr<Branch> getReturnTypeBranch();
+    std::shared_ptr<Branch> getNameBranch();
+    std::shared_ptr<Branch> getArgumentsBranch();
+    std::shared_ptr<Branch> getBodyBranch();
 private:
     
 };
