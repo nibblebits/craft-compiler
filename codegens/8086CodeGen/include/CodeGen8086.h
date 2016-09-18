@@ -29,7 +29,14 @@
 
 #include "GoblinByteCodeLinker.h"
 #include "CodeGenerator.h"
-#include "VDEFBranch.h"
+#include "branches.h"
+
+enum
+{
+    GLOBAL_VARIABLE,
+    ARGUMENT_VARIABLE,
+    SCOPE_VARIABLE
+};
 
 class CodeGen8086 : public CodeGenerator {
 public:
@@ -38,16 +45,32 @@ public:
     
     void make_label(std::string label);
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
-    void make_assignment(std::string var_name, std::shared_ptr<Branch> value_exp);
+    void make_assignment(std::string pos, std::shared_ptr<Branch> value_exp);
     void make_expression(std::shared_ptr<Branch> exp);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
+    void make_move_reg_variable(std::string reg_name, std::string var_name);
     
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
+    void handle_function(std::shared_ptr<FuncBranch> func_branch);
+    void handle_func_args(std::shared_ptr<Branch> arguments);
+    void handle_func_body(std::shared_ptr<Branch> body);
+    void handle_stmt(std::shared_ptr<Branch> branch);
+    void handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch);
+    void handle_scope_return(std::shared_ptr<Branch> branch);
+    
+    int getFunctionArgumentIndex(std::string arg_name);
+    int getBPOffsetForArgument(std::string arg_name);
+    int getScopeVariableIndex(std::string arg_name);
+    int getBPOffsetForScopeVariable(std::string arg_name);
+    int getVariableType(std::string arg_name);
+    
     void generate_global_branch(std::shared_ptr<Branch> branch);
     void assemble(std::string assembly);
     std::shared_ptr<Linker> getLinker();
 private:
     std::shared_ptr<Linker> linker;
+    std::vector<std::shared_ptr<Branch>> func_arguments;
+    std::vector<std::shared_ptr<Branch>> scope_variables;
 };
 
 #endif /* CODEGEN8086_H */
