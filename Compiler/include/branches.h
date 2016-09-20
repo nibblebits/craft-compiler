@@ -34,6 +34,7 @@
 #include "EBranch.h"
 #include "ASMBranch.h"
 #include "ArrayBranch.h"
+#include "FuncCallBranch.h"
 
 
 #endif /* BRANCHES_H */

@@ -709,9 +709,9 @@ void Parser::process_function_call()
 
 
     // We have everything we need now build the function call
-    std::shared_ptr<Branch> func_call_root = std::shared_ptr<Branch>(new Branch("FUNC_CALL", ""));
-    func_call_root->addChild(func_name);
-    func_call_root->addChild(params);
+    std::shared_ptr<FuncCallBranch> func_call_root = std::shared_ptr<FuncCallBranch>(new FuncCallBranch(this->getCompiler()));
+    func_call_root->setFuncNameBranch(func_name);
+    func_call_root->setFuncParamsBranch(params);
     push_branch(func_call_root);
 }
 

@@ -19,6 +19,7 @@
       <itemPath>include/EBranch.h</itemPath>
       <itemPath>include/Exception.h</itemPath>
       <itemPath>include/FuncBranch.h</itemPath>
+      <itemPath>include/FuncCallBranch.h</itemPath>
       <itemPath>include/GoblinByteCodeGenerator.h</itemPath>
       <itemPath>include/GoblinByteCodeLinker.h</itemPath>
       <itemPath>include/GoblinObject.h</itemPath>
@@ -67,6 +68,7 @@
       <itemPath>src/CustomBranch.cpp</itemPath>
       <itemPath>src/EBranch.cpp</itemPath>
       <itemPath>src/FuncBranch.cpp</itemPath>
+      <itemPath>src/FuncCallBranch.cpp</itemPath>
       <itemPath>src/GoblinByteCodeGenerator.cpp</itemPath>
       <itemPath>src/GoblinByteCodeLinker.cpp</itemPath>
       <itemPath>src/GoblinObject.cpp</itemPath>
@@ -159,6 +161,8 @@
       </item>
       <item path="include/FuncBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/FuncCallBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/GoblinByteCodeGenerator.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/GoblinByteCodeLinker.h" ex="false" tool="3" flavor2="0">
@@ -241,6 +245,8 @@
       <item path="src/EBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/FuncBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/FuncCallBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/GoblinByteCodeGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -331,6 +337,8 @@
       </item>
       <item path="include/FuncBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/FuncCallBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/GoblinByteCodeGenerator.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/GoblinByteCodeLinker.h" ex="false" tool="3" flavor2="0">
@@ -413,6 +421,8 @@
       <item path="src/EBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/FuncBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/FuncCallBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/GoblinByteCodeGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
