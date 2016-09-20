@@ -84,6 +84,12 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         // This is a variable so set AX to the value of this variable
         make_move_reg_variable("ax", exp->getValue());
     }
+    else if (exp->getType() == "FUNC_CALL")
+    {
+        // This is a function call so handle it
+        std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(exp);
+        handle_function_call(func_call_branch);
+    }
     else
     {
         // This is a proper expression so process it
@@ -101,6 +107,12 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
                 if (left->getType() == "identifier")
                 {
                     make_move_reg_variable("ax", left->getValue());
+                }
+                else if (left->getType() == "FUNC_CALL")
+                {
+                    // Its a function call
+                    std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(left);
+                    handle_function_call(func_call_branch);
                 }
                 else
                 {
@@ -130,6 +142,24 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
             if (right->getType() == "identifier")
             {
                 make_move_reg_variable("bx", right->getValue());
+            }
+            else if (right->getType() == "FUNC_CALL")
+            {
+                /*
+                 * This is a function call, we must push AX as at this point AX is set to something,
+                 * the AX register is the register used to return data to the function caller.
+                 * Therefore the previous AX register must be saved
+                 */
+
+                std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(right);
+                
+                // Save AX
+                do_asm("push ax");
+                handle_function_call(func_call_branch);
+                // Since AX now contains returned value we must move it to register BX as this is where right operands get stored of any expression
+                do_asm("mov bx, ax");
+                // Restore AX
+                do_asm("pop ax");
             }
             else
             {
@@ -269,6 +299,31 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
         // Register a scope variable
         this->scope_variables.push_back(branch);
     }
+}
+
+void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
+{
+    std::shared_ptr<Branch> func_name_branch = branch->getFuncNameBranch();
+    std::shared_ptr<Branch> func_params_branch = branch->getFuncParamsBranch();
+
+    std::vector<std::shared_ptr < Branch>> params = func_params_branch->getChildren();
+
+    // Parameters are treated as an expression
+    for (std::shared_ptr<Branch> param : params)
+    {
+        make_expression(param);
+        // Push the expression to the stack as this is a function call
+        do_asm("push ax");
+    }
+
+    // Now call the function :)
+    do_asm("call _" + func_name_branch->getValue());
+
+    /* Add to the stack pointer to avoid all those parameters we just pushed.
+     * On the 8086 architecture each value pushed is one word in size, therefore its the total children * 2
+     * this will change when structures are added to the equation. */
+
+    do_asm("add sp, " + std::to_string((params.size() * 2)));
 }
 
 void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch)

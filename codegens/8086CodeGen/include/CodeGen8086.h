@@ -49,12 +49,12 @@ public:
     void make_expression(std::shared_ptr<Branch> exp);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_move_reg_variable(std::string reg_name, std::string var_name);
-    
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_function(std::shared_ptr<FuncBranch> func_branch);
     void handle_func_args(std::shared_ptr<Branch> arguments);
     void handle_func_body(std::shared_ptr<Branch> body);
     void handle_stmt(std::shared_ptr<Branch> branch);
+    void handle_function_call(std::shared_ptr<FuncCallBranch> branch);
     void handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch);
     void handle_scope_return(std::shared_ptr<Branch> branch);
     
