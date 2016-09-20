@@ -16,40 +16,23 @@
  */
 
 /* 
- * File:   VDEFBranch.h
+ * File:   VDEFPTRBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 25 June 2016, 02:31
+ * Created on 20 September 2016, 01:35
  */
 
-#ifndef VDEFBRANCH_H
-#define VDEFBRANCH_H
+#ifndef VDEFPTRBRANCH_H
+#define VDEFPTRBRANCH_H
 
-#include "CustomBranch.h"
-
-struct array_def
-{
-    int dimensions;
-    size_t t_size;
-    std::vector<size_t> sizes;
-};
-
-class EXPORT VDEFBranch : public CustomBranch
-{
+#include "VDEFBranch.h"
+class EXPORT VDEFPTRBranch : public VDEFBranch {
 public:
-    VDEFBranch(Compiler* compiler, std::string branch_name = "V_DEF", std::string branch_value = "");
-    virtual ~VDEFBranch();
-
-    void setKeywordBranch(std::shared_ptr<Branch> branch);
-    void setNameBranch(std::shared_ptr<Branch> branch);
-    void setValueExpBranch(std::shared_ptr<Branch> branch);
-
-    std::shared_ptr<Branch> getKeywordBranch();
-    std::shared_ptr<Branch> getNameBranch();
-    std::shared_ptr<Branch> getValueExpBranch();
+    VDEFPTRBranch(Compiler* compiler);
+    virtual ~VDEFPTRBranch();
 private:
 
 };
 
-#endif /* VDEFBRANCH_H */
+#endif /* VDEFPTRBRANCH_H */
 

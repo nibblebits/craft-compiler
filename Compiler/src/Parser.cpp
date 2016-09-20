@@ -437,10 +437,20 @@ void Parser::process_variable_declaration()
      * Now that we have popped to variable name and keyword of the variable
      * we need to create a branch for, lets create a branch for them  */
 
-    std::shared_ptr<VDEFBranch> var_root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
+    std::shared_ptr<VDEFBranch> var_root;
+    if (is_pointer)
+    {
+        var_root = std::shared_ptr<VDEFPTRBranch>(new VDEFPTRBranch(this->getCompiler()));
+    }
+    else
+    {
+        var_root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
+    }
+
     var_root->setKeywordBranch(var_keyword);
     var_root->setNameBranch(var_name);
     var_root->setValueExpBranch(var_value);
+
 
     // Push that root back to the branches
     push_branch(var_root);
@@ -572,7 +582,7 @@ void Parser::process_expression()
                     right = exp_root;
                 }
             }
-            
+
             exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
             exp_root->addChild(left);
             exp_root->addChild(right);

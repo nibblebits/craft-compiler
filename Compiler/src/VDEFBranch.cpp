@@ -27,8 +27,9 @@
 #include "VDEFBranch.h"
 #include "ArrayBranch.h"
 
-VDEFBranch::VDEFBranch(Compiler* compiler) : CustomBranch(compiler, "V_DEF", "")
+VDEFBranch::VDEFBranch(Compiler* compiler, std::string branch_name, std::string branch_value) : CustomBranch(compiler, branch_name, branch_value)
 {
+
 }
 
 VDEFBranch::~VDEFBranch()

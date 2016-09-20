@@ -44,6 +44,7 @@
       <itemPath>include/TypeChecker.h</itemPath>
       <itemPath>include/TypeCheckerException.h</itemPath>
       <itemPath>include/VDEFBranch.h</itemPath>
+      <itemPath>include/VDEFPTRBranch.h</itemPath>
       <itemPath>include/branches.h</itemPath>
       <itemPath>include/common.h</itemPath>
       <itemPath>include/def.h</itemPath>
@@ -87,6 +88,7 @@
       <itemPath>src/Tree.cpp</itemPath>
       <itemPath>src/TypeChecker.cpp</itemPath>
       <itemPath>src/VDEFBranch.cpp</itemPath>
+      <itemPath>src/VDEFPTRBranch.cpp</itemPath>
       <itemPath>src/common.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -214,6 +216,8 @@
       </item>
       <item path="include/VDEFBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/VDEFPTRBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/branches.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/common.h" ex="false" tool="3" flavor2="0">
@@ -283,6 +287,8 @@
       <item path="src/TypeChecker.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VDEFBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VDEFPTRBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/common.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -390,6 +396,8 @@
       </item>
       <item path="include/VDEFBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/VDEFPTRBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/branches.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/common.h" ex="false" tool="3" flavor2="0">
@@ -459,6 +467,8 @@
       <item path="src/TypeChecker.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VDEFBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VDEFPTRBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/common.cpp" ex="false" tool="1" flavor2="0">
       </item>
