@@ -1,21 +1,12 @@
-uint8 main()
+uint8 test(uint8* a)
 {
-	uint8 a = 10;
-	a += 20;
-	if (a > 3)
-	{
-	}
-	
-	for (uint8 i = 10; i < 50; i = i +1)
-	{
-	
-	}
-	
-	while(1)
-	{
-	}
-	
-	print("Hello world, everything you see is currently compatible with the parser");
+  *a = 50;
+  return a;
+}
 
-	return;
+uint8 main(uint8 a)
+{
+  uint8 b;
+  b = test(&a);
+  return a;
 }

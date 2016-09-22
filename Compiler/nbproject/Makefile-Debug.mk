@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/src/ASMBranch.o \
 	${OBJECTDIR}/src/ASTAssistant.o \
+	${OBJECTDIR}/src/AddressOfBranch.o \
 	${OBJECTDIR}/src/ArrayBranch.o \
 	${OBJECTDIR}/src/AssignBranch.o \
 	${OBJECTDIR}/src/Branch.o \
@@ -60,6 +61,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
+	${OBJECTDIR}/src/PtrBranch.o \
 	${OBJECTDIR}/src/Scope.o \
 	${OBJECTDIR}/src/Stream.o \
 	${OBJECTDIR}/src/Token.o \
@@ -107,6 +109,11 @@ ${OBJECTDIR}/src/ASTAssistant.o: src/ASTAssistant.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASTAssistant.o src/ASTAssistant.cpp
+
+${OBJECTDIR}/src/AddressOfBranch.o: src/AddressOfBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/AddressOfBranch.o src/AddressOfBranch.cpp
 
 ${OBJECTDIR}/src/ArrayBranch.o: src/ArrayBranch.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -222,6 +229,11 @@ ${OBJECTDIR}/src/ParserRuleRequirement.o: src/ParserRuleRequirement.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ParserRuleRequirement.o src/ParserRuleRequirement.cpp
+
+${OBJECTDIR}/src/PtrBranch.o: src/PtrBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PtrBranch.o src/PtrBranch.cpp
 
 ${OBJECTDIR}/src/Scope.o: src/Scope.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

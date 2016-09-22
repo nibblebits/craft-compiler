@@ -36,6 +36,7 @@
 #include "ArrayBranch.h"
 #include "FuncCallBranch.h"
 #include "VDEFPTRBranch.h"
+#include "AddressOfBranch.h"
 
 #endif /* BRANCHES_H */
 

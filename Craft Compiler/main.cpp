@@ -65,7 +65,6 @@ Lexer* lexer;
 Parser* parser;
 TypeChecker* typeChecker;
 
-
 std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
 {
     std::shared_ptr<CodeGenerator> codegen = NULL;

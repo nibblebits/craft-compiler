@@ -467,7 +467,6 @@ void Parser::process_assignment()
 
     std::shared_ptr<Branch> var_name = this->branch;
 
-    shift_pop();
     // Check for a valid assignment, e.g =, +=, -=
     if (!is_branch_operator("=") &&
             !is_branch_operator("+=") &&
@@ -645,8 +644,8 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
 
         // Shift and pop the identifier
         shift_pop();
-        std::shared_ptr<Branch> address_of_branch = std::shared_ptr<Branch>(new Branch("ADDRESS_OF", ""));
-        address_of_branch->addChild(this->branch);
+        std::shared_ptr<AddressOfBranch> address_of_branch = std::shared_ptr<AddressOfBranch>(new AddressOfBranch(this->getCompiler()));
+        address_of_branch->setVariableBranch(this->branch);
         b = address_of_branch;
     }
     else if (is_peak_type("string"))

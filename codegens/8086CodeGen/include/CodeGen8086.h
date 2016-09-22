@@ -45,10 +45,12 @@ public:
     
     void make_label(std::string label);
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
-    void make_assignment(std::string pos, std::shared_ptr<Branch> value_exp);
+    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp);
     void make_expression(std::shared_ptr<Branch> exp);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
-    void make_move_reg_variable(std::string reg_name, std::string var_name);
+    void make_move_dst_variable(std::string reg_name, std::string var_name);
+    void make_move_variable_address(std::string reg_name, std::string var_name);
+    
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_function(std::shared_ptr<FuncBranch> func_branch);
     void handle_func_args(std::shared_ptr<Branch> arguments);
@@ -63,6 +65,11 @@ public:
     int getScopeVariableIndex(std::string arg_name);
     int getBPOffsetForScopeVariable(std::string arg_name);
     int getVariableType(std::string arg_name);
+    
+    std::shared_ptr<Branch> getScopeVariable(std::string var_name);
+    std::shared_ptr<Branch> getFunctionArgumentVariable(std::string arg_name);
+    
+    bool isVariablePointer(std::string var_name);
     
     void generate_global_branch(std::shared_ptr<Branch> branch);
     void assemble(std::string assembly);

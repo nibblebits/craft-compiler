@@ -20,7 +20,16 @@ build/Debug/MinGW-Windows/main.o: main.cpp main.h \
  ../../Compiler/include/ASTAssistant.h \
  ../../Compiler/include/CodeGenerator.h ../../Compiler/include/common.h \
  include/CodeGen8086.h ../../Compiler/include/GoblinByteCodeLinker.h \
- ../../Compiler/include/GoblinObjectLinker.h
+ ../../Compiler/include/GoblinObjectLinker.h \
+ ../../Compiler/include/branches.h ../../Compiler/include/CallBranch.h \
+ ../../Compiler/include/CustomBranch.h ../../Compiler/include/Compiler.h \
+ ../../Compiler/include/FuncBranch.h ../../Compiler/include/VDEFBranch.h \
+ ../../Compiler/include/AssignBranch.h \
+ ../../Compiler/include/MathEBranch.h ../../Compiler/include/EBranch.h \
+ ../../Compiler/include/ASMBranch.h ../../Compiler/include/ArrayBranch.h \
+ ../../Compiler/include/FuncCallBranch.h \
+ ../../Compiler/include/VDEFPTRBranch.h \
+ ../../Compiler/include/AddressOfBranch.h
 
 main.h:
 
@@ -91,3 +100,31 @@ include/CodeGen8086.h:
 ../../Compiler/include/GoblinByteCodeLinker.h:
 
 ../../Compiler/include/GoblinObjectLinker.h:
+
+../../Compiler/include/branches.h:
+
+../../Compiler/include/CallBranch.h:
+
+../../Compiler/include/CustomBranch.h:
+
+../../Compiler/include/Compiler.h:
+
+../../Compiler/include/FuncBranch.h:
+
+../../Compiler/include/VDEFBranch.h:
+
+../../Compiler/include/AssignBranch.h:
+
+../../Compiler/include/MathEBranch.h:
+
+../../Compiler/include/EBranch.h:
+
+../../Compiler/include/ASMBranch.h:
+
+../../Compiler/include/ArrayBranch.h:
+
+../../Compiler/include/FuncCallBranch.h:
+
+../../Compiler/include/VDEFPTRBranch.h:
+
+../../Compiler/include/AddressOfBranch.h:
