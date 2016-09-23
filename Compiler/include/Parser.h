@@ -64,6 +64,7 @@ private:
     void process_stmt();
     void process_variable_declaration();
     void process_assignment();
+    void process_variable_access();
     void process_expression();
     std::shared_ptr<Branch> process_expression_operand();
     std::shared_ptr<Branch> process_expression_operator();
@@ -91,6 +92,7 @@ private:
     inline bool is_branch_keyword(std::string keyword);
     inline bool is_branch_operator(std::string op);
     inline bool is_branch_identifier(std::string identifier);
+    inline bool is_peak_stack_type(std::string type);
     inline bool is_peak_symbol(std::string symbol);
     inline bool is_peak_type(std::string type);
     inline bool is_peak_value(std::string value);
