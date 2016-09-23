@@ -348,6 +348,20 @@ void Parser::process_stmt()
             process_semicolon();
         }
     }
+    else if(is_peak_type("operator"))
+    {
+        peak(1);
+        if (is_peak_type("identifier"))
+        {
+            peak(2);
+            if (is_peak_type("operator"))
+            {
+                // This should be a pointer value assignment
+                process_assignment();
+                process_semicolon();
+            }
+        }
+    }
     else if (is_peak_type("identifier"))
     {
         peak(1);
@@ -459,14 +473,14 @@ void Parser::process_variable_declaration()
 
 void Parser::process_assignment()
 {
-    shift_pop();
-    if (!is_branch_type("identifier"))
-    {
-        error("expecting identifier for assignment");
-    }
-
+    // Process the variable access
+    process_variable_access();
+    // Pop the result from the stack
+    pop_branch();
+    
     std::shared_ptr<Branch> var_name = this->branch;
 
+    shift_pop();
     // Check for a valid assignment, e.g =, +=, -=
     if (!is_branch_operator("=") &&
             !is_branch_operator("+=") &&
@@ -492,6 +506,41 @@ void Parser::process_assignment()
     push_branch(assign_branch);
 }
 
+void Parser::process_variable_access()
+{
+    std::shared_ptr<Branch> root = NULL;
+    shift_pop();
+     // Check for pointer access
+    if (is_branch_operator("*"))
+    {
+        root = std::shared_ptr<Branch>(new Branch("PTR", ""));
+        // Shift and pop the next identifier which is the variable to access
+        shift_pop();
+    }
+    
+    // Make sure we have an identifier
+    if (!is_branch_type("identifier"))
+    {
+        error_expecting("identifier", this->branch_type);
+    }
+    
+    std::shared_ptr<Branch> identifier = this->branch;
+    // Do we have a root?
+    if (root != NULL)
+    {
+        // Well add this identifier to it.
+        root->addChild(identifier);
+    }
+    else
+    {
+        // No root? Ok set the root to the identifier
+        root = identifier;
+    }
+    
+    // Push the root branch to the stack
+    push_branch(root);
+}
+
 void Parser::process_expression()
 {
     std::shared_ptr<Branch> exp_root = NULL;
@@ -507,7 +556,9 @@ void Parser::process_expression()
                 is_peak_type("identifier") ||
                 is_peak_type("string") ||
                 // This is used for addresses, e.g &test get the address of variable test
-                is_peak_operator("&")
+                is_peak_operator("&") ||
+                // This is used for pointer access, e.g *a
+                is_peak_operator("*")
                 )
         {
             if (left == NULL)
@@ -647,6 +698,21 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         std::shared_ptr<AddressOfBranch> address_of_branch = std::shared_ptr<AddressOfBranch>(new AddressOfBranch(this->getCompiler()));
         address_of_branch->setVariableBranch(this->branch);
         b = address_of_branch;
+    }
+    else if(is_peak_type("operator"))
+    {
+        // Peak further and see if the next value is an identifier
+        peak(1);
+        if (is_peak_type("identifier"))
+        {
+            /* Ok this is accessing a variable this could be a pointer 
+             * e.g "*a" get the value from the memory location pointer "a" is pointing to
+             */
+            process_variable_access();
+            // Pop off the result
+            pop_branch();
+            b = this->branch;
+        }
     }
     else if (is_peak_type("string"))
     {
