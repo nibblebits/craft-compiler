@@ -348,7 +348,7 @@ void Parser::process_stmt()
             process_semicolon();
         }
     }
-    else if (is_peak_type("operator"))
+    else if(is_peak_type("operator"))
     {
         peak(1);
         if (is_peak_type("identifier"))
@@ -479,7 +479,6 @@ void Parser::process_assignment()
     pop_branch();
 
     std::shared_ptr<Branch> dst_branch = this->branch;
-
     shift_pop();
     // Check for a valid assignment, e.g =, +=, -=
     if (!is_branch_operator("=") &&
@@ -510,7 +509,8 @@ void Parser::process_variable_access()
 {
     std::shared_ptr<Branch> root = NULL;
     shift_pop();
-    // Check for pointer access
+     // Check for pointer access
+
     if (is_branch_operator("*"))
     {
         root = std::shared_ptr<Branch>(new Branch("PTR", ""));
@@ -540,6 +540,7 @@ void Parser::process_variable_access()
     // Push the root branch to the stack
     push_branch(root);
 }
+
 
 void Parser::process_structure_access()
 {
@@ -755,7 +756,7 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         address_of_branch->setVariableBranch(this->branch);
         b = address_of_branch;
     }
-    else if (is_peak_type("operator"))
+    else if(is_peak_type("operator"))
     {
         // Peak further and see if the next value is an identifier
         peak(1);

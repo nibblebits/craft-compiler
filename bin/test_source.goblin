@@ -1,12 +1,14 @@
+
 uint8 test(uint8* a)
 {
-  *a = 50;
-  return a;
+  uint8* c;
+  *c = *a + 5;
+  return *a;
 }
 
 uint8 main(uint8 a)
 {
   uint8 b;
-  b = test(&a);
-  return a;
+  b = test(&a) + 2;
+  return b;
 }
