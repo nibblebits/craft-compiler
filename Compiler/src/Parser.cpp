@@ -478,7 +478,7 @@ void Parser::process_assignment()
     // Pop the result from the stack
     pop_branch();
 
-    std::shared_ptr<Branch> var_name = this->branch;
+    std::shared_ptr<Branch> dst_branch = this->branch;
 
     shift_pop();
     // Check for a valid assignment, e.g =, +=, -=
@@ -499,7 +499,7 @@ void Parser::process_assignment()
     std::shared_ptr<Branch> expression = this->branch;
 
     std::shared_ptr<AssignBranch> assign_branch = std::shared_ptr<AssignBranch>(new AssignBranch(this->getCompiler()));
-    assign_branch->setVariableToAssignBranch(var_name);
+    assign_branch->setVariableToAssignBranch(dst_branch);
     assign_branch->setValueBranch(expression);
 
     // Now finally push the assign branch to the stack
