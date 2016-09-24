@@ -322,7 +322,7 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
     {
         handle_scope_return(branch);
     }
-    else if (branch->getType() == "V_DEF")
+    else if (branch->getType() == "V_DEF" || branch->getType() == "V_DEF_PTR")
     {
         // Register a scope variable
         this->scope_variables.push_back(branch);
