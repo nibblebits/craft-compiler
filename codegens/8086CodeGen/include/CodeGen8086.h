@@ -48,7 +48,7 @@ public:
     void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp);
     void make_expression(std::shared_ptr<Branch> exp);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
-    void make_move_dst_variable(std::string reg_name, std::string var_name);
+    void make_move_reg_variable(std::string reg_name, std::string var_name);
     void make_move_variable_address(std::string reg_name, std::string var_name);
     
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
@@ -59,12 +59,14 @@ public:
     void handle_function_call(std::shared_ptr<FuncCallBranch> branch);
     void handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch);
     void handle_scope_return(std::shared_ptr<Branch> branch);
+    void handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Branch> branch);
     
     int getFunctionArgumentIndex(std::string arg_name);
     int getBPOffsetForArgument(std::string arg_name);
     int getScopeVariableIndex(std::string arg_name);
     int getBPOffsetForScopeVariable(std::string arg_name);
     int getVariableType(std::string arg_name);
+    std::string getASMAddressForVariable(std::string var_name);
     
     std::shared_ptr<Branch> getScopeVariable(std::string var_name);
     std::shared_ptr<Branch> getFunctionArgumentVariable(std::string arg_name);

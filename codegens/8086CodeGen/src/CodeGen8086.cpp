@@ -81,7 +81,12 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
     else if (exp->getType() == "identifier")
     {
         // This is a variable so set AX to the value of this variable
-        make_move_dst_variable("ax", exp->getValue());
+        make_move_reg_variable("ax", exp->getValue());
+    }
+    else if (exp->getType() == "PTR")
+    {
+        // This is pointer access to a variable so lets set AX to the value that it is pointing to
+        handle_move_pointed_to_reg("ax", exp);
     }
     else if (exp->getType() == "FUNC_CALL")
     {
@@ -112,7 +117,11 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
             {
                 if (left->getType() == "identifier")
                 {
-                    make_move_dst_variable("ax", left->getValue());
+                    make_move_reg_variable("ax", left->getValue());
+                }
+                else if(left->getType() == "PTR")
+                {
+                    handle_move_pointed_to_reg("ax", left);
                 }
                 else if (left->getType() == "FUNC_CALL")
                 {
@@ -140,14 +149,18 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
             make_expression(right);
             if (left->getType() != "E")
             {
-                do_asm("mov bx, " + left->getValue());
+                do_asm("mov cx, " + left->getValue());
             }
         }
         else
         {
             if (right->getType() == "identifier")
             {
-                make_move_dst_variable("bx", right->getValue());
+                make_move_reg_variable("cx", right->getValue());
+            }
+            else if(right->getType() == "PTR")
+            {
+                handle_move_pointed_to_reg("cx", right);
             }
             else if (right->getType() == "FUNC_CALL")
             {
@@ -159,18 +172,18 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
 
                 std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(right);
 
-                // Save AX
-                do_asm("push ax");
+                // Save CX
+                do_asm("push cx");
                 handle_function_call(func_call_branch);
-                // Since AX now contains returned value we must move it to register BX as this is where right operands get stored of any expression
-                do_asm("mov bx, ax");
-                // Restore A
-                do_asm("pop ax");
+                // Since AX now contains returned value we must move it to register CX as this is where right operands get stored of any expression
+                do_asm("mov bx, cx");
+                // Restore CX
+                do_asm("pop cx");
             }
             else
             {
                 // Its a number literal
-                do_asm("mov bx, " + right->getValue());
+                do_asm("mov cx, " + right->getValue());
             }
         }
 
@@ -179,11 +192,11 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         {
             do_asm("pop bx");
             // Now add the results together
-            do_asm("add ax, bx");
+            do_asm("add ax, cx");
         }
         else
         {
-            make_math_instruction(exp->getValue(), "ax", "bx");
+            make_math_instruction(exp->getValue(), "ax", "cx");
         }
     }
 }
@@ -226,24 +239,10 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
     }
 }
 
-void CodeGen8086::make_move_dst_variable(std::string dst, std::string var_name)
+void CodeGen8086::make_move_reg_variable(std::string reg, std::string var_name)
 {
-    int bp_offset;
-    std::string bp_str;
-    int var_type = this->getVariableType(var_name);
-    switch (var_type)
-    {
-    case ARGUMENT_VARIABLE:
-        bp_offset = getBPOffsetForArgument(var_name);
-        bp_str = "[bp+" + std::to_string(bp_offset) + "]";
-        break;
-    case SCOPE_VARIABLE:
-        bp_offset = getBPOffsetForScopeVariable(var_name);
-        bp_str = "[bp-" + std::to_string(bp_offset) + "]";
-        break;
-    }
-
-    do_asm("mov " + dst + ", " + bp_str);
+    std::string asm_addr = getASMAddressForVariable(var_name);
+    do_asm("mov " + reg + ", [" + asm_addr + "]");
 }
 
 void CodeGen8086::make_move_variable_address(std::string reg_name, std::string var_name)
@@ -255,7 +254,7 @@ void CodeGen8086::make_move_variable_address(std::string reg_name, std::string v
     {
         do_asm("mov " + reg_name + ", bp");
     }
-    
+
     switch (var_type)
     {
     case ARGUMENT_VARIABLE:
@@ -360,39 +359,26 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
     std::shared_ptr<Branch> var_to_assign_branch = assign_branch->getVariableToAssignBranch();
     std::shared_ptr<Branch> value = assign_branch->getValueBranch();
 
-    int pos;
-    std::string var_name = var_to_assign_branch->getValue();
-    int var_type = this->getVariableType(var_name);
-    bool is_var_pointer = isVariablePointer(var_name);
-
-    switch (var_type)
+    // Check to see if we are assigning memory pointed to by a pointer
+    bool pointer_assignment = false;
+    if (var_to_assign_branch->getType() == "PTR")
     {
-    case ARGUMENT_VARIABLE:
-        pos = getBPOffsetForArgument(var_name);
-        if (is_var_pointer)
-        {
-            do_asm("mov bx, [bp+" + std::to_string(pos) + "]");
-            // Set the memory pointed to by BX to value
-            make_mem_assignment("bx", value);
-        }
-        else
-        {
-            make_mem_assignment("bp+" + std::to_string(pos), value);
-        }
-        break;
-    case SCOPE_VARIABLE:
-        pos = getBPOffsetForScopeVariable(var_name);
-        if (is_var_pointer)
-        {
-            do_asm("mov bx, [bp-" + std::to_string(pos) + "]");
-            // Set the memory pointed to by BX to value
-            make_mem_assignment("bx", value);
-        }
-        else
-        {
-            make_mem_assignment("bp-" + std::to_string(pos), value);
-        }
-        break;
+        pointer_assignment = true;
+        var_to_assign_branch = var_to_assign_branch->getFirstChild();
+    }
+
+    std::string var_name = var_to_assign_branch->getValue();
+    std::string asm_addr = getASMAddressForVariable(var_name);
+
+    if (pointer_assignment)
+    {
+        do_asm("mov bx, [" + asm_addr + "]");
+        // Set the memory pointed to by BX to value
+        make_mem_assignment("bx", value);
+    }
+    else
+    {
+        make_mem_assignment(asm_addr, value);
     }
 }
 
@@ -410,6 +396,16 @@ void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
     // Pop from the stack back to the BP(Base Pointer) now we are leaving this function
     do_asm("pop bp");
     do_asm("ret");
+}
+
+void CodeGen8086::handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Branch> branch)
+{
+    std::shared_ptr<Branch> variable_name_branch = branch->getFirstChild();
+    std::string asm_addr = getASMAddressForVariable(variable_name_branch->getValue());
+    do_asm("push bx");
+    do_asm("mov bx, [" + asm_addr + "]");
+    do_asm("mov " + reg + ", [bx]");
+    do_asm("pop bx");
 }
 
 int CodeGen8086::getFunctionArgumentIndex(std::string arg_name)
@@ -462,6 +458,27 @@ int CodeGen8086::getVariableType(std::string arg_name)
         return ARGUMENT_VARIABLE;
 
     return GLOBAL_VARIABLE;
+}
+
+std::string CodeGen8086::getASMAddressForVariable(std::string var_name)
+{
+    int var_type = this->getVariableType(var_name);
+    int bp_offset;
+    std::string dst_string;
+    switch (var_type)
+    {
+    case ARGUMENT_VARIABLE:
+        bp_offset = getBPOffsetForArgument(var_name);
+        dst_string = "bp+" + std::to_string(bp_offset) + "";
+        break;
+    case SCOPE_VARIABLE:
+        bp_offset = getBPOffsetForScopeVariable(var_name);
+        dst_string = "bp-" + std::to_string(bp_offset) + "";
+        break;
+    }
+
+    return dst_string;
+
 }
 
 std::shared_ptr<Branch> CodeGen8086::getScopeVariable(std::string var_name)
