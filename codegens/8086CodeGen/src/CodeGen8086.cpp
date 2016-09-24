@@ -370,6 +370,7 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
     std::string var_name = var_to_assign_branch->getValue();
     std::string asm_addr = getASMAddressForVariable(var_name);
 
+    // Are we accessing memory pointed to by a pointer?
     if (pointer_assignment)
     {
         do_asm("mov bx, [" + asm_addr + "]");
@@ -402,9 +403,11 @@ void CodeGen8086::handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Br
 {
     std::shared_ptr<Branch> variable_name_branch = branch->getFirstChild();
     std::string asm_addr = getASMAddressForVariable(variable_name_branch->getValue());
+    // Save BX as its possible it could be taken due to a pointer to pointer assignment
     do_asm("push bx");
     do_asm("mov bx, [" + asm_addr + "]");
     do_asm("mov " + reg + ", [bx]");
+    // Restore BX
     do_asm("pop bx");
 }
 
