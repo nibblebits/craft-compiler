@@ -624,7 +624,7 @@ void Parser::process_expression()
             shift_pop();
             op = this->branch;
             
-            // Check to see if boolean expression order of operations applies.
+            // Check to see if compare expressions order of operations applies.
             if (compiler->isCompareOperator(this->peak_token_value))
             {
                 // Process the further expression
