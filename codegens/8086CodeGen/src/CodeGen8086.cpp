@@ -315,19 +315,19 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
         }
         else if (op == "<=")
         {
-            do_asm("jae " + this->cmp_exp_false_label_name);
+            do_asm("jbe " + this->cmp_exp_false_label_name);
         }
         else if (op == ">=")
         {
-            do_asm("jbe " + this->cmp_exp_false_label_name);
+            do_asm("jae " + this->cmp_exp_false_label_name);
         }
         else if (op == "<")
         {
-            do_asm("ja " + this->cmp_exp_false_label_name);
+            do_asm("jb " + this->cmp_exp_false_label_name);
         }
         else if (op == ">")
         {
-            do_asm("jb " + this->cmp_exp_false_label_name);
+            do_asm("ja " + this->cmp_exp_false_label_name);
         }
     }
     else
