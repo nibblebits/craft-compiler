@@ -115,6 +115,7 @@ private:
     std::string branch_type;
     std::string branch_value;
 
+    Compiler* compiler;
     std::shared_ptr<Tree> tree;
 };
 

@@ -35,7 +35,7 @@ Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
     this->tree = std::shared_ptr<Tree>(new Tree());
     this->logger = std::shared_ptr<Logger>(new Logger());
     this->token = NULL;
-
+    this->compiler = compiler;
 }
 
 Parser::~Parser()
@@ -623,6 +623,18 @@ void Parser::process_expression()
         {
             shift_pop();
             op = this->branch;
+            
+            // Check to see if boolean expression order of operations applies.
+            if (compiler->isCompareOperator(this->peak_token_value))
+            {
+                // Process the further expression
+                process_expression();
+                // Pop off the result
+                pop_branch();
+                // Put it on the right branch
+                right = this->branch;
+            }
+                
         }
         else if (is_peak_symbol("("))
         {
@@ -680,11 +692,6 @@ void Parser::process_expression()
                     exp_root->addChild(r);
                     right = exp_root;
                 }
-            }
-
-            if (op->getValue() == "==")
-            {
-                
             }
             
             exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));

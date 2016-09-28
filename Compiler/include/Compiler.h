@@ -53,6 +53,7 @@ public:
     static int getDataTypeSize(std::string type);
     std::string getTypeFromNumber(int number);
     bool canCast(std::string type1, std::string type2);
+    bool isCompareOperator(std::string value);
 private:
     /* Ideally these do not have to be pointers but since arguments now exist in the constructors of these objects I have ran into issues calling them.
      * I plan to change this soon */

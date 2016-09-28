@@ -161,6 +161,21 @@ bool Compiler::canCast(std::string type1, std::string type2)
             return true;
         }
     }
-    
+
     return false;
+}
+
+bool Compiler::isCompareOperator(std::string value)
+{
+    if (
+            value == "==" ||
+            value == "!=" ||
+            value == "<=" ||
+            value == ">=" ||
+            value == "<" ||
+            value == ">")
+        return true;
+
+    return false;
+
 }
