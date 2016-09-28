@@ -511,7 +511,7 @@ void Parser::process_variable_access()
     shift_pop();
      // Check for pointer access
 
-    if (is_branch_operator("*"))
+    if (is_branch_operator("@"))
     {
         root = std::shared_ptr<Branch>(new Branch("PTR", ""));
         // Shift and pop the next identifier which is the variable to access
@@ -604,10 +604,10 @@ void Parser::process_expression()
         if (is_peak_type("number") ||
                 is_peak_type("identifier") ||
                 is_peak_type("string") ||
-                // This is used for addresses, e.g &test get the address of variable test
-                is_peak_operator("&") ||
-                // This is used for pointer access, e.g *a
-                is_peak_operator("*")
+                // This is used for addresses, e.g ?test get the address of variable test
+                is_peak_operator("?") ||
+                // This is used for pointer access, e.g @a
+                is_peak_operator("@")
                 )
         {
             if (left == NULL)
@@ -682,6 +682,11 @@ void Parser::process_expression()
                 }
             }
 
+            if (op->getValue() == "==")
+            {
+                
+            }
+            
             exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
             exp_root->addChild(left);
             exp_root->addChild(right);
@@ -744,10 +749,10 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
             b = this->branch;
         }
     }
-    else if (is_peak_operator("&"))
+    else if (is_peak_operator("?"))
     {
         // We are getting the address of a declaration here
-        // Shift and pop the "&" symbol we do not need it anymore
+        // Shift and pop the "?" symbol we do not need it anymore
         shift_pop();
 
         // Shift and pop the identifier
