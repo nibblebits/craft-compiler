@@ -43,10 +43,13 @@ public:
     CodeGen8086(Compiler* compiler);
     virtual ~CodeGen8086();
     
-    void make_label(std::string label);
+    void inline make_label(std::string label);
+    void inline make_exact_label(std::string label);
+    std::string build_unique_label();
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
     void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp);
     void make_expression(std::shared_ptr<Branch> exp);
+    void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_move_reg_variable(std::string reg_name, std::string var_name);
     void make_move_variable_address(std::string reg_name, std::string var_name);
@@ -80,6 +83,10 @@ private:
     std::shared_ptr<Linker> linker;
     std::vector<std::shared_ptr<Branch>> func_arguments;
     std::vector<std::shared_ptr<Branch>> scope_variables;
+    std::string cmp_exp_false_label_name;
+    std::string cmp_exp_end_label_name;
+    bool is_cmp_expression;
+    int current_label_index;
 };
 
 #endif /* CODEGEN8086_H */

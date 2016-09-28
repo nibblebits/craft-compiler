@@ -29,6 +29,10 @@
 CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "goblin_bytecode")
 {
     this->linker = std::shared_ptr<Linker>(new GoblinByteCodeLinker(compiler));
+    this->cmp_exp_false_label_name = "";
+    this->cmp_exp_end_label_name = "";
+    this->current_label_index = 0;
+    this->is_cmp_expression = false;
 }
 
 CodeGen8086::~CodeGen8086()
@@ -38,6 +42,18 @@ CodeGen8086::~CodeGen8086()
 void CodeGen8086::make_label(std::string label)
 {
     do_asm("_" + label + ":");
+}
+
+void CodeGen8086::make_exact_label(std::string label)
+{
+    do_asm(label + ":");
+}
+
+std::string CodeGen8086::build_unique_label()
+{
+    std::string label_name = std::to_string(this->current_label_index);
+    this->current_label_index++;
+    return "_" + label_name;
 }
 
 void CodeGen8086::make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp)
@@ -68,6 +84,30 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
 {
     // We have a value expression here so make it.
     make_expression(value_exp);
+
+    // Check if this is a compare expression, this is used for expressions such as "a == 5"
+    if (this->is_cmp_expression)
+    {
+        /* Here we need to set AX to 1 and generate appropriate labels
+         We set AX to 1 as this is what code will be run should all the compares be true.
+         By setting AX to 1 we essentially set the variable to true.
+         Further down we will also set AX to 0 should the expression evaluate to false.
+         */
+        do_asm("mov ax, 1");
+        // Generate jump to jump other the false label as this value is now true
+        do_asm("jmp " + this->cmp_exp_end_label_name);
+
+        // Generate false label
+        make_exact_label(this->cmp_exp_false_label_name);
+
+        // Move zero to AX as this is false
+        do_asm("mov ax, 0");
+
+        // Generate end label
+        make_exact_label(this->cmp_exp_end_label_name);
+
+    }
+
     // Now we must assign the variable with the expression result
     do_asm("mov [" + dest + "], ax");
 }
@@ -115,25 +155,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         {
             if (right->getType() != "E")
             {
-                if (left->getType() == "identifier")
-                {
-                    make_move_reg_variable("ax", left->getValue());
-                }
-                else if(left->getType() == "PTR")
-                {
-                    handle_move_pointed_to_reg("ax", left);
-                }
-                else if (left->getType() == "FUNC_CALL")
-                {
-                    // Its a function call
-                    std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(left);
-                    handle_function_call(func_call_branch);
-                }
-                else
-                {
-                    // Its a number literal
-                    do_asm("mov ax, " + left->getValue());
-                }
+                make_expression_left(left, "ax");
             }
         }
 
@@ -149,7 +171,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
             make_expression(right);
             if (left->getType() != "E")
             {
-                do_asm("mov cx, " + left->getValue());
+                make_expression_left(left, "cx");
             }
         }
         else
@@ -158,7 +180,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
             {
                 make_move_reg_variable("cx", right->getValue());
             }
-            else if(right->getType() == "PTR")
+            else if (right->getType() == "PTR")
             {
                 handle_move_pointed_to_reg("cx", right);
             }
@@ -201,6 +223,32 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
     }
 }
 
+void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store)
+{
+    std::string type = exp->getType();
+    std::string value = exp->getValue();
+
+    if (type == "identifier")
+    {
+        make_move_reg_variable(register_to_store, value);
+    }
+    else if (type == "PTR")
+    {
+        handle_move_pointed_to_reg(register_to_store, exp);
+    }
+    else if (type == "FUNC_CALL")
+    {
+        // Its a function call
+        std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(exp);
+        handle_function_call(func_call_branch);
+    }
+    else
+    {
+        // Its a number literal
+        do_asm("mov ax, " + value);
+    }
+}
+
 void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, std::string second_reg)
 {
     if (op == "+")
@@ -232,6 +280,55 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
             first_reg = second_reg;
         }
         do_asm("div " + first_reg);
+    }
+    else if (
+            op == "!=" ||
+            op == "==" ||
+            op == "<=" ||
+            op == ">=" ||
+            op == ">" ||
+            op == "<")
+    {
+        // If we current do not have the expression compare false label or the expression compare end label setup then we need to do that
+        if (this->cmp_exp_false_label_name == "")
+        {
+            this->cmp_exp_false_label_name = build_unique_label();
+        }
+
+        if (this->cmp_exp_end_label_name == "")
+        {
+            this->cmp_exp_end_label_name = build_unique_label();
+        }
+
+        is_cmp_expression = true;
+
+        // We must compare
+        do_asm("cmp " + first_reg + ", " + second_reg);
+
+        if (op == "==")
+        {
+            do_asm("jne " + this->cmp_exp_false_label_name);
+        }
+        else if (op == "!=")
+        {
+            do_asm("je " + this->cmp_exp_false_label_name);
+        }
+        else if (op == "<=")
+        {
+            do_asm("jae " + this->cmp_exp_false_label_name);
+        }
+        else if (op == ">=")
+        {
+            do_asm("jbe " + this->cmp_exp_false_label_name);
+        }
+        else if (op == "<")
+        {
+            do_asm("ja " + this->cmp_exp_false_label_name);
+        }
+        else if (op == ">")
+        {
+            do_asm("jb " + this->cmp_exp_false_label_name);
+        }
     }
     else
     {
