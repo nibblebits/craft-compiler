@@ -67,6 +67,7 @@ private:
     void process_variable_access();
     void process_structure_access();
     void process_expression();
+    void process_expression_part();
     std::shared_ptr<Branch> process_expression_operand();
     std::shared_ptr<Branch> process_expression_operator();
     void process_function_call();

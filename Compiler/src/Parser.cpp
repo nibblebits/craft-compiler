@@ -348,7 +348,7 @@ void Parser::process_stmt()
             process_semicolon();
         }
     }
-    else if(is_peak_type("operator"))
+    else if (is_peak_type("operator"))
     {
         peak(1);
         if (is_peak_type("identifier"))
@@ -509,7 +509,7 @@ void Parser::process_variable_access()
 {
     std::shared_ptr<Branch> root = NULL;
     shift_pop();
-     // Check for pointer access
+    // Check for pointer access
 
     if (is_branch_operator("@"))
     {
@@ -541,15 +541,14 @@ void Parser::process_variable_access()
     push_branch(root);
 }
 
-
 void Parser::process_structure_access()
 {
     std::shared_ptr<Branch> struct_access_root = NULL;
     bool dot_present = false;
     std::shared_ptr<Branch> left = NULL;
     std::shared_ptr<Branch> right = NULL;
-    
-    while(true)
+
+    while (true)
     {
         shift_pop();
         if (is_branch_type("identifier"))
@@ -558,12 +557,12 @@ void Parser::process_structure_access()
             {
                 left = this->branch;
             }
-            else if(right == NULL)
+            else if (right == NULL)
             {
                 right = this->branch;
             }
         }
-        else if(is_branch_symbol("."))
+        else if (is_branch_symbol("."))
         {
             dot_present = true;
         }
@@ -571,26 +570,57 @@ void Parser::process_structure_access()
         {
             break;
         }
-        
-        
+
+
         if (left != NULL && dot_present && right != NULL)
         {
             struct_access_root = std::shared_ptr<Branch>(new Branch("STRUCT_ACCESS", ""));
             struct_access_root->addChild(left);
             struct_access_root->addChild(right);
-            
+
             left = struct_access_root;
             dot_present = false;
             right = NULL;
         }
     }
-    
+
     // Push the branch to the tree
     push_branch(struct_access_root);
-   
+
 }
 
 void Parser::process_expression()
+{
+    process_expression_part();
+    peak();
+    // Do we have a logical operator if so then we have more to do
+    if (compiler->isLogicalOperator(this->peak_token_value))
+    {
+        // Ok we do shift and pop it off
+        shift_pop();
+        std::shared_ptr<Branch> op = this->branch;
+
+        // Pop off the previous expression from the stack
+        pop_branch();
+        std::shared_ptr<Branch> left = this->branch;
+
+        // Now process the new expression
+        process_expression();
+
+        // Pop it off
+        pop_branch();
+        std::shared_ptr<Branch> right = this->branch;
+
+        // Put it all together
+        std::shared_ptr<Branch> exp = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
+        exp->addChild(left);
+        exp->addChild(right);
+        push_branch(exp);
+    }
+
+}
+
+void Parser::process_expression_part()
 {
     std::shared_ptr<Branch> exp_root = NULL;
     std::shared_ptr<Branch> left = NULL;
@@ -621,20 +651,25 @@ void Parser::process_expression()
         }
         else if (is_peak_type("operator"))
         {
+            // Logical operators should cause us to break out of this loop so it can be handled in the process_expression method.
+            if (compiler->isLogicalOperator(this->peak_token_value))
+            {
+                break;
+            }
+
             shift_pop();
             op = this->branch;
-            
+
             // Check to see if compare expressions order of operations applies.
-            if (compiler->isCompareOperator(this->peak_token_value))
+            if (compiler->isCompareOperator(op->getValue()))
             {
                 // Process the further expression
-                process_expression();
+                process_expression_part();
                 // Pop off the result
                 pop_branch();
                 // Put it on the right branch
                 right = this->branch;
             }
-                
         }
         else if (is_peak_symbol("("))
         {
@@ -693,7 +728,7 @@ void Parser::process_expression()
                     right = exp_root;
                 }
             }
-            
+
             exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
             exp_root->addChild(left);
             exp_root->addChild(right);
@@ -768,7 +803,7 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         address_of_branch->setVariableBranch(this->branch);
         b = address_of_branch;
     }
-    else if(is_peak_type("operator"))
+    else if (is_peak_type("operator"))
     {
         // Peak further and see if the next value is an identifier
         peak(1);

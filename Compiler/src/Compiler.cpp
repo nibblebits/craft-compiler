@@ -177,5 +177,14 @@ bool Compiler::isCompareOperator(std::string value)
         return true;
 
     return false;
-
 }
+
+ bool Compiler::isLogicalOperator(std::string value)
+ {
+     if (
+             value == "&&" ||
+             value == "||")
+         return true;
+     
+     return false;
+ }
