@@ -53,6 +53,7 @@ public:
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_move_reg_variable(std::string reg_name, std::string var_name);
     void make_move_variable_address(std::string reg_name, std::string var_name);
+    void make_var_assignment(std::string var_name, std::shared_ptr<Branch> value, bool pointer_assignment=false);
     
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_function(std::shared_ptr<FuncBranch> func_branch);
@@ -64,6 +65,7 @@ public:
     void handle_scope_return(std::shared_ptr<Branch> branch);
     void handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Branch> branch);
     void handle_compare_expression();
+    void handle_scope_variable_declaration(std::shared_ptr<Branch> branch);
     
     int getFunctionArgumentIndex(std::string arg_name);
     int getBPOffsetForArgument(std::string arg_name);

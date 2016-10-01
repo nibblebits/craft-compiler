@@ -87,7 +87,7 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
 
     // Handle any compare expression if any
     handle_compare_expression();
-    
+
     // Now we must assign the variable with the expression result
     do_asm("mov [" + dest + "], ax");
 }
@@ -345,6 +345,24 @@ void CodeGen8086::make_move_variable_address(std::string reg_name, std::string v
     }
 }
 
+void CodeGen8086::make_var_assignment(std::string var_name, std::shared_ptr<Branch> value, bool pointer_assignment)
+{
+    // Check to see if we are assigning memory pointed to by a pointer
+    std::string asm_addr = getASMAddressForVariable(var_name);
+
+    // Are we accessing memory pointed to by a pointer?
+    if (pointer_assignment)
+    {
+        do_asm("mov bx, [" + asm_addr + "]");
+        // Set the memory pointed to by BX to value
+        make_mem_assignment("bx", value);
+    }
+    else
+    {
+        make_mem_assignment(asm_addr, value);
+    }
+}
+
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
 {
     std::string var_keyword_value = vdef_branch->getKeywordBranch()->getValue();
@@ -401,8 +419,7 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
     }
     else if (branch->getType() == "V_DEF" || branch->getType() == "V_DEF_PTR")
     {
-        // Register a scope variable
-        this->scope_variables.push_back(branch);
+        handle_scope_variable_declaration(branch);
     }
 }
 
@@ -414,7 +431,7 @@ void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
     std::vector<std::shared_ptr < Branch>> params = func_params_branch->getChildren();
 
     // Parameters are treated as an expression, they must be pushed on backwards due to how the stack works
-    for (int i = params.size()-1; i >= 0; i--)
+    for (int i = params.size() - 1; i >= 0; i--)
     {
         std::shared_ptr<Branch> param = params.at(i);
         make_expression(param);
@@ -437,28 +454,7 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
     std::shared_ptr<Branch> var_to_assign_branch = assign_branch->getVariableToAssignBranch();
     std::shared_ptr<Branch> value = assign_branch->getValueBranch();
 
-    // Check to see if we are assigning memory pointed to by a pointer
-    bool pointer_assignment = false;
-    if (var_to_assign_branch->getType() == "PTR")
-    {
-        pointer_assignment = true;
-        var_to_assign_branch = var_to_assign_branch->getFirstChild();
-    }
-
-    std::string var_name = var_to_assign_branch->getValue();
-    std::string asm_addr = getASMAddressForVariable(var_name);
-
-    // Are we accessing memory pointed to by a pointer?
-    if (pointer_assignment)
-    {
-        do_asm("mov bx, [" + asm_addr + "]");
-        // Set the memory pointed to by BX to value
-        make_mem_assignment("bx", value);
-    }
-    else
-    {
-        make_mem_assignment(asm_addr, value);
-    }
+    make_var_assignment(var_to_assign_branch->getValue(), value);
 }
 
 void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
@@ -514,6 +510,24 @@ void CodeGen8086::handle_compare_expression()
 
     }
 }
+
+void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<Branch> branch)
+{
+    // Register a scope variable
+    this->scope_variables.push_back(branch);
+
+    // Handle the variable declaration
+    std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+    std::string var_name = vdef_branch->getNameBranch()->getValue();
+    std::shared_ptr<Branch> vdef_value = vdef_branch->getValueExpBranch();
+
+    // Are we assigning it to anything?
+    if (vdef_value != NULL)
+    {
+        make_var_assignment(var_name, vdef_value);
+    }
+}
+
 int CodeGen8086::getFunctionArgumentIndex(std::string arg_name)
 {
     for (int i = 0; i < this->func_arguments.size(); i++)
