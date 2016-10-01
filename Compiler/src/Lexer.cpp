@@ -26,7 +26,7 @@
 
 #include "Lexer.h"
 #include <iostream>
-const char operators[] = {'=', '+', '-', '/', '*', '<', '>', '&'};
+const char operators[] = {'=', '+', '-', '/', '*', '<', '>', '&', '|'};
 const char symbols[] = {'(', ')', ',', '#', '{', '}', '.', '[', ']', ';'};
 const std::string general_keywords[] = {
     "if", "for", "do", "while", "next", "continue", "break", "switch", "__asm", "string", "else", "return"
