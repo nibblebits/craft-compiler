@@ -29,6 +29,7 @@
 CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "goblin_bytecode")
 {
     this->linker = std::shared_ptr<Linker>(new GoblinByteCodeLinker(compiler));
+    this->compiler = compiler;
     this->cmp_exp_false_label_name = "";
     this->cmp_exp_end_label_name = "";
     this->current_label_index = 0;
@@ -123,6 +124,16 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
     }
     else
     {
+
+        if (exp->getType() == "E")
+        {
+            std::string exp_val = exp->getValue();
+            if (compiler->isLogicalOperator(exp_val))
+            {
+                this->cmp_exp_last_logic_operator = exp_val;
+            }
+        }
+
         // This is a proper expression so process it
         std::shared_ptr<Branch> left = exp->getFirstChild();
         std::shared_ptr<Branch> right = exp->getSecondChild();
@@ -143,7 +154,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         // Save the AX if we need to
         if (left->getType() == "E" && right->getType() == "E")
         {
-            do_asm("push ax");
+            //  do_asm("push ax");
         }
 
         if (right->getType() == "E")
@@ -156,6 +167,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         }
         else
         {
+
             if (right->getType() == "identifier")
             {
                 make_move_reg_variable("cx", right->getValue());
@@ -192,9 +204,9 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         // Restore the AX if we need to
         if (left->getType() == "E" && right->getType() == "E")
         {
-            do_asm("pop bx");
+            //   do_asm("pop bx");
             // Now add the results together
-            do_asm("add ax, cx");
+            //   do_asm("add ax, cx");
         }
         else
         {
@@ -269,25 +281,29 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
             op == ">" ||
             op == "<")
     {
-        // If we current do not have the expression compare false label or the expression compare end label setup then we need to do that
-        if (this->cmp_exp_false_label_name == "")
+        // If we need to setup the compare labels then do it
+        if (!this->is_cmp_expression)
         {
             this->cmp_exp_false_label_name = build_unique_label();
-        }
-
-        if (this->cmp_exp_end_label_name == "")
-        {
             this->cmp_exp_end_label_name = build_unique_label();
+            this->cmp_exp_true_label = build_unique_label();
+            is_cmp_expression = true;
         }
-
-        is_cmp_expression = true;
 
         // We must compare
         do_asm("cmp " + first_reg + ", " + second_reg);
 
         if (op == "==")
         {
-            do_asm("jne " + this->cmp_exp_false_label_name);
+            if (this->cmp_exp_last_logic_operator == "&&")
+            {
+                do_asm("jne " + this->cmp_exp_false_label_name);
+            }
+            else
+            {
+                // This is a logical else "||"
+                do_asm("je " + this->cmp_exp_true_label);
+            }
         }
         else if (op == "!=")
         {
@@ -490,13 +506,9 @@ void CodeGen8086::handle_compare_expression()
     // Check if this is a compare expression, this is used for expressions such as "a == 5"
     if (this->is_cmp_expression)
     {
-        /* Here we need to set AX to 1 and generate appropriate labels
-         We set AX to 1 as this is what code will be run should all the compares be true.
-         By setting AX to 1 we essentially set the variable to true.
-         Further down we will also set AX to 0 should the expression evaluate to false.
-         */
-        do_asm("mov ax, 1");
-        // Generate jump to jump other the false label as this value is now true
+        /* Do a jmp to the end here. This is required as the following expression: 10 == 10 || 13 == 13 && 12 == 12
+          will cause the system to roll onto the false label should all be true*/
+
         do_asm("jmp " + this->cmp_exp_end_label_name);
 
         // Generate false label
@@ -504,10 +516,20 @@ void CodeGen8086::handle_compare_expression()
 
         // Move zero to AX as this is false
         do_asm("mov ax, 0");
+        // Jump to the end so it does not change to true
+        do_asm("jmp " + this->cmp_exp_end_label_name);
+
+        // Generate true label
+        make_exact_label(this->cmp_exp_true_label);
+        // Move one to the AX as this is true
+        do_asm("mov ax, 1");
+        // No need to generate any "jmp" instruction as naturally the code will run to the end
 
         // Generate end label
         make_exact_label(this->cmp_exp_end_label_name);
 
+        // Now reset the compare expression
+        this->is_cmp_expression = false;
     }
 }
 
