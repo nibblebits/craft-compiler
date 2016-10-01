@@ -293,7 +293,7 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
         {
             this->cmp_exp_false_label_name = build_unique_label();
             this->cmp_exp_end_label_name = build_unique_label();
-            this->cmp_exp_true_label = build_unique_label();
+            this->cmp_exp_true_label_name = build_unique_label();
             is_cmp_expression = true;
         }
 
@@ -309,7 +309,7 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
             else
             {
                 // This is a logical else "||"
-                do_asm("je " + this->cmp_exp_true_label);
+                do_asm("je " + this->cmp_exp_true_label_name);
             }
         }
         else if (op == "!=")
@@ -513,10 +513,10 @@ void CodeGen8086::handle_compare_expression()
     // Check if this is a compare expression, this is used for expressions such as "a == 5"
     if (this->is_cmp_expression)
     {
-        /* Do a jmp to the end here. This is required as the following expression: 10 == 10 || 13 == 13 && 12 == 12
+        /* Do a jmp to the true label here. This is required as the following expression: 10 == 10 || 13 == 13 && 12 == 12
           will cause the system to roll onto the false label should all be true*/
 
-        do_asm("jmp " + this->cmp_exp_end_label_name);
+        do_asm("jmp " + this->cmp_exp_true_label_name);
 
         // Generate false label
         make_exact_label(this->cmp_exp_false_label_name);
@@ -527,7 +527,7 @@ void CodeGen8086::handle_compare_expression()
         do_asm("jmp " + this->cmp_exp_end_label_name);
 
         // Generate true label
-        make_exact_label(this->cmp_exp_true_label);
+        make_exact_label(this->cmp_exp_true_label_name);
         // Move one to the AX as this is true
         do_asm("mov ax, 1");
         // No need to generate any "jmp" instruction as naturally the code will run to the end

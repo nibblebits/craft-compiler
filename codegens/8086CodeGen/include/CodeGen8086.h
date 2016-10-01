@@ -87,7 +87,7 @@ private:
     std::shared_ptr<Linker> linker;
     std::vector<std::shared_ptr<Branch>> func_arguments;
     std::vector<std::shared_ptr<Branch>> scope_variables;
-    std::string cmp_exp_true_label;
+    std::string cmp_exp_true_label_name;
     std::string cmp_exp_false_label_name;
     std::string cmp_exp_end_label_name;
     std::string cmp_exp_last_logic_operator;
