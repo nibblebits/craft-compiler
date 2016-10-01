@@ -151,8 +151,11 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         }
 
 
-        // Save the AX if we need to
-        if (left->getType() == "E" && right->getType() == "E")
+        // Save the AX if we need to but not if we have a logical operator
+        if (
+                !compiler->isLogicalOperator(exp->getValue()) &&
+                left->getType() == "E" &&
+                right->getType() == "E")
         {
             do_asm("push ax");
         }
@@ -201,11 +204,14 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
             }
         }
 
-        // Restore the AX if we need to
-        if (left->getType() == "E" && right->getType() == "E")
+        // Restore the AX register if we need to but not if a logical operator is present.
+        if (
+                !compiler->isLogicalOperator(exp->getValue()) &&
+                left->getType() == "E" &&
+                right->getType() == "E")
         {
-            do_asm("pop cx");
 
+            do_asm("pop cx");
         }
 
         // Don't make math instructions for logical operators.
