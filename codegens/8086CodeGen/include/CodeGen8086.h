@@ -63,6 +63,7 @@ public:
     void handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch);
     void handle_scope_return(std::shared_ptr<Branch> branch);
     void handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Branch> branch);
+    void handle_compare_expression();
     
     int getFunctionArgumentIndex(std::string arg_name);
     int getBPOffsetForArgument(std::string arg_name);

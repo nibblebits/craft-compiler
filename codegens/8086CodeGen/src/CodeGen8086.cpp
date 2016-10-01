@@ -85,29 +85,9 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
     // We have a value expression here so make it.
     make_expression(value_exp);
 
-    // Check if this is a compare expression, this is used for expressions such as "a == 5"
-    if (this->is_cmp_expression)
-    {
-        /* Here we need to set AX to 1 and generate appropriate labels
-         We set AX to 1 as this is what code will be run should all the compares be true.
-         By setting AX to 1 we essentially set the variable to true.
-         Further down we will also set AX to 0 should the expression evaluate to false.
-         */
-        do_asm("mov ax, 1");
-        // Generate jump to jump other the false label as this value is now true
-        do_asm("jmp " + this->cmp_exp_end_label_name);
-
-        // Generate false label
-        make_exact_label(this->cmp_exp_false_label_name);
-
-        // Move zero to AX as this is false
-        do_asm("mov ax, 0");
-
-        // Generate end label
-        make_exact_label(this->cmp_exp_end_label_name);
-
-    }
-
+    // Handle any compare expression if any
+    handle_compare_expression();
+    
     // Now we must assign the variable with the expression result
     do_asm("mov [" + dest + "], ax");
 }
@@ -433,9 +413,10 @@ void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
 
     std::vector<std::shared_ptr < Branch>> params = func_params_branch->getChildren();
 
-    // Parameters are treated as an expression
-    for (std::shared_ptr<Branch> param : params)
+    // Parameters are treated as an expression, they must be pushed on backwards due to how the stack works
+    for (int i = params.size()-1; i >= 0; i--)
     {
+        std::shared_ptr<Branch> param = params.at(i);
         make_expression(param);
         // Push the expression to the stack as this is a function call
         do_asm("push ax");
@@ -508,6 +489,31 @@ void CodeGen8086::handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Br
     do_asm("pop bx");
 }
 
+void CodeGen8086::handle_compare_expression()
+{
+    // Check if this is a compare expression, this is used for expressions such as "a == 5"
+    if (this->is_cmp_expression)
+    {
+        /* Here we need to set AX to 1 and generate appropriate labels
+         We set AX to 1 as this is what code will be run should all the compares be true.
+         By setting AX to 1 we essentially set the variable to true.
+         Further down we will also set AX to 0 should the expression evaluate to false.
+         */
+        do_asm("mov ax, 1");
+        // Generate jump to jump other the false label as this value is now true
+        do_asm("jmp " + this->cmp_exp_end_label_name);
+
+        // Generate false label
+        make_exact_label(this->cmp_exp_false_label_name);
+
+        // Move zero to AX as this is false
+        do_asm("mov ax, 0");
+
+        // Generate end label
+        make_exact_label(this->cmp_exp_end_label_name);
+
+    }
+}
 int CodeGen8086::getFunctionArgumentIndex(std::string arg_name)
 {
     for (int i = 0; i < this->func_arguments.size(); i++)
