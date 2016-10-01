@@ -154,7 +154,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         // Save the AX if we need to
         if (left->getType() == "E" && right->getType() == "E")
         {
-            //  do_asm("push ax");
+            do_asm("push ax");
         }
 
         if (right->getType() == "E")
@@ -204,14 +204,11 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         // Restore the AX if we need to
         if (left->getType() == "E" && right->getType() == "E")
         {
-            //   do_asm("pop bx");
-            // Now add the results together
-            //   do_asm("add ax, cx");
+            do_asm("pop cx");
         }
-        else
-        {
-            make_math_instruction(exp->getValue(), "ax", "cx");
-        }
+        
+        make_math_instruction(exp->getValue(), "ax", "cx");
+        
     }
 }
 
