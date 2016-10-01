@@ -205,10 +205,14 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         if (left->getType() == "E" && right->getType() == "E")
         {
             do_asm("pop cx");
+
         }
-        
-        make_math_instruction(exp->getValue(), "ax", "cx");
-        
+
+        // Don't make math instructions for logical operators.
+        if (!compiler->isLogicalOperator(exp->getValue()))
+        {
+            make_math_instruction(exp->getValue(), "ax", "cx");
+        }
     }
 }
 
