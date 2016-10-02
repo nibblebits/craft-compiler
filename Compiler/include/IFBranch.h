@@ -26,7 +26,7 @@
 #define IFBRANCH_H
 
 #include "CustomBranch.h"
-class IFBranch : public CustomBranch {
+class EXPORT IFBranch : public CustomBranch {
 public:
     IFBranch(Compiler* compiler);
     virtual ~IFBranch();
