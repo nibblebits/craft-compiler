@@ -78,6 +78,7 @@ public:
     std::shared_ptr<Branch> getFunctionArgumentVariable(std::string arg_name);
     
     bool isVariablePointer(std::string var_name);
+    inline bool is_cmp_logic_operator_nothing_or_and();
     
     void generate_global_branch(std::shared_ptr<Branch> branch);
     void assemble(std::string assembly);

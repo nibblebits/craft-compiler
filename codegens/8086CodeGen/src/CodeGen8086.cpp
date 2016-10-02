@@ -26,12 +26,10 @@
 
 #include "CodeGen8086.h"
 
-CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "goblin_bytecode")
+CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 CodeGenerator")
 {
     this->linker = std::shared_ptr<Linker>(new GoblinByteCodeLinker(compiler));
     this->compiler = compiler;
-    this->cmp_exp_false_label_name = "";
-    this->cmp_exp_end_label_name = "";
     this->current_label_index = 0;
     this->is_cmp_expression = false;
 }
@@ -132,6 +130,17 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
             {
                 this->cmp_exp_last_logic_operator = exp_val;
             }
+            else if (compiler->isCompareOperator(exp_val))
+            {
+                // Setup compare labels
+                if (!this->is_cmp_expression)
+                {
+                    this->cmp_exp_false_label_name = build_unique_label();
+                    this->cmp_exp_end_label_name = build_unique_label();
+                    this->cmp_exp_true_label_name = build_unique_label();
+                    is_cmp_expression = true;
+                }
+            }
         }
 
         // This is a proper expression so process it
@@ -189,6 +198,8 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
 
                 std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(right);
 
+                // PROBABLY A SERIOUS PROBLEM HERE CHECK IT OUT...
+
                 // Save CX
                 do_asm("push cx");
                 handle_function_call(func_call_branch);
@@ -227,6 +238,7 @@ void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string 
     std::string type = exp->getType();
     std::string value = exp->getValue();
 
+    
     if (type == "identifier")
     {
         make_move_reg_variable(register_to_store, value);
@@ -244,8 +256,10 @@ void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string 
     else
     {
         // Its a number literal
-        do_asm("mov ax, " + value);
+        do_asm("mov " + register_to_store + ", " + value);
     }
+
+
 }
 
 void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, std::string second_reg)
@@ -261,8 +275,8 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
     else if (op == "*")
     {
         /*
-         * If the first register is ax then set the first register to the second register as "mul" instruction
-         * uses ax as first reg regardless */
+         * If the first register is AX then set the first register to the second register as "mul" instruction
+         * uses AX as first reg regardless */
         if (first_reg == "ax")
         {
             first_reg = second_reg;
@@ -279,6 +293,7 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
             first_reg = second_reg;
         }
         do_asm("div " + first_reg);
+        
     }
     else if (
             op == "!=" ||
@@ -288,21 +303,13 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
             op == ">" ||
             op == "<")
     {
-        // If we need to setup the compare labels then do it
-        if (!this->is_cmp_expression)
-        {
-            this->cmp_exp_false_label_name = build_unique_label();
-            this->cmp_exp_end_label_name = build_unique_label();
-            this->cmp_exp_true_label_name = build_unique_label();
-            is_cmp_expression = true;
-        }
 
         // We must compare
         do_asm("cmp " + first_reg + ", " + second_reg);
 
         if (op == "==")
         {
-            if (this->cmp_exp_last_logic_operator == "&&")
+            if (is_cmp_logic_operator_nothing_or_and())
             {
                 do_asm("jne " + this->cmp_exp_false_label_name);
             }
@@ -678,6 +685,11 @@ bool CodeGen8086::isVariablePointer(std::string var_name)
         }
     }
     return false;
+}
+
+bool CodeGen8086::is_cmp_logic_operator_nothing_or_and()
+{
+    return this->cmp_exp_last_logic_operator == "" || this->cmp_exp_last_logic_operator == "&&";
 }
 
 void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
