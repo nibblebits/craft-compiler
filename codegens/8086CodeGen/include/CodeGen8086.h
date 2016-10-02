@@ -43,9 +43,10 @@ public:
     CodeGen8086(Compiler* compiler);
     virtual ~CodeGen8086();
     
-    void inline make_label(std::string label);
-    void inline make_exact_label(std::string label);
-    std::string build_unique_label();
+    inline void make_label(std::string label);
+    inline void make_exact_label(std::string label);
+    inline std::string make_unique_label();
+    inline std::string build_unique_label();
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
     void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp);
     void make_expression(std::shared_ptr<Branch> exp);
@@ -58,7 +59,7 @@ public:
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_function(std::shared_ptr<FuncBranch> func_branch);
     void handle_func_args(std::shared_ptr<Branch> arguments);
-    void handle_func_body(std::shared_ptr<Branch> body);
+    void handle_body(std::shared_ptr<Branch> body);
     void handle_stmt(std::shared_ptr<Branch> branch);
     void handle_function_call(std::shared_ptr<FuncCallBranch> branch);
     void handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch);
@@ -66,6 +67,7 @@ public:
     void handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Branch> branch);
     void handle_compare_expression();
     void handle_scope_variable_declaration(std::shared_ptr<Branch> branch);
+    void handle_if_stmt(std::shared_ptr<IFBranch> branch);
     
     int getFunctionArgumentIndex(std::string arg_name);
     int getBPOffsetForArgument(std::string arg_name);

@@ -55,6 +55,13 @@ std::string CodeGen8086::build_unique_label()
     return "_" + label_name;
 }
 
+std::string CodeGen8086::make_unique_label()
+{
+    std::string label_name = build_unique_label();
+    make_exact_label(label_name);
+    return label_name;
+}
+
 void CodeGen8086::make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp)
 {
     make_label(name);
@@ -238,7 +245,7 @@ void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string 
     std::string type = exp->getType();
     std::string value = exp->getValue();
 
-    
+
     if (type == "identifier")
     {
         make_move_reg_variable(register_to_store, value);
@@ -293,7 +300,7 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
             first_reg = second_reg;
         }
         do_asm("div " + first_reg);
-        
+
     }
     else if (
             op == "!=" ||
@@ -321,23 +328,58 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
         }
         else if (op == "!=")
         {
-            do_asm("je " + this->cmp_exp_false_label_name);
+            if (is_cmp_logic_operator_nothing_or_and())
+            {
+                do_asm("je " + this->cmp_exp_false_label_name);
+            }
+            else
+            {
+                do_asm("jne " + this->cmp_exp_true_label_name);
+            }
         }
         else if (op == "<=")
         {
-            do_asm("jbe " + this->cmp_exp_false_label_name);
+            if (is_cmp_logic_operator_nothing_or_and())
+            {
+                do_asm("ja " + this->cmp_exp_false_label_name);
+            }
+            else
+            {
+                do_asm("jbe " + this->cmp_exp_true_label_name);
+            }
         }
         else if (op == ">=")
         {
-            do_asm("jae " + this->cmp_exp_false_label_name);
+            if (is_cmp_logic_operator_nothing_or_and())
+            {
+                do_asm("jb " + this->cmp_exp_false_label_name);
+            }
+            else
+            {
+                do_asm("jae " + this->cmp_exp_true_label_name);
+            }
         }
         else if (op == "<")
         {
-            do_asm("jb " + this->cmp_exp_false_label_name);
+            if (is_cmp_logic_operator_nothing_or_and())
+            {
+                do_asm("jae " + this->cmp_exp_false_label_name);
+            }
+            else
+            {
+                do_asm("jb " + this->cmp_exp_true_label_name);
+            }
         }
         else if (op == ">")
         {
-            do_asm("ja " + this->cmp_exp_false_label_name);
+            if (is_cmp_logic_operator_nothing_or_and())
+            {
+                do_asm("jbe " + this->cmp_exp_false_label_name);
+            }
+            else
+            {
+                do_asm("ja " + this->cmp_exp_true_label_name);
+            }
         }
     }
     else
@@ -416,7 +458,7 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     // Handle the arguments
     handle_func_args(arguments_branch);
     // Handle the body
-    handle_func_body(body_branch);
+    handle_body(body_branch);
 
 }
 
@@ -428,7 +470,7 @@ void CodeGen8086::handle_func_args(std::shared_ptr<Branch> arguments)
     }
 }
 
-void CodeGen8086::handle_func_body(std::shared_ptr<Branch> body)
+void CodeGen8086::handle_body(std::shared_ptr<Branch> body)
 {
     for (std::shared_ptr<Branch> stmt : body->getChildren())
     {
@@ -450,6 +492,11 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
     else if (branch->getType() == "V_DEF" || branch->getType() == "V_DEF_PTR")
     {
         handle_scope_variable_declaration(branch);
+    }
+    else if (branch->getType() == "IF")
+    {
+        std::shared_ptr<IFBranch> if_branch = std::dynamic_pointer_cast<IFBranch>(branch);
+        handle_if_stmt(if_branch);
     }
 }
 
@@ -562,6 +609,36 @@ void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<Branch> bran
     {
         make_var_assignment(var_name, vdef_value);
     }
+}
+
+void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
+{
+    std::shared_ptr<Branch> exp_branch = branch->getExpressionBranch();
+    std::shared_ptr<Branch> body_branch = branch->getBodyBranch();
+
+    // Process the expression of the "IF" statement
+    make_expression(exp_branch);
+
+    // Handle the compare expression
+    handle_compare_expression();
+
+    // AX now contains true or false 
+
+    std::string true_label = build_unique_label();
+    std::string false_label = build_unique_label();
+
+    do_asm("cmp ax, 0");
+    do_asm("je " + false_label);
+    // This is where we will jump if its true
+    make_exact_label(true_label);
+
+    // Handle the "IF" statements body.
+    handle_body(body_branch);
+
+    // This is where we will jump if its false, the body will never be run.
+    make_exact_label(false_label);
+
+
 }
 
 int CodeGen8086::getFunctionArgumentIndex(std::string arg_name)
