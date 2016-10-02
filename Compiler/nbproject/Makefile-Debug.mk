@@ -54,6 +54,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/GoblinObject.o \
 	${OBJECTDIR}/src/GoblinObjectLinker.o \
 	${OBJECTDIR}/src/Helper.o \
+	${OBJECTDIR}/src/IFBranch.o \
 	${OBJECTDIR}/src/Lexer.o \
 	${OBJECTDIR}/src/Linker.o \
 	${OBJECTDIR}/src/Logger.o \
@@ -194,6 +195,11 @@ ${OBJECTDIR}/src/Helper.o: src/Helper.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Helper.o src/Helper.cpp
+
+${OBJECTDIR}/src/IFBranch.o: src/IFBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/IFBranch.o src/IFBranch.cpp
 
 ${OBJECTDIR}/src/Lexer.o: src/Lexer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

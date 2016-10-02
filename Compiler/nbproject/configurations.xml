@@ -26,6 +26,7 @@
       <itemPath>include/GoblinObject.h</itemPath>
       <itemPath>include/GoblinObjectLinker.h</itemPath>
       <itemPath>include/Helper.h</itemPath>
+      <itemPath>include/IFBranch.h</itemPath>
       <itemPath>include/Lexer.h</itemPath>
       <itemPath>include/LexerException.h</itemPath>
       <itemPath>include/Linker.h</itemPath>
@@ -78,6 +79,7 @@
       <itemPath>src/GoblinObject.cpp</itemPath>
       <itemPath>src/GoblinObjectLinker.cpp</itemPath>
       <itemPath>src/Helper.cpp</itemPath>
+      <itemPath>src/IFBranch.cpp</itemPath>
       <itemPath>src/Lexer.cpp</itemPath>
       <itemPath>src/Linker.cpp</itemPath>
       <itemPath>src/Logger.cpp</itemPath>
@@ -181,6 +183,8 @@
       </item>
       <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/IFBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Lexer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/LexerException.h" ex="false" tool="3" flavor2="0">
@@ -271,6 +275,8 @@
       <item path="src/GoblinObjectLinker.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/IFBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Lexer.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -369,6 +375,8 @@
       </item>
       <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/IFBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Lexer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/LexerException.h" ex="false" tool="3" flavor2="0">
@@ -459,6 +467,8 @@
       <item path="src/GoblinObjectLinker.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/IFBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Lexer.cpp" ex="false" tool="1" flavor2="0">
       </item>

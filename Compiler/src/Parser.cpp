@@ -931,9 +931,9 @@ void Parser::process_if_stmt()
     pop_branch();
     std::shared_ptr<Branch> if_body = this->branch;
 
-    std::shared_ptr<Branch> if_stmt = std::shared_ptr<Branch>(new Branch("IF", ""));
-    if_stmt->addChild(if_exp);
-    if_stmt->addChild(if_body);
+    std::shared_ptr<IFBranch> if_stmt = std::shared_ptr<IFBranch>(new IFBranch(this->getCompiler()));
+    if_stmt->setExpressionBranch(if_exp);
+    if_stmt->setBodyBranch(if_body);
 
     // Check for an else statement
     peak();
