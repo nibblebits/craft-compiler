@@ -36,10 +36,10 @@ ELSEBranch::~ELSEBranch()
 
 void ELSEBranch::setBodyBranch(std::shared_ptr<Branch> branch)
 {
-    this->registerBranch("body_branch", branch);
+    CustomBranch::registerBranch("body_branch", branch);
 }
 
 std::shared_ptr<Branch> ELSEBranch::getBodyBranch()
 {
-    return this->getRegisteredBranchByName("body_branch");
+    return CustomBranch::getRegisteredBranchByName("body_branch");
 }
