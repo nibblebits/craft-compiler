@@ -42,9 +42,9 @@ void CustomBranch::registerBranch(std::string name, std::shared_ptr<Branch> bran
     if (branch != NULL)
     {
         // If the branch getting registered is currently not a child then make it one
-        if (!this->hasChild(branch))
+        if (!hasChild(branch))
         {
-            this->addChild(branch);
+            addChild(branch);
         }
     }
     this->registered_branches[name] = branch;
@@ -52,7 +52,16 @@ void CustomBranch::registerBranch(std::string name, std::shared_ptr<Branch> bran
 
 std::shared_ptr<Branch> CustomBranch::getRegisteredBranchByName(std::string name)
 {
+    if (!isBranchRegistered(name))
+        return NULL;
+
     return this->registered_branches[name];
+}
+
+bool CustomBranch::isBranchRegistered(std::string name)
+{
+    std::map<std::string, std::shared_ptr < Branch>>::const_iterator it = this->registered_branches.find(name);
+    return it != this->registered_branches.end();
 }
 
 Compiler* CustomBranch::getCompiler()

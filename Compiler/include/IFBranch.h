@@ -33,9 +33,12 @@ public:
     
     void setExpressionBranch(std::shared_ptr<Branch> branch);
     void setBodyBranch(std::shared_ptr<Branch> branch);
-    
+    void setElseBranch(std::shared_ptr<Branch> branch);
+
     std::shared_ptr<Branch> getExpressionBranch();
     std::shared_ptr<Branch> getBodyBranch();
+    std::shared_ptr<Branch> getElseBranch();
+    bool hasElseBranch();
 private:
 
 };

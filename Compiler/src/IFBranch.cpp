@@ -36,21 +36,40 @@ IFBranch::~IFBranch()
 
 void IFBranch::setExpressionBranch(std::shared_ptr<Branch> branch)
 {
-    this->registerBranch("exp_branch", branch);
+    CustomBranch::registerBranch("exp_branch", branch);
 }
 
 void IFBranch::setBodyBranch(std::shared_ptr<Branch> branch)
 {
-    this->registerBranch("body_branch", branch);
+    CustomBranch::registerBranch("body_branch", branch);
+}
+
+void IFBranch::setElseBranch(std::shared_ptr<Branch> branch)
+{
+    CustomBranch::registerBranch("else_branch", branch);
 }
 
 std::shared_ptr<Branch> IFBranch::getExpressionBranch()
 {
-    return this->getRegisteredBranchByName("exp_branch");
+    return CustomBranch::getRegisteredBranchByName("exp_branch");
 }
 
 std::shared_ptr<Branch> IFBranch::getBodyBranch()
 {
-    return this->getRegisteredBranchByName("body_branch");
+    return CustomBranch::getRegisteredBranchByName("body_branch");
 }
 
+std::shared_ptr<Branch> IFBranch::getElseBranch()
+{
+    return CustomBranch::getRegisteredBranchByName("else_branch");
+}
+
+bool IFBranch::hasElseBranch()
+{
+    if (CustomBranch::isBranchRegistered("else_branch"))
+    {
+        return true;
+    }
+
+    return false;
+}

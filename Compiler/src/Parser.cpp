@@ -956,15 +956,15 @@ void Parser::process_if_stmt()
         }
         else
         {
-            std::shared_ptr<Branch> else_stmt = std::shared_ptr<Branch>(new Branch("ELSE", ""));
+            std::shared_ptr<ELSEBranch> else_stmt = std::shared_ptr<ELSEBranch>(new ELSEBranch(this->getCompiler()));
             // Process the body of the else statement
             process_body();
             // Pop the result off the stack
             pop_branch();
             // Add the body to the else statement
-            else_stmt->addChild(this->branch);
+            else_stmt->setBodyBranch(this->branch);
             // Add the else statement to the if statement
-            if_stmt->addChild(else_stmt);
+            if_stmt->setElseBranch(else_stmt);
         }
     }
     // Push the complete "if" statement to the tree
