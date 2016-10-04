@@ -951,8 +951,8 @@ void Parser::process_if_stmt()
             // Pop off the if statement
             pop_branch();
 
-            // Add it to this "if" statement
-            if_stmt->addChild(this->branch);
+            // Add the else if branch to this if statement branch.
+            if_stmt->setElseIfBranch(this->branch);
         }
         else
         {

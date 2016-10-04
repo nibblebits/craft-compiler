@@ -49,6 +49,11 @@ void IFBranch::setElseBranch(std::shared_ptr<Branch> branch)
     CustomBranch::registerBranch("else_branch", branch);
 }
 
+void IFBranch::setElseIfBranch(std::shared_ptr<Branch> branch)
+{
+    CustomBranch::registerBranch("else_if_branch", branch);
+}
+
 std::shared_ptr<Branch> IFBranch::getExpressionBranch()
 {
     return CustomBranch::getRegisteredBranchByName("exp_branch");
@@ -64,6 +69,11 @@ std::shared_ptr<Branch> IFBranch::getElseBranch()
     return CustomBranch::getRegisteredBranchByName("else_branch");
 }
 
+std::shared_ptr<Branch> IFBranch::getElseIfBranch()
+{
+    return CustomBranch::getRegisteredBranchByName("else_if_branch");
+}
+
 bool IFBranch::hasElseBranch()
 {
     if (CustomBranch::isBranchRegistered("else_branch"))
@@ -71,5 +81,15 @@ bool IFBranch::hasElseBranch()
         return true;
     }
 
+    return false;
+}
+
+bool IFBranch::hasElseIfBranch()
+{
+    if (CustomBranch::isBranchRegistered("else_if_branch"))
+    {
+        return true;
+    }
+    
     return false;
 }
