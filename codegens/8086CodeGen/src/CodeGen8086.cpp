@@ -640,7 +640,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
 
     /* We check for ELSE IF below the false label as this is where the next IF statement
      will need to be checked, due to the way the code flows.*/
-    
+
     // Is there an else if ?
     if (branch->hasElseIfBranch())
     {
@@ -648,8 +648,15 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
         // Ok we have an else if so lets handle it
         handle_if_stmt(else_if_branch);
     }
-    
-
+    else if (branch->hasElseBranch())
+    {
+        /* ELSE statements also need to be below the false label due to the way the code flows.*/
+        std::shared_ptr<ELSEBranch> else_branch = std::dynamic_pointer_cast<ELSEBranch>(branch->getElseBranch());
+        std::shared_ptr<Branch> else_body_branch = else_branch->getBodyBranch();
+        
+        // Handle the else's body
+        handle_body(else_body_branch);
+    }
 }
 
 int CodeGen8086::getFunctionArgumentIndex(std::string arg_name)
