@@ -638,6 +638,17 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
     // This is where we will jump if its false, the body will never be run.
     make_exact_label(false_label);
 
+    /* We check for ELSE IF below the false label as this is where the next IF statement
+     will need to be checked, due to the way the code flows.*/
+    
+    // Is there an else if ?
+    if (branch->hasElseIfBranch())
+    {
+        std::shared_ptr<IFBranch> else_if_branch = std::dynamic_pointer_cast<IFBranch>(branch->getElseIfBranch());
+        // Ok we have an else if so lets handle it
+        handle_if_stmt(else_if_branch);
+    }
+    
 
 }
 
