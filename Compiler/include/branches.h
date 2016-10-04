@@ -38,6 +38,7 @@
 #include "VDEFPTRBranch.h"
 #include "AddressOfBranch.h"
 #include "IFBranch.h"
+#include "ELSEBranch.h"
 
 #endif /* BRANCHES_H */
 
