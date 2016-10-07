@@ -473,6 +473,17 @@ void Parser::process_variable_declaration()
 
 void Parser::process_assignment()
 {
+    bool is_pointer_assignment = false;
+
+    // Peak to see if this is a pointer value assignment
+    peak();
+    if (is_peak_operator("*"))
+    {
+        is_pointer_assignment = true;
+        // Shift and pop the pointer operator off the stack
+        shift_pop();
+    }
+
     // Process the variable access
     process_variable_access();
     // Pop the result from the stack
@@ -497,7 +508,16 @@ void Parser::process_assignment()
     pop_branch();
     std::shared_ptr<Branch> expression = this->branch;
 
-    std::shared_ptr<AssignBranch> assign_branch = std::shared_ptr<AssignBranch>(new AssignBranch(this->getCompiler()));
+    std::shared_ptr<AssignBranch> assign_branch;
+    if (is_pointer_assignment)
+    {
+        assign_branch = std::shared_ptr<PTRAssignBranch>(new PTRAssignBranch(this->getCompiler()));
+    }
+    else
+    {
+        assign_branch = std::shared_ptr<AssignBranch>(new AssignBranch(this->getCompiler()));
+    }
+
     assign_branch->setVariableToAssignBranch(dst_branch);
     assign_branch->setValueBranch(expression);
 
@@ -509,14 +529,6 @@ void Parser::process_variable_access()
 {
     std::shared_ptr<Branch> root = NULL;
     shift_pop();
-    // Check for pointer access
-
-    if (is_branch_operator("@"))
-    {
-        root = std::shared_ptr<Branch>(new Branch("PTR", ""));
-        // Shift and pop the next identifier which is the variable to access
-        shift_pop();
-    }
 
     // Make sure we have an identifier
     if (!is_branch_type("identifier"))
@@ -634,10 +646,10 @@ void Parser::process_expression_part()
         if (is_peak_type("number") ||
                 is_peak_type("identifier") ||
                 is_peak_type("string") ||
-                // This is used for addresses, e.g ?test get the address of variable test
-                is_peak_operator("?") ||
-                // This is used for pointer access, e.g @a
-                is_peak_operator("@")
+                // This is used for addresses, e.g *test get the address of variable test
+                is_peak_operator("*") ||
+                // This is used for pointer access, e.g &a
+                is_peak_operator("&")
                 )
         {
             if (left == NULL)
@@ -791,10 +803,10 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
             b = this->branch;
         }
     }
-    else if (is_peak_operator("?"))
+    else if (is_peak_operator("&"))
     {
         // We are getting the address of a declaration here
-        // Shift and pop the "?" symbol we do not need it anymore
+        // Shift and pop the "&" symbol we do not need it anymore
         shift_pop();
 
         // Shift and pop the identifier

@@ -34,6 +34,7 @@
       <itemPath>include/LinkerException.h</itemPath>
       <itemPath>include/Logger.h</itemPath>
       <itemPath>include/MathEBranch.h</itemPath>
+      <itemPath>include/PTRAssignBranch.h</itemPath>
       <itemPath>include/Parser.h</itemPath>
       <itemPath>include/ParserException.h</itemPath>
       <itemPath>include/ParserRule.h</itemPath>
@@ -86,6 +87,7 @@
       <itemPath>src/Linker.cpp</itemPath>
       <itemPath>src/Logger.cpp</itemPath>
       <itemPath>src/MathEBranch.cpp</itemPath>
+      <itemPath>src/PTRAssignBranch.cpp</itemPath>
       <itemPath>src/Parser.cpp</itemPath>
       <itemPath>src/ParserRule.cpp</itemPath>
       <itemPath>src/ParserRuleRequirement.cpp</itemPath>
@@ -201,6 +203,8 @@
       </item>
       <item path="include/MathEBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/PTRAssignBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
@@ -291,6 +295,8 @@
       <item path="src/Logger.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MathEBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PTRAssignBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -397,6 +403,8 @@
       </item>
       <item path="include/MathEBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/PTRAssignBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
@@ -487,6 +495,8 @@
       <item path="src/Logger.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MathEBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/PTRAssignBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
       </item>

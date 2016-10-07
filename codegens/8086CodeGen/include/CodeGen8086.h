@@ -53,8 +53,8 @@ public:
     void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_move_reg_variable(std::string reg_name, std::string var_name);
-    void make_move_variable_address(std::string reg_name, std::string var_name);
-    void make_var_assignment(std::string var_name, std::shared_ptr<Branch> value, bool pointer_assignment=false);
+    void make_move_var_addr_to_reg(std::string reg_name, std::string var_name);
+    void make_var_assignment(std::string var_name, std::shared_ptr<Branch> value, bool pointer_assignment);
     
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_function(std::shared_ptr<FuncBranch> func_branch);

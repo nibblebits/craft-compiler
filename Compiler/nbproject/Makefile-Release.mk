@@ -60,6 +60,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Linker.o \
 	${OBJECTDIR}/src/Logger.o \
 	${OBJECTDIR}/src/MathEBranch.o \
+	${OBJECTDIR}/src/PTRAssignBranch.o \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
@@ -222,6 +223,11 @@ ${OBJECTDIR}/src/MathEBranch.o: src/MathEBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MathEBranch.o src/MathEBranch.cpp
+
+${OBJECTDIR}/src/PTRAssignBranch.o: src/PTRAssignBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PTRAssignBranch.o src/PTRAssignBranch.cpp
 
 ${OBJECTDIR}/src/Parser.o: src/Parser.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

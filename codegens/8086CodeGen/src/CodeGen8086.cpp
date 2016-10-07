@@ -112,7 +112,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
     else if (exp->getType() == "PTR")
     {
         // This is pointer access to a variable so lets set AX to the value that it is pointing to
-        handle_move_pointed_to_reg("ax", exp);
+        handle_move_pointed_to_reg("AXP", exp);
     }
     else if (exp->getType() == "FUNC_CALL")
     {
@@ -125,7 +125,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         // Move the address of the variable to the AX register
         std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(exp);
         std::shared_ptr<Branch> var_branch = address_of_branch->getVariableBranch();
-        make_move_variable_address("ax", var_branch->getValue());
+        make_move_var_addr_to_reg("AX", var_branch->getValue());
     }
     else
     {
@@ -394,7 +394,7 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::string var_name)
     do_asm("mov " + reg + ", [" + asm_addr + "]");
 }
 
-void CodeGen8086::make_move_variable_address(std::string reg_name, std::string var_name)
+void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::string var_name)
 {
     int bp_offset;
     int var_type = this->getVariableType(var_name);
@@ -480,10 +480,18 @@ void CodeGen8086::handle_body(std::shared_ptr<Branch> body)
 
 void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
 {
-    if (branch->getType() == "ASSIGN")
+    if (
+            branch->getType() == "ASSIGN" ||
+            branch->getType() == "PTR_ASSIGN"
+            )
     {
         std::shared_ptr<AssignBranch> assign_branch = std::dynamic_pointer_cast<AssignBranch>(branch);
         handle_scope_assignment(assign_branch);
+    }
+    else if (branch->getType() == "FUNC_CALL")
+    {
+        std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(branch);
+        handle_function_call(func_call_branch);
     }
     else if (branch->getType() == "RETURN")
     {
@@ -531,7 +539,9 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
     std::shared_ptr<Branch> var_to_assign_branch = assign_branch->getVariableToAssignBranch();
     std::shared_ptr<Branch> value = assign_branch->getValueBranch();
 
-    make_var_assignment(var_to_assign_branch->getValue(), value);
+    // Are we making an assignment to a pointer address?
+    bool is_pointer = (assign_branch->getType() == "PTR_ASSIGN") ? true : false;
+    make_var_assignment(var_to_assign_branch->getValue(), value, is_pointer);
 }
 
 void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
@@ -607,7 +617,7 @@ void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<Branch> bran
     // Are we assigning it to anything?
     if (vdef_value != NULL)
     {
-        make_var_assignment(var_name, vdef_value);
+        make_var_assignment(var_name, vdef_value, false);
     }
 }
 
@@ -653,7 +663,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
         /* ELSE statements also need to be below the false label due to the way the code flows.*/
         std::shared_ptr<ELSEBranch> else_branch = std::dynamic_pointer_cast<ELSEBranch>(branch->getElseBranch());
         std::shared_ptr<Branch> else_body_branch = else_branch->getBodyBranch();
-        
+
         // Handle the else's body
         handle_body(else_body_branch);
     }

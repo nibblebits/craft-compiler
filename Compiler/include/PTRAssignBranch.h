@@ -16,29 +16,23 @@
  */
 
 /* 
- * File:   AssignBranch.h
+ * File:   PTRAssignBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 28 June 2016, 00:01
+ * Created on 07 October 2016, 02:53
  */
 
-#ifndef ASSIGNBRANCH_H
-#define ASSIGNBRANCH_H
+#ifndef PTRASSIGNBRANCH_H
+#define PTRASSIGNBRANCH_H
 
-#include "CustomBranch.h"
-class EXPORT AssignBranch : public CustomBranch {
+#include "AssignBranch.h"
+class EXPORT PTRAssignBranch : public AssignBranch {
 public:
-    AssignBranch(Compiler* compiler);
-    AssignBranch(Compiler* compiler, std::string branch_name);
-    virtual ~AssignBranch();
-    
-    void setVariableToAssignBranch(std::shared_ptr<Branch> var_branch);
-    void setValueBranch(std::shared_ptr<Branch> value_branch);
-    std::shared_ptr<Branch> getVariableToAssignBranch();
-    std::shared_ptr<Branch> getValueBranch();
+    PTRAssignBranch(Compiler* compiler);
+    virtual ~PTRAssignBranch();
 private:
 
 };
 
-#endif /* ASSIGNBRANCH_H */
+#endif /* PTRASSIGNBRANCH_H */
 

@@ -30,6 +30,7 @@
 #include "FuncBranch.h"
 #include "VDEFBranch.h"
 #include "AssignBranch.h"
+#include "PTRAssignBranch.h"
 #include "MathEBranch.h"
 #include "EBranch.h"
 #include "ASMBranch.h"

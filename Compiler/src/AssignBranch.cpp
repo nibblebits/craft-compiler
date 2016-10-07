@@ -31,6 +31,10 @@ AssignBranch::AssignBranch(Compiler* compiler) : CustomBranch(compiler, "ASSIGN"
 {
 }
 
+AssignBranch::AssignBranch(Compiler* compiler, std::string branch_name) : CustomBranch(compiler, branch_name, "")
+{
+    
+}
 AssignBranch::~AssignBranch()
 {
 }
