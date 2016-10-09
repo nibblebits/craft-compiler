@@ -112,7 +112,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
     else if (exp->getType() == "PTR")
     {
         // This is pointer access to a variable so lets set AX to the value that it is pointing to
-        handle_move_pointed_to_reg("AXP", exp);
+        handle_move_pointed_to_reg("AX", exp);
     }
     else if (exp->getType() == "FUNC_CALL")
     {
@@ -464,6 +464,7 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
 
 void CodeGen8086::handle_func_args(std::shared_ptr<Branch> arguments)
 {
+    this->func_arguments.clear();
     for (std::shared_ptr<Branch> arg : arguments->getChildren())
     {
         this->func_arguments.push_back(arg);
