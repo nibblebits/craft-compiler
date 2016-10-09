@@ -444,6 +444,9 @@ void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
 
 void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
 {
+    // Clear previous scope variables from other functions
+    this->scope_variables.clear();
+    
     std::shared_ptr<Branch> return_branch = func_branch->getReturnTypeBranch();
     std::shared_ptr<Branch> name_branch = func_branch->getNameBranch();
     std::shared_ptr<Branch> arguments_branch = func_branch->getArgumentsBranch();
