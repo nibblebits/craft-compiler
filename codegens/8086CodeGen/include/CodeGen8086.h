@@ -74,6 +74,7 @@ public:
     int getScopeVariableIndex(std::string arg_name);
     int getBPOffsetForScopeVariable(std::string arg_name);
     int getVariableType(std::string arg_name);
+    int getSumOfScopeVariablesSizeSoFar();
     std::string getASMAddressForVariable(std::string var_name);
     
     std::shared_ptr<Branch> getScopeVariable(std::string var_name);

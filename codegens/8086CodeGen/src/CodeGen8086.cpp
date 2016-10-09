@@ -207,8 +207,8 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
 
                 // PROBABLY A SERIOUS PROBLEM HERE CHECK IT OUT...
 
-                // Save CX
-                do_asm("push cx");
+                // Save AX
+                do_asm("push ax");
                 handle_function_call(func_call_branch);
                 // Since AX now contains returned value we must move it to register CX as this is where right operands get stored of any expression
                 do_asm("mov bx, cx");
@@ -516,6 +516,12 @@ void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
 
     std::vector<std::shared_ptr < Branch>> params = func_params_branch->getChildren();
 
+    int t_scope_size = getSumOfScopeVariablesSizeSoFar();
+    
+    /* Subtract the stack pointer by the size of the scope at this time, this is required
+     * as other wise the scope will be overwritten by the function call arguments */
+    do_asm("sub sp, " + std::to_string(t_scope_size));
+    
     // Parameters are treated as an expression, they must be pushed on backwards due to how the stack works
     for (int i = params.size() - 1; i >= 0; i--)
     {
@@ -528,11 +534,8 @@ void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
     // Now call the function :)
     do_asm("call _" + func_name_branch->getValue());
 
-    /* Add to the stack pointer to avoid all those parameters we just pushed.
-     * On the 8086 architecture each value pushed is one word in size, therefore its the total children * 2
-     * this will change when structures are added to the equation. */
-
-    do_asm("add sp, " + std::to_string((params.size() * 2)));
+    /* Restore the stack pointer to what it was to recycle the memory */
+    do_asm("add sp, " + std::to_string((params.size() * 2) + t_scope_size));
 }
 
 void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch)
@@ -720,6 +723,13 @@ int CodeGen8086::getVariableType(std::string arg_name)
         return ARGUMENT_VARIABLE;
 
     return GLOBAL_VARIABLE;
+}
+
+int CodeGen8086::getSumOfScopeVariablesSizeSoFar()
+{
+    // Will need to be changed eventually due to structures
+    // * 2 as scope variables currently use minimum and maximum of 2 bytes.
+    return (this->scope_variables.size() * 2);
 }
 
 std::string CodeGen8086::getASMAddressForVariable(std::string var_name)
