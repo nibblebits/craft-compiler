@@ -92,7 +92,10 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
     make_expression(value_exp);
 
     // Handle any compare expression if any
-    handle_compare_expression();
+    if (this->is_cmp_expression)
+    {
+        handle_compare_expression();
+    }
 
     // Now we must assign the variable with the expression result
     do_asm("mov [" + dest + "], ax");
@@ -178,6 +181,22 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
 
         if (right->getType() == "E")
         {
+            /* Check to see if the left and right branches are both logical operators 
+   if this is the case we must handle the compare expression to make expressions such as
+   (5 > 4 && 5 < 3) || (5 == 5 && 4 == 3) possible.*/
+            if (exp->getValue() == "||" &&
+                    left->getType() == "E" &&
+                    compiler->isLogicalOperator(left->getValue()) &&
+                    compiler->isLogicalOperator(right->getValue()))
+            {
+                handle_compare_expression();
+                this->cmp_exp_false_label_name = build_unique_label();
+                this->cmp_exp_end_label_name = build_unique_label();
+                this->cmp_exp_true_label_name = build_unique_label();
+                is_cmp_expression = true;
+            }
+
+
             make_expression(right);
             if (left->getType() != "E")
             {
@@ -446,7 +465,7 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
 {
     // Clear previous scope variables from other functions
     this->scope_variables.clear();
-    
+
     std::shared_ptr<Branch> return_branch = func_branch->getReturnTypeBranch();
     std::shared_ptr<Branch> name_branch = func_branch->getNameBranch();
     std::shared_ptr<Branch> arguments_branch = func_branch->getArgumentsBranch();
@@ -520,11 +539,11 @@ void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
     std::vector<std::shared_ptr < Branch>> params = func_params_branch->getChildren();
 
     int t_scope_size = getSumOfScopeVariablesSizeSoFar();
-    
+
     /* Subtract the stack pointer by the size of the scope at this time, this is required
      * as other wise the scope will be overwritten by the function call arguments */
     do_asm("sub sp, " + std::to_string(t_scope_size));
-    
+
     // Parameters are treated as an expression, they must be pushed on backwards due to how the stack works
     for (int i = params.size() - 1; i >= 0; i--)
     {
@@ -582,33 +601,32 @@ void CodeGen8086::handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Br
 void CodeGen8086::handle_compare_expression()
 {
     // Check if this is a compare expression, this is used for expressions such as "a == 5"
-    if (this->is_cmp_expression)
-    {
-        /* Do a jmp to the true label here. This is required as the following expression: 10 == 10 || 13 == 13 && 12 == 12
-          will cause the system to roll onto the false label should all be true*/
 
-        do_asm("jmp " + this->cmp_exp_true_label_name);
+    /* Do a jmp to the true label here. This is required as the following expression: 10 == 10 || 13 == 13 && 12 == 12
+      will cause the system to roll onto the false label should all be true*/
 
-        // Generate false label
-        make_exact_label(this->cmp_exp_false_label_name);
+    do_asm("jmp " + this->cmp_exp_true_label_name);
 
-        // Move zero to AX as this is false
-        do_asm("mov ax, 0");
-        // Jump to the end so it does not change to true
-        do_asm("jmp " + this->cmp_exp_end_label_name);
+    // Generate false label
+    make_exact_label(this->cmp_exp_false_label_name);
 
-        // Generate true label
-        make_exact_label(this->cmp_exp_true_label_name);
-        // Move one to the AX as this is true
-        do_asm("mov ax, 1");
-        // No need to generate any "jmp" instruction as naturally the code will run to the end
+    // Move zero to AX as this is false
+    do_asm("mov ax, 0");
+    // Jump to the end so it does not change to true
+    do_asm("jmp " + this->cmp_exp_end_label_name);
 
-        // Generate end label
-        make_exact_label(this->cmp_exp_end_label_name);
+    // Generate true label
+    make_exact_label(this->cmp_exp_true_label_name);
+    // Move one to the AX as this is true
+    do_asm("mov ax, 1");
+    // No need to generate any "jmp" instruction as naturally the code will run to the end
 
-        // Now reset the compare expression
-        this->is_cmp_expression = false;
-    }
+    // Generate end label
+    make_exact_label(this->cmp_exp_end_label_name);
+
+    // Now reset the compare expression
+    this->is_cmp_expression = false;
+
 }
 
 void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<Branch> branch)
