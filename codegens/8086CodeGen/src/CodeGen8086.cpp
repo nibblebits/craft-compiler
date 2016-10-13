@@ -86,7 +86,7 @@ void CodeGen8086::make_variable(std::string name, std::string datatype, std::sha
     }
 }
 
-void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp)
+void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word)
 {
     // We have a value expression here so make it.
     make_expression(value_exp);
@@ -97,8 +97,15 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
         handle_compare_expression();
     }
 
-    // Now we must assign the variable with the expression result
-    do_asm("mov [" + dest + "], ax");
+    // Now we must assign the variable with the expression result`
+    if (is_word)
+    {
+        do_asm("mov [" + dest + "], ax");
+    }
+    else
+    {
+        do_asm("mov [" + dest + "], al");
+    }
 }
 
 void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
@@ -115,7 +122,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
     else if (exp->getType() == "PTR")
     {
         // This is pointer access to a variable so lets set AX to the value that it is pointing to
-        handle_move_pointed_to_reg("AX", exp);
+        handle_move_pointed_to_reg("ax", exp);
     }
     else if (exp->getType() == "FUNC_CALL")
     {
@@ -128,7 +135,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         // Move the address of the variable to the AX register
         std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(exp);
         std::shared_ptr<Branch> var_branch = address_of_branch->getVariableBranch();
-        make_move_var_addr_to_reg("AX", var_branch->getValue());
+        make_move_var_addr_to_reg("ax", var_branch->getValue());
     }
     else
     {
@@ -441,16 +448,19 @@ void CodeGen8086::make_var_assignment(std::string var_name, std::shared_ptr<Bran
     // Check to see if we are assigning memory pointed to by a pointer
     std::string asm_addr = getASMAddressForVariable(var_name);
 
+    std::shared_ptr<VDEFBranch> variable = getVariable(var_name);
+    int size = compiler->getDataTypeSize(variable->getKeywordBranch()->getValue());
+    bool is_word = (size == 2 ? true : false);
     // Are we accessing memory pointed to by a pointer?
     if (pointer_assignment)
     {
         do_asm("mov bx, [" + asm_addr + "]");
         // Set the memory pointed to by BX to value
-        make_mem_assignment("bx", value);
+        make_mem_assignment("bx", value, is_word);
     }
     else
     {
-        make_mem_assignment(asm_addr, value);
+        make_mem_assignment(asm_addr, value, is_word);
     }
 }
 
@@ -610,7 +620,7 @@ void CodeGen8086::handle_compare_expression()
     {
         do_asm("jmp " + this->cmp_exp_true_label_name);
     }
-    
+
     // Generate false label
     make_exact_label(this->cmp_exp_false_label_name);
 
@@ -715,18 +725,18 @@ int CodeGen8086::getFunctionArgumentIndex(std::string arg_name)
 
 int CodeGen8086::getBPOffsetForArgument(std::string arg_name)
 {
-    // * 2 As stack elements are 16 bits wide, +4 because this is where first element begins
+    // * 2 as stack elements are 16 bits wide, +4 because this is where first element begins
     return (getFunctionArgumentIndex(arg_name) * 2) + 4;
 }
 
-int CodeGen8086::getScopeVariableIndex(std::string arg_name)
+int CodeGen8086::getScopeVariableIndex(std::string var_name)
 {
     for (int i = 0; i < this->scope_variables.size(); i++)
     {
         std::shared_ptr<Branch> scope_var = this->scope_variables.at(i);
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
-        if (name_branch->getValue() == arg_name)
+        if (name_branch->getValue() == var_name)
         {
             return i;
         }
@@ -737,7 +747,22 @@ int CodeGen8086::getScopeVariableIndex(std::string arg_name)
 
 int CodeGen8086::getBPOffsetForScopeVariable(std::string arg_name)
 {
-    return (this->getScopeVariableIndex(arg_name) * 2) + 2;
+    int offset = 0;
+    for (int i = 0; i < this->scope_variables.size(); i++)
+    {
+        std::shared_ptr<Branch> scope_var = this->scope_variables.at(i);
+        std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
+        std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
+        int var_size = compiler->getDataTypeSize(vdef_branch->getKeywordBranch()->getValue());
+        offset += var_size;
+        if (name_branch->getValue() == arg_name)
+        {
+            break;
+        }
+    }
+    
+    // USED TO HAVE +2 HERE I DO NOT BELIEVE IT IS NEEDED JUST A NOTE INCASE A BUG HAPPENS!
+    return offset;
 }
 
 int CodeGen8086::getVariableType(std::string arg_name)
@@ -791,6 +816,23 @@ std::shared_ptr<Branch> CodeGen8086::getScopeVariable(std::string var_name)
     }
 
     return NULL;
+}
+
+std::shared_ptr<VDEFBranch> CodeGen8086::getVariable(std::string var_name)
+{
+    std::shared_ptr<Branch> variable_branch = NULL;
+    int var_type = getVariableType(var_name);
+    switch (var_type)
+    {
+    case ARGUMENT_VARIABLE:
+        variable_branch = getFunctionArgumentVariable(var_name);
+        break;
+    case SCOPE_VARIABLE:
+        variable_branch = getScopeVariable(var_name);
+        break;
+    }
+    
+    return std::dynamic_pointer_cast<VDEFBranch>(variable_branch);
 }
 
 std::shared_ptr<Branch> CodeGen8086::getFunctionArgumentVariable(std::string arg_name)

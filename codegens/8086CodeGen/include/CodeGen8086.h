@@ -48,7 +48,7 @@ public:
     inline std::string make_unique_label();
     inline std::string build_unique_label();
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
-    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp);
+    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word=false);
     void make_expression(std::shared_ptr<Branch> exp);
     void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
@@ -71,12 +71,13 @@ public:
     
     int getFunctionArgumentIndex(std::string arg_name);
     int getBPOffsetForArgument(std::string arg_name);
-    int getScopeVariableIndex(std::string arg_name);
-    int getBPOffsetForScopeVariable(std::string arg_name);
+    int getScopeVariableIndex(std::string var_name);
+    int getBPOffsetForScopeVariable(std::string var_name);
     int getVariableType(std::string arg_name);
     int getSumOfScopeVariablesSizeSoFar();
     std::string getASMAddressForVariable(std::string var_name);
     
+    std::shared_ptr<VDEFBranch> getVariable(std::string var_name);
     std::shared_ptr<Branch> getScopeVariable(std::string var_name);
     std::shared_ptr<Branch> getFunctionArgumentVariable(std::string arg_name);
     
