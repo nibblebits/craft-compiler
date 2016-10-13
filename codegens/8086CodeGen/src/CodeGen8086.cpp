@@ -602,11 +602,15 @@ void CodeGen8086::handle_compare_expression()
 {
     // Check if this is a compare expression, this is used for expressions such as "a == 5"
 
-    /* Do a jmp to the true label here. This is required as the following expression: 10 == 10 || 13 == 13 && 12 == 12
+    /* Do a jmp to the true label here only if the logic operator is nothing or "&&". 
+     * This is required as the following expression: 10 == 10 || 13 == 13 && 12 == 12
       will cause the system to roll onto the false label should all be true*/
 
-    do_asm("jmp " + this->cmp_exp_true_label_name);
-
+    if (is_cmp_logic_operator_nothing_or_and())
+    {
+        do_asm("jmp " + this->cmp_exp_true_label_name);
+    }
+    
     // Generate false label
     make_exact_label(this->cmp_exp_false_label_name);
 
