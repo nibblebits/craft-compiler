@@ -61,10 +61,11 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Logger.o \
 	${OBJECTDIR}/src/MathEBranch.o \
 	${OBJECTDIR}/src/PTRAssignBranch.o \
+	${OBJECTDIR}/src/PTRBranch.o \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
-	${OBJECTDIR}/src/PtrBranch.o \
+	${OBJECTDIR}/src/STRUCTBranch.o \
 	${OBJECTDIR}/src/Scope.o \
 	${OBJECTDIR}/src/Stream.o \
 	${OBJECTDIR}/src/Token.o \
@@ -229,6 +230,11 @@ ${OBJECTDIR}/src/PTRAssignBranch.o: src/PTRAssignBranch.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PTRAssignBranch.o src/PTRAssignBranch.cpp
 
+${OBJECTDIR}/src/PTRBranch.o: src/PTRBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PTRBranch.o src/PTRBranch.cpp
+
 ${OBJECTDIR}/src/Parser.o: src/Parser.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -244,10 +250,10 @@ ${OBJECTDIR}/src/ParserRuleRequirement.o: src/ParserRuleRequirement.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ParserRuleRequirement.o src/ParserRuleRequirement.cpp
 
-${OBJECTDIR}/src/PtrBranch.o: src/PtrBranch.cpp 
+${OBJECTDIR}/src/STRUCTBranch.o: src/STRUCTBranch.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PtrBranch.o src/PtrBranch.cpp
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTBranch.o src/STRUCTBranch.cpp
 
 ${OBJECTDIR}/src/Scope.o: src/Scope.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

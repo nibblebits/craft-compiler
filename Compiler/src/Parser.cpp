@@ -466,6 +466,9 @@ void Parser::process_variable_declaration()
     var_root->setValueExpBranch(var_value);
 
 
+    // Register the declared variable
+    register_variable(var_name->getValue(), var_root);
+
     // Push that root back to the branches
     push_branch(var_root);
 
@@ -485,9 +488,12 @@ void Parser::process_assignment()
     }
 
     // Process the variable access
-    process_variable_access();
-    // Pop the result from the stack
-    pop_branch();
+    shift_pop();
+    // Make sure we have an identifier
+    if (!is_branch_type("identifier"))
+    {
+        error_expecting("identifier", this->branch_type);
+    }
 
     std::shared_ptr<Branch> dst_branch = this->branch;
     shift_pop();
@@ -528,72 +534,77 @@ void Parser::process_assignment()
 void Parser::process_variable_access()
 {
     std::shared_ptr<Branch> root = NULL;
-    shift_pop();
-
-    // Make sure we have an identifier
-    if (!is_branch_type("identifier"))
+    peak();
+    if (is_peak_type("identifier"))
     {
-        error_expecting("identifier", this->branch_type);
+        shift_pop();
+        root = this->branch;
+
     }
-
-    std::shared_ptr<Branch> identifier = this->branch;
-    // Do we have a root?
-    if (root != NULL)
+    else if (is_peak_operator("*"))
     {
-        // Well add this identifier to it.
-        root->addChild(identifier);
+        peak(1);
+        std::shared_ptr<Branch> iden = this->peak_token;
+        if (is_variable_pointer(iden->getValue()))
+        {
+            // Its a pointer so treat it as such
+            // Shift and pop the operator symbol
+            shift_pop();
+
+            // process the identifier
+            process_identifier();
+
+            std::shared_ptr<PTRBranch> ptr_b = std::shared_ptr<PTRBranch>(new PTRBranch(compiler));
+            ptr_b->setVariableBranch(this->branch);
+            root = ptr_b;
+        }
     }
     else
     {
-        // No root? Ok set the root to the identifier
-        root = identifier;
+        error_expecting("identifier", this->token_type);
     }
 
-    // Push the root branch to the stack
     push_branch(root);
 }
 
 void Parser::process_structure_access()
 {
     std::shared_ptr<Branch> struct_access_root = NULL;
-    bool dot_present = false;
     std::shared_ptr<Branch> left = NULL;
     std::shared_ptr<Branch> right = NULL;
 
+    shift_pop();
+    if (!is_branch_type("identifier"))
+    {
+        error_expecting("identifier", this->token_type);
+    }
+    left = this->branch;
+
     while (true)
     {
-        shift_pop();
-        if (is_branch_type("identifier"))
-        {
-            if (left == NULL)
-            {
-                left = this->branch;
-            }
-            else if (right == NULL)
-            {
-                right = this->branch;
-            }
-        }
-        else if (is_branch_symbol("."))
-        {
-            dot_present = true;
-        }
-        else
+        // Check to see if we have any more structure access to process
+        peak();
+        if (!is_peak_symbol("."))
         {
             break;
         }
 
+        // Shift and pop off the "."
+        shift_pop();
 
-        if (left != NULL && dot_present && right != NULL)
+        shift_pop();
+        if (!is_branch_type("identifier"))
         {
-            struct_access_root = std::shared_ptr<Branch>(new Branch("STRUCT_ACCESS", ""));
-            struct_access_root->addChild(left);
-            struct_access_root->addChild(right);
-
-            left = struct_access_root;
-            dot_present = false;
-            right = NULL;
+            error_expecting("identifier", this->token_type);
         }
+
+        right = this->branch;
+
+        struct_access_root = std::shared_ptr<Branch>(new Branch("STRUCT_ACCESS", ""));
+        struct_access_root->addChild(left);
+        struct_access_root->addChild(right);
+
+        left = struct_access_root;
     }
 
     // Push the branch to the tree
@@ -647,18 +658,18 @@ void Parser::process_expression_part()
                 is_peak_type("identifier") ||
                 is_peak_type("string") ||
                 // This is used for addresses, e.g *test get the address of variable test
-                is_peak_operator("*") ||
+                (is_peak_operator("*") && is_peak_type("identifier", 1)) ||
                 // This is used for pointer access, e.g &a
                 is_peak_operator("&")
                 )
         {
             if (left == NULL)
             {
-                left = this->process_expression_operand();
+                left = process_expression_operand();
             }
             else if (right == NULL)
             {
-                right = this->process_expression_operand();
+                right = process_expression_operand();
             }
         }
         else if (is_peak_type("operator"))
@@ -1044,11 +1055,11 @@ void Parser::process_structure()
     std::shared_ptr<Branch> struct_body = this->branch;
 
     // Create the structure branch
-    std::shared_ptr<Branch> struct_root = std::shared_ptr<Branch>(new Branch("STRUCT", ""));
+    std::shared_ptr<STRUCTBranch> struct_root = std::shared_ptr<STRUCTBranch>(new STRUCTBranch(compiler));
     // Add the structure name to the structure
-    struct_root->addChild(struct_name);
+    struct_root->setStructNameBranch(struct_name);
     // Add the body to the structure
-    struct_root->addChild(struct_body);
+    struct_root->setStructBodyBranch(struct_body);
 
     // Finally add the structure root to the main tree
     push_branch(struct_root);
@@ -1293,6 +1304,15 @@ void Parser::process_semicolon()
     }
 }
 
+void Parser::process_identifier()
+{
+    shift_pop();
+    if (!is_branch_type("identifier"))
+    {
+        error("expecting an identifier, however token: \"" + this->token_value + "\" was provided");
+    }
+}
+
 void Parser::error(std::string message, bool token)
 {
     if (token && this->token != NULL)
@@ -1409,6 +1429,11 @@ void Parser::shift_pop()
     this->pop_branch();
 }
 
+void Parser::register_variable(std::string var_name, std::shared_ptr<Branch> branch)
+{
+    this->variable_defs[var_name] = branch;
+}
+
 bool Parser::is_branch_symbol(std::string symbol)
 {
     return is_branch_type("symbol") && is_branch_value(symbol);
@@ -1450,6 +1475,24 @@ bool Parser::is_peak_type(std::string type)
     return this->peak_token_type == type;
 }
 
+bool Parser::is_peak_type(std::string type, int peak)
+{
+    if (peak < this->input.size())
+    {
+        std::shared_ptr<Token> peak_token = this->input.at(peak);
+        if (peak_token->getType() == type)
+        {
+            return true;
+        }
+    }
+    else
+    {
+        error("bool Parser::is_peak_type(std::string type, int peak): peak offset is breaching bounds.");
+    }
+
+    return false;
+}
+
 bool Parser::is_peak_value(std::string value)
 {
     return this->peak_token_value == value;
@@ -1465,9 +1508,45 @@ bool Parser::is_peak_operator(std::string op)
     return is_peak_type("operator") && is_peak_value(op);
 }
 
+bool Parser::is_peak_operator(std::string op, int peak)
+{
+    if (peak < this->input.size())
+    {
+        std::shared_ptr<Token> peak_token = this->input.at(peak);
+        if (peak_token->getType() == "operator" &&
+                peak_token->getValue() == op)
+        {
+            return true;
+        }
+    }
+    else
+    {
+        error("bool Parser::is_peak_operator(std::string op, int peak): peak offset is breaching bounds.");
+    }
+
+    return false;
+}
+
 bool Parser::is_peak_identifier(std::string identifier)
 {
     return is_peak_type("identifier") && is_peak_value(identifier);
+}
+
+bool Parser::is_variable_pointer(std::string var_name)
+{
+    if (this->variable_defs.find(var_name) == this->variable_defs.end())
+    {
+        return false;
+    }
+
+
+    std::shared_ptr<Branch> var_branch = this->variable_defs[var_name];
+    if (var_branch->getType() == "V_DEF_PTR")
+    {
+        return true;
+    }
+
+    return false;
 }
 
 void Parser::buildTree()

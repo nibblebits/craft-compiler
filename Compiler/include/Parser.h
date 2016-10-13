@@ -29,6 +29,7 @@
 #include <string>
 #include <deque>
 #include <memory>
+#include <map>
 #include <algorithm>
 #include "Logger.h"
 #include "Helper.h"
@@ -78,7 +79,8 @@ private:
     void process_while_stmt();
     void process_for_stmt();
     void process_semicolon();
-    
+    void process_identifier();
+
     void error(std::string message, bool token = true);
     void warn(std::string message, bool token = true);
     void error_unexpected_token();
@@ -88,6 +90,8 @@ private:
     void pop_branch();
     void push_branch(std::shared_ptr<Branch> branch);
     void shift_pop();
+    void register_variable(std::string var_name, std::shared_ptr<Branch> branch);
+
     inline bool is_branch_symbol(std::string symbol);
     inline bool is_branch_type(std::string type);
     inline bool is_branch_value(std::string value);
@@ -97,10 +101,14 @@ private:
     inline bool is_peak_stack_type(std::string type);
     inline bool is_peak_symbol(std::string symbol);
     inline bool is_peak_type(std::string type);
+    inline bool is_peak_type(std::string type, int peak);
     inline bool is_peak_value(std::string value);
     inline bool is_peak_keyword(std::string keyword);
     inline bool is_peak_operator(std::string op);
+    inline bool is_peak_operator(std::string op, int peak);
     inline bool is_peak_identifier(std::string identifier);
+    inline bool is_variable_pointer(std::string var_name);
+
     std::shared_ptr<Logger> logger;
     std::deque<std::shared_ptr<Token>> input;
     std::deque<std::shared_ptr<Branch>> branches;
@@ -116,6 +124,7 @@ private:
     std::string branch_type;
     std::string branch_value;
 
+    std::map<std::string, std::shared_ptr<Branch>> variable_defs;
     Compiler* compiler;
     std::shared_ptr<Tree> tree;
 };

@@ -40,6 +40,8 @@
 #include "AddressOfBranch.h"
 #include "IFBranch.h"
 #include "ELSEBranch.h"
+#include "PTRBranch.h"
+#include "STRUCTBranch.h"
 
 #endif /* BRANCHES_H */
 

@@ -35,11 +35,12 @@
       <itemPath>include/Logger.h</itemPath>
       <itemPath>include/MathEBranch.h</itemPath>
       <itemPath>include/PTRAssignBranch.h</itemPath>
+      <itemPath>include/PTRBranch.h</itemPath>
       <itemPath>include/Parser.h</itemPath>
       <itemPath>include/ParserException.h</itemPath>
       <itemPath>include/ParserRule.h</itemPath>
       <itemPath>include/ParserRuleRequirement.h</itemPath>
-      <itemPath>include/PtrBranch.h</itemPath>
+      <itemPath>include/STRUCTBranch.h</itemPath>
       <itemPath>include/Scope.h</itemPath>
       <itemPath>include/SourceCodeRelatedException.h</itemPath>
       <itemPath>include/Stack.h</itemPath>
@@ -88,10 +89,11 @@
       <itemPath>src/Logger.cpp</itemPath>
       <itemPath>src/MathEBranch.cpp</itemPath>
       <itemPath>src/PTRAssignBranch.cpp</itemPath>
+      <itemPath>src/PTRBranch.cpp</itemPath>
       <itemPath>src/Parser.cpp</itemPath>
       <itemPath>src/ParserRule.cpp</itemPath>
       <itemPath>src/ParserRuleRequirement.cpp</itemPath>
-      <itemPath>src/PtrBranch.cpp</itemPath>
+      <itemPath>src/STRUCTBranch.cpp</itemPath>
       <itemPath>src/Scope.cpp</itemPath>
       <itemPath>src/Stream.cpp</itemPath>
       <itemPath>src/Token.cpp</itemPath>
@@ -205,6 +207,8 @@
       </item>
       <item path="include/PTRAssignBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
@@ -213,7 +217,7 @@
       </item>
       <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/PtrBranch.h" ex="false" tool="3" flavor2="0">
+      <item path="include/STRUCTBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Scope.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -298,13 +302,15 @@
       </item>
       <item path="src/PTRAssignBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/PTRBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/ParserRule.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/PtrBranch.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/STRUCTBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Scope.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -405,6 +411,8 @@
       </item>
       <item path="include/PTRAssignBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
@@ -413,7 +421,7 @@
       </item>
       <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/PtrBranch.h" ex="false" tool="3" flavor2="0">
+      <item path="include/STRUCTBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Scope.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -498,13 +506,15 @@
       </item>
       <item path="src/PTRAssignBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/PTRBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/ParserRule.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/PtrBranch.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/STRUCTBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Scope.cpp" ex="false" tool="1" flavor2="0">
       </item>
