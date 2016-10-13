@@ -230,9 +230,9 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
                 do_asm("push ax");
                 handle_function_call(func_call_branch);
                 // Since AX now contains returned value we must move it to register CX as this is where right operands get stored of any expression
-                do_asm("mov bx, cx");
-                // Restore CX
-                do_asm("pop cx");
+                do_asm("mov cx, ax");
+                // Restore AX
+                do_asm("pop ax");
             }
             else
             {
