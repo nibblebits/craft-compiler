@@ -36,9 +36,9 @@ VDEFBranch::~VDEFBranch()
 {
 }
 
-void VDEFBranch::setKeywordBranch(std::shared_ptr<Branch> branch)
+void VDEFBranch::setDataTypeBranch(std::shared_ptr<Branch> branch)
 {
-    this->registerBranch("keyword_branch", branch);
+    this->registerBranch("data_type_branch", branch);
 }
 
 void VDEFBranch::setNameBranch(std::shared_ptr<Branch> branch)
@@ -51,9 +51,9 @@ void VDEFBranch::setValueExpBranch(std::shared_ptr<Branch> branch)
     this->registerBranch("value_exp_branch", branch);
 }
 
-std::shared_ptr<Branch> VDEFBranch::getKeywordBranch()
+std::shared_ptr<Branch> VDEFBranch::getDataTypeBranch()
 {
-    return this->getRegisteredBranchByName("keyword_branch");
+    return this->getRegisteredBranchByName("data_type_branch");
 }
 
 std::shared_ptr<Branch> VDEFBranch::getNameBranch()

@@ -41,6 +41,7 @@
       <itemPath>include/ParserRule.h</itemPath>
       <itemPath>include/ParserRuleRequirement.h</itemPath>
       <itemPath>include/STRUCTBranch.h</itemPath>
+      <itemPath>include/STRUCTDEFBranch.h</itemPath>
       <itemPath>include/Scope.h</itemPath>
       <itemPath>include/SourceCodeRelatedException.h</itemPath>
       <itemPath>include/Stack.h</itemPath>
@@ -94,6 +95,7 @@
       <itemPath>src/ParserRule.cpp</itemPath>
       <itemPath>src/ParserRuleRequirement.cpp</itemPath>
       <itemPath>src/STRUCTBranch.cpp</itemPath>
+      <itemPath>src/STRUCTDEFBranch.cpp</itemPath>
       <itemPath>src/Scope.cpp</itemPath>
       <itemPath>src/Stream.cpp</itemPath>
       <itemPath>src/Token.cpp</itemPath>
@@ -219,6 +221,8 @@
       </item>
       <item path="include/STRUCTBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/STRUCTDEFBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Scope.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SourceCodeRelatedException.h"
@@ -311,6 +315,8 @@
       <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/STRUCTBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/STRUCTDEFBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Scope.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -423,6 +429,8 @@
       </item>
       <item path="include/STRUCTBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/STRUCTDEFBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Scope.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/SourceCodeRelatedException.h"
@@ -515,6 +523,8 @@
       <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/STRUCTBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/STRUCTDEFBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Scope.cpp" ex="false" tool="1" flavor2="0">
       </item>

@@ -66,6 +66,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
 	${OBJECTDIR}/src/STRUCTBranch.o \
+	${OBJECTDIR}/src/STRUCTDEFBranch.o \
 	${OBJECTDIR}/src/Scope.o \
 	${OBJECTDIR}/src/Stream.o \
 	${OBJECTDIR}/src/Token.o \
@@ -254,6 +255,11 @@ ${OBJECTDIR}/src/STRUCTBranch.o: src/STRUCTBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTBranch.o src/STRUCTBranch.cpp
+
+${OBJECTDIR}/src/STRUCTDEFBranch.o: src/STRUCTDEFBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTDEFBranch.o src/STRUCTDEFBranch.cpp
 
 ${OBJECTDIR}/src/Scope.o: src/Scope.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

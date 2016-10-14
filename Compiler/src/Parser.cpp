@@ -461,7 +461,7 @@ void Parser::process_variable_declaration()
         var_root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
     }
 
-    var_root->setKeywordBranch(var_keyword);
+    var_root->setDataTypeBranch(var_keyword);
     var_root->setNameBranch(var_name);
     var_root->setValueExpBranch(var_value);
 
@@ -1116,14 +1116,14 @@ void Parser::process_structure_declaration()
     }
 
     // Create the structure variable declaration
-    std::shared_ptr<Branch> struct_declaration = std::shared_ptr<Branch>(new Branch("STRUCT_DEF", ""));
-    struct_declaration->addChild(struct_name);
-    struct_declaration->addChild(var_name);
+    std::shared_ptr<STRUCTDEFBranch> struct_declaration = std::shared_ptr<STRUCTDEFBranch>(new STRUCTDEFBranch(compiler));
+    struct_declaration->setDataTypeBranch(struct_name);
+    struct_declaration->setNameBranch(var_name);
     // Does this structure variable declaration also have an assignment?
     if (var_value != NULL)
     {
         // Add the value to the structure declaration branch
-        struct_declaration->addChild(var_value);
+        struct_declaration->setValueExpBranch(var_value);
     }
     // Now push it to the stack
     push_branch(struct_declaration);

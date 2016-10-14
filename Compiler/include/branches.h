@@ -42,6 +42,7 @@
 #include "ELSEBranch.h"
 #include "PTRBranch.h"
 #include "STRUCTBranch.h"
+#include "STRUCTDEFBranch.h"
 
 #endif /* BRANCHES_H */
 
