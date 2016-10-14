@@ -110,19 +110,112 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
 
 void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
 {
+    if (exp->getType() != "E")
+    {
+        make_expression_left(exp, "ax");
+    }
+    else
+    {
+        std::string exp_val = exp->getValue();
+        if (compiler->isLogicalOperator(exp_val))
+        {
+            this->cmp_exp_last_logic_operator = exp_val;
+        }
+        else if (compiler->isCompareOperator(exp_val))
+        {
+            // Setup compare labels
+            if (!this->is_cmp_expression)
+            {
+                this->cmp_exp_false_label_name = build_unique_label();
+                this->cmp_exp_end_label_name = build_unique_label();
+                this->cmp_exp_true_label_name = build_unique_label();
+                is_cmp_expression = true;
+            }
+        }
+
+        std::shared_ptr<Branch> left = exp->getFirstChild();
+        std::shared_ptr<Branch> right = exp->getSecondChild();
+
+        if (left->getType() == "E")
+        {
+            make_expression(left);
+        }
+        else if (right->getType() != "E")
+        {
+            make_expression_left(left, "ax");
+        }
+
+        // Save the AX if we need to but not if we have a logical operator
+        if (
+                !compiler->isLogicalOperator(exp->getValue()) &&
+                left->getType() == "E" &&
+                right->getType() == "E")
+        {
+            do_asm("push ax");
+        }
+
+        /* Check to see if the left and right branches are both logical operators 
+        if this is the case we must handle the compare expression to make expressions such as
+        (5 > 4 && 5 < 3) || (5 == 5 && 4 == 3) possible.*/
+        if (exp->getValue() == "||" &&
+                left->getType() == "E" &&
+                right->getType() == "E" &&
+                compiler->isLogicalOperator(left->getValue()) &&
+                compiler->isLogicalOperator(right->getValue()))
+        {
+            handle_compare_expression();
+            this->cmp_exp_false_label_name = build_unique_label();
+            this->cmp_exp_end_label_name = build_unique_label();
+            this->cmp_exp_true_label_name = build_unique_label();
+            is_cmp_expression = true;
+        }
+
+
+        if (right->getType() == "E")
+        {
+            make_expression(right);
+            if (left->getType() != "E")
+            {
+                make_expression_left(left, "cx");
+            }
+        }
+        else
+        {
+            make_expression_right(right);
+        }
+
+        // Restore the AX register if we need to but not if a logical operator is present.
+        if (
+                !compiler->isLogicalOperator(exp->getValue()) &&
+                left->getType() == "E" &&
+                right->getType() == "E")
+        {
+
+            do_asm("pop cx");
+        }
+        // Don't make math instructions for logical operators.
+        if (!compiler->isLogicalOperator(exp->getValue()))
+        {
+            make_math_instruction(exp->getValue(), "ax", "cx");
+        }
+    }
+}
+
+void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store)
+{
     if (exp->getType() == "number")
     {
-        do_asm("mov ax, " + exp->getValue());
+        do_asm("mov " + register_to_store + ", " + exp->getValue());
     }
     else if (exp->getType() == "identifier")
     {
         // This is a variable so set AX to the value of this variable
-        make_move_reg_variable("ax", exp->getValue());
+        make_move_reg_variable(register_to_store, exp->getValue());
     }
     else if (exp->getType() == "PTR")
     {
         // This is pointer access to a variable so lets set AX to the value that it is pointing to
-        handle_move_pointed_to_reg("ax", exp);
+        handle_move_pointed_to_reg(register_to_store, exp);
     }
     else if (exp->getType() == "FUNC_CALL")
     {
@@ -135,163 +228,41 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         // Move the address of the variable to the AX register
         std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(exp);
         std::shared_ptr<Branch> var_branch = address_of_branch->getVariableBranch();
-        make_move_var_addr_to_reg("ax", var_branch->getValue());
-    }
-    else
-    {
-
-        if (exp->getType() == "E")
-        {
-            std::string exp_val = exp->getValue();
-            if (compiler->isLogicalOperator(exp_val))
-            {
-                this->cmp_exp_last_logic_operator = exp_val;
-            }
-            else if (compiler->isCompareOperator(exp_val))
-            {
-                // Setup compare labels
-                if (!this->is_cmp_expression)
-                {
-                    this->cmp_exp_false_label_name = build_unique_label();
-                    this->cmp_exp_end_label_name = build_unique_label();
-                    this->cmp_exp_true_label_name = build_unique_label();
-                    is_cmp_expression = true;
-                }
-            }
-        }
-
-        // This is a proper expression so process it
-        std::shared_ptr<Branch> left = exp->getFirstChild();
-        std::shared_ptr<Branch> right = exp->getSecondChild();
-
-        if (left->getType() == "E")
-        {
-            make_expression(left);
-        }
-        else
-        {
-            if (right->getType() != "E")
-            {
-                make_expression_left(left, "ax");
-            }
-        }
-
-
-        // Save the AX if we need to but not if we have a logical operator
-        if (
-                !compiler->isLogicalOperator(exp->getValue()) &&
-                left->getType() == "E" &&
-                right->getType() == "E")
-        {
-            do_asm("push ax");
-        }
-
-        if (right->getType() == "E")
-        {
-            /* Check to see if the left and right branches are both logical operators 
-   if this is the case we must handle the compare expression to make expressions such as
-   (5 > 4 && 5 < 3) || (5 == 5 && 4 == 3) possible.*/
-            if (exp->getValue() == "||" &&
-                    left->getType() == "E" &&
-                    compiler->isLogicalOperator(left->getValue()) &&
-                    compiler->isLogicalOperator(right->getValue()))
-            {
-                handle_compare_expression();
-                this->cmp_exp_false_label_name = build_unique_label();
-                this->cmp_exp_end_label_name = build_unique_label();
-                this->cmp_exp_true_label_name = build_unique_label();
-                is_cmp_expression = true;
-            }
-
-
-            make_expression(right);
-            if (left->getType() != "E")
-            {
-                make_expression_left(left, "cx");
-            }
-        }
-        else
-        {
-
-            if (right->getType() == "identifier")
-            {
-                make_move_reg_variable("cx", right->getValue());
-            }
-            else if (right->getType() == "PTR")
-            {
-                handle_move_pointed_to_reg("cx", right);
-            }
-            else if (right->getType() == "FUNC_CALL")
-            {
-                /*
-                 * This is a function call, we must push AX as at this point AX is set to something,
-                 * the AX register is the register used to return data to the function caller.
-                 * Therefore the previous AX register must be saved
-                 */
-
-                std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(right);
-
-                // PROBABLY A SERIOUS PROBLEM HERE CHECK IT OUT...
-
-                // Save AX
-                do_asm("push ax");
-                handle_function_call(func_call_branch);
-                // Since AX now contains returned value we must move it to register CX as this is where right operands get stored of any expression
-                do_asm("mov cx, ax");
-                // Restore AX
-                do_asm("pop ax");
-            }
-            else
-            {
-                // Its a number literal
-                do_asm("mov cx, " + right->getValue());
-            }
-        }
-
-        // Restore the AX register if we need to but not if a logical operator is present.
-        if (
-                !compiler->isLogicalOperator(exp->getValue()) &&
-                left->getType() == "E" &&
-                right->getType() == "E")
-        {
-
-            do_asm("pop cx");
-        }
-
-        // Don't make math instructions for logical operators.
-        if (!compiler->isLogicalOperator(exp->getValue()))
-        {
-            make_math_instruction(exp->getValue(), "ax", "cx");
-        }
+        make_move_var_addr_to_reg(register_to_store, var_branch->getValue());
     }
 }
 
 void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store)
 {
-    std::string type = exp->getType();
-    std::string value = exp->getValue();
+    make_expression_part(exp, register_to_store);
+}
 
+void CodeGen8086::make_expression_right(std::shared_ptr<Branch> exp)
+{
+    if (exp->getType() == "FUNC_CALL")
+    {
+        /*
+         * This is a function call, we must push AX as at this point AX is set to something,
+         * the AX register is the register used to return data to the function caller.
+         * Therefore the previous AX register must be saved
+         */
 
-    if (type == "identifier")
-    {
-        make_move_reg_variable(register_to_store, value);
-    }
-    else if (type == "PTR")
-    {
-        handle_move_pointed_to_reg(register_to_store, exp);
-    }
-    else if (type == "FUNC_CALL")
-    {
-        // Its a function call
         std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(exp);
+
+        // PROBABLY A SERIOUS PROBLEM HERE CHECK IT OUT...
+
+        // Save AX
+        do_asm("push ax");
         handle_function_call(func_call_branch);
+        // Since AX now contains returned value we must move it to register CX as this is where right operands get stored of any expression
+        do_asm("mov cx, ax");
+        // Restore AX
+        do_asm("pop ax");
     }
     else
     {
-        // Its a number literal
-        do_asm("mov " + register_to_store + ", " + value);
+        make_expression_part(exp, "cx");
     }
-
 
 }
 
@@ -449,7 +420,7 @@ void CodeGen8086::make_var_assignment(std::string var_name, std::shared_ptr<Bran
     std::string asm_addr = getASMAddressForVariable(var_name);
 
     std::shared_ptr<VDEFBranch> variable = getVariable(var_name);
-    int size = compiler->getDataTypeSize(variable->getKeywordBranch()->getValue());
+    int size = compiler->getDataTypeSize(variable->getDataTypeBranch()->getValue());
     bool is_word = (size == 2 ? true : false);
     // Are we accessing memory pointed to by a pointer?
     if (pointer_assignment)
@@ -466,9 +437,14 @@ void CodeGen8086::make_var_assignment(std::string var_name, std::shared_ptr<Bran
 
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
 {
-    std::string var_keyword_value = vdef_branch->getKeywordBranch()->getValue();
+    std::string var_keyword_value = vdef_branch->getDataTypeBranch()->getValue();
     std::string var_name_value = vdef_branch->getNameBranch()->getValue();
     make_variable(var_name_value, var_keyword_value, vdef_branch->getValueExpBranch());
+}
+
+void CodeGen8086::handle_structure(std::shared_ptr<STRUCTBranch> struct_branch)
+{
+    this->structures.push_back(struct_branch);
 }
 
 void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
@@ -530,7 +506,9 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
     {
         handle_scope_return(branch);
     }
-    else if (branch->getType() == "V_DEF" || branch->getType() == "V_DEF_PTR")
+    else if (branch->getType() == "V_DEF" ||
+            branch->getType() == "V_DEF_PTR" ||
+            branch->getType() == "STRUCT_DEF")
     {
         handle_scope_variable_declaration(branch);
     }
@@ -648,15 +626,16 @@ void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<Branch> bran
     // Register a scope variable
     this->scope_variables.push_back(branch);
 
+
     // Handle the variable declaration
-    std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
-    std::string var_name = vdef_branch->getNameBranch()->getValue();
-    std::shared_ptr<Branch> vdef_value = vdef_branch->getValueExpBranch();
+    std::shared_ptr<VDEFBranch> def_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+    std::string var_name = def_branch->getNameBranch()->getValue();
+    std::shared_ptr<Branch> value_branch = def_branch->getValueExpBranch();
 
     // Are we assigning it to anything?
-    if (vdef_value != NULL)
+    if (value_branch != NULL)
     {
-        make_var_assignment(var_name, vdef_value, false);
+        make_var_assignment(var_name, value_branch, false);
     }
 }
 
@@ -753,14 +732,14 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::string arg_name)
         std::shared_ptr<Branch> scope_var = this->scope_variables.at(i);
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
-        int var_size = compiler->getDataTypeSize(vdef_branch->getKeywordBranch()->getValue());
+        int var_size = compiler->getDataTypeSize(vdef_branch->getDataTypeBranch()->getValue());
         offset += var_size;
         if (name_branch->getValue() == arg_name)
         {
             break;
         }
     }
-    
+
     // USED TO HAVE +2 HERE I DO NOT BELIEVE IT IS NEEDED JUST A NOTE INCASE A BUG HAPPENS!
     return offset;
 }
@@ -831,7 +810,7 @@ std::shared_ptr<VDEFBranch> CodeGen8086::getVariable(std::string var_name)
         variable_branch = getScopeVariable(var_name);
         break;
     }
-    
+
     return std::dynamic_pointer_cast<VDEFBranch>(variable_branch);
 }
 
@@ -886,6 +865,11 @@ void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
     {
         std::shared_ptr<FuncBranch> func_branch = std::dynamic_pointer_cast<FuncBranch>(branch);
         handle_function(func_branch);
+    }
+    else if (branch->getType() == "STRUCT")
+    {
+        std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(branch);
+        handle_structure(struct_branch);
     }
 }
 

@@ -38,25 +38,29 @@ enum
     SCOPE_VARIABLE
 };
 
-class CodeGen8086 : public CodeGenerator {
+class CodeGen8086 : public CodeGenerator
+{
 public:
     CodeGen8086(Compiler* compiler);
     virtual ~CodeGen8086();
-    
+
     inline void make_label(std::string label);
     inline void make_exact_label(std::string label);
     inline std::string make_unique_label();
     inline std::string build_unique_label();
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
-    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word=false);
+    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word = false);
     void make_expression(std::shared_ptr<Branch> exp);
+    void make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
+    void make_expression_right(std::shared_ptr<Branch> exp);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_move_reg_variable(std::string reg_name, std::string var_name);
     void make_move_var_addr_to_reg(std::string reg_name, std::string var_name);
     void make_var_assignment(std::string var_name, std::shared_ptr<Branch> value, bool pointer_assignment);
-    
+
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
+    void handle_structure(std::shared_ptr<STRUCTBranch> struct_branch);
     void handle_function(std::shared_ptr<FuncBranch> func_branch);
     void handle_func_args(std::shared_ptr<Branch> arguments);
     void handle_body(std::shared_ptr<Branch> body);
@@ -68,7 +72,7 @@ public:
     void handle_compare_expression();
     void handle_scope_variable_declaration(std::shared_ptr<Branch> branch);
     void handle_if_stmt(std::shared_ptr<IFBranch> branch);
-    
+
     int getFunctionArgumentIndex(std::string arg_name);
     int getBPOffsetForArgument(std::string arg_name);
     int getScopeVariableIndex(std::string var_name);
@@ -76,14 +80,14 @@ public:
     int getVariableType(std::string arg_name);
     int getSumOfScopeVariablesSizeSoFar();
     std::string getASMAddressForVariable(std::string var_name);
-    
+
     std::shared_ptr<VDEFBranch> getVariable(std::string var_name);
     std::shared_ptr<Branch> getScopeVariable(std::string var_name);
     std::shared_ptr<Branch> getFunctionArgumentVariable(std::string arg_name);
-    
+
     bool isVariablePointer(std::string var_name);
     inline bool is_cmp_logic_operator_nothing_or_and();
-    
+
     void generate_global_branch(std::shared_ptr<Branch> branch);
     void assemble(std::string assembly);
     std::shared_ptr<Linker> getLinker();
@@ -92,13 +96,15 @@ private:
     std::shared_ptr<Linker> linker;
     std::vector<std::shared_ptr<Branch>> func_arguments;
     std::vector<std::shared_ptr<Branch>> scope_variables;
+    std::vector<std::shared_ptr<Branch>> structures;
+
     std::string cmp_exp_true_label_name;
     std::string cmp_exp_false_label_name;
     std::string cmp_exp_end_label_name;
     std::string cmp_exp_last_logic_operator;
     bool is_cmp_expression;
     int current_label_index;
-    
+
 };
 
 #endif /* CODEGEN8086_H */
