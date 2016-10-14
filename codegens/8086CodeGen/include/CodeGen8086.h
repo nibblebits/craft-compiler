@@ -76,6 +76,8 @@ public:
     int getFunctionArgumentIndex(std::string arg_name);
     int getBPOffsetForArgument(std::string arg_name);
     int getScopeVariableIndex(std::string var_name);
+    std::shared_ptr<STRUCTBranch> getStructure(std::string struct_name);
+    int getStructSize(std::string struct_name);
     int getBPOffsetForScopeVariable(std::string var_name);
     int getVariableType(std::string arg_name);
     int getSumOfScopeVariablesSizeSoFar();

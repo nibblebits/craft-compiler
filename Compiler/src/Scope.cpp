@@ -163,7 +163,7 @@ std::shared_ptr<struct variable> Scope::createVariableFromBranch(std::shared_ptr
 {
     std::shared_ptr<struct variable> variable = NULL;
     std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
-    std::shared_ptr<Token> name_branch = std::dynamic_pointer_cast<Token>(vdef_branch->getKeywordBranch());
+    std::shared_ptr<Token> name_branch = std::dynamic_pointer_cast<Token>(vdef_branch->getDataTypeBranch());
     std::shared_ptr<Token> type_branch = std::dynamic_pointer_cast<Token>(vdef_branch->getNameBranch());
     std::string type_value = type_branch->getValue();
 

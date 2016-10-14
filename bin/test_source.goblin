@@ -1,14 +1,13 @@
-
-uint8 test(uint8* a)
+struct test
 {
-  uint8* c;
-  *c = *a + 5;
-  return *a;
+  uint8 a;
+  uint8 b;
 }
 
-uint8 main(uint8 a)
+uint8 main(uint8 b, uint8 c)
 {
-  uint8 b;
-  b = test(&a) + 2;
-  return b;
+	struct test a;
+	b = 50 + &a;
+	
+	return 0;
 }

@@ -724,6 +724,44 @@ int CodeGen8086::getScopeVariableIndex(std::string var_name)
     return -1;
 }
 
+std::shared_ptr<STRUCTBranch> CodeGen8086::getStructure(std::string struct_name)
+{
+    for (std::shared_ptr<Branch> branch : this->structures)
+    {
+        std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(branch);
+        std::shared_ptr<Branch> struct_name_branch = struct_branch->getStructNameBranch();
+        if (struct_name_branch->getValue() == struct_name)
+        {
+            return struct_branch;
+        }
+    }
+
+    return NULL;
+}
+
+int CodeGen8086::getStructSize(std::string struct_name)
+{
+    int size = 0;
+    std::shared_ptr<STRUCTBranch> structure_branch = getStructure(struct_name);
+    std::shared_ptr<Branch> structure_body_branch = structure_branch->getStructBodyBranch();
+    for (std::shared_ptr<Branch> branch : structure_body_branch->getChildren())
+    {
+        std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+        std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
+        std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
+        if (vdef_branch->getType() == "STRUCT_DEF")
+        {
+            size += getStructSize(data_type_branch->getValue());
+        }
+        else
+        {
+            size += compiler->getDataTypeSize(data_type_branch->getValue());
+        }
+    }
+    
+    return size;
+}
+
 int CodeGen8086::getBPOffsetForScopeVariable(std::string arg_name)
 {
     int offset = 0;
@@ -731,9 +769,19 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::string arg_name)
     {
         std::shared_ptr<Branch> scope_var = this->scope_variables.at(i);
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
+        std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
-        int var_size = compiler->getDataTypeSize(vdef_branch->getDataTypeBranch()->getValue());
+        int var_size;
+        if (vdef_branch->getType() == "STRUCT_DEF")
+        {
+            var_size = getStructSize(data_type_branch->getValue());
+        }
+        else
+        {
+            var_size = compiler->getDataTypeSize(data_type_branch->getValue());
+        }
         offset += var_size;
+
         if (name_branch->getValue() == arg_name)
         {
             break;
