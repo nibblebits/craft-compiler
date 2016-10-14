@@ -107,7 +107,7 @@ int Compiler::getDataTypeSize(std::string type)
     }
     else
     {
-        return -1;
+        throw Exception("int Compiler::getDataTypeSize(std::string type): Invalid date type: " + type);
     }
 }
 
