@@ -228,7 +228,7 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
         // Move the address of the variable to the AX register
         std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(exp);
         std::shared_ptr<Branch> var_branch = address_of_branch->getVariableBranch();
-        make_move_var_addr_to_reg(register_to_store, var_branch->getValue());
+        make_move_var_addr_to_reg(register_to_store, var_branch);
     }
 }
 
@@ -391,10 +391,25 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::string var_name)
     do_asm("mov " + reg + ", [" + asm_addr + "]");
 }
 
-void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::string var_name)
+void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<Branch> var_branch)
 {
     int bp_offset;
-    int var_type = this->getVariableType(var_name);
+    std::shared_ptr<STRUCTAccessBranch> struct_access_branch = NULL;
+    std::string var_name;
+    bool is_struct_access = false;
+
+    if (var_branch->getType() == "STRUCT_ACCESS")
+    {
+        struct_access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
+        var_name = struct_access_branch->getFirstAccessBranch()->getValue();
+        is_struct_access = true;
+    }
+    else
+    {
+        var_name = var_branch->getValue();
+    }
+
+    int var_type = getVariableType(var_name);
 
     if (var_type == ARGUMENT_VARIABLE || var_type == SCOPE_VARIABLE)
     {
@@ -404,11 +419,25 @@ void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::string va
     switch (var_type)
     {
     case ARGUMENT_VARIABLE:
-        bp_offset = getBPOffsetForArgument(var_name);
+        if (is_struct_access)
+        {
+            throw Exception("No support for structure argument variables yet.");
+        }
+        else
+        {
+            bp_offset = getBPOffsetForArgument(var_name);
+        }
         do_asm("add " + reg_name + ", " + std::to_string(bp_offset));
         break;
     case SCOPE_VARIABLE:
-        bp_offset = getBPOffsetForScopeVariable(var_name);
+        if (is_struct_access)
+        {
+            bp_offset = getBPOffsetForScopeStructureVariable(struct_access_branch);
+        }
+        else
+        {
+            bp_offset = getBPOffsetForScopeVariable(var_name);
+        }
         do_asm("sub " + reg_name + ", " + std::to_string(bp_offset));
         break;
     }
@@ -553,9 +582,18 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
     std::shared_ptr<Branch> var_to_assign_branch = assign_branch->getVariableToAssignBranch();
     std::shared_ptr<Branch> value = assign_branch->getValueBranch();
 
-    // Are we making an assignment to a pointer address?
-    bool is_pointer = (assign_branch->getType() == "PTR_ASSIGN") ? true : false;
-    make_var_assignment(var_to_assign_branch->getValue(), value, is_pointer);
+    if (var_to_assign_branch->getType() == "STRUCT_ACCESS")
+    {
+        std::shared_ptr<STRUCTAccessBranch> access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_to_assign_branch);
+        int offset = getBPOffsetForScopeStructureVariable(access_branch);
+
+    }
+    else
+    {
+        // Are we making an assignment to a pointer address?
+        bool is_pointer = (assign_branch->getType() == "PTR_ASSIGN") ? true : false;
+        make_var_assignment(var_to_assign_branch->getValue(), value, is_pointer);
+    }
 }
 
 void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
@@ -739,16 +777,64 @@ std::shared_ptr<STRUCTBranch> CodeGen8086::getStructure(std::string struct_name)
     return NULL;
 }
 
-int CodeGen8086::getStructSize(std::string struct_name)
+std::shared_ptr<STRUCTBranch> CodeGen8086::getStructureFromScopeVariable(std::string var_name)
+{
+    std::shared_ptr<STRUCTDEFBranch> struct_def = std::dynamic_pointer_cast<STRUCTDEFBranch>(getScopeVariable(var_name));
+    std::shared_ptr<STRUCTBranch> structure = NULL;
+
+    for (std::shared_ptr<STRUCTBranch> s : this->structures)
+    {
+        if (s->getStructNameBranch()->getValue()
+                == struct_def->getDataTypeBranch()->getValue())
+        {
+            structure = s;
+            break;
+        }
+    }
+
+    return structure;
+}
+
+std::shared_ptr<Branch> CodeGen8086::getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name)
+{
+    for (std::shared_ptr<Branch> branch : structure->getStructBodyBranch()->getChildren())
+    {
+        if (branch->getType() == "V_DEF" ||
+                branch->getType() == "STRUCT_DEF" ||
+                branch->getType() == "V_DEF_PTR")
+        {
+            std::shared_ptr<VDEFBranch> v_def_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+            if (v_def_branch->getNameBranch()->getValue() == var_name)
+            {
+                return v_def_branch;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+int CodeGen8086::getStructureVariableOffset(std::string struct_name, std::string var_name)
+{
+    std::shared_ptr<STRUCTBranch> structure_branch = getStructure(struct_name);
+    return getStructureVariableOffset(structure_branch, var_name);
+}
+
+int CodeGen8086::getStructureVariableOffset(std::shared_ptr<STRUCTBranch> struct_branch, std::string var_name)
 {
     int size = 0;
-    std::shared_ptr<STRUCTBranch> structure_branch = getStructure(struct_name);
-    std::shared_ptr<Branch> structure_body_branch = structure_branch->getStructBodyBranch();
+    std::shared_ptr<Branch> structure_body_branch = struct_branch->getStructBodyBranch();
     for (std::shared_ptr<Branch> branch : structure_body_branch->getChildren())
     {
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
         std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
+        if (name_branch->getValue() == var_name)
+        {
+            // We are done :)
+            break;
+        }
+
         if (vdef_branch->getType() == "STRUCT_DEF")
         {
             size += getStructSize(data_type_branch->getValue());
@@ -758,7 +844,81 @@ int CodeGen8086::getStructSize(std::string struct_name)
             size += compiler->getDataTypeSize(data_type_branch->getValue());
         }
     }
-    
+
+    return size;
+}
+
+int CodeGen8086::getBPOffsetForScopeStructureVariable(std::shared_ptr<STRUCTAccessBranch> branch)
+{
+    // First we need to find the first element so we know where the scope begin
+    // Pretty unsure about this it may be bad practice.
+    std::shared_ptr<Branch> scope_var = branch->getFirstAccessBranch();
+
+    // Ok we now know where the scope begins so define the offset
+    int offset = getBPOffsetForScopeVariable(scope_var->getValue());
+
+    /* Now we know the offset to the first structure e.g a.b.c, "a" would be the first structure.
+     * we now need to get the position relative to zero for the structure we are trying to access */
+    offset += getPosForStructureVariable(branch);
+    return offset;
+}
+
+int CodeGen8086::getPosForStructureVariable(std::shared_ptr<Branch> branch)
+{
+    std::shared_ptr<Branch> left = branch->getFirstChild();
+    std::shared_ptr<Branch> right = branch->getSecondChild();
+    std::shared_ptr<STRUCTBranch> structure = NULL;
+
+    int offset = 0;
+    if (left->getType() == "STRUCT_ACCESS")
+    {
+        offset = getPosForStructureVariable(left);
+        structure = this->last_structure;
+        if (structure != NULL)
+        {
+            offset += getStructureVariableOffset(structure, right->getValue());
+        }
+    }
+    else
+    {
+        structure = getStructureFromScopeVariable(left->getValue());
+        offset = getStructureVariableOffset(structure, right->getValue());
+
+        // Is the right branch also accessing a structure?
+        std::shared_ptr<Branch> child = getVariableFromStructure(structure, right->getValue());
+        if (child != NULL && child->getType() == "STRUCT_DEF")
+        {
+            std::shared_ptr<STRUCTDEFBranch> struct_def = std::dynamic_pointer_cast<STRUCTDEFBranch>(child);
+            this->last_structure = getStructure(struct_def->getDataTypeBranch()->getValue());
+        }
+    }
+
+
+
+
+    return offset;
+
+}
+
+int CodeGen8086::getStructSize(std::string struct_name)
+{
+    int size = 0;
+    std::shared_ptr<STRUCTBranch> structure_branch = getStructure(struct_name);
+    std::shared_ptr<Branch> structure_body_branch = structure_branch->getStructBodyBranch();
+    for (std::shared_ptr<Branch> branch : structure_body_branch->getChildren())
+    {
+        std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+        std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
+        if (vdef_branch->getType() == "STRUCT_DEF")
+        {
+            size += getStructSize(data_type_branch->getValue());
+        }
+        else
+        {
+            size += compiler->getDataTypeSize(data_type_branch->getValue());
+        }
+    }
+
     return size;
 }
 
@@ -771,6 +931,12 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::string arg_name)
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
         std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
+
+        if (name_branch->getValue() == arg_name)
+        {
+            break;
+        }
+
         int var_size;
         if (vdef_branch->getType() == "STRUCT_DEF")
         {
@@ -782,10 +948,6 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::string arg_name)
         }
         offset += var_size;
 
-        if (name_branch->getValue() == arg_name)
-        {
-            break;
-        }
     }
 
     // USED TO HAVE +2 HERE I DO NOT BELIEVE IT IS NEEDED JUST A NOTE INCASE A BUG HAPPENS!

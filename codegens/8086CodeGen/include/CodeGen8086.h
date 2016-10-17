@@ -56,7 +56,7 @@ public:
     void make_expression_right(std::shared_ptr<Branch> exp);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_move_reg_variable(std::string reg_name, std::string var_name);
-    void make_move_var_addr_to_reg(std::string reg_name, std::string var_name);
+    void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<Branch> var_branch);
     void make_var_assignment(std::string var_name, std::shared_ptr<Branch> value, bool pointer_assignment);
 
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
@@ -77,6 +77,12 @@ public:
     int getBPOffsetForArgument(std::string arg_name);
     int getScopeVariableIndex(std::string var_name);
     std::shared_ptr<STRUCTBranch> getStructure(std::string struct_name);
+    std::shared_ptr<STRUCTBranch> getStructureFromScopeVariable(std::string var_name);
+    std::shared_ptr<Branch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
+    int getStructureVariableOffset(std::string struct_name, std::string var_name);
+    int getStructureVariableOffset(std::shared_ptr<STRUCTBranch> struct_branch, std::string var_name);
+    int getBPOffsetForScopeStructureVariable(std::shared_ptr<STRUCTAccessBranch> branch);
+    int getPosForStructureVariable(std::shared_ptr<Branch> branch);
     int getStructSize(std::string struct_name);
     int getBPOffsetForScopeVariable(std::string var_name);
     int getVariableType(std::string arg_name);
@@ -98,7 +104,8 @@ private:
     std::shared_ptr<Linker> linker;
     std::vector<std::shared_ptr<Branch>> func_arguments;
     std::vector<std::shared_ptr<Branch>> scope_variables;
-    std::vector<std::shared_ptr<Branch>> structures;
+    std::vector<std::shared_ptr<STRUCTBranch>> structures;
+    std::shared_ptr<STRUCTBranch> last_structure;
 
     std::string cmp_exp_true_label_name;
     std::string cmp_exp_false_label_name;
