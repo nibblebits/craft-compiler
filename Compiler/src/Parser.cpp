@@ -365,9 +365,9 @@ void Parser::process_stmt()
     else if (is_peak_type("identifier"))
     {
         peak(1);
-        if (is_peak_type("operator"))
+        if (is_peak_type("operator") || is_peak_symbol("."))
         {
-            // This is an assignment
+            // This is an assignment, it may also be a structure assignment e.g s.example
             process_assignment();
             process_semicolon();
         }
@@ -477,24 +477,35 @@ void Parser::process_variable_declaration()
 void Parser::process_assignment()
 {
     bool is_pointer_assignment = false;
-
-    // Peak to see if this is a pointer value assignment
     peak();
-    if (is_peak_operator("*"))
+    // Peak to see if this is a structure element assignment
+    if (is_peak_type("identifier")
+            && is_peak_symbol(".", 1))
     {
-        is_pointer_assignment = true;
-        // Shift and pop the pointer operator off the stack
+        // This is a structure element assignment so process it
+        process_structure_access();
+        // Pop the result
+        pop_branch();
+    }
+    else
+    {
+
+        // Peak to see if this is a pointer value assignment
+        if (is_peak_operator("*"))
+        {
+            is_pointer_assignment = true;
+            // Shift and pop the pointer operator off the stack
+            shift_pop();
+        }
+
+        // Process the variable access
         shift_pop();
+        // Make sure we have an identifier
+        if (!is_branch_type("identifier"))
+        {
+            error_expecting("identifier", this->branch_type);
+        }
     }
-
-    // Process the variable access
-    shift_pop();
-    // Make sure we have an identifier
-    if (!is_branch_type("identifier"))
-    {
-        error_expecting("identifier", this->branch_type);
-    }
-
     std::shared_ptr<Branch> dst_branch = this->branch;
     shift_pop();
     // Check for a valid assignment, e.g =, +=, -=
@@ -504,7 +515,7 @@ void Parser::process_assignment()
             !is_branch_operator("*=") &&
             !is_branch_operator("/="))
     {
-        error("expecting one of the following operators for assignments: =,+=,-=,*=,/=");
+        error("expecting one of the following operators for assignments: =,+=,-=,*=,/= but " + this->branch_value + " was provided.");
     }
 
     std::shared_ptr<Branch> op = this->branch;
@@ -820,8 +831,21 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         // Shift and pop the "&" symbol we do not need it anymore
         shift_pop();
 
-        // Shift and pop the identifier
-        shift_pop();
+        // Peak ahead to see if we are getting the address of a structure or a variable
+        peak();
+        if (is_peak_type("identifier") && is_peak_symbol(".", 1))
+        {
+            // This is a structure
+            process_structure_access();
+            // Pop the newly created structure access branch root from the stack.
+            pop_branch();
+        }
+        else
+        {
+            // This is an identifier, e.g a variable name so shift and pop it.
+            shift_pop();
+        }
+        
         std::shared_ptr<AddressOfBranch> address_of_branch = std::shared_ptr<AddressOfBranch>(new AddressOfBranch(this->getCompiler()));
         address_of_branch->setVariableBranch(this->branch);
         b = address_of_branch;
@@ -1468,6 +1492,24 @@ bool Parser::is_peak_symbol(std::string symbol)
 {
 
     return is_peak_type("symbol") && is_peak_value(symbol);
+}
+
+bool Parser::is_peak_symbol(std::string symbol, int peak)
+{
+    if (peak < this->input.size())
+    {
+        std::shared_ptr<Token> peak_token = this->input.at(peak);
+        if (peak_token->getType() == "symbol" && peak_token->getValue() == symbol)
+        {
+            return true;
+        }
+    }
+    else
+    {
+        error("bool Parser::is_peak_type(std::string type, int peak): peak offset is breaching bounds.");
+    }
+
+    return false;
 }
 
 bool Parser::is_peak_type(std::string type)

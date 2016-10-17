@@ -100,6 +100,7 @@ private:
     inline bool is_branch_identifier(std::string identifier);
     inline bool is_peak_stack_type(std::string type);
     inline bool is_peak_symbol(std::string symbol);
+    inline bool is_peak_symbol(std::string symbol, int peak);
     inline bool is_peak_type(std::string type);
     inline bool is_peak_type(std::string type, int peak);
     inline bool is_peak_value(std::string value);
