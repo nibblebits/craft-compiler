@@ -43,6 +43,7 @@
 #include "PTRBranch.h"
 #include "STRUCTBranch.h"
 #include "STRUCTDEFBranch.h"
+#include "STRUCTAccessBranch.h"
 
 #endif /* BRANCHES_H */
 

@@ -65,6 +65,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
+	${OBJECTDIR}/src/STRUCTAccessBranch.o \
 	${OBJECTDIR}/src/STRUCTBranch.o \
 	${OBJECTDIR}/src/STRUCTDEFBranch.o \
 	${OBJECTDIR}/src/Scope.o \
@@ -254,6 +255,11 @@ ${OBJECTDIR}/src/ParserRuleRequirement.o: src/ParserRuleRequirement.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ParserRuleRequirement.o src/ParserRuleRequirement.cpp
+
+${OBJECTDIR}/src/STRUCTAccessBranch.o: src/STRUCTAccessBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTAccessBranch.o src/STRUCTAccessBranch.cpp
 
 ${OBJECTDIR}/src/STRUCTBranch.o: src/STRUCTBranch.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

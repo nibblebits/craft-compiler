@@ -611,7 +611,7 @@ void Parser::process_structure_access()
 
         right = this->branch;
 
-        struct_access_root = std::shared_ptr<Branch>(new Branch("STRUCT_ACCESS", ""));
+        struct_access_root = std::shared_ptr<STRUCTAccessBranch>(new STRUCTAccessBranch(compiler));
         struct_access_root->addChild(left);
         struct_access_root->addChild(right);
 
