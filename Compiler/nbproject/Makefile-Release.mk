@@ -40,6 +40,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/AddressOfBranch.o \
 	${OBJECTDIR}/src/ArrayBranch.o \
 	${OBJECTDIR}/src/AssignBranch.o \
+	${OBJECTDIR}/src/BODYBranch.o \
 	${OBJECTDIR}/src/Branch.o \
 	${OBJECTDIR}/src/CallBranch.o \
 	${OBJECTDIR}/src/CodeGenerator.o \
@@ -126,6 +127,11 @@ ${OBJECTDIR}/src/AssignBranch.o: src/AssignBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/AssignBranch.o src/AssignBranch.cpp
+
+${OBJECTDIR}/src/BODYBranch.o: src/BODYBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BODYBranch.o src/BODYBranch.cpp
 
 ${OBJECTDIR}/src/Branch.o: src/Branch.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src

@@ -28,7 +28,10 @@
 #include <map>
 #include "Compiler.h"
 #include "Branch.h"
-class CustomBranch : public Branch {
+
+typedef std::map<std::string, std::shared_ptr<Branch>>::iterator map_it;
+
+class EXPORT CustomBranch : public Branch {
 public:
     CustomBranch(Compiler* compiler, std::string name, std::string value);
     virtual ~CustomBranch();
@@ -36,6 +39,10 @@ public:
     void registerBranch(std::string name, std::shared_ptr<Branch> branch);
     std::shared_ptr<Branch> getRegisteredBranchByName(std::string name);
     bool isBranchRegistered(std::string name);
+    
+
+    void output_registered_branches();
+
     
     Compiler* getCompiler();
 private:

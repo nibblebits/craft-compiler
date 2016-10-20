@@ -44,6 +44,7 @@
 #include "STRUCTBranch.h"
 #include "STRUCTDEFBranch.h"
 #include "STRUCTAccessBranch.h"
+#include "BODYBranch.h"
 
 #endif /* BRANCHES_H */
 

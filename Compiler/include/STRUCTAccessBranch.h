@@ -31,7 +31,7 @@ public:
     STRUCTAccessBranch(Compiler* compiler);
     virtual ~STRUCTAccessBranch();
     
-    std::shared_ptr<Branch> getFirstAccessBranch();
+    std::shared_ptr<Branch> getDeepestAccessBranch();
 private:
 
 };

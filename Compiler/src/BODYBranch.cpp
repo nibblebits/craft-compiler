@@ -16,32 +16,39 @@
  */
 
 /* 
- * File:   STRUCTAccess.cpp
+ * File:   BODYBranch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 17 October 2016, 03:18
+ * Created on 19 October 2016, 16:04
  * 
  * Description: 
  */
 
-#include "STRUCTAccessBranch.h"
+#include "BODYBranch.h"
+#include "VDEFBranch.h"
 
-STRUCTAccessBranch::STRUCTAccessBranch(Compiler* compiler) : CustomBranch(compiler, "STRUCT_ACCESS", "")
+BODYBranch::BODYBranch(Compiler* compiler) : CustomBranch(compiler, "BODY", "")
 {
 }
 
-STRUCTAccessBranch::~STRUCTAccessBranch()
+BODYBranch::~BODYBranch()
 {
 }
 
-std::shared_ptr<Branch> STRUCTAccessBranch::getDeepestAccessBranch()
+std::shared_ptr<Branch> BODYBranch::findVariable(std::string variable_name)
 {
-    std::shared_ptr<Branch> scope_var = this->getptr();
-    do
+    for (std::shared_ptr<Branch> branch : this->getChildren())
     {
-        scope_var = scope_var->getFirstChild();
+        if (branch->getType() == "V_DEF" ||
+                branch->getType() == "V_DEF_PTR" ||
+                branch->getType() == "STRUCT_DEF")
+        {
+            std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+            std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
+            if (name_branch->getValue() == variable_name)
+                return branch;
+        }
     }
-    while (scope_var->getType() == "STRUCT_ACCESS");
-
-    return scope_var->getParent();
+    
+    return NULL;
 }

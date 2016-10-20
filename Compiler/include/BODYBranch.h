@@ -16,32 +16,25 @@
  */
 
 /* 
- * File:   STRUCTAccess.cpp
+ * File:   BODYBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 17 October 2016, 03:18
- * 
- * Description: 
+ * Created on 19 October 2016, 16:04
  */
 
-#include "STRUCTAccessBranch.h"
+#ifndef BODYBRANCH_H
+#define BODYBRANCH_H
 
-STRUCTAccessBranch::STRUCTAccessBranch(Compiler* compiler) : CustomBranch(compiler, "STRUCT_ACCESS", "")
-{
-}
+#include "CustomBranch.h"
+class EXPORT BODYBranch : public CustomBranch {
+public:
+    BODYBranch(Compiler* compiler);
+    virtual ~BODYBranch();
+   
+    std::shared_ptr<Branch> findVariable(std::string variable_name);
+private:
 
-STRUCTAccessBranch::~STRUCTAccessBranch()
-{
-}
+};
 
-std::shared_ptr<Branch> STRUCTAccessBranch::getDeepestAccessBranch()
-{
-    std::shared_ptr<Branch> scope_var = this->getptr();
-    do
-    {
-        scope_var = scope_var->getFirstChild();
-    }
-    while (scope_var->getType() == "STRUCT_ACCESS");
+#endif /* BODYBRANCH_H */
 
-    return scope_var->getParent();
-}

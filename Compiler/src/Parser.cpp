@@ -277,7 +277,7 @@ void Parser::process_body()
         error_expecting("{", this->branch_value);
     }
 
-    std::shared_ptr<Branch> body_root = std::shared_ptr<Branch>(new Branch("BODY", ""));
+    std::shared_ptr<BODYBranch> body_root = std::shared_ptr<BODYBranch>(new BODYBranch(compiler));
 
     while (true)
     {
@@ -845,7 +845,7 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
             // This is an identifier, e.g a variable name so shift and pop it.
             shift_pop();
         }
-        
+
         std::shared_ptr<AddressOfBranch> address_of_branch = std::shared_ptr<AddressOfBranch>(new AddressOfBranch(this->getCompiler()));
         address_of_branch->setVariableBranch(this->branch);
         b = address_of_branch;
@@ -1143,12 +1143,9 @@ void Parser::process_structure_declaration()
     std::shared_ptr<STRUCTDEFBranch> struct_declaration = std::shared_ptr<STRUCTDEFBranch>(new STRUCTDEFBranch(compiler));
     struct_declaration->setDataTypeBranch(struct_name);
     struct_declaration->setNameBranch(var_name);
-    // Does this structure variable declaration also have an assignment?
-    if (var_value != NULL)
-    {
-        // Add the value to the structure declaration branch
-        struct_declaration->setValueExpBranch(var_value);
-    }
+    // Add the value to the structure declaration branch
+    struct_declaration->setValueExpBranch(var_value);
+
     // Now push it to the stack
     push_branch(struct_declaration);
 }

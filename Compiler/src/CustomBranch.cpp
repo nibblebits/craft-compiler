@@ -64,6 +64,17 @@ bool CustomBranch::isBranchRegistered(std::string name)
     return it != this->registered_branches.end();
 }
 
+
+void CustomBranch::output_registered_branches()
+{
+    debug_output_branch(this->getptr());
+    for (map_it iterator = this->registered_branches.begin();
+            iterator != this->registered_branches.end(); iterator++)
+    {
+        std::cout << "Registered branch: " << iterator->first << "; ptr: " << iterator->second << std::endl;
+    }
+}
+
 Compiler* CustomBranch::getCompiler()
 {
     return this->compiler;

@@ -45,6 +45,9 @@ void Branch::addChild(std::shared_ptr<Branch> branch)
     {
         throw Exception("Branch::addChild(std::shared_ptr<Branch> branch): NULL children are not allowed!");
     }
+    
+    // Lets let this child know who its parent is
+    branch->setParent(this->getptr());
     this->children.push_back(branch);
 }
 
@@ -104,13 +107,6 @@ bool Branch::hasChildren()
 
 void Branch::setParent(std::shared_ptr<Branch> branch)
 {
-    if (this->parent != NULL)
-    {
-        if (!this->parent->hasChild(branch))
-        {
-            this->parent->addChild(branch);
-        }
-    }
     this->parent = branch;
 }
 

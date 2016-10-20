@@ -9,6 +9,7 @@
       <itemPath>include/AddressOfBranch.h</itemPath>
       <itemPath>include/ArrayBranch.h</itemPath>
       <itemPath>include/AssignBranch.h</itemPath>
+      <itemPath>include/BODYBranch.h</itemPath>
       <itemPath>include/Branch.h</itemPath>
       <itemPath>include/CallBranch.h</itemPath>
       <itemPath>include/CharPos.h</itemPath>
@@ -70,6 +71,7 @@
       <itemPath>src/AddressOfBranch.cpp</itemPath>
       <itemPath>src/ArrayBranch.cpp</itemPath>
       <itemPath>src/AssignBranch.cpp</itemPath>
+      <itemPath>src/BODYBranch.cpp</itemPath>
       <itemPath>src/Branch.cpp</itemPath>
       <itemPath>src/CallBranch.cpp</itemPath>
       <itemPath>src/CodeGenerator.cpp</itemPath>
@@ -158,6 +160,8 @@
       <item path="include/ArrayBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/BODYBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -267,6 +271,8 @@
       <item path="src/ArrayBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/BODYBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -371,6 +377,8 @@
       </item>
       <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/BODYBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/CallBranch.h" ex="false" tool="3" flavor2="0">
@@ -479,6 +487,8 @@
       <item path="src/ArrayBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/BODYBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
       </item>
