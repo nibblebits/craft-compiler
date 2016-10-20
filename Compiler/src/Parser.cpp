@@ -1286,28 +1286,11 @@ void Parser::process_for_stmt()
     body = this->branch;
 
     // Put it all together
-    std::shared_ptr<Branch> for_stmt = std::shared_ptr<Branch>(new Branch("FOR", ""));
-    std::shared_ptr<Branch> init = std::shared_ptr<Branch>(new Branch("INIT", ""));
-    std::shared_ptr<Branch> cond = std::shared_ptr<Branch>(new Branch("COND", ""));
-    std::shared_ptr<Branch> loop = std::shared_ptr<Branch>(new Branch("LOOP", ""));
-
-    if (init_var != NULL)
-    {
-        init->addChild(init_var);
-    }
-    if (cond_exp != NULL)
-    {
-        cond->addChild(cond_exp);
-    }
-    if (loop_stmt != NULL)
-    {
-        loop->addChild(loop_stmt);
-    }
-
-    for_stmt->addChild(init);
-    for_stmt->addChild(cond);
-    for_stmt->addChild(loop);
-    for_stmt->addChild(body);
+    std::shared_ptr<FORBranch> for_stmt = std::shared_ptr<FORBranch>(new FORBranch(compiler));
+    for_stmt->setInitBranch(init_var);
+    for_stmt->setCondBranch(cond_exp);
+    for_stmt->setLoopBranch(loop_stmt);
+    for_stmt->setBodyBranch(body);
 
     // Push the for statement to the stack
     push_branch(for_stmt);
