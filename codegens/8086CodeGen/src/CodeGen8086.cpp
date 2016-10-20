@@ -520,6 +520,11 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
         std::shared_ptr<IFBranch> if_branch = std::dynamic_pointer_cast<IFBranch>(branch);
         handle_if_stmt(if_branch);
     }
+    else if (branch->getType() == "FOR")
+    {
+        std::shared_ptr<FORBranch> for_branch = std::dynamic_pointer_cast<FORBranch>(branch);
+        handle_for_stmt(for_branch);
+    }
 }
 
 void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
@@ -654,7 +659,6 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
     handle_compare_expression();
 
     // AX now contains true or false 
-
     std::string true_label = build_unique_label();
     std::string false_label = build_unique_label();
 
@@ -688,6 +692,51 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
         // Handle the else's body
         handle_body(else_body_branch);
     }
+}
+
+void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
+{
+    std::shared_ptr<Branch> init_branch = branch->getInitBranch();
+    std::shared_ptr<Branch> cond_branch = branch->getCondBranch();
+    std::shared_ptr<Branch> loop_branch = branch->getLoopBranch();
+    std::shared_ptr<Branch> body_branch = branch->getBodyBranch();
+
+    std::string true_label = build_unique_label();
+    std::string false_label = build_unique_label();
+    std::string loop_label = build_unique_label();
+
+    // Handle the init branch.
+    handle_stmt(init_branch);
+
+    // This is the label where it will jump if the expression is true
+    make_exact_label(loop_label);
+    
+    // Make the condition branches expression
+    make_expression(cond_branch);
+
+    // Handle the compare expression
+    handle_compare_expression();
+
+    // AX now contains true or false 
+
+    do_asm("cmp ax, 0");
+    do_asm("je " + false_label);
+
+    // This is where we will jump if its true
+    make_exact_label(true_label);
+
+    // Handle the "FOR" statements body.
+    handle_body(body_branch);
+
+    // Now handle the loop
+    handle_stmt(loop_branch);
+    
+    do_asm("jmp " + loop_label);
+
+    // This is where we will jump if its false, the body will never be run.
+    make_exact_label(false_label);
+
+
 }
 
 int CodeGen8086::getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch)

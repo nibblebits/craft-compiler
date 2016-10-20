@@ -72,7 +72,7 @@ public:
     void handle_compare_expression();
     void handle_scope_variable_declaration(std::shared_ptr<Branch> branch);
     void handle_if_stmt(std::shared_ptr<IFBranch> branch);
-
+    void handle_for_stmt(std::shared_ptr<FORBranch> branch);
 
     int getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch);
     int getBPOffsetForArgument(std::shared_ptr<Branch> var_branch);
