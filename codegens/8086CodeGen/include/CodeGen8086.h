@@ -55,9 +55,9 @@ public:
     void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_right(std::shared_ptr<Branch> exp);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
-    void make_move_reg_variable(std::string reg_name, std::string var_name);
+    void make_move_reg_variable(std::string reg_name, std::shared_ptr<Branch> var_branch);
     void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<Branch> var_branch);
-    void make_var_assignment(std::string var_name, std::shared_ptr<Branch> value, bool pointer_assignment);
+    void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value, bool pointer_assignment);
 
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_structure(std::shared_ptr<STRUCTBranch> struct_branch);
@@ -73,25 +73,26 @@ public:
     void handle_scope_variable_declaration(std::shared_ptr<Branch> branch);
     void handle_if_stmt(std::shared_ptr<IFBranch> branch);
 
-    int getFunctionArgumentIndex(std::string arg_name);
-    int getBPOffsetForArgument(std::string arg_name);
-    int getScopeVariableIndex(std::string var_name);
+
+    int getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch);
+    int getBPOffsetForArgument(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<STRUCTBranch> getStructure(std::string struct_name);
-    std::shared_ptr<STRUCTBranch> getStructureFromScopeVariable(std::string var_name);
+    std::shared_ptr<STRUCTBranch> getStructureFromScopeVariable(std::shared_ptr<Branch> branch);
     std::shared_ptr<Branch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
     int getStructureVariableOffset(std::string struct_name, std::string var_name);
     int getStructureVariableOffset(std::shared_ptr<STRUCTBranch> struct_branch, std::string var_name);
-    int getBPOffsetForScopeStructureVariable(std::shared_ptr<STRUCTAccessBranch> branch);
     int getPosForStructureVariable(std::shared_ptr<Branch> branch);
     int getStructSize(std::string struct_name);
-    int getBPOffsetForScopeVariable(std::string var_name);
-    int getVariableType(std::string arg_name);
+    int getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch);
+    bool hasScopeVariable(std::shared_ptr<Branch> var_branch);
+    bool hasArgumentVariable(std::shared_ptr<Branch> var_branch);
+    int getVariableType(std::shared_ptr<Branch> var_branch);
     int getSumOfScopeVariablesSizeSoFar();
-    std::string getASMAddressForVariable(std::string var_name);
+    std::string getASMAddressForVariable(std::shared_ptr<Branch> var_branch);
 
-    std::shared_ptr<VDEFBranch> getVariable(std::string var_name);
-    std::shared_ptr<Branch> getScopeVariable(std::string var_name);
-    std::shared_ptr<Branch> getFunctionArgumentVariable(std::string arg_name);
+    std::shared_ptr<VDEFBranch> getVariable(std::shared_ptr<Branch> var_branch);
+    std::shared_ptr<Branch> getScopeVariable(std::shared_ptr<Branch> var_branch);
+    std::shared_ptr<Branch> getFunctionArgumentVariable(std::shared_ptr<Branch> var_branch);
 
     bool isVariablePointer(std::string var_name);
     inline bool is_cmp_logic_operator_nothing_or_and();

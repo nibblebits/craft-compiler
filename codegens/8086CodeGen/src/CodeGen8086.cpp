@@ -209,8 +209,8 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     }
     else if (exp->getType() == "identifier")
     {
-        // This is a variable so set AX to the value of this variable
-        make_move_reg_variable(register_to_store, exp->getValue());
+        // This is a variable so set register to store to the value of this variable
+        make_move_reg_variable(register_to_store, exp);
     }
     else if (exp->getType() == "PTR")
     {
@@ -229,6 +229,10 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
         std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(exp);
         std::shared_ptr<Branch> var_branch = address_of_branch->getVariableBranch();
         make_move_var_addr_to_reg(register_to_store, var_branch);
+    }
+    else if (exp->getType() == "STRUCT_ACCESS")
+    {
+        make_move_reg_variable(register_to_store, exp);
     }
 }
 
@@ -385,31 +389,16 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
     }
 }
 
-void CodeGen8086::make_move_reg_variable(std::string reg, std::string var_name)
+void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<Branch> var_branch)
 {
-    std::string asm_addr = getASMAddressForVariable(var_name);
+    std::string asm_addr = getASMAddressForVariable(var_branch);
     do_asm("mov " + reg + ", [" + asm_addr + "]");
 }
 
 void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<Branch> var_branch)
 {
     int bp_offset;
-    std::shared_ptr<STRUCTAccessBranch> struct_access_branch = NULL;
-    std::string var_name;
-    bool is_struct_access = false;
-
-    if (var_branch->getType() == "STRUCT_ACCESS")
-    {
-        struct_access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
-        var_name = struct_access_branch->getFirstAccessBranch()->getValue();
-        is_struct_access = true;
-    }
-    else
-    {
-        var_name = var_branch->getValue();
-    }
-
-    int var_type = getVariableType(var_name);
+    int var_type = getVariableType(var_branch);
 
     if (var_type == ARGUMENT_VARIABLE || var_type == SCOPE_VARIABLE)
     {
@@ -419,36 +408,21 @@ void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::shared_pt
     switch (var_type)
     {
     case ARGUMENT_VARIABLE:
-        if (is_struct_access)
-        {
-            throw Exception("No support for structure argument variables yet.");
-        }
-        else
-        {
-            bp_offset = getBPOffsetForArgument(var_name);
-        }
+        bp_offset = getBPOffsetForArgument(var_branch);
         do_asm("add " + reg_name + ", " + std::to_string(bp_offset));
         break;
     case SCOPE_VARIABLE:
-        if (is_struct_access)
-        {
-            bp_offset = getBPOffsetForScopeStructureVariable(struct_access_branch);
-        }
-        else
-        {
-            bp_offset = getBPOffsetForScopeVariable(var_name);
-        }
+        bp_offset = getBPOffsetForScopeVariable(var_branch);
         do_asm("sub " + reg_name + ", " + std::to_string(bp_offset));
         break;
     }
 }
 
-void CodeGen8086::make_var_assignment(std::string var_name, std::shared_ptr<Branch> value, bool pointer_assignment)
+void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value, bool pointer_assignment)
 {
-    // Check to see if we are assigning memory pointed to by a pointer
-    std::string asm_addr = getASMAddressForVariable(var_name);
+    std::string asm_addr = getASMAddressForVariable(var_branch);
 
-    std::shared_ptr<VDEFBranch> variable = getVariable(var_name);
+    std::shared_ptr<VDEFBranch> variable = getVariable(var_branch);
     int size = compiler->getDataTypeSize(variable->getDataTypeBranch()->getValue());
     bool is_word = (size == 2 ? true : false);
     // Are we accessing memory pointed to by a pointer?
@@ -582,18 +556,10 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
     std::shared_ptr<Branch> var_to_assign_branch = assign_branch->getVariableToAssignBranch();
     std::shared_ptr<Branch> value = assign_branch->getValueBranch();
 
-    if (var_to_assign_branch->getType() == "STRUCT_ACCESS")
-    {
-        std::shared_ptr<STRUCTAccessBranch> access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_to_assign_branch);
-        int offset = getBPOffsetForScopeStructureVariable(access_branch);
+    // Are we making an assignment to a pointer address?
+    bool is_pointer = (assign_branch->getType() == "PTR_ASSIGN") ? true : false;
+    make_var_assignment(var_to_assign_branch, value, is_pointer);
 
-    }
-    else
-    {
-        // Are we making an assignment to a pointer address?
-        bool is_pointer = (assign_branch->getType() == "PTR_ASSIGN") ? true : false;
-        make_var_assignment(var_to_assign_branch->getValue(), value, is_pointer);
-    }
 }
 
 void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
@@ -614,8 +580,7 @@ void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
 
 void CodeGen8086::handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Branch> branch)
 {
-    std::shared_ptr<Branch> variable_name_branch = branch->getFirstChild();
-    std::string asm_addr = getASMAddressForVariable(variable_name_branch->getValue());
+    std::string asm_addr = getASMAddressForVariable(branch);
     // Save BX as its possible it could be taken due to a pointer to pointer assignment
     do_asm("push bx");
     do_asm("mov bx, [" + asm_addr + "]");
@@ -667,13 +632,13 @@ void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<Branch> bran
 
     // Handle the variable declaration
     std::shared_ptr<VDEFBranch> def_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
-    std::string var_name = def_branch->getNameBranch()->getValue();
+    std::shared_ptr<Branch> name_branch = def_branch->getNameBranch();
     std::shared_ptr<Branch> value_branch = def_branch->getValueExpBranch();
 
     // Are we assigning it to anything?
     if (value_branch != NULL)
     {
-        make_var_assignment(var_name, value_branch, false);
+        make_var_assignment(name_branch, value_branch, false);
     }
 }
 
@@ -725,13 +690,15 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
     }
 }
 
-int CodeGen8086::getFunctionArgumentIndex(std::string arg_name)
+int CodeGen8086::getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch)
 {
+    std::string var_name = var_branch->getValue();
+
     for (int i = 0; i < this->func_arguments.size(); i++)
     {
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(this->func_arguments.at(i));
         std::string vdef_var_name = vdef_branch->getNameBranch()->getValue();
-        if (vdef_var_name == arg_name)
+        if (vdef_var_name == var_name)
         {
             return i;
         }
@@ -740,26 +707,10 @@ int CodeGen8086::getFunctionArgumentIndex(std::string arg_name)
     return -1;
 }
 
-int CodeGen8086::getBPOffsetForArgument(std::string arg_name)
+int CodeGen8086::getBPOffsetForArgument(std::shared_ptr<Branch> var_branch)
 {
     // * 2 as stack elements are 16 bits wide, +4 because this is where first element begins
-    return (getFunctionArgumentIndex(arg_name) * 2) + 4;
-}
-
-int CodeGen8086::getScopeVariableIndex(std::string var_name)
-{
-    for (int i = 0; i < this->scope_variables.size(); i++)
-    {
-        std::shared_ptr<Branch> scope_var = this->scope_variables.at(i);
-        std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
-        std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
-        if (name_branch->getValue() == var_name)
-        {
-            return i;
-        }
-    }
-
-    return -1;
+    return (getFunctionArgumentIndex(var_branch) * 2) + 4;
 }
 
 std::shared_ptr<STRUCTBranch> CodeGen8086::getStructure(std::string struct_name)
@@ -777,22 +728,22 @@ std::shared_ptr<STRUCTBranch> CodeGen8086::getStructure(std::string struct_name)
     return NULL;
 }
 
-std::shared_ptr<STRUCTBranch> CodeGen8086::getStructureFromScopeVariable(std::string var_name)
+std::shared_ptr<STRUCTBranch> CodeGen8086::getStructureFromScopeVariable(std::shared_ptr<Branch> branch)
 {
-    std::shared_ptr<STRUCTDEFBranch> struct_def = std::dynamic_pointer_cast<STRUCTDEFBranch>(getScopeVariable(var_name));
-    std::shared_ptr<STRUCTBranch> structure = NULL;
-
-    for (std::shared_ptr<STRUCTBranch> s : this->structures)
+    std::shared_ptr<Branch> scope_var = getScopeVariable(branch);
+    std::shared_ptr<STRUCTDEFBranch> struct_def = std::dynamic_pointer_cast<STRUCTDEFBranch>(scope_var);
+    std::shared_ptr<Branch> struct_def_name_branch = struct_def->getDataTypeBranch();
+    for (int i = 0; i < this->structures.size(); i++)
     {
-        if (s->getStructNameBranch()->getValue()
-                == struct_def->getDataTypeBranch()->getValue())
+        std::shared_ptr<STRUCTBranch> structure = this->structures.at(i);
+        std::shared_ptr<Branch> struct_name_branch = structure->getStructNameBranch();
+        if (struct_def_name_branch->getValue() == struct_name_branch->getValue())
         {
-            structure = s;
-            break;
+            return structure;
         }
     }
 
-    return structure;
+    return NULL;
 }
 
 std::shared_ptr<Branch> CodeGen8086::getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name)
@@ -848,21 +799,6 @@ int CodeGen8086::getStructureVariableOffset(std::shared_ptr<STRUCTBranch> struct
     return size;
 }
 
-int CodeGen8086::getBPOffsetForScopeStructureVariable(std::shared_ptr<STRUCTAccessBranch> branch)
-{
-    // First we need to find the first element so we know where the scope begin
-    // Pretty unsure about this it may be bad practice.
-    std::shared_ptr<Branch> scope_var = branch->getFirstAccessBranch();
-
-    // Ok we now know where the scope begins so define the offset
-    int offset = getBPOffsetForScopeVariable(scope_var->getValue());
-
-    /* Now we know the offset to the first structure e.g a.b.c, "a" would be the first structure.
-     * we now need to get the position relative to zero for the structure we are trying to access */
-    offset += getPosForStructureVariable(branch);
-    return offset;
-}
-
 int CodeGen8086::getPosForStructureVariable(std::shared_ptr<Branch> branch)
 {
     std::shared_ptr<Branch> left = branch->getFirstChild();
@@ -881,7 +817,7 @@ int CodeGen8086::getPosForStructureVariable(std::shared_ptr<Branch> branch)
     }
     else
     {
-        structure = getStructureFromScopeVariable(left->getValue());
+        structure = getStructureFromScopeVariable(left);
         offset = getStructureVariableOffset(structure, right->getValue());
 
         // Is the right branch also accessing a structure?
@@ -893,11 +829,7 @@ int CodeGen8086::getPosForStructureVariable(std::shared_ptr<Branch> branch)
         }
     }
 
-
-
-
     return offset;
-
 }
 
 int CodeGen8086::getStructSize(std::string struct_name)
@@ -922,8 +854,15 @@ int CodeGen8086::getStructSize(std::string struct_name)
     return size;
 }
 
-int CodeGen8086::getBPOffsetForScopeVariable(std::string arg_name)
+int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
 {
+    std::shared_ptr<STRUCTAccessBranch> access_branch = NULL;
+    if (var_branch->getType() == "STRUCT_ACCESS")
+    {
+        access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
+        var_branch = access_branch->getDeepestAccessBranch()->getFirstChild();
+    }
+
     int offset = 0;
     for (int i = 0; i < this->scope_variables.size(); i++)
     {
@@ -932,7 +871,7 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::string arg_name)
         std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
 
-        if (name_branch->getValue() == arg_name)
+        if (name_branch->getValue() == var_branch->getValue())
         {
             break;
         }
@@ -950,15 +889,50 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::string arg_name)
 
     }
 
-    // USED TO HAVE +2 HERE I DO NOT BELIEVE IT IS NEEDED JUST A NOTE INCASE A BUG HAPPENS!
+    // Are we doing a structure access? If so we need to add on the offset of the structure element we are accessing.
+    if (access_branch != NULL)
+    {
+        offset += getPosForStructureVariable(access_branch);
+    }
+
     return offset;
 }
 
-int CodeGen8086::getVariableType(std::string arg_name)
+bool CodeGen8086::hasScopeVariable(std::shared_ptr<Branch> var_branch)
 {
-    if (this->getScopeVariableIndex(arg_name) != -1)
+    /* If this is a structure access then we need to get the first
+     element as this element will be the scope variable name. E.g "a.b.c" "a" would be the scope variable name.*/
+    if (var_branch->getType() == "STRUCT_ACCESS")
+    {
+        std::shared_ptr<STRUCTAccessBranch> access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
+        var_branch = access_branch->getDeepestAccessBranch()->getFirstChild();
+    }
+
+    for (int i = 0; i < this->scope_variables.size(); i++)
+    {
+        std::shared_ptr<Branch> branch = this->scope_variables.at(i);
+        std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+        std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
+
+        if (name_branch->getValue() == var_branch->getValue())
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool CodeGen8086::hasArgumentVariable(std::shared_ptr<Branch> var_branch)
+{
+    return getFunctionArgumentIndex(var_branch) != -1;
+}
+
+int CodeGen8086::getVariableType(std::shared_ptr<Branch> var_branch)
+{
+    if (hasScopeVariable(var_branch))
         return SCOPE_VARIABLE;
-    if (this->getFunctionArgumentIndex(arg_name) != -1)
+    if (hasArgumentVariable(var_branch))
         return ARGUMENT_VARIABLE;
 
     return GLOBAL_VARIABLE;
@@ -971,19 +945,19 @@ int CodeGen8086::getSumOfScopeVariablesSizeSoFar()
     return (this->scope_variables.size() * 2);
 }
 
-std::string CodeGen8086::getASMAddressForVariable(std::string var_name)
+std::string CodeGen8086::getASMAddressForVariable(std::shared_ptr<Branch> var_branch)
 {
-    int var_type = this->getVariableType(var_name);
+    int var_type = getVariableType(var_branch);
     int bp_offset;
     std::string dst_string;
     switch (var_type)
     {
     case ARGUMENT_VARIABLE:
-        bp_offset = getBPOffsetForArgument(var_name);
+        bp_offset = getBPOffsetForArgument(var_branch);
         dst_string = "bp+" + std::to_string(bp_offset) + "";
         break;
     case SCOPE_VARIABLE:
-        bp_offset = getBPOffsetForScopeVariable(var_name);
+        bp_offset = getBPOffsetForScopeVariable(var_branch);
         dst_string = "bp-" + std::to_string(bp_offset) + "";
         break;
     }
@@ -992,14 +966,46 @@ std::string CodeGen8086::getASMAddressForVariable(std::string var_name)
 
 }
 
-std::shared_ptr<Branch> CodeGen8086::getScopeVariable(std::string var_name)
+std::shared_ptr<Branch> CodeGen8086::getScopeVariable(std::shared_ptr<Branch> var_branch)
 {
+    /* If this is a structure access e.g "a.b.c.d" then the variable we need to return is "d"*/
+    std::shared_ptr<STRUCTAccessBranch> access_branch = NULL;
+
+    if (var_branch->getType() == "STRUCT_ACCESS")
+    {
+        access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
+        access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(access_branch->getDeepestAccessBranch());
+        var_branch = access_branch->getFirstChild();
+    }
+
     for (std::shared_ptr<Branch> variable : this->scope_variables)
     {
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(variable);
         std::shared_ptr<Branch> variable_name_branch = vdef_branch->getNameBranch();
-        if (variable_name_branch->getValue() == var_name)
+        if (variable_name_branch->getValue() == var_branch->getValue())
         {
+            // Is this structure access we are doing?
+            if (access_branch != NULL)
+            {
+                std::shared_ptr<Branch> access_parent = NULL;
+                std::shared_ptr<STRUCTBranch> struct_branch = getStructureFromScopeVariable(access_branch->getFirstChild());
+                while (true)
+                {
+                    access_parent = access_branch->getParent();
+                    std::shared_ptr<Branch> struct_var = getVariableFromStructure(struct_branch, access_branch->getSecondChild()->getValue());
+                    if (access_parent->getType() == "STRUCT_ACCESS")
+                    {
+                        std::shared_ptr<STRUCTDEFBranch> struct_def = std::dynamic_pointer_cast<STRUCTDEFBranch>(struct_var);
+                        struct_branch = getStructure(struct_def->getDataTypeBranch()->getValue());
+                        access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(access_parent);
+                    }
+                    else
+                    {
+                        return struct_var;
+                    }
+                }
+            }
+
             return variable;
         }
     }
@@ -1007,30 +1013,30 @@ std::shared_ptr<Branch> CodeGen8086::getScopeVariable(std::string var_name)
     return NULL;
 }
 
-std::shared_ptr<VDEFBranch> CodeGen8086::getVariable(std::string var_name)
+std::shared_ptr<VDEFBranch> CodeGen8086::getVariable(std::shared_ptr<Branch> var_branch)
 {
     std::shared_ptr<Branch> variable_branch = NULL;
-    int var_type = getVariableType(var_name);
+    int var_type = getVariableType(var_branch);
     switch (var_type)
     {
     case ARGUMENT_VARIABLE:
-        variable_branch = getFunctionArgumentVariable(var_name);
+        variable_branch = getFunctionArgumentVariable(var_branch);
         break;
     case SCOPE_VARIABLE:
-        variable_branch = getScopeVariable(var_name);
+        variable_branch = getScopeVariable(var_branch);
         break;
     }
 
     return std::dynamic_pointer_cast<VDEFBranch>(variable_branch);
 }
 
-std::shared_ptr<Branch> CodeGen8086::getFunctionArgumentVariable(std::string arg_name)
+std::shared_ptr<Branch> CodeGen8086::getFunctionArgumentVariable(std::shared_ptr<Branch> var_branch)
 {
     for (std::shared_ptr<Branch> variable : this->func_arguments)
     {
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(variable);
         std::shared_ptr<Branch> variable_name_branch = vdef_branch->getNameBranch();
-        if (variable_name_branch->getValue() == arg_name)
+        if (variable_name_branch->getValue() == var_branch->getValue())
         {
             return variable;
         }
@@ -1041,6 +1047,7 @@ std::shared_ptr<Branch> CodeGen8086::getFunctionArgumentVariable(std::string arg
 
 bool CodeGen8086::isVariablePointer(std::string var_name)
 {
+    /*
     std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(getScopeVariable(var_name));
     if (vdef_branch == NULL)
     {
@@ -1056,6 +1063,9 @@ bool CodeGen8086::isVariablePointer(std::string var_name)
             return true;
         }
     }
+    return false;
+     */
+
     return false;
 }
 
