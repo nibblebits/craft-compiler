@@ -34,21 +34,3 @@ BODYBranch::BODYBranch(Compiler* compiler) : CustomBranch(compiler, "BODY", "")
 BODYBranch::~BODYBranch()
 {
 }
-
-std::shared_ptr<Branch> BODYBranch::findVariable(std::string variable_name)
-{
-    for (std::shared_ptr<Branch> branch : this->getChildren())
-    {
-        if (branch->getType() == "V_DEF" ||
-                branch->getType() == "V_DEF_PTR" ||
-                branch->getType() == "STRUCT_DEF")
-        {
-            std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
-            std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
-            if (name_branch->getValue() == variable_name)
-                return branch;
-        }
-    }
-    
-    return NULL;
-}

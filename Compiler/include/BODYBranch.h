@@ -30,8 +30,7 @@ class EXPORT BODYBranch : public CustomBranch {
 public:
     BODYBranch(Compiler* compiler);
     virtual ~BODYBranch();
-   
-    std::shared_ptr<Branch> findVariable(std::string variable_name);
+  
 private:
 
 };

@@ -41,11 +41,11 @@ public:
     virtual ~VDEFBranch();
 
     void setDataTypeBranch(std::shared_ptr<Branch> branch);
-    void setNameBranch(std::shared_ptr<Branch> branch);
+    void setIdentifierBranch(std::shared_ptr<Branch> branch);
     void setValueExpBranch(std::shared_ptr<Branch> branch);
 
     std::shared_ptr<Branch> getDataTypeBranch();
-    std::shared_ptr<Branch> getNameBranch();
+    std::shared_ptr<Branch> getIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
 private:
 

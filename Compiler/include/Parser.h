@@ -78,6 +78,7 @@ private:
     void process_structure_declaration();
     void process_while_stmt();
     void process_for_stmt();
+    void process_array_indexes();
     void process_semicolon();
     void process_identifier();
 
@@ -109,6 +110,7 @@ private:
     inline bool is_peak_operator(std::string op, int peak);
     inline bool is_peak_identifier(std::string identifier);
     inline bool is_variable_pointer(std::string var_name);
+    inline bool is_variable_registered(std::string var_name);
 
     std::shared_ptr<Logger> logger;
     std::deque<std::shared_ptr<Token>> input;
