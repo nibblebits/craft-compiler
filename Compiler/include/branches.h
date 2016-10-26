@@ -36,7 +36,6 @@
 #include "ASMBranch.h"
 #include "ArrayBranch.h"
 #include "FuncCallBranch.h"
-#include "VDEFPTRBranch.h"
 #include "AddressOfBranch.h"
 #include "IFBranch.h"
 #include "ELSEBranch.h"

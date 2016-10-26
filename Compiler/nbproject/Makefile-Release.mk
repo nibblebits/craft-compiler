@@ -76,7 +76,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Tree.o \
 	${OBJECTDIR}/src/TypeChecker.o \
 	${OBJECTDIR}/src/VDEFBranch.o \
-	${OBJECTDIR}/src/VDEFPTRBranch.o \
 	${OBJECTDIR}/src/common.o
 
 
@@ -308,11 +307,6 @@ ${OBJECTDIR}/src/VDEFBranch.o: src/VDEFBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VDEFBranch.o src/VDEFBranch.cpp
-
-${OBJECTDIR}/src/VDEFPTRBranch.o: src/VDEFPTRBranch.cpp 
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VDEFPTRBranch.o src/VDEFPTRBranch.cpp
 
 ${OBJECTDIR}/src/common.o: src/common.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
