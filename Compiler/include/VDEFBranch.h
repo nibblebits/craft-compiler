@@ -46,6 +46,7 @@ public:
 
     std::shared_ptr<Branch> getDataTypeBranch();
     std::shared_ptr<Branch> getIdentifierBranch();
+    std::shared_ptr<Branch> getNameBranch();
     std::shared_ptr<Branch> getValueExpBranch();
 private:
 

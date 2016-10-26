@@ -26,6 +26,7 @@
 
 #include "VDEFBranch.h"
 #include "ArrayBranch.h"
+#include "PTRBranch.h"
 
 VDEFBranch::VDEFBranch(Compiler* compiler, std::string branch_name, std::string branch_value) : CustomBranch(compiler, branch_name, branch_value)
 {
@@ -59,6 +60,17 @@ std::shared_ptr<Branch> VDEFBranch::getDataTypeBranch()
 std::shared_ptr<Branch> VDEFBranch::getIdentifierBranch()
 {
     return this->getRegisteredBranchByName("identifier_branch");
+}
+
+std::shared_ptr<Branch> VDEFBranch::getNameBranch()
+{
+    std::shared_ptr<Branch> branch = this->getRegisteredBranchByName("identifier_branch");
+    if (branch->getType() == "PTR") {
+        std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(branch);
+        return ptr_branch->getVariableBranch();
+    }
+    
+    return branch;
 }
 
 std::shared_ptr<Branch> VDEFBranch::getValueExpBranch()
