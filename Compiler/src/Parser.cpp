@@ -448,10 +448,16 @@ void Parser::process_variable_declaration()
     var_root->setValueExpBranch(var_value_branch);
 
 
-    // BELOW IS NOW BROKEN
-
     // Register the declared variable
-    //  register_variable(var_name->getValue(), var_root);
+    std::string var_name;
+    if (identifier_branch->getType() == "PTR") {
+        std::shared_ptr<PTRBranch> identifier_ptr_branch = std::dynamic_pointer_cast<PTRBranch>(identifier_branch);
+        var_name = identifier_ptr_branch->getVariableBranch()->getValue();
+    } else {
+        var_name = identifier_branch->getValue();
+    }
+    
+    register_variable(var_name, var_root);
 
     // Push that root back to the branches
     push_branch(var_root);
@@ -1590,9 +1596,9 @@ bool Parser::is_variable_pointer(std::string var_name)
     }
 
 
-    std::shared_ptr<Branch> var_branch = this->variable_defs[var_name];
-    if (var_branch->getType() == "V_DEF_PTR")
-    {
+    std::shared_ptr<VDEFBranch> var_branch = std::dynamic_pointer_cast<VDEFBranch>(this->variable_defs[var_name]);
+    std::shared_ptr<Branch> var_identifier_branch = var_branch->getIdentifierBranch();
+    if (var_identifier_branch->getType() == "PTR") {
         return true;
     }
 
