@@ -93,6 +93,7 @@ private:
     void shift_pop();
     void register_variable(std::string var_name, std::shared_ptr<Branch> branch);
 
+    inline void handle_left_or_right(std::shared_ptr<Branch>* left, std::shared_ptr<Branch>* right);
     inline bool is_branch_symbol(std::string symbol);
     inline bool is_branch_type(std::string type);
     inline bool is_branch_value(std::string value);

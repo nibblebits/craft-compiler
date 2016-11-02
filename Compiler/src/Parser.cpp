@@ -450,13 +450,16 @@ void Parser::process_variable_declaration()
 
     // Register the declared variable
     std::string var_name;
-    if (identifier_branch->getType() == "PTR") {
+    if (identifier_branch->getType() == "PTR")
+    {
         std::shared_ptr<PTRBranch> identifier_ptr_branch = std::dynamic_pointer_cast<PTRBranch>(identifier_branch);
         var_name = identifier_ptr_branch->getVariableBranch()->getValue();
-    } else {
+    }
+    else
+    {
         var_name = identifier_branch->getValue();
     }
-    
+
     register_variable(var_name, var_root);
 
     // Push that root back to the branches
@@ -647,81 +650,6 @@ void Parser::process_expression_part()
 
     while (true)
     {
-        peak();
-        // If the next token is one of the following then set either the left or right branches, which ever one of them is free
-        if (is_peak_type("number") ||
-                is_peak_type("identifier") ||
-                is_peak_type("string") ||
-                // This is used for addresses, e.g *test get the address of variable test
-                (is_peak_operator("*") && is_peak_type("identifier", 1)) ||
-                // This is used for pointer access, e.g &a
-                is_peak_operator("&")
-                )
-        {
-            if (left == NULL)
-            {
-                left = process_expression_operand();
-            }
-            else if (right == NULL)
-            {
-                right = process_expression_operand();
-            }
-        }
-        else if (is_peak_type("operator"))
-        {
-            // Logical operators should cause us to break out of this loop so it can be handled in the process_expression method.
-            if (compiler->isLogicalOperator(this->peak_token_value))
-            {
-                break;
-            }
-
-            shift_pop();
-            op = this->branch;
-
-            // Check to see if compare expressions order of operations applies.
-            if (compiler->isCompareOperator(op->getValue()))
-            {
-                // Process the further expression
-                process_expression_part();
-                // Pop off the result
-                pop_branch();
-                // Put it on the right branch
-                right = this->branch;
-            }
-        }
-        else if (is_peak_symbol("("))
-        {
-            // Pop the left bracket we don't need it anymore
-            shift_pop();
-
-            // Recall this method to handle the expression
-            process_expression();
-
-            // Pop off the result
-            pop_branch();
-
-            // Set either the left or right branch to the result
-            if (left == NULL)
-            {
-                left = this->branch;
-            }
-            else if (right == NULL)
-            {
-                right = this->branch;
-            }
-
-            shift_pop();
-            // Is the next symbol a right bracket?
-            if (!is_peak_symbol(")"))
-            {
-                error("expecting right bracket to end expression");
-            }
-        }
-        else
-        {
-            break;
-        }
-
         if (left != NULL && op != NULL && right != NULL)
         {
             if (op->getValue() != "*" && op->getValue() != "/")
@@ -756,6 +684,78 @@ void Parser::process_expression_part()
             op = NULL;
             right = NULL;
         }
+        else
+        {
+            peak();
+            // If the next token is one of the following then set either the left or right branches, which ever one of them is free
+            if (is_peak_type("number") ||
+                    is_peak_type("identifier") ||
+                    is_peak_type("string")
+                    )
+            {
+                handle_left_or_right(&left, &right);
+            }
+            else if (is_peak_type("operator"))
+            {
+                if (left == NULL || op != NULL)
+                {
+                    handle_left_or_right(&left, &right);
+                    continue;
+                }
+
+                // Logical operators should cause us to break out of this loop so it can be handled in the process_expression method.
+                if (compiler->isLogicalOperator(this->peak_token_value))
+                {
+                    break;
+                }
+
+                shift_pop();
+                op = this->branch;
+
+                // Check to see if compare expressions order of operations applies.
+                if (compiler->isCompareOperator(op->getValue()))
+                {
+                    // Process the further expression
+                    process_expression_part();
+                    // Pop off the result
+                    pop_branch();
+                    // Put it on the right branch
+                    right = this->branch;
+                }
+            }
+            else if (is_peak_symbol("("))
+            {
+                // Pop the left bracket we don't need it anymore
+                shift_pop();
+
+                // Recall this method to handle the expression
+                process_expression();
+
+                // Pop off the result
+                pop_branch();
+
+                // Set either the left or right branch to the result
+                if (left == NULL)
+                {
+                    left = this->branch;
+                }
+                else if (right == NULL)
+                {
+                    right = this->branch;
+                }
+
+                shift_pop();
+                // Is the next symbol a right bracket?
+                if (!is_peak_symbol(")"))
+                {
+                    error("expecting right bracket to end expression");
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
     }
 
     // The expression was never complete so it must be just a number
@@ -764,6 +764,7 @@ void Parser::process_expression_part()
         // Check for an error with the expression
         if (left == NULL)
         {
+
             error("invalid expression");
         }
         exp_root = left;
@@ -836,7 +837,7 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         address_of_branch->setVariableBranch(this->branch);
         b = address_of_branch;
     }
-    else if (is_peak_type("operator"))
+    else if (is_peak_operator("*"))
     {
         // Peak further and see if the next value is an identifier
         peak(1);
@@ -845,15 +846,19 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
             /* Ok this is accessing a variable this could be a pointer 
              * e.g "*a" get the value from the memory location pointer "a" is pointing to
              */
-            process_variable_access();
-            // Pop off the result
-            pop_branch();
-            b = this->branch;
+            if (is_variable_pointer(this->peak_token_value))
+            {
+                process_variable_access();
+                // Pop off the result
+                pop_branch();
+                b = this->branch;
+            }
         }
     }
     else if (is_peak_type("string"))
     {
         // We have a string shift and pop the string 
+
         shift_pop();
         b = this->branch;
     }
@@ -911,6 +916,7 @@ void Parser::process_function_call()
         else
         {
             // Ok lets process the expression
+
             process_expression();
             // Pop the resulting expression
             pop_branch();
@@ -989,6 +995,7 @@ void Parser::process_if_stmt()
         }
         else
         {
+
             std::shared_ptr<ELSEBranch> else_stmt = std::shared_ptr<ELSEBranch>(new ELSEBranch(this->getCompiler()));
             // Process the body of the else statement
             process_body();
@@ -1030,6 +1037,7 @@ void Parser::process_return_stmt()
     // If their was an expression then we need to add it to the return branch
     if (exp != NULL)
     {
+
         return_branch->addChild(exp);
     }
 
@@ -1051,6 +1059,7 @@ void Parser::process_structure()
     shift_pop();
     if (!is_branch_type("identifier"))
     {
+
         error("Expecting identifier for \"struct\" name but token type: "
               + this->branch_type + " of value: " + this->branch_value + " was provided");
     }
@@ -1118,6 +1127,7 @@ void Parser::process_structure_declaration()
         }
         else
         {
+
             error_expecting("identifier", this->peak_token_value);
         }
     }
@@ -1159,6 +1169,7 @@ void Parser::process_while_stmt()
     shift_pop();
     if (!is_branch_symbol(")"))
     {
+
         error_expecting(")", this->branch_value);
     }
 
@@ -1259,6 +1270,7 @@ void Parser::process_for_stmt()
     // Check that it was actually a right bracket
     if (!is_branch_symbol(")"))
     {
+
         error_expecting(")", this->branch_value);
     }
 
@@ -1308,6 +1320,7 @@ void Parser::process_array_indexes()
     if (is_peak_symbol("["))
     {
         // Yes there are more indexes to go so recall ourself
+
         process_array_indexes();
 
         pop_branch();
@@ -1328,6 +1341,7 @@ void Parser::process_semicolon()
     // Check that it was a semicolon
     if (!is_branch_symbol(";"))
     {
+
         error("expecting a semicolon, however token: \"" + this->token_value + "\" was provided");
     }
 }
@@ -1337,6 +1351,7 @@ void Parser::process_identifier()
     shift_pop();
     if (!is_branch_type("identifier"))
     {
+
         error("expecting an identifier, however token: \"" + this->token_value + "\" was provided");
     }
 }
@@ -1345,6 +1360,7 @@ void Parser::error(std::string message, bool token)
 {
     if (token && this->token != NULL)
     {
+
         CharPos position = this->token->getPosition();
         message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
     }
@@ -1366,11 +1382,13 @@ void Parser::warn(std::string message, bool token)
 
 void Parser::error_unexpected_token()
 {
+
     error("Unexpected token: " + this->token_value + " maybe you have forgot a semicolon? ';'");
 }
 
 void Parser::error_expecting(std::string expecting, std::string given)
 {
+
     error("Expecting: '" + expecting + "' but '" + given + "' was given");
 }
 
@@ -1453,42 +1471,62 @@ void Parser::push_branch(std::shared_ptr<Branch> branch)
 
 void Parser::shift_pop()
 {
+
     this->shift();
     this->pop_branch();
 }
 
 void Parser::register_variable(std::string var_name, std::shared_ptr<Branch> branch)
 {
+
     this->variable_defs[var_name] = branch;
+}
+
+void Parser::handle_left_or_right(std::shared_ptr<Branch>* left, std::shared_ptr<Branch>* right)
+{
+    if (*left == NULL)
+    {
+        *left = process_expression_operand();
+    }
+    else if (*right == NULL)
+    {
+        *right = process_expression_operand();
+    }
 }
 
 bool Parser::is_branch_symbol(std::string symbol)
 {
+
     return is_branch_type("symbol") && is_branch_value(symbol);
 }
 
 bool Parser::is_branch_type(std::string type)
 {
+
     return this->branch_type == type;
 }
 
 bool Parser::is_branch_value(std::string value)
 {
+
     return this->branch_value == value;
 }
 
 bool Parser::is_branch_keyword(std::string keyword)
 {
+
     return is_branch_type("keyword") && is_branch_value(keyword);
 }
 
 bool Parser::is_branch_operator(std::string op)
 {
+
     return is_branch_type("operator") && is_branch_value(op);
 }
 
 bool Parser::is_branch_identifier(std::string identifier)
 {
+
     return is_branch_type("identifier") && is_branch_value(identifier);
 }
 
@@ -1510,6 +1548,7 @@ bool Parser::is_peak_symbol(std::string symbol, int peak)
     }
     else
     {
+
         error("bool Parser::is_peak_type(std::string type, int peak): peak offset is breaching bounds.");
     }
 
@@ -1518,6 +1557,7 @@ bool Parser::is_peak_symbol(std::string symbol, int peak)
 
 bool Parser::is_peak_type(std::string type)
 {
+
     return this->peak_token_type == type;
 }
 
@@ -1533,6 +1573,7 @@ bool Parser::is_peak_type(std::string type, int peak)
     }
     else
     {
+
         error("bool Parser::is_peak_type(std::string type, int peak): peak offset is breaching bounds.");
     }
 
@@ -1541,16 +1582,19 @@ bool Parser::is_peak_type(std::string type, int peak)
 
 bool Parser::is_peak_value(std::string value)
 {
+
     return this->peak_token_value == value;
 }
 
 bool Parser::is_peak_keyword(std::string keyword)
 {
+
     return is_peak_type("keyword") && is_peak_value(keyword);
 }
 
 bool Parser::is_peak_operator(std::string op)
 {
+
     return is_peak_type("operator") && is_peak_value(op);
 }
 
@@ -1567,6 +1611,7 @@ bool Parser::is_peak_operator(std::string op, int peak)
     }
     else
     {
+
         error("bool Parser::is_peak_operator(std::string op, int peak): peak offset is breaching bounds.");
     }
 
@@ -1575,6 +1620,7 @@ bool Parser::is_peak_operator(std::string op, int peak)
 
 bool Parser::is_peak_identifier(std::string identifier)
 {
+
     return is_peak_type("identifier") && is_peak_value(identifier);
 }
 
@@ -1582,6 +1628,7 @@ bool Parser::is_variable_registered(std::string var_name)
 {
     if (this->variable_defs.find(var_name) == this->variable_defs.end())
     {
+
         return false;
     }
 
@@ -1598,7 +1645,9 @@ bool Parser::is_variable_pointer(std::string var_name)
 
     std::shared_ptr<VDEFBranch> var_branch = std::dynamic_pointer_cast<VDEFBranch>(this->variable_defs[var_name]);
     std::shared_ptr<Branch> var_identifier_branch = var_branch->getIdentifierBranch();
-    if (var_identifier_branch->getType() == "PTR") {
+    if (var_identifier_branch->getType() == "PTR")
+    {
+
         return true;
     }
 
