@@ -74,6 +74,7 @@ public:
     void handle_if_stmt(std::shared_ptr<IFBranch> branch);
     void handle_for_stmt(std::shared_ptr<FORBranch> branch);
 
+    int getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch);
     int getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch);
     int getBPOffsetForArgument(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<STRUCTBranch> getStructure(std::string struct_name);
@@ -94,7 +95,7 @@ public:
     std::shared_ptr<Branch> getScopeVariable(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getFunctionArgumentVariable(std::shared_ptr<Branch> var_branch);
 
-    bool isVariablePointer(std::string var_name);
+    bool isVariablePointer(std::shared_ptr<Branch> var_branch);
     inline bool is_cmp_logic_operator_nothing_or_and();
 
     void generate_global_branch(std::shared_ptr<Branch> branch);

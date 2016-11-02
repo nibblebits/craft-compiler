@@ -423,7 +423,7 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
     std::string asm_addr = getASMAddressForVariable(var_branch);
 
     std::shared_ptr<VDEFBranch> variable = getVariable(var_branch);
-    int size = compiler->getDataTypeSize(variable->getDataTypeBranch()->getValue());
+    int size = getSizeOfVariableBranch(variable);
     bool is_word = (size == 2 ? true : false);
     // Are we accessing memory pointed to by a pointer?
     if (pointer_assignment)
@@ -440,9 +440,10 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
 
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
 {
-    std::string var_keyword_value = vdef_branch->getDataTypeBranch()->getValue();
-    std::string var_name_value = vdef_branch->getNameBranch()->getValue();
-    make_variable(var_name_value, var_keyword_value, vdef_branch->getValueExpBranch());
+    throw new Exception("Global variables are not yet supported.");
+    //std::string var_keyword_value = vdef_branch->getDataTypeBranch()->getValue();
+    //std::string var_name_value = vdef_branch->getNameBranch()->getValue();
+    //make_variable(var_name_value, var_keyword_value, vdef_branch->getValueExpBranch());
 }
 
 void CodeGen8086::handle_structure(std::shared_ptr<STRUCTBranch> struct_branch)
@@ -561,9 +562,20 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
     std::shared_ptr<Branch> var_to_assign_branch = assign_branch->getVariableToAssignBranch();
     std::shared_ptr<Branch> value = assign_branch->getValueBranch();
 
-    // Are we making an assignment to a pointer address?
-    bool is_pointer = (assign_branch->getType() == "PTR_ASSIGN") ? true : false;
-    make_var_assignment(var_to_assign_branch, value, is_pointer);
+    bool is_pointer;
+    std::shared_ptr<Branch> var_branch;
+    if (var_to_assign_branch->getType() == "PTR")
+    {
+        std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_to_assign_branch);
+        var_branch = ptr_branch->getVariableBranch();
+        is_pointer = true;
+    }
+    else
+    {
+        var_branch = var_to_assign_branch;
+        is_pointer = false;
+    }
+    make_var_assignment(var_branch, value, is_pointer);
 
 }
 
@@ -710,7 +722,7 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
 
     // This is the label where it will jump if the expression is true
     make_exact_label(loop_label);
-    
+
     // Make the condition branches expression
     make_expression(cond_branch);
 
@@ -730,7 +742,7 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
 
     // Now handle the loop
     handle_stmt(loop_branch);
-    
+
     do_asm("jmp " + loop_label);
 
     // This is where we will jump if its false, the body will never be run.
@@ -739,9 +751,42 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
 
 }
 
+int CodeGen8086::getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch)
+{
+    std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
+    int var_size;
+    if (vdef_branch->getType() == "STRUCT_DEF")
+    {
+        var_size = getStructSize(data_type_branch->getValue());
+    }
+    else
+    {
+        // Variable sizes are 2 for pointers in the 8086 architecture
+        if (vdef_branch->isPointer())
+        {
+            var_size = 2;
+        }
+        else
+        {
+            var_size = compiler->getDataTypeSize(data_type_branch->getValue());
+        }
+    }
+    
+    return var_size;
+}
+
 int CodeGen8086::getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch)
 {
-    std::string var_name = var_branch->getValue();
+    std::string var_name;
+    if (var_branch->getType() == "PTR")
+    {
+        std::shared_ptr<PTRBranch> ptr_var_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
+        var_name = ptr_var_branch->getVariableBranch()->getValue();
+    }
+    else
+    {
+        var_name = var_branch->getValue();
+    }
 
     for (int i = 0; i < this->func_arguments.size(); i++)
     {
@@ -912,28 +957,30 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
         var_branch = access_branch->getDeepestAccessBranch()->getFirstChild();
     }
 
+    std::string var_name;
+    if (var_branch->getType() == "PTR")
+    {
+        std::shared_ptr<PTRBranch> ptr_var_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
+        var_name = ptr_var_branch->getVariableBranch()->getValue();
+    }
+    else
+    {
+        var_name = var_branch->getValue();
+    }
+
     int offset = 0;
     for (int i = 0; i < this->scope_variables.size(); i++)
     {
         std::shared_ptr<Branch> scope_var = this->scope_variables.at(i);
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
-        std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
 
-        if (name_branch->getValue() == var_branch->getValue())
+        if (name_branch->getValue() == var_name)
         {
             break;
         }
 
-        int var_size;
-        if (vdef_branch->getType() == "STRUCT_DEF")
-        {
-            var_size = getStructSize(data_type_branch->getValue());
-        }
-        else
-        {
-            var_size = compiler->getDataTypeSize(data_type_branch->getValue());
-        }
+        int var_size = getSizeOfVariableBranch(vdef_branch);
         offset += var_size;
 
     }
@@ -956,14 +1003,22 @@ bool CodeGen8086::hasScopeVariable(std::shared_ptr<Branch> var_branch)
         std::shared_ptr<STRUCTAccessBranch> access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
         var_branch = access_branch->getDeepestAccessBranch()->getFirstChild();
     }
-
+    std::string var_name;
+    if (var_branch->getType() == "PTR")
+    {
+        std::shared_ptr<PTRBranch> ptr_var_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
+        var_name = ptr_var_branch->getVariableBranch()->getValue();
+    }
+    else
+    {
+        var_name = var_branch->getValue();
+    }
     for (int i = 0; i < this->scope_variables.size(); i++)
     {
         std::shared_ptr<Branch> branch = this->scope_variables.at(i);
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
-
-        if (name_branch->getValue() == var_branch->getValue())
+        if (name_branch->getValue() == var_name)
         {
             return true;
         }
@@ -1094,27 +1149,8 @@ std::shared_ptr<Branch> CodeGen8086::getFunctionArgumentVariable(std::shared_ptr
     return NULL;
 }
 
-bool CodeGen8086::isVariablePointer(std::string var_name)
+bool CodeGen8086::isVariablePointer(std::shared_ptr<Branch> var_branch)
 {
-    /*
-    std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(getScopeVariable(var_name));
-    if (vdef_branch == NULL)
-    {
-        vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(getFunctionArgumentVariable(var_name));
-    }
-
-    if (vdef_branch != NULL)
-    {
-        std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
-        if (name_branch->getValue() == var_name
-                && vdef_branch->getType() == "V_DEF_PTR")
-        {
-            return true;
-        }
-    }
-    return false;
-     */
-
     return false;
 }
 
