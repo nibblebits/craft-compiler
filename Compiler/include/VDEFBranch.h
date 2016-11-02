@@ -50,6 +50,7 @@ public:
     std::shared_ptr<Branch> getValueExpBranch();
     
     bool isPointer();
+    bool isSigned();
     int getDataTypeSize();
 private:
 

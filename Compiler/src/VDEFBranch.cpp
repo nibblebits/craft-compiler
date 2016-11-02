@@ -81,8 +81,20 @@ std::shared_ptr<Branch> VDEFBranch::getValueExpBranch()
 
 bool VDEFBranch::isPointer()
 {
-    std::shared_ptr<Branch> branch = this->getRegisteredBranchByName("identifier_branch");
+    std::shared_ptr<Branch> branch = getRegisteredBranchByName("identifier_branch");
     return (branch->getType() == "PTR");
+}
+
+bool VDEFBranch::isSigned()
+{
+    std::shared_ptr<Branch> data_type_branch = getDataTypeBranch();
+    std::string data_type_value = data_type_branch->getValue();
+    return (
+            data_type_value == "int8" ||
+            data_type_value == "int16" ||
+            data_type_value == "int32" ||
+            data_type_value == "int64"
+            );
 }
 
 int VDEFBranch::getDataTypeSize()
@@ -91,6 +103,6 @@ int VDEFBranch::getDataTypeSize()
     {
         throw Exception("VDEFBranch::getDataTypeSize(): the size of a pointer depends on the system architecture");
     }
-    
+
     return this->getCompiler()->getDataTypeSize(getDataTypeBranch()->getValue());
 }
