@@ -65,15 +65,32 @@ std::shared_ptr<Branch> VDEFBranch::getIdentifierBranch()
 std::shared_ptr<Branch> VDEFBranch::getNameBranch()
 {
     std::shared_ptr<Branch> branch = this->getRegisteredBranchByName("identifier_branch");
-    if (branch->getType() == "PTR") {
+    if (isPointer())
+    {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(branch);
         return ptr_branch->getVariableBranch();
     }
-    
+
     return branch;
 }
 
 std::shared_ptr<Branch> VDEFBranch::getValueExpBranch()
 {
     return this->getRegisteredBranchByName("value_exp_branch");
+}
+
+bool VDEFBranch::isPointer()
+{
+    std::shared_ptr<Branch> branch = this->getRegisteredBranchByName("identifier_branch");
+    return (branch->getType() == "PTR");
+}
+
+int VDEFBranch::getDataTypeSize()
+{
+    if (isPointer())
+    {
+        throw Exception("VDEFBranch::getDataTypeSize(): the size of a pointer depends on the system architecture");
+    }
+    
+    return this->getCompiler()->getDataTypeSize(getDataTypeBranch()->getValue());
 }
