@@ -32,6 +32,7 @@ CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 Cod
     this->compiler = compiler;
     this->current_label_index = 0;
     this->is_cmp_expression = false;
+    this->do_signed = false;
 }
 
 CodeGen8086::~CodeGen8086()
@@ -196,7 +197,14 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
         // Don't make math instructions for logical operators.
         if (!compiler->isLogicalOperator(exp->getValue()))
         {
-            make_math_instruction(exp->getValue(), "ax", "cx");
+            if (this->do_signed)
+            {
+                make_math_instruction(exp->getValue(), "al", "cl");
+            }
+            else
+            {
+                make_math_instruction(exp->getValue(), "ax", "cx");
+            }
         }
     }
 }
@@ -342,46 +350,105 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
         {
             if (is_cmp_logic_operator_nothing_or_and())
             {
-                do_asm("ja " + this->cmp_exp_false_label_name);
+                if (this->do_signed)
+                {
+                    do_asm("jg " + this->cmp_exp_false_label_name);
+                }
+                else
+                {
+                    do_asm("ja " + this->cmp_exp_false_label_name);
+                }
+
             }
             else
             {
-                do_asm("jbe " + this->cmp_exp_true_label_name);
+                if (this->do_signed)
+                {
+                    do_asm("jle " + this->cmp_exp_true_label_name);
+                }
+                else
+                {
+                    do_asm("jbe " + this->cmp_exp_true_label_name);
+                }
             }
         }
         else if (op == ">=")
         {
             if (is_cmp_logic_operator_nothing_or_and())
             {
-                do_asm("jb " + this->cmp_exp_false_label_name);
+                if (this->do_signed)
+                {
+                    do_asm("jl " + this->cmp_exp_false_label_name);
+                }
+                else
+                {
+                    do_asm("jb " + this->cmp_exp_false_label_name);
+                }
             }
             else
             {
-                do_asm("jae " + this->cmp_exp_true_label_name);
+                if (this->do_signed)
+                {
+                    do_asm("jge " + this->cmp_exp_true_label_name);
+                }
+                else
+                {
+                    do_asm("jae " + this->cmp_exp_true_label_name);
+                }
             }
         }
         else if (op == "<")
         {
             if (is_cmp_logic_operator_nothing_or_and())
             {
-                do_asm("jae " + this->cmp_exp_false_label_name);
+                if (this->do_signed)
+                {
+                    do_asm("jge " + this->cmp_exp_false_label_name);
+                }
+                else
+                {
+                    do_asm("jae " + this->cmp_exp_false_label_name);
+                }
             }
             else
             {
-                do_asm("jb " + this->cmp_exp_true_label_name);
+                if (this->do_signed)
+                {
+                    do_asm("jl " + this->cmp_exp_true_label_name);
+                }
+                else
+                {
+                    do_asm("jb " + this->cmp_exp_true_label_name);
+                }
             }
         }
         else if (op == ">")
         {
             if (is_cmp_logic_operator_nothing_or_and())
             {
-                do_asm("jbe " + this->cmp_exp_false_label_name);
+                if (this->do_signed)
+                {
+                    do_asm("jle " + this->cmp_exp_false_label_name);
+                }
+                else
+                {
+                    do_asm("jbe " + this->cmp_exp_false_label_name);
+                }
             }
             else
             {
-                do_asm("ja " + this->cmp_exp_true_label_name);
+                if (this->do_signed)
+                {
+                    do_asm("jg " + this->cmp_exp_true_label_name);
+                }
+                else
+                {
+                    do_asm("ja " + this->cmp_exp_true_label_name);
+                }
             }
         }
+
+        this->do_signed = false;
     }
     else
     {
@@ -391,6 +458,11 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
 
 void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<Branch> var_branch)
 {
+    std::shared_ptr<VDEFBranch> variable_branch = getVariable(var_branch);
+    if (variable_branch->isSigned())
+    {
+        this->do_signed = true;
+    }
     std::string asm_addr = getASMAddressForVariable(var_branch);
     do_asm("mov " + reg + ", [" + asm_addr + "]");
 }
@@ -771,7 +843,7 @@ int CodeGen8086::getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch
             var_size = compiler->getDataTypeSize(data_type_branch->getValue());
         }
     }
-    
+
     return var_size;
 }
 
