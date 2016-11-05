@@ -16,45 +16,33 @@
  */
 
 /* 
- * File:   VDEFBranch.h
+ * File:   VarIdentifierBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 25 June 2016, 02:31
+ * Created on 05 November 2016, 03:05
  */
 
-#ifndef VDEFBRANCH_H
-#define VDEFBRANCH_H
+#ifndef VARIDENTIFIERBRANCH_H
+#define VARIDENTIFIERBRANCH_H
 
 #include "CustomBranch.h"
 
-struct array_def
-{
-    int dimensions;
-    size_t t_size;
-    std::vector<size_t> sizes;
-};
-
-class EXPORT VDEFBranch : public CustomBranch
+class EXPORT VarIdentifierBranch : public CustomBranch
 {
 public:
-    VDEFBranch(Compiler* compiler, std::string branch_name = "V_DEF", std::string branch_value = "");
-    virtual ~VDEFBranch();
+    VarIdentifierBranch(Compiler* compiler);
+    virtual ~VarIdentifierBranch();
 
-    void setDataTypeBranch(std::shared_ptr<Branch> branch);
-    void setVariableBranch(std::shared_ptr<Branch> branch);
-    void setValueExpBranch(std::shared_ptr<Branch> branch);
-
-    std::shared_ptr<Branch> getDataTypeBranch();
-    std::shared_ptr<Branch> getVariableBranch();
-    std::shared_ptr<Branch> getValueExpBranch();
-    std::shared_ptr<Branch> getNameBranch();
+    void setVariableNameBranch(std::shared_ptr<Branch> name_branch);
+    void setRootArrayIndexBranch(std::shared_ptr<Branch> array_index_branch);
     
-    bool isPointer();
-    bool isSigned();
-    int getDataTypeSize();
+    std::shared_ptr<Branch> getVariableNameBranch();
+    std::shared_ptr<Branch> getRootArrayIndexBranch();
+    bool hasRootArrayIndexBranch();
+
 private:
 
 };
 
-#endif /* VDEFBRANCH_H */
+#endif /* VARIDENTIFIERBRANCH_H */
 

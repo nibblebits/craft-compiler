@@ -16,45 +16,32 @@
  */
 
 /* 
- * File:   VDEFBranch.h
+ * File:   ArrayIndex.h
  * Author: Daniel McCarthy
  *
- * Created on 25 June 2016, 02:31
+ * Created on 04 November 2016, 02:27
  */
 
-#ifndef VDEFBRANCH_H
-#define VDEFBRANCH_H
+#ifndef ARRAYINDEXBRANCH_H
+#define ARRAYINDEXBRANCH_H
 
 #include "CustomBranch.h"
-
-struct array_def
-{
-    int dimensions;
-    size_t t_size;
-    std::vector<size_t> sizes;
-};
-
-class EXPORT VDEFBranch : public CustomBranch
-{
+class EXPORT ArrayIndexBranch : public CustomBranch {
 public:
-    VDEFBranch(Compiler* compiler, std::string branch_name = "V_DEF", std::string branch_value = "");
-    virtual ~VDEFBranch();
-
-    void setDataTypeBranch(std::shared_ptr<Branch> branch);
-    void setVariableBranch(std::shared_ptr<Branch> branch);
-    void setValueExpBranch(std::shared_ptr<Branch> branch);
-
-    std::shared_ptr<Branch> getDataTypeBranch();
-    std::shared_ptr<Branch> getVariableBranch();
-    std::shared_ptr<Branch> getValueExpBranch();
-    std::shared_ptr<Branch> getNameBranch();
+    ArrayIndexBranch(Compiler* compiler);
+    virtual ~ArrayIndexBranch();
     
-    bool isPointer();
-    bool isSigned();
-    int getDataTypeSize();
+    void setValueBranch(std::shared_ptr<Branch> value_branch);
+    void setNextArrayIndexBranch(std::shared_ptr<Branch> next_array_index_branch);
+    std::shared_ptr<Branch> getValueBranch();
+    std::shared_ptr<Branch> getNextArrayIndexBranch();
+    
+    bool hasNextArrayIndexBranch();
+    bool hasParentArrayIndexBranch();
+    std::shared_ptr<Branch> getDeepestArrayIndexBranch();
 private:
 
 };
 
-#endif /* VDEFBRANCH_H */
+#endif /* ARRAYINDEXBRANCH_H */
 

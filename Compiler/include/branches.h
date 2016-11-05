@@ -45,6 +45,8 @@
 #include "STRUCTAccessBranch.h"
 #include "BODYBranch.h"
 #include "FORBranch.h"
+#include "ArrayIndexBranch.h"
+#include "VarIdentifierBranch.h"
 
 #endif /* BRANCHES_H */
 

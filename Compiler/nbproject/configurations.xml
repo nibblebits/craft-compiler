@@ -8,6 +8,7 @@
       <itemPath>include/ASTAssistant.h</itemPath>
       <itemPath>include/AddressOfBranch.h</itemPath>
       <itemPath>include/ArrayBranch.h</itemPath>
+      <itemPath>include/ArrayIndexBranch.h</itemPath>
       <itemPath>include/AssignBranch.h</itemPath>
       <itemPath>include/BODYBranch.h</itemPath>
       <itemPath>include/Branch.h</itemPath>
@@ -54,6 +55,7 @@
       <itemPath>include/TypeChecker.h</itemPath>
       <itemPath>include/TypeCheckerException.h</itemPath>
       <itemPath>include/VDEFBranch.h</itemPath>
+      <itemPath>include/VarIdentifierBranch.h</itemPath>
       <itemPath>include/branches.h</itemPath>
       <itemPath>include/common.h</itemPath>
       <itemPath>include/def.h</itemPath>
@@ -70,6 +72,7 @@
       <itemPath>src/ASTAssistant.cpp</itemPath>
       <itemPath>src/AddressOfBranch.cpp</itemPath>
       <itemPath>src/ArrayBranch.cpp</itemPath>
+      <itemPath>src/ArrayIndexBranch.cpp</itemPath>
       <itemPath>src/AssignBranch.cpp</itemPath>
       <itemPath>src/BODYBranch.cpp</itemPath>
       <itemPath>src/Branch.cpp</itemPath>
@@ -107,6 +110,7 @@
       <itemPath>src/Tree.cpp</itemPath>
       <itemPath>src/TypeChecker.cpp</itemPath>
       <itemPath>src/VDEFBranch.cpp</itemPath>
+      <itemPath>src/VarIdentifierBranch.cpp</itemPath>
       <itemPath>src/common.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -159,6 +163,8 @@
       </item>
       <item path="include/ArrayBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/ArrayIndexBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/BODYBranch.h" ex="false" tool="3" flavor2="0">
@@ -254,6 +260,8 @@
       </item>
       <item path="include/VDEFBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/VarIdentifierBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/branches.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/common.h" ex="false" tool="3" flavor2="0">
@@ -269,6 +277,8 @@
       <item path="src/AddressOfBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/ArrayBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ArrayIndexBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -343,6 +353,8 @@
       <item path="src/TypeChecker.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VDEFBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VarIdentifierBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/common.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -375,6 +387,8 @@
       </item>
       <item path="include/ArrayBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/ArrayIndexBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/BODYBranch.h" ex="false" tool="3" flavor2="0">
@@ -470,6 +484,8 @@
       </item>
       <item path="include/VDEFBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/VarIdentifierBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/branches.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/common.h" ex="false" tool="3" flavor2="0">
@@ -485,6 +501,8 @@
       <item path="src/AddressOfBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/ArrayBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ArrayIndexBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -559,6 +577,8 @@
       <item path="src/TypeChecker.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VDEFBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/VarIdentifierBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/common.cpp" ex="false" tool="1" flavor2="0">
       </item>

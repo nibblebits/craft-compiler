@@ -365,7 +365,9 @@ void Parser::process_stmt()
     else if (is_peak_type("identifier"))
     {
         peak(1);
-        if (is_peak_type("operator") || is_peak_symbol("."))
+        if (is_peak_type("operator") ||
+                is_peak_symbol(".") ||
+                is_peak_symbol("["))
         {
             // This is an assignment, it may also be a structure assignment e.g s.example
             process_assignment();
@@ -444,7 +446,7 @@ void Parser::process_variable_declaration()
 
 
     var_root->setDataTypeBranch(var_keyword_branch);
-    var_root->setIdentifierBranch(identifier_branch);
+    var_root->setVariableBranch(identifier_branch);
     var_root->setValueExpBranch(var_value_branch);
 
 
@@ -517,12 +519,13 @@ void Parser::process_assignment()
 
 void Parser::process_variable_access()
 {
-    std::shared_ptr<Branch> root = NULL;
+    std::shared_ptr<VarIdentifierBranch> var_identifier_branch = std::shared_ptr<VarIdentifierBranch>(new VarIdentifierBranch(compiler));
+    std::shared_ptr<PTRBranch> ptr_branch = NULL;
     peak();
     if (is_peak_type("identifier"))
     {
         shift_pop();
-        root = this->branch;
+        var_identifier_branch->setVariableNameBranch(this->branch);
     }
     else if (is_peak_operator("*"))
     {
@@ -540,10 +543,10 @@ void Parser::process_variable_access()
 
             // process the identifier
             process_identifier();
+            var_identifier_branch->setVariableNameBranch(this->branch);
 
-            std::shared_ptr<PTRBranch> ptr_b = std::shared_ptr<PTRBranch>(new PTRBranch(compiler));
-            ptr_b->setVariableBranch(this->branch);
-            root = ptr_b;
+            ptr_branch = std::shared_ptr<PTRBranch>(new PTRBranch(compiler));
+            ptr_branch->setVariableBranch(var_identifier_branch);
         }
     }
     else
@@ -558,10 +561,18 @@ void Parser::process_variable_access()
         // We have array access process it
         process_array_indexes();
         pop_branch();
-        root->addChild(this->branch);
+        var_identifier_branch->setRootArrayIndexBranch(this->branch);
     }
 
-    push_branch(root);
+    // Do we have a PTR branch? If so then this is the root
+    if (ptr_branch != NULL)
+    {
+        push_branch(ptr_branch);
+    }
+    else
+    {
+        push_branch(var_identifier_branch);
+    }
 }
 
 void Parser::process_structure_access()
@@ -1135,7 +1146,7 @@ void Parser::process_structure_declaration()
     // Create the structure variable declaration
     std::shared_ptr<STRUCTDEFBranch> struct_declaration = std::shared_ptr<STRUCTDEFBranch>(new STRUCTDEFBranch(compiler));
     struct_declaration->setDataTypeBranch(struct_name_branch);
-    struct_declaration->setIdentifierBranch(identifier_branch);
+    struct_declaration->setVariableBranch(identifier_branch);
     // Add the value to the structure declaration branch
     struct_declaration->setValueExpBranch(var_value_branch);
 
@@ -1313,8 +1324,8 @@ void Parser::process_array_indexes()
         error_expecting("]", this->token_value);
     }
 
-    std::shared_ptr<Branch> array_index_branch = std::shared_ptr<Branch>(new Branch("ARRAY_INDEX", ""));
-    array_index_branch->addChild(expression);
+    std::shared_ptr<ArrayIndexBranch> array_index_branch = std::shared_ptr<ArrayIndexBranch>(new ArrayIndexBranch(compiler));
+    array_index_branch->setValueBranch(expression);
     // Check to see if the next token is a left bracket if it is we are not done
     peak();
     if (is_peak_symbol("["))
@@ -1322,10 +1333,9 @@ void Parser::process_array_indexes()
         // Yes there are more indexes to go so recall ourself
 
         process_array_indexes();
-
         pop_branch();
         // Pop the result and attach it as a child to our array index branch
-        array_index_branch->addChild(this->branch);
+        array_index_branch->setNextArrayIndexBranch(this->branch);
     }
 
     // Push our resulting array index branch
@@ -1644,10 +1654,9 @@ bool Parser::is_variable_pointer(std::string var_name)
 
 
     std::shared_ptr<VDEFBranch> var_branch = std::dynamic_pointer_cast<VDEFBranch>(this->variable_defs[var_name]);
-    std::shared_ptr<Branch> var_identifier_branch = var_branch->getIdentifierBranch();
+    std::shared_ptr<Branch> var_identifier_branch = var_branch->getVariableBranch();
     if (var_identifier_branch->getType() == "PTR")
     {
-
         return true;
     }
 

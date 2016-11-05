@@ -39,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/ASTAssistant.o \
 	${OBJECTDIR}/src/AddressOfBranch.o \
 	${OBJECTDIR}/src/ArrayBranch.o \
+	${OBJECTDIR}/src/ArrayIndexBranch.o \
 	${OBJECTDIR}/src/AssignBranch.o \
 	${OBJECTDIR}/src/BODYBranch.o \
 	${OBJECTDIR}/src/Branch.o \
@@ -76,6 +77,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Tree.o \
 	${OBJECTDIR}/src/TypeChecker.o \
 	${OBJECTDIR}/src/VDEFBranch.o \
+	${OBJECTDIR}/src/VarIdentifierBranch.o \
 	${OBJECTDIR}/src/common.o
 
 
@@ -126,6 +128,11 @@ ${OBJECTDIR}/src/ArrayBranch.o: src/ArrayBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArrayBranch.o src/ArrayBranch.cpp
+
+${OBJECTDIR}/src/ArrayIndexBranch.o: src/ArrayIndexBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArrayIndexBranch.o src/ArrayIndexBranch.cpp
 
 ${OBJECTDIR}/src/AssignBranch.o: src/AssignBranch.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -311,6 +318,11 @@ ${OBJECTDIR}/src/VDEFBranch.o: src/VDEFBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VDEFBranch.o src/VDEFBranch.cpp
+
+${OBJECTDIR}/src/VarIdentifierBranch.o: src/VarIdentifierBranch.cpp 
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -IGoblinLibraryLoader/include -IGoblinArgumentParser/include -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VarIdentifierBranch.o src/VarIdentifierBranch.cpp
 
 ${OBJECTDIR}/src/common.o: src/common.cpp 
 	${MKDIR} -p ${OBJECTDIR}/src
