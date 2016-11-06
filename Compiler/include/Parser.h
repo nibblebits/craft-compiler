@@ -91,7 +91,6 @@ private:
     void pop_branch();
     void push_branch(std::shared_ptr<Branch> branch);
     void shift_pop();
-    void register_variable(std::string var_name, std::shared_ptr<Branch> branch);
 
     inline void handle_left_or_right(std::shared_ptr<Branch>* left, std::shared_ptr<Branch>* right);
     inline bool is_branch_symbol(std::string symbol);
@@ -110,9 +109,7 @@ private:
     inline bool is_peak_operator(std::string op);
     inline bool is_peak_operator(std::string op, int peak);
     inline bool is_peak_identifier(std::string identifier);
-    inline bool is_variable_pointer(std::string var_name);
-    inline bool is_variable_registered(std::string var_name);
-
+    
     std::shared_ptr<Logger> logger;
     std::deque<std::shared_ptr<Token>> input;
     std::deque<std::shared_ptr<Branch>> branches;
@@ -128,7 +125,6 @@ private:
     std::string branch_type;
     std::string branch_value;
 
-    std::map<std::string, std::shared_ptr<Branch>> variable_defs;
     Compiler* compiler;
     std::shared_ptr<Tree> tree;
 };

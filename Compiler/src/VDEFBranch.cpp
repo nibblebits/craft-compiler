@@ -31,7 +31,7 @@
 
 VDEFBranch::VDEFBranch(Compiler* compiler, std::string branch_name, std::string branch_value) : CustomBranch(compiler, branch_name, branch_value)
 {
-
+    this->is_pointer = false;
 }
 
 VDEFBranch::~VDEFBranch()
@@ -43,9 +43,9 @@ void VDEFBranch::setDataTypeBranch(std::shared_ptr<Branch> branch)
     this->registerBranch("data_type_branch", branch);
 }
 
-void VDEFBranch::setVariableBranch(std::shared_ptr<Branch> branch)
+void VDEFBranch::setVariableIdentifierBranch(std::shared_ptr<Branch> branch)
 {
-    this->registerBranch("var_branch", branch);
+    this->registerBranch("var_identifier_branch", branch);
 }
 
 void VDEFBranch::setValueExpBranch(std::shared_ptr<Branch> branch)
@@ -53,14 +53,19 @@ void VDEFBranch::setValueExpBranch(std::shared_ptr<Branch> branch)
     this->registerBranch("value_exp_branch", branch);
 }
 
+void VDEFBranch::setPointer(bool is_pointer)
+{
+    this->is_pointer = is_pointer;
+}
+
 std::shared_ptr<Branch> VDEFBranch::getDataTypeBranch()
 {
     return this->getRegisteredBranchByName("data_type_branch");
 }
 
-std::shared_ptr<Branch> VDEFBranch::getVariableBranch()
+std::shared_ptr<Branch> VDEFBranch::getVariableIdentifierBranch()
 {
-    return this->getRegisteredBranchByName("var_branch");
+    return this->getRegisteredBranchByName("var_identifier_branch");
 }
 
 std::shared_ptr<Branch> VDEFBranch::getValueExpBranch()
@@ -70,28 +75,14 @@ std::shared_ptr<Branch> VDEFBranch::getValueExpBranch()
 
 std::shared_ptr<Branch> VDEFBranch::getNameBranch()
 {
-    std::shared_ptr<Branch> identifier_branch = getVariableBranch();
-    std::string type = identifier_branch->getType();
-    if (type == "PTR")
-    {
-        std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(identifier_branch);
-        std::shared_ptr<VarIdentifierBranch> var_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(ptr_branch->getVariableBranch());
-        return var_branch->getVariableNameBranch();
-    } else if(type == "VAR_IDENTIFIER")
-    {
-        std::shared_ptr<VarIdentifierBranch> var_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(identifier_branch);
-        return var_branch->getVariableNameBranch();
-    }
-    else
-    {
-        throw new Exception("VDEFBranch::getNameBranch(): could not locate the name branch");
-    }
+    std::shared_ptr<Branch> identifier_branch = getVariableIdentifierBranch();
+    std::shared_ptr<VarIdentifierBranch> var_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(identifier_branch);
+    return var_branch->getVariableNameBranch();
 }
 
 bool VDEFBranch::isPointer()
 {
-    std::shared_ptr<Branch> branch = getVariableBranch();
-    return (branch->getType() == "PTR");
+    return this->is_pointer;
 }
 
 bool VDEFBranch::isSigned()

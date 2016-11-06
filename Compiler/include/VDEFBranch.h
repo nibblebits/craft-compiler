@@ -41,11 +41,12 @@ public:
     virtual ~VDEFBranch();
 
     void setDataTypeBranch(std::shared_ptr<Branch> branch);
-    void setVariableBranch(std::shared_ptr<Branch> branch);
+    void setVariableIdentifierBranch(std::shared_ptr<Branch> branch);
     void setValueExpBranch(std::shared_ptr<Branch> branch);
+    void setPointer(bool is_pointer);
 
     std::shared_ptr<Branch> getDataTypeBranch();
-    std::shared_ptr<Branch> getVariableBranch();
+    std::shared_ptr<Branch> getVariableIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
     std::shared_ptr<Branch> getNameBranch();
     
@@ -53,7 +54,7 @@ public:
     bool isSigned();
     int getDataTypeSize();
 private:
-
+    bool is_pointer;
 };
 
 #endif /* VDEFBRANCH_H */

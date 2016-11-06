@@ -401,6 +401,8 @@ void Parser::process_variable_declaration()
     std::shared_ptr<Branch> var_keyword_branch = NULL;
     std::shared_ptr<Branch> var_value_branch = NULL;
 
+    std::shared_ptr<VDEFBranch> var_root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
+
     // Shift the keyword of the variable onto the stack
     shift_pop();
     if (!is_branch_type("keyword"))
@@ -414,8 +416,17 @@ void Parser::process_variable_declaration()
         error("Expecting a data type keyword for a variable declaration");
     }
 
-
     var_keyword_branch = this->branch;
+
+    // Lets see if we are defining a pointer
+    peak();
+    if (is_peak_operator("*"))
+    {
+        // Shift and pop the pointer operator
+        shift_pop();
+        // Lets set this variable definition branch as a pointer branch
+        var_root->setPointer(true);
+    }
 
     // Process the variable access
     process_variable_access();
@@ -438,31 +449,11 @@ void Parser::process_variable_declaration()
         var_value_branch = this->branch;
     }
 
-    /* 
-     * Now that we have popped to variable name and keyword of the variable
-     * we need to create a branch for, lets create a branch for them  */
-
-    std::shared_ptr<VDEFBranch> var_root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
 
 
     var_root->setDataTypeBranch(var_keyword_branch);
-    var_root->setVariableBranch(identifier_branch);
+    var_root->setVariableIdentifierBranch(identifier_branch);
     var_root->setValueExpBranch(var_value_branch);
-
-
-    // Register the declared variable
-    std::string var_name;
-    if (identifier_branch->getType() == "PTR")
-    {
-        std::shared_ptr<PTRBranch> identifier_ptr_branch = std::dynamic_pointer_cast<PTRBranch>(identifier_branch);
-        var_name = identifier_ptr_branch->getVariableBranch()->getValue();
-    }
-    else
-    {
-        var_name = identifier_branch->getValue();
-    }
-
-    register_variable(var_name, var_root);
 
     // Push that root back to the branches
     push_branch(var_root);
@@ -520,34 +511,11 @@ void Parser::process_assignment()
 void Parser::process_variable_access()
 {
     std::shared_ptr<VarIdentifierBranch> var_identifier_branch = std::shared_ptr<VarIdentifierBranch>(new VarIdentifierBranch(compiler));
-    std::shared_ptr<PTRBranch> ptr_branch = NULL;
     peak();
     if (is_peak_type("identifier"))
     {
         shift_pop();
         var_identifier_branch->setVariableNameBranch(this->branch);
-    }
-    else if (is_peak_operator("*"))
-    {
-        peak(1);
-        std::shared_ptr<Branch> iden = this->peak_token;
-
-        /* We need to check if the variable is not registered first as we may be in a variable declaration right now. 
-           If that is the case the variable will not yet be registered. Remember the whole reason I need this check
-           in the first place is so the parser does not mistake pointers for multiplications */
-        if (!is_variable_registered(iden->getValue()) || is_variable_pointer(iden->getValue()))
-        {
-            // Its a pointer so treat it as such
-            // Shift and pop the operator symbol
-            shift_pop();
-
-            // process the identifier
-            process_identifier();
-            var_identifier_branch->setVariableNameBranch(this->branch);
-
-            ptr_branch = std::shared_ptr<PTRBranch>(new PTRBranch(compiler));
-            ptr_branch->setVariableBranch(var_identifier_branch);
-        }
     }
     else
     {
@@ -564,15 +532,7 @@ void Parser::process_variable_access()
         var_identifier_branch->setRootArrayIndexBranch(this->branch);
     }
 
-    // Do we have a PTR branch? If so then this is the root
-    if (ptr_branch != NULL)
-    {
-        push_branch(ptr_branch);
-    }
-    else
-    {
-        push_branch(var_identifier_branch);
-    }
+    push_branch(var_identifier_branch);
 }
 
 void Parser::process_structure_access()
@@ -850,21 +810,12 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
     }
     else if (is_peak_operator("*"))
     {
-        // Peak further and see if the next value is an identifier
-        peak(1);
-        if (is_peak_type("identifier"))
-        {
-            /* Ok this is accessing a variable this could be a pointer 
-             * e.g "*a" get the value from the memory location pointer "a" is pointing to
-             */
-            if (is_variable_pointer(this->peak_token_value))
-            {
-                process_variable_access();
-                // Pop off the result
-                pop_branch();
-                b = this->branch;
-            }
-        }
+        shift_pop();
+        process_expression();
+        pop_branch();
+        std::shared_ptr<PTRBranch> ptr_branch = std::shared_ptr<PTRBranch>(new PTRBranch(this->getCompiler()));
+        ptr_branch->setExpressionBranch(this->branch);
+        b = ptr_branch;
     }
     else if (is_peak_type("string"))
     {
@@ -1097,12 +1048,14 @@ void Parser::process_structure()
 
 void Parser::process_structure_declaration()
 {
+    std::shared_ptr<STRUCTDEFBranch> struct_declaration = std::shared_ptr<STRUCTDEFBranch>(new STRUCTDEFBranch(compiler));
     // Shift and pop the token and check that it is a "keyword" equal to "struct"
     shift_pop();
     if (!is_branch_keyword("struct"))
     {
         error_expecting("struct", this->token_value);
     }
+
 
     // Shift and pop the token and check that it is an "identifier" this is the structure name
     shift_pop();
@@ -1113,6 +1066,15 @@ void Parser::process_structure_declaration()
 
     std::shared_ptr<Branch> struct_name_branch = this->branch;
 
+    // Lets check to see if this is a pointer declaration
+    peak();
+    if (is_peak_operator("*"))
+    {
+        // Shift and pop the operator from the stack as we do not need it anymore
+        shift_pop();
+        struct_declaration->setPointer(true);
+    }
+    
     // process the variable access
     process_variable_access();
     pop_branch();
@@ -1143,11 +1105,8 @@ void Parser::process_structure_declaration()
         }
     }
 
-    // Create the structure variable declaration
-    std::shared_ptr<STRUCTDEFBranch> struct_declaration = std::shared_ptr<STRUCTDEFBranch>(new STRUCTDEFBranch(compiler));
     struct_declaration->setDataTypeBranch(struct_name_branch);
-    struct_declaration->setVariableBranch(identifier_branch);
-    // Add the value to the structure declaration branch
+    struct_declaration->setVariableIdentifierBranch(identifier_branch);
     struct_declaration->setValueExpBranch(var_value_branch);
 
     // Now push it to the stack
@@ -1486,12 +1445,6 @@ void Parser::shift_pop()
     this->pop_branch();
 }
 
-void Parser::register_variable(std::string var_name, std::shared_ptr<Branch> branch)
-{
-
-    this->variable_defs[var_name] = branch;
-}
-
 void Parser::handle_left_or_right(std::shared_ptr<Branch>* left, std::shared_ptr<Branch>* right)
 {
     if (*left == NULL)
@@ -1632,35 +1585,6 @@ bool Parser::is_peak_identifier(std::string identifier)
 {
 
     return is_peak_type("identifier") && is_peak_value(identifier);
-}
-
-bool Parser::is_variable_registered(std::string var_name)
-{
-    if (this->variable_defs.find(var_name) == this->variable_defs.end())
-    {
-
-        return false;
-    }
-
-    return true;
-}
-
-bool Parser::is_variable_pointer(std::string var_name)
-{
-    if (this->variable_defs.find(var_name) == this->variable_defs.end())
-    {
-        return false;
-    }
-
-
-    std::shared_ptr<VDEFBranch> var_branch = std::dynamic_pointer_cast<VDEFBranch>(this->variable_defs[var_name]);
-    std::shared_ptr<Branch> var_identifier_branch = var_branch->getVariableBranch();
-    if (var_identifier_branch->getType() == "PTR")
-    {
-        return true;
-    }
-
-    return false;
 }
 
 void Parser::buildTree()
