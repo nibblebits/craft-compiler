@@ -34,12 +34,12 @@ PTRBranch::~PTRBranch()
 {
 }
 
-void PTRBranch::setVariableBranch(std::shared_ptr<Branch> var_branch)
+void PTRBranch::setExpressionBranch(std::shared_ptr<Branch> var_branch)
 {
-    CustomBranch::registerBranch("variable_branch", var_branch);
+    CustomBranch::registerBranch("expression_branch", var_branch);
 }
 
-std::shared_ptr<Branch> PTRBranch::getVariableBranch()
+std::shared_ptr<Branch> PTRBranch::getExpressionBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("variable_branch");
+    return CustomBranch::getRegisteredBranchByName("expression_branch");
 }

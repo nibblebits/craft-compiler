@@ -57,7 +57,8 @@ public:
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_move_reg_variable(std::string reg_name, std::shared_ptr<Branch> var_branch);
     void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<Branch> var_branch);
-    void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value, bool pointer_assignment);
+    void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch);
+    void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_structure(std::shared_ptr<STRUCTBranch> struct_branch);

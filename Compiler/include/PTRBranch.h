@@ -32,8 +32,8 @@ class EXPORT PTRBranch : public CustomBranch
 public:
     PTRBranch(Compiler* compiler);
     virtual ~PTRBranch();
-    void setVariableBranch(std::shared_ptr<Branch> var_branch);
-    std::shared_ptr<Branch> getVariableBranch();
+    void setExpressionBranch(std::shared_ptr<Branch> var_branch);
+    std::shared_ptr<Branch> getExpressionBranch();
 private:
 
 };

@@ -123,6 +123,9 @@ bool handle_parser_errors_and_warnings()
 
 int main(int argc, char** argv)
 {
+    int b = 0;
+    int k = (b = 0);
+    
     std::string codegen_name;
     std::string input_file_name;
     std::string output_file_name;

@@ -1,13 +1,10 @@
 struct test
 {
-  uint8 a;
   uint8 b;
 }
-
-uint8 main(uint8 b, uint8 c)
+uint8 main()
 {
-	struct test a;
-	b = 50 + &a;
-	
-	return 0;
+   uint8 test = *(300);
+   test = 3;
+   
 }

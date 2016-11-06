@@ -460,6 +460,26 @@ void Parser::process_variable_declaration()
 
 }
 
+void Parser::process_ptr()
+{
+    shift_pop();
+    if (!is_branch_operator("*"))
+    {
+        error_expecting("operator: *", this->branch_type);
+    }
+
+    std::shared_ptr<PTRBranch> ptr_branch = std::shared_ptr<PTRBranch>(new PTRBranch(compiler));
+
+    // Process the expression
+    process_expression();
+    pop_branch();
+
+    ptr_branch->setExpressionBranch(this->branch);
+
+    // Push the pointer branch to the stack
+    push_branch(ptr_branch);
+}
+
 void Parser::process_assignment()
 {
     peak();
@@ -474,8 +494,16 @@ void Parser::process_assignment()
     }
     else
     {
-        // Process the variable access
-        process_variable_access();
+        if (is_peak_operator("*"))
+        {
+            // This is a pointer value assignment so process the pointer.
+            process_ptr();
+        }
+        else
+        {
+            // Process the variable access
+            process_variable_access();
+        }
         pop_branch();
     }
 
@@ -810,12 +838,9 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
     }
     else if (is_peak_operator("*"))
     {
-        shift_pop();
-        process_expression();
+        process_ptr();
         pop_branch();
-        std::shared_ptr<PTRBranch> ptr_branch = std::shared_ptr<PTRBranch>(new PTRBranch(this->getCompiler()));
-        ptr_branch->setExpressionBranch(this->branch);
-        b = ptr_branch;
+        b = this->branch;
     }
     else if (is_peak_type("string"))
     {
@@ -1074,7 +1099,7 @@ void Parser::process_structure_declaration()
         shift_pop();
         struct_declaration->setPointer(true);
     }
-    
+
     // process the variable access
     process_variable_access();
     pop_branch();

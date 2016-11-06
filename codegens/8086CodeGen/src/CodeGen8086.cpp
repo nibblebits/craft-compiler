@@ -490,23 +490,52 @@ void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::shared_pt
     }
 }
 
-void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value, bool pointer_assignment)
+void CodeGen8086::make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch)
+{
+    std::shared_ptr<ArrayIndexBranch> current_branch = array_branch;
+    
+    while (true)
+    {
+        std::shared_ptr<Branch> value_branch = current_branch->getValueBranch();
+        // Make the expression of the array index
+        make_expression(value_branch);
+        if (current_branch->hasNextArrayIndexBranch())
+        {
+            current_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(current_branch->getNextArrayIndexBranch());
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
+void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value)
 {
     std::string asm_addr = getASMAddressForVariable(var_branch);
-
     std::shared_ptr<VDEFBranch> variable = getVariable(var_branch);
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+    
     int size = getSizeOfVariableBranch(variable);
-    bool is_word = (size == 2 ? true : false);
+
+    // Are we accessing an array?
+    if (var_iden_branch->hasRootArrayIndexBranch())
+    {
+        std::shared_ptr<ArrayIndexBranch> array_index_root = std::dynamic_pointer_cast<ArrayIndexBranch>(var_iden_branch->getRootArrayIndexBranch());
+        make_array_offset_instructions(array_index_root);
+    }
+
+
     // Are we accessing memory pointed to by a pointer?
     if (pointer_assignment)
     {
         do_asm("mov bx, [" + asm_addr + "]");
         // Set the memory pointed to by BX to value
-        make_mem_assignment("bx", value, is_word);
+        make_mem_assignment("bx", value, true);
     }
     else
     {
-        make_mem_assignment(asm_addr, value, is_word);
+        make_mem_assignment(asm_addr, value, false);
     }
 }
 
@@ -583,7 +612,6 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
         handle_scope_return(branch);
     }
     else if (branch->getType() == "V_DEF" ||
-            branch->getType() == "V_DEF_PTR" ||
             branch->getType() == "STRUCT_DEF")
     {
         handle_scope_variable_declaration(branch);
@@ -634,20 +662,8 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
     std::shared_ptr<Branch> var_to_assign_branch = assign_branch->getVariableToAssignBranch();
     std::shared_ptr<Branch> value = assign_branch->getValueBranch();
 
-    bool is_pointer;
-    std::shared_ptr<Branch> var_branch;
-    if (var_to_assign_branch->getType() == "PTR")
-    {
-        std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_to_assign_branch);
-        var_branch = ptr_branch->getVariableBranch();
-        is_pointer = true;
-    }
-    else
-    {
-        var_branch = var_to_assign_branch;
-        is_pointer = false;
-    }
-    make_var_assignment(var_branch, value, is_pointer);
+    std::shared_ptr<VDEFBranch> var_branch;
+    make_var_assignment(var_to_assign_branch, value);
 
 }
 
@@ -721,13 +737,13 @@ void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<Branch> bran
 
     // Handle the variable declaration
     std::shared_ptr<VDEFBranch> def_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
-    std::shared_ptr<Branch> name_branch = def_branch->getNameBranch();
+    std::shared_ptr<Branch> variable_branch = def_branch->getVariableBranch();
     std::shared_ptr<Branch> value_branch = def_branch->getValueExpBranch();
 
     // Are we assigning it to anything?
     if (value_branch != NULL)
     {
-        make_var_assignment(name_branch, value_branch, false);
+        make_var_assignment(variable_branch, value_branch);
     }
 }
 
@@ -826,6 +842,8 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
 int CodeGen8086::getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch)
 {
     std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
+    std::shared_ptr<VarIdentifierBranch> var_identifier_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(vdef_branch->getVariableIdentifierBranch());
+
     int var_size;
     if (vdef_branch->getType() == "STRUCT_DEF")
     {
@@ -842,6 +860,23 @@ int CodeGen8086::getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch
         {
             var_size = compiler->getDataTypeSize(data_type_branch->getValue());
         }
+
+        // Check to see if we have an array going on here
+        if (var_identifier_branch->hasRootArrayIndexBranch())
+        {
+            // We need to multiply all of the array indexes together so we know how many elements we have
+            std::shared_ptr<ArrayIndexBranch> array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(var_identifier_branch->getRootArrayIndexBranch());
+            int total_array_indexes = stoi(array_index_branch->getValueBranch()->getValue());
+            while (array_index_branch->hasNextArrayIndexBranch())
+            {
+                array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(array_index_branch->getNextArrayIndexBranch());
+                total_array_indexes *= stoi(array_index_branch->getValueBranch()->getValue());
+            }
+
+            // Calculate the array size
+            var_size = total_array_indexes * var_size;
+        }
+
     }
 
     return var_size;
@@ -853,11 +888,13 @@ int CodeGen8086::getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch)
     if (var_branch->getType() == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_var_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
-        var_name = ptr_var_branch->getVariableBranch()->getValue();
+        std::shared_ptr<VarIdentifierBranch> identifier_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(ptr_var_branch->getVariableBranch());
+        var_name = identifier_branch->getVariableNameBranch()->getValue();
     }
     else
     {
-        var_name = var_branch->getValue();
+        std::shared_ptr<VarIdentifierBranch> identifier_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+        var_name = identifier_branch->getVariableNameBranch()->getValue();
     }
 
     for (int i = 0; i < this->func_arguments.size(); i++)
@@ -1023,21 +1060,22 @@ int CodeGen8086::getStructSize(std::string struct_name)
 int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
 {
     std::shared_ptr<STRUCTAccessBranch> access_branch = NULL;
+    std::string var_name;
     if (var_branch->getType() == "STRUCT_ACCESS")
     {
         access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
         var_branch = access_branch->getDeepestAccessBranch()->getFirstChild();
     }
-
-    std::string var_name;
-    if (var_branch->getType() == "PTR")
+    else if (var_branch->getType() == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_var_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
-        var_name = ptr_var_branch->getVariableBranch()->getValue();
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(ptr_var_branch->getVariableBranch());
+        var_name = var_iden_branch->getVariableNameBranch()->getValue();
     }
-    else
+    else if (var_branch->getType() == "VAR_IDENTIFIER")
     {
-        var_name = var_branch->getValue();
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+        var_name = var_iden_branch->getVariableNameBranch()->getValue();
     }
 
     int offset = 0;
@@ -1079,11 +1117,13 @@ bool CodeGen8086::hasScopeVariable(std::shared_ptr<Branch> var_branch)
     if (var_branch->getType() == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_var_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
-        var_name = ptr_var_branch->getVariableBranch()->getValue();
+        std::shared_ptr<VarIdentifierBranch> identifier_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(ptr_var_branch);
+        var_name = identifier_branch->getVariableNameBranch()->getValue();
     }
     else
     {
-        var_name = var_branch->getValue();
+        std::shared_ptr<VarIdentifierBranch> identifier_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+        var_name = identifier_branch->getVariableNameBranch()->getValue();
     }
     for (int i = 0; i < this->scope_variables.size(); i++)
     {
@@ -1146,19 +1186,31 @@ std::shared_ptr<Branch> CodeGen8086::getScopeVariable(std::shared_ptr<Branch> va
 {
     /* If this is a structure access e.g "a.b.c.d" then the variable we need to return is "d"*/
     std::shared_ptr<STRUCTAccessBranch> access_branch = NULL;
+    std::shared_ptr<Branch> var_name_branch = NULL;
 
     if (var_branch->getType() == "STRUCT_ACCESS")
     {
         access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
         access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(access_branch->getDeepestAccessBranch());
-        var_branch = access_branch->getFirstChild();
+        var_name_branch = access_branch->getFirstChild();
+    }
+    else if (var_branch->getType() == "PTR")
+    {
+        std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(ptr_branch->getVariableBranch());
+        var_name_branch = var_iden_branch->getVariableNameBranch();
+    }
+    else if (var_branch->getType() == "VAR_IDENTIFIER")
+    {
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+        var_name_branch = var_iden_branch->getVariableNameBranch();
     }
 
     for (std::shared_ptr<Branch> variable : this->scope_variables)
     {
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(variable);
         std::shared_ptr<Branch> variable_name_branch = vdef_branch->getNameBranch();
-        if (variable_name_branch->getValue() == var_branch->getValue())
+        if (variable_name_branch->getValue() == var_name_branch->getValue())
         {
             // Is this structure access we are doing?
             if (access_branch != NULL)

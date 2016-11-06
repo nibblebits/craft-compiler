@@ -64,6 +64,7 @@ private:
     void process_body();
     void process_stmt();
     void process_variable_declaration();
+    void process_ptr();
     void process_assignment();
     void process_variable_access();
     void process_structure_access();
