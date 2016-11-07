@@ -348,32 +348,10 @@ void Parser::process_stmt()
             process_semicolon();
         }
     }
-    else if (is_peak_type("operator"))
-    {
-        peak(1);
-        if (is_peak_type("identifier"))
-        {
-            peak(2);
-            if (is_peak_type("operator"))
-            {
-                // This should be a pointer value assignment
-                process_assignment();
-                process_semicolon();
-            }
-        }
-    }
     else if (is_peak_type("identifier"))
     {
         peak(1);
-        if (is_peak_type("operator") ||
-                is_peak_symbol(".") ||
-                is_peak_symbol("["))
-        {
-            // This is an assignment, it may also be a structure assignment e.g s.example
-            process_assignment();
-            process_semicolon();
-        }
-        else if (is_peak_symbol("("))
+        if (is_peak_symbol("("))
         {
             // A left bracket was found so it must be a function call
             process_function_call();
@@ -381,9 +359,16 @@ void Parser::process_stmt()
         }
         else
         {
-            shift_pop();
-            error("unexpected token: " + this->branch_value + ", body's allow statements and variable declarations only.");
+            // Ok it may be a variable assignment so lets just process the expression
+            process_expression();
+            process_semicolon();
         }
+    }
+    else if (is_peak_operator("*"))
+    {
+        // This is probably a pointer assignment so lets process the pointer
+        process_expression();
+        process_semicolon();
     }
     else
     {
@@ -471,7 +456,7 @@ void Parser::process_ptr()
     std::shared_ptr<PTRBranch> ptr_branch = std::shared_ptr<PTRBranch>(new PTRBranch(compiler));
 
     // Process the expression
-    process_expression();
+    process_expression(true);
     pop_branch();
 
     ptr_branch->setExpressionBranch(this->branch);
@@ -480,61 +465,27 @@ void Parser::process_ptr()
     push_branch(ptr_branch);
 }
 
-void Parser::process_assignment()
+void Parser::process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op)
 {
-    peak();
-    // Peak to see if this is a structure element assignment
-    if (is_peak_type("identifier")
-            && is_peak_symbol(".", 1))
-    {
-        // This is a structure element assignment so process it
-        process_structure_access();
-        // Pop the result
-        pop_branch();
-    }
-    else
-    {
-        if (is_peak_operator("*"))
-        {
-            // This is a pointer value assignment so process the pointer.
-            process_ptr();
-        }
-        else
-        {
-            // Process the variable access
-            process_variable_access();
-        }
-        pop_branch();
-    }
-
-    std::shared_ptr<Branch> dst_branch = this->branch;
-    shift_pop();
     // Check for a valid assignment, e.g =, +=, -=
-    if (!is_branch_operator("=") &&
-            !is_branch_operator("+=") &&
-            !is_branch_operator("-=") &&
-            !is_branch_operator("*=") &&
-            !is_branch_operator("/="))
+    if (op->getValue() != "=" &&
+            op->getValue() != "+=" &&
+            op->getValue() != "-=" &&
+            op->getValue() != "*=" &&
+            op->getValue() != "/=")
     {
         error("expecting one of the following operators for assignments: =,+=,-=,*=,/= but " + this->branch_value + " was provided.");
     }
 
-    std::shared_ptr<Branch> op = this->branch;
 
-    process_expression();
-    // Pop the expression from the stack
-    pop_branch();
-    std::shared_ptr<Branch> expression = this->branch;
-
-    std::shared_ptr<AssignBranch> assign_branch;
-
-    assign_branch = std::shared_ptr<AssignBranch>(new AssignBranch(this->getCompiler()));
-    assign_branch->setVariableToAssignBranch(dst_branch);
-    assign_branch->setValueBranch(expression);
+    std::shared_ptr<AssignBranch> assign_branch = std::shared_ptr<AssignBranch>(new AssignBranch(this->getCompiler()));
+    assign_branch->setVariableToAssignBranch(left);
+    assign_branch->setValueBranch(right);
 
     // Now finally push the assign branch to the stack
     push_branch(assign_branch);
 }
+
 
 void Parser::process_variable_access()
 {
@@ -609,9 +560,9 @@ void Parser::process_structure_access()
 
 }
 
-void Parser::process_expression()
+void Parser::process_expression(bool strict_mode)
 {
-    process_expression_part();
+    process_expression_part(strict_mode);
     peak();
     // Do we have a logical operator if so then we have more to do
     if (compiler->isLogicalOperator(this->peak_token_value))
@@ -625,7 +576,7 @@ void Parser::process_expression()
         std::shared_ptr<Branch> left = this->branch;
 
         // Now process the new expression
-        process_expression();
+        process_expression(strict_mode);
 
         // Pop it off
         pop_branch();
@@ -640,7 +591,7 @@ void Parser::process_expression()
 
 }
 
-void Parser::process_expression_part()
+void Parser::process_expression_part(bool strict_mode)
 {
     std::shared_ptr<Branch> exp_root = NULL;
     std::shared_ptr<Branch> left = NULL;
@@ -651,37 +602,50 @@ void Parser::process_expression_part()
     {
         if (left != NULL && op != NULL && right != NULL)
         {
-            if (op->getValue() != "*" && op->getValue() != "/")
+            // Is the operator that of an assignment?
+            if (op->getValue() == "=")
             {
-                // Check to see if BODMAS applies
-                peak();
-                if (is_peak_operator("*")
-                        || is_peak_operator("/"))
-                {
-                    std::shared_ptr<Branch> l = right;
-
-                    // Shift and pop the operator
-                    shift_pop();
-                    std::shared_ptr<Branch> o = this->branch;
-                    // Shift and pop the right
-                    shift_pop();
-                    std::shared_ptr<Branch> r = this->branch;
-
-                    exp_root = std::shared_ptr<Branch>(new Branch("E", o->getValue()));
-                    exp_root->addChild(l);
-                    exp_root->addChild(r);
-                    right = exp_root;
-                }
+                // Ok this is an assignment expression
+                process_assignment(left, right, op);
+                pop_branch();
+                left = this->branch;
+                op = NULL;
+                right = NULL;
             }
+            else
+            {
+                if (op->getValue() != "*" && op->getValue() != "/")
+                {
+                    // Check to see if BODMAS applies
+                    peak();
+                    if (is_peak_operator("*")
+                            || is_peak_operator("/"))
+                    {
+                        std::shared_ptr<Branch> l = right;
 
-            exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
-            exp_root->addChild(left);
-            exp_root->addChild(right);
+                        // Shift and pop the operator
+                        shift_pop();
+                        std::shared_ptr<Branch> o = this->branch;
+                        // Shift and pop the right
+                        shift_pop();
+                        std::shared_ptr<Branch> r = this->branch;
 
-            // Set the left to exp_root, and the op and right to NULL ready for future expressions
-            left = exp_root;
-            op = NULL;
-            right = NULL;
+                        exp_root = std::shared_ptr<Branch>(new Branch("E", o->getValue()));
+                        exp_root->addChild(l);
+                        exp_root->addChild(r);
+                        right = exp_root;
+                    }
+                }
+
+                exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
+                exp_root->addChild(left);
+                exp_root->addChild(right);
+
+                // Set the left to exp_root, and the op and right to NULL ready for future expressions
+                left = exp_root;
+                op = NULL;
+                right = NULL;
+            }
         }
         else
         {
@@ -696,6 +660,12 @@ void Parser::process_expression_part()
             }
             else if (is_peak_type("operator"))
             {
+                if (is_peak_operator("=") && strict_mode)
+                {
+                    // Strict mode is active assignments are not allowed while strict mode is active and we must break!
+                    break;
+                }
+                
                 if (left == NULL || op != NULL)
                 {
                     handle_left_or_right(&left, &right);
@@ -715,7 +685,7 @@ void Parser::process_expression_part()
                 if (compiler->isCompareOperator(op->getValue()))
                 {
                     // Process the further expression
-                    process_expression_part();
+                    process_expression_part(strict_mode);
                     // Pop off the result
                     pop_branch();
                     // Put it on the right branch
@@ -728,7 +698,7 @@ void Parser::process_expression_part()
                 shift_pop();
 
                 // Recall this method to handle the expression
-                process_expression();
+                process_expression(strict_mode);
 
                 // Pop off the result
                 pop_branch();
@@ -1222,8 +1192,8 @@ void Parser::process_for_stmt()
         else
         {
             // Ok its a variable assignment
-            // Process the variable assignment
-            process_assignment();
+            // Process the variable assignment by calling "process_expression"
+            process_expression();
             // Pop off the result
             pop_branch();
         }
@@ -1253,8 +1223,9 @@ void Parser::process_for_stmt()
     peak();
     if (!is_peak_symbol(")"))
     {
-        // Process the assignment
-        process_assignment();
+        // Process the assignment by calling the "process_expression" method.
+        process_expression();
+        
         // Pop off the result and store it in the "loop_stmt" variable
         pop_branch();
         loop_stmt = this->branch;

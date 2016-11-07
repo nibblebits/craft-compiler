@@ -26,6 +26,7 @@
 #define EXCEPTION_H
 
 #include <stdexcept>
+#include <string>
 class Exception : public std::logic_error
 {
 public:
@@ -37,9 +38,9 @@ public:
 
     virtual ~Exception()
     {
-        
+
     }
-    
+
     std::string getMessage()
     {
         return this->msg;

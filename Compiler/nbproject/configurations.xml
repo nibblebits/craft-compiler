@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -132,7 +132,7 @@
   <confs>
     <conf name="Debug" type="2">
       <toolsSet>
-        <compilerSet>MinGW|MinGW</compilerSet>
+        <compilerSet>Cygwin|Cygwin</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
@@ -141,8 +141,6 @@
           <standard>11</standard>
           <incDir>
             <pElem>include</pElem>
-            <pElem>GoblinLibraryLoader/include</pElem>
-            <pElem>GoblinArgumentParser/include</pElem>
             <pElem>.</pElem>
           </incDir>
           <commandLine>-shared</commandLine>

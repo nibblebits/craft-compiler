@@ -65,11 +65,11 @@ private:
     void process_stmt();
     void process_variable_declaration();
     void process_ptr();
-    void process_assignment();
+    void process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op);
     void process_variable_access();
     void process_structure_access();
-    void process_expression();
-    void process_expression_part();
+    void process_expression(bool strict_mode=false);
+    void process_expression_part(bool strict_mode);
     std::shared_ptr<Branch> process_expression_operand();
     std::shared_ptr<Branch> process_expression_operator();
     void process_function_call();
