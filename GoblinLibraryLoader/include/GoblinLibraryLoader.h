@@ -20,6 +20,10 @@
 
 #define EXPORT __declspec(dllexport)
 
+#ifdef __CYGWIN__
+#define _WIN32
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
