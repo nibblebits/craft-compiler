@@ -39,6 +39,11 @@
 
 #define CODEGEN_DIR "./codegens"
 
+// If its a CYGWIN compiler then enable _WIN32
+#ifdef __CYGWIN__
+#define _WIN32
+#endif
+
 #ifdef _WIN32
 #define CODEGEN_EXT ".dll"
 #else
