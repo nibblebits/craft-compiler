@@ -60,6 +60,7 @@ public:
     void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch);
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
+    void handle_ptr(std::shared_ptr<PTRBranch> ptr_branch);
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_structure(std::shared_ptr<STRUCTBranch> struct_branch);
     void handle_function(std::shared_ptr<FuncBranch> func_branch);
@@ -116,6 +117,7 @@ private:
     std::string cmp_exp_last_logic_operator;
     bool is_cmp_expression;
     bool do_signed;
+    bool handling_pointer;
     int current_label_index;
 
 };
