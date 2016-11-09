@@ -585,21 +585,18 @@ void CodeGen8086::make_array_variable_access(std::shared_ptr<VarIdentifierBranch
         if (var_addr.var_type == ARGUMENT_VARIABLE)
         {
             do_asm("add bx, " + std::to_string(var_addr.offset));
-            do_asm("add bx, ax");
+            do_asm("sub bx, ax");
         }
         else
         {
             do_asm("sub bx, " + std::to_string(var_addr.offset));
-            do_asm("sub bx, ax");
+            do_asm("add bx, ax");
         }
     }
 }
 
 void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value)
 {
-    std::shared_ptr<VDEFBranch> variable_def = std::dynamic_pointer_cast<VDEFBranch>(getVariable(var_branch));
-    bool is_word = (variable_def->isPointer() || variable_def->getDataTypeSize() == 2 ? true : false);
-
     /* Note: PTR is pointer access it means we are trying to assign a value in memory pointed to by a pointer
      * it is not the same as the code further down this method that makes memory assignments to pointers as 2 bytes as pointers should
  hold 2 byte addresses in the 8086 processor.*/
@@ -610,10 +607,12 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         handle_ptr(ptr_branch);
         // Ok we have handled the pointer now we need to set our value to it
         do_asm("mov bx, ax");
-        make_mem_assignment("bx", value, is_word);
+        make_mem_assignment("bx", value, false);
     }
     else
     {
+        std::shared_ptr<VDEFBranch> variable_def = std::dynamic_pointer_cast<VDEFBranch>(getVariable(var_branch));
+        bool is_word = (variable_def->isPointer() || variable_def->getDataTypeSize() == 2 ? true : false);
         std::string asm_addr = getASMAddressForVariableFormatted(var_branch);
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
         if (var_iden_branch->hasRootArrayIndexBranch())
@@ -1177,8 +1176,11 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
     {
         std::shared_ptr<Branch> scope_var = this->scope_variables.at(i);
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(vdef_branch->getVariableIdentifierBranch());
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
         std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
+
+        int var_size = getSizeOfVariableBranch(vdef_branch);
 
         if (name_branch->getValue() == var_name)
         {
@@ -1187,16 +1189,25 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
              this is because of how we are storing the memory and the way the 8086 processor
              handles writes and reads to words, more can be read about this in the development diary
              on Day 48 at 21:33*/
+            
             if (vdef_branch->isPointer() ||
                     data_type_branch->getValue() == "int16" ||
                     data_type_branch->getValue() == "uint16")
             {
                 offset += 1;
             }
+
+            /* If this is an array its important that the offset starts at the end of the array
+             and not the beginning this is important so that accessing array elements through pointers
+             will work as expected more is described in the diary on Day 48 at 22:59.*/
+            
+            if (var_iden_branch->hasRootArrayIndexBranch())
+            {
+                offset += var_size -1;
+            }
             break;
         }
 
-        int var_size = getSizeOfVariableBranch(vdef_branch);
         offset += var_size;
 
     }
@@ -1212,6 +1223,7 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
 
 bool CodeGen8086::hasScopeVariable(std::shared_ptr<Branch> var_branch)
 {
+    std::string var_name;
     /* If this is a structure access then we need to get the first
      element as this element will be the scope variable name. E.g "a.b.c" "a" would be the scope variable name.*/
     if (var_branch->getType() == "STRUCT_ACCESS")
@@ -1219,18 +1231,12 @@ bool CodeGen8086::hasScopeVariable(std::shared_ptr<Branch> var_branch)
         std::shared_ptr<STRUCTAccessBranch> access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
         var_branch = access_branch->getDeepestAccessBranch()->getFirstChild();
     }
-    std::string var_name;
-    if (var_branch->getType() == "PTR")
-    {
-        std::shared_ptr<PTRBranch> ptr_var_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
-        std::shared_ptr<VarIdentifierBranch> identifier_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(ptr_var_branch);
-        var_name = identifier_branch->getVariableNameBranch()->getValue();
-    }
     else
     {
-        std::shared_ptr<VarIdentifierBranch> identifier_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
-        var_name = identifier_branch->getVariableNameBranch()->getValue();
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+        var_name = var_iden_branch->getVariableNameBranch()->getValue();
     }
+
     for (int i = 0; i < this->scope_variables.size(); i++)
     {
         std::shared_ptr<Branch> branch = this->scope_variables.at(i);
