@@ -64,9 +64,9 @@ public:
     void make_expression_right(std::shared_ptr<Branch> exp);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_move_reg_variable(std::string reg_name, std::shared_ptr<Branch> var_branch);
-    void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<Branch> var_branch);
+    void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch);
-    void make_array_variable_access(std::shared_ptr<Branch> var_branch);
+    void make_array_variable_access(std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
     void handle_ptr(std::shared_ptr<PTRBranch> ptr_branch);
@@ -125,6 +125,8 @@ private:
     std::string cmp_exp_false_label_name;
     std::string cmp_exp_end_label_name;
     std::string cmp_exp_last_logic_operator;
+    
+    std::shared_ptr<VarIdentifierBranch> pointer_var_branch;
     bool is_cmp_expression;
     bool do_signed;
     bool handling_pointer;

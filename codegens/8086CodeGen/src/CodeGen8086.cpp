@@ -34,6 +34,7 @@ CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 Cod
     this->is_cmp_expression = false;
     this->do_signed = false;
     this->handling_pointer = false;
+    this->pointer_var_branch = NULL;
 }
 
 CodeGen8086::~CodeGen8086()
@@ -218,6 +219,19 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     }
     else if (exp->getType() == "VAR_IDENTIFIER")
     {
+        /* If we are currently inside a pointer *(inside here) then we need to set this variable to the
+         pointer variable branch so once we are done we have a reference of what data type we are referencing to
+         */
+        if (this->pointer_var_branch == NULL &&
+                this->handling_pointer)
+        {
+            std::shared_ptr<VDEFBranch> var_branch = getVariable(exp);
+            if (var_branch->isPointer())
+            {
+                this->pointer_var_branch = var_branch;
+            }
+        }
+
         // This is a variable so set register to store to the value of this variable
         make_move_reg_variable(register_to_store, exp);
     }
@@ -236,7 +250,7 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     {
         // Move the address of the variable to the AX register
         std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(exp);
-        std::shared_ptr<Branch> var_branch = address_of_branch->getVariableBranch();
+        std::shared_ptr<VarIdentifierBranch> var_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(address_of_branch->getVariableBranch());
         make_move_var_addr_to_reg(register_to_store, var_branch);
     }
     else if (exp->getType() == "STRUCT_ACCESS")
@@ -469,7 +483,7 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<Branch
     std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
     if (var_iden_branch->hasRootArrayIndexBranch())
     {
-        make_array_variable_access(var_branch);
+        make_array_variable_access(var_iden_branch);
         // bx = correct memory location for memory
         do_asm("mov " + reg + ", [bx]");
     }
@@ -479,26 +493,39 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<Branch
     }
 }
 
-void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<Branch> var_branch)
+void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch)
 {
     int bp_offset;
     int var_type = getVariableType(var_branch);
 
-    if (var_type == ARGUMENT_VARIABLE || var_type == SCOPE_VARIABLE)
+    if (var_branch->hasRootArrayIndexBranch())
     {
-        do_asm("mov " + reg_name + ", bp");
-    }
+        make_array_variable_access(var_branch);
 
-    switch (var_type)
+        // Resulting address is stored in BX by default so we should only move it if needed
+        if (reg_name != "bx")
+        {
+            do_asm("mov " + reg_name + ", bx");
+        }
+
+    }
+    else
     {
-    case ARGUMENT_VARIABLE:
-        bp_offset = getBPOffsetForArgument(var_branch);
-        do_asm("add " + reg_name + ", " + std::to_string(bp_offset));
-        break;
-    case SCOPE_VARIABLE:
-        bp_offset = getBPOffsetForScopeVariable(var_branch);
-        do_asm("sub " + reg_name + ", " + std::to_string(bp_offset));
-        break;
+        if (var_type == ARGUMENT_VARIABLE || var_type == SCOPE_VARIABLE)
+        {
+            do_asm("mov " + reg_name + ", bp");
+        }
+        switch (var_type)
+        {
+        case ARGUMENT_VARIABLE:
+            bp_offset = getBPOffsetForArgument(var_branch);
+            do_asm("add " + reg_name + ", " + std::to_string(bp_offset));
+            break;
+        case SCOPE_VARIABLE:
+            bp_offset = getBPOffsetForScopeVariable(var_branch);
+            do_asm("sub " + reg_name + ", " + std::to_string(bp_offset));
+            break;
+        }
     }
 }
 
@@ -540,12 +567,11 @@ void CodeGen8086::make_array_offset_instructions(std::shared_ptr<ArrayIndexBranc
 
 }
 
-void CodeGen8086::make_array_variable_access(std::shared_ptr<Branch> var_branch)
+void CodeGen8086::make_array_variable_access(std::shared_ptr<VarIdentifierBranch> var_branch)
 {
     struct VARIABLE_ADDRESS var_addr = getASMAddressForVariable(var_branch);
-    std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
     // We are handling an array
-    std::shared_ptr<ArrayIndexBranch> root_array_index = std::dynamic_pointer_cast<ArrayIndexBranch>(var_iden_branch->getRootArrayIndexBranch());
+    std::shared_ptr<ArrayIndexBranch> root_array_index = std::dynamic_pointer_cast<ArrayIndexBranch>(var_branch->getRootArrayIndexBranch());
     make_array_offset_instructions(root_array_index);
 
     if (var_addr.var_type == GLOBAL_VARIABLE)
@@ -592,7 +618,7 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
         if (var_iden_branch->hasRootArrayIndexBranch())
         {
-            make_array_variable_access(var_branch);
+            make_array_variable_access(var_iden_branch);
             // bx = correct memory location for memory
             make_mem_assignment("bx", value, is_word);
         }
@@ -609,6 +635,7 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
     std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
     make_expression(exp_branch);
     this->handling_pointer = false;
+    this->pointer_var_branch = NULL;
 }
 
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
