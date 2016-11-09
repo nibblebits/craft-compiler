@@ -464,7 +464,7 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<Branch
     {
         this->do_signed = true;
     }
-    std::string asm_addr = getASMAddressForVariable(var_branch);
+    std::string asm_addr = getASMAddressForVariableFormatted(var_branch);
     do_asm("mov " + reg + ", [" + asm_addr + "]");
 }
 
@@ -495,11 +495,15 @@ void CodeGen8086::make_array_offset_instructions(std::shared_ptr<ArrayIndexBranc
 {
     std::shared_ptr<ArrayIndexBranch> current_branch = array_branch;
 
+    int c = 0;
     while (true)
     {
         std::shared_ptr<Branch> value_branch = current_branch->getValueBranch();
         // Make the expression of the array index
         make_expression(value_branch);
+        do_asm("push ax");
+
+        c++;
         if (current_branch->hasNextArrayIndexBranch())
         {
             current_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(current_branch->getNextArrayIndexBranch());
@@ -509,30 +513,81 @@ void CodeGen8086::make_array_offset_instructions(std::shared_ptr<ArrayIndexBranc
             break;
         }
     }
+
+    for (int i = 0; i < c; i++)
+    {
+        if (i == 0)
+        {
+            do_asm("pop ax");
+        }
+        else
+        {
+            do_asm("pop bx");
+            do_asm("mul bx");
+        }
+    }
+
+}
+
+void CodeGen8086::make_array_variable_access(std::shared_ptr<Branch> var_branch)
+{
+    struct VARIABLE_ADDRESS var_addr = getASMAddressForVariable(var_branch);
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+    // We are handling an array
+    std::shared_ptr<ArrayIndexBranch> root_array_index = std::dynamic_pointer_cast<ArrayIndexBranch>(var_iden_branch->getRootArrayIndexBranch());
+    make_array_offset_instructions(root_array_index);
+
+    if (var_addr.var_type == GLOBAL_VARIABLE)
+    {
+        do_asm("mov bx, " + var_addr.offset);
+        do_asm("add bx, ax");
+    }
+    else
+    {
+        do_asm("mov bx, " + var_addr.segment);
+        if (var_addr.var_type == ARGUMENT_VARIABLE)
+        {
+            do_asm("add bx, " + std::to_string(var_addr.offset));
+            do_asm("add bx, ax");
+        }
+        else
+        {
+            do_asm("sub bx, " + std::to_string(var_addr.offset));
+            do_asm("sub bx, ax");
+        }
+    }
 }
 
 void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value)
 {
+    std::shared_ptr<VDEFBranch> variable_def = std::dynamic_pointer_cast<VDEFBranch>(getVariable(var_branch));
+    bool is_word = (variable_def->isPointer() || variable_def->getDataTypeSize() == 2 ? true : false);
+
+    /* Note: PTR is pointer access it means we are trying to assign a value in memory pointed to by a pointer
+     * it is not the same as the code further down this method that makes memory assignments to pointers as 2 bytes as pointers should
+ hold 2 byte addresses in the 8086 processor.*/
+
     if (var_branch->getType() == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
         handle_ptr(ptr_branch);
         // Ok we have handled the pointer now we need to set our value to it
         do_asm("mov bx, ax");
-        make_mem_assignment("bx", value, false);
+        make_mem_assignment("bx", value, is_word);
     }
     else
     {
-        std::string asm_addr = getASMAddressForVariable(var_branch);
-        std::shared_ptr<VDEFBranch> variable_def = std::dynamic_pointer_cast<VDEFBranch>(getVariable(var_branch));
-        // Is the variable we are assigning a pointer? If so its 2 bytes by default.
-        if (variable_def->isPointer())
+        std::string asm_addr = getASMAddressForVariableFormatted(var_branch);
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+        if (var_iden_branch->hasRootArrayIndexBranch())
         {
-            make_mem_assignment(asm_addr, value, true);
+            make_array_variable_access(var_branch);
+            // bx = correct memory location for memory
+            make_mem_assignment("bx", value, is_word);
         }
         else
         {
-            make_mem_assignment(asm_addr, value, false);
+            make_mem_assignment(asm_addr, value, is_word);
         }
     }
 }
@@ -687,7 +742,7 @@ void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
 
 void CodeGen8086::handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Branch> branch)
 {
-    std::string asm_addr = getASMAddressForVariable(branch);
+    std::string asm_addr = getASMAddressForVariableFormatted(branch);
     // Save BX as its possible it could be taken due to a pointer to pointer assignment
     do_asm("push bx");
     do_asm("mov bx, [" + asm_addr + "]");
@@ -1150,25 +1205,33 @@ int CodeGen8086::getSumOfScopeVariablesSizeSoFar()
     return (this->scope_variables.size() * 2);
 }
 
-std::string CodeGen8086::getASMAddressForVariable(std::shared_ptr<Branch> var_branch)
+struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Branch> var_branch)
 {
-    int var_type = getVariableType(var_branch);
-    int bp_offset;
-    std::string dst_string;
-    switch (var_type)
+    struct VARIABLE_ADDRESS address;
+    address.var_type = getVariableType(var_branch);
+    switch (address.var_type)
     {
     case ARGUMENT_VARIABLE:
-        bp_offset = getBPOffsetForArgument(var_branch);
-        dst_string = "bp+" + std::to_string(bp_offset) + "";
+        address.offset = getBPOffsetForArgument(var_branch);
+        address.segment = "bp";
+        address.op = "+";
         break;
     case SCOPE_VARIABLE:
-        bp_offset = getBPOffsetForScopeVariable(var_branch);
-        dst_string = "bp-" + std::to_string(bp_offset) + "";
+        address.segment = "bp";
+        address.op = "-";
+        address.offset = getBPOffsetForScopeVariable(var_branch);
         break;
     }
 
-    return dst_string;
+    return address;
 
+
+}
+
+std::string CodeGen8086::getASMAddressForVariableFormatted(std::shared_ptr<Branch> var_branch)
+{
+    struct VARIABLE_ADDRESS address = getASMAddressForVariable(var_branch);
+    return (address.segment + address.op + std::to_string(address.offset));
 }
 
 std::shared_ptr<Branch> CodeGen8086::getScopeVariable(std::shared_ptr<Branch> var_branch)

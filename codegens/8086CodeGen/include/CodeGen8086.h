@@ -38,6 +38,14 @@ enum
     SCOPE_VARIABLE
 };
 
+struct VARIABLE_ADDRESS
+{
+    int var_type;
+    std::string segment;
+    std::string op;
+    int offset;
+};
+
 class CodeGen8086 : public CodeGenerator
 {
 public:
@@ -58,6 +66,7 @@ public:
     void make_move_reg_variable(std::string reg_name, std::shared_ptr<Branch> var_branch);
     void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<Branch> var_branch);
     void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch);
+    void make_array_variable_access(std::shared_ptr<Branch> var_branch);
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
     void handle_ptr(std::shared_ptr<PTRBranch> ptr_branch);
@@ -91,7 +100,8 @@ public:
     bool hasArgumentVariable(std::shared_ptr<Branch> var_branch);
     int getVariableType(std::shared_ptr<Branch> var_branch);
     int getSumOfScopeVariablesSizeSoFar();
-    std::string getASMAddressForVariable(std::shared_ptr<Branch> var_branch);
+    struct VARIABLE_ADDRESS getASMAddressForVariable(std::shared_ptr<Branch> var_branch);
+    std::string getASMAddressForVariableFormatted(std::shared_ptr<Branch> var_branch);
 
     std::shared_ptr<VDEFBranch> getVariable(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getScopeVariable(std::shared_ptr<Branch> var_branch);
