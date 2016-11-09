@@ -486,7 +486,6 @@ void Parser::process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Br
     push_branch(assign_branch);
 }
 
-
 void Parser::process_variable_access()
 {
     std::shared_ptr<VarIdentifierBranch> var_identifier_branch = std::shared_ptr<VarIdentifierBranch>(new VarIdentifierBranch(compiler));
@@ -600,52 +599,53 @@ void Parser::process_expression_part(bool strict_mode)
 
     while (true)
     {
-        if (left != NULL && op != NULL && right != NULL)
+        if (left != NULL && op != NULL && op->getValue() == "=")
         {
-            // Is the operator that of an assignment?
-            if (op->getValue() == "=")
+            // Ok this is an assignment expression
+            // It is important to process the expression for the right branch otherwise we will only end up with one attribute on the stack
+            process_expression();
+            pop_branch();
+            right = this->branch;
+            process_assignment(left, right, op);
+            pop_branch();
+            left = this->branch;
+            op = NULL;
+            right = NULL;
+
+        }
+        else if (left != NULL && op != NULL && right != NULL)
+        {
+            if (op->getValue() != "*" && op->getValue() != "/")
             {
-                // Ok this is an assignment expression
-                process_assignment(left, right, op);
-                pop_branch();
-                left = this->branch;
-                op = NULL;
-                right = NULL;
-            }
-            else
-            {
-                if (op->getValue() != "*" && op->getValue() != "/")
+                // Check to see if BODMAS applies
+                peak();
+                if (is_peak_operator("*")
+                        || is_peak_operator("/"))
                 {
-                    // Check to see if BODMAS applies
-                    peak();
-                    if (is_peak_operator("*")
-                            || is_peak_operator("/"))
-                    {
-                        std::shared_ptr<Branch> l = right;
+                    std::shared_ptr<Branch> l = right;
 
-                        // Shift and pop the operator
-                        shift_pop();
-                        std::shared_ptr<Branch> o = this->branch;
-                        // Shift and pop the right
-                        shift_pop();
-                        std::shared_ptr<Branch> r = this->branch;
+                    // Shift and pop the operator
+                    shift_pop();
+                    std::shared_ptr<Branch> o = this->branch;
+                    // Shift and pop the right
+                    shift_pop();
+                    std::shared_ptr<Branch> r = this->branch;
 
-                        exp_root = std::shared_ptr<Branch>(new Branch("E", o->getValue()));
-                        exp_root->addChild(l);
-                        exp_root->addChild(r);
-                        right = exp_root;
-                    }
+                    exp_root = std::shared_ptr<Branch>(new Branch("E", o->getValue()));
+                    exp_root->addChild(l);
+                    exp_root->addChild(r);
+                    right = exp_root;
                 }
-
-                exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
-                exp_root->addChild(left);
-                exp_root->addChild(right);
-
-                // Set the left to exp_root, and the op and right to NULL ready for future expressions
-                left = exp_root;
-                op = NULL;
-                right = NULL;
             }
+
+            exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
+            exp_root->addChild(left);
+            exp_root->addChild(right);
+
+            // Set the left to exp_root, and the op and right to NULL ready for future expressions
+            left = exp_root;
+            op = NULL;
+            right = NULL;
         }
         else
         {
@@ -665,7 +665,7 @@ void Parser::process_expression_part(bool strict_mode)
                     // Strict mode is active assignments are not allowed while strict mode is active and we must break!
                     break;
                 }
-                
+
                 if (left == NULL || op != NULL)
                 {
                     handle_left_or_right(&left, &right);
@@ -799,8 +799,8 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         else
         {
             // This is an identifier, e.g a variable name so process the variable access
-           process_variable_access();
-           pop_branch();
+            process_variable_access();
+            pop_branch();
         }
 
         std::shared_ptr<AddressOfBranch> address_of_branch = std::shared_ptr<AddressOfBranch>(new AddressOfBranch(this->getCompiler()));
@@ -1226,7 +1226,7 @@ void Parser::process_for_stmt()
     {
         // Process the assignment by calling the "process_expression" method.
         process_expression();
-        
+
         // Pop off the result and store it in the "loop_stmt" variable
         pop_branch();
         loop_stmt = this->branch;
