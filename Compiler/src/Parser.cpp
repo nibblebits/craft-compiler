@@ -798,8 +798,9 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         }
         else
         {
-            // This is an identifier, e.g a variable name so shift and pop it.
-            shift_pop();
+            // This is an identifier, e.g a variable name so process the variable access
+           process_variable_access();
+           pop_branch();
         }
 
         std::shared_ptr<AddressOfBranch> address_of_branch = std::shared_ptr<AddressOfBranch>(new AddressOfBranch(this->getCompiler()));
