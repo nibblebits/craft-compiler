@@ -635,7 +635,19 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
     std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
     make_expression(exp_branch);
     this->handling_pointer = false;
-    this->pointer_var_branch = NULL;
+
+    /* 
+     * We have finished making the pointer expression, now we need to return the value that its
+     * pointing to.
+     */
+
+    if (this->pointer_var_branch != NULL)
+    {
+        do_asm("mov bx, ax");
+        do_asm("mov ax, [bx]");
+        this->pointer_var_branch = NULL;
+    }
+
 }
 
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
@@ -1166,9 +1178,21 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
         std::shared_ptr<Branch> scope_var = this->scope_variables.at(i);
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
+        std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
 
         if (name_branch->getValue() == var_name)
         {
+
+            /* If the data type is int16 or uint16 or a pointer then we need to add one more to it
+             this is because of how we are storing the memory and the way the 8086 processor
+             handles writes and reads to words, more can be read about this in the development diary
+             on Day 48 at 21:33*/
+            if (vdef_branch->isPointer() ||
+                    data_type_branch->getValue() == "int16" ||
+                    data_type_branch->getValue() == "uint16")
+            {
+                offset += 1;
+            }
             break;
         }
 

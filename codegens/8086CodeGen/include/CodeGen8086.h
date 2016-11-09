@@ -126,7 +126,7 @@ private:
     std::string cmp_exp_end_label_name;
     std::string cmp_exp_last_logic_operator;
     
-    std::shared_ptr<VarIdentifierBranch> pointer_var_branch;
+    std::shared_ptr<VDEFBranch> pointer_var_branch;
     bool is_cmp_expression;
     bool do_signed;
     bool handling_pointer;
