@@ -34,7 +34,6 @@ CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 Cod
     this->is_cmp_expression = false;
     this->do_signed = false;
     this->handling_pointer = false;
-    this->pointer_var_branch = NULL;
 }
 
 CodeGen8086::~CodeGen8086()
@@ -219,19 +218,6 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     }
     else if (exp->getType() == "VAR_IDENTIFIER")
     {
-        /* If we are currently inside a pointer *(inside here) then we need to set this variable to the
-         pointer variable branch so once we are done we have a reference of what data type we are referencing to
-         */
-        if (this->pointer_var_branch == NULL &&
-                this->handling_pointer)
-        {
-            std::shared_ptr<VDEFBranch> var_branch = getVariable(exp);
-            if (var_branch->isPointer())
-            {
-                this->pointer_var_branch = var_branch;
-            }
-        }
-
         // This is a variable so set register to store to the value of this variable
         make_move_reg_variable(register_to_store, exp);
     }
@@ -634,19 +620,6 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
     std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
     make_expression(exp_branch);
     this->handling_pointer = false;
-
-    /* 
-     * We have finished making the pointer expression, now we need to return the value that its
-     * pointing to.
-     */
-
-    if (this->pointer_var_branch != NULL)
-    {
-        do_asm("mov bx, ax");
-        do_asm("mov ax, [bx]");
-        this->pointer_var_branch = NULL;
-    }
-
 }
 
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
