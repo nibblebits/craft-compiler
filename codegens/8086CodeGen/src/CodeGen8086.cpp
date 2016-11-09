@@ -464,8 +464,19 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<Branch
     {
         this->do_signed = true;
     }
+
     std::string asm_addr = getASMAddressForVariableFormatted(var_branch);
-    do_asm("mov " + reg + ", [" + asm_addr + "]");
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+    if (var_iden_branch->hasRootArrayIndexBranch())
+    {
+        make_array_variable_access(var_branch);
+        // bx = correct memory location for memory
+        do_asm("mov " + reg + ", [bx]");
+    }
+    else
+    {
+        do_asm("mov " + reg + ", [" + asm_addr + "]");
+    }
 }
 
 void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<Branch> var_branch)
