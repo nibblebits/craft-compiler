@@ -320,7 +320,7 @@ int main(int argc, char** argv)
         }
 
     }
-    catch (CodeGeneratorException ex)
+    catch (Exception ex)
     {
         std::cout << "Error with code generator: " << ex.getMessage() << std::endl;
         return ERROR_WITH_CODEGENERATOR;

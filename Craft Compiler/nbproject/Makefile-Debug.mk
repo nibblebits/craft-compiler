@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=MinGW-Windows
+CND_PLATFORM=Cygwin-Windows
 CND_DLIB_EXT=dll
 CND_CONF=Debug
 CND_DISTDIR=dist
@@ -68,7 +68,7 @@ LDLIBSOPTIONS=../bin/GoblinArgumentParser.dll ../bin/GoblinLibraryLoader.dll ../
 	${MKDIR} -p ../bin
 	${LINK.cc} -o ../bin/craft_compiler ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/main.o: main.cpp 
+${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../Compiler/include -I. -I../GoblinArgumentParser/include -I../GoblinLibraryLoader/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
@@ -79,6 +79,7 @@ ${OBJECTDIR}/main.o: main.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} -r ../bin/GoblinArgumentParser.dll ../bin/Compiler.dll ../bin/GoblinLibraryLoader.dll
 	${RM} ../bin/craft_compiler.exe
 
 # Subprojects
