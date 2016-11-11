@@ -26,9 +26,15 @@
 
 #include "STRUCTDEFBranch.h"
 
-STRUCTDEFBranch::STRUCTDEFBranch(Compiler* compiler) : VDEFBranch(compiler, "STRUCT_DEF") {
+STRUCTDEFBranch::STRUCTDEFBranch(Compiler* compiler) : VDEFBranch(compiler, "STRUCT_DEF")
+{
 }
 
-STRUCTDEFBranch::~STRUCTDEFBranch() {
+STRUCTDEFBranch::~STRUCTDEFBranch()
+{
 }
 
+int STRUCTDEFBranch::getDataTypeSize()
+{
+    throw Exception("Not yet supported for structure definitions.");
+}

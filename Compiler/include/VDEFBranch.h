@@ -52,7 +52,7 @@ public:
     
     bool isPointer();
     bool isSigned();
-    int getDataTypeSize();
+    virtual int getDataTypeSize();
 private:
     bool is_pointer;
 };

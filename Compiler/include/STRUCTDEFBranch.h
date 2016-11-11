@@ -26,10 +26,14 @@
 #define STRUCTDEFBRANCH_H
 
 #include "VDEFBranch.h"
-class EXPORT STRUCTDEFBranch : public VDEFBranch {
+
+class EXPORT STRUCTDEFBranch : public VDEFBranch
+{
 public:
     STRUCTDEFBranch(Compiler* compiler);
     virtual ~STRUCTDEFBranch();
+
+    virtual int getDataTypeSize();
 private:
 
 };
