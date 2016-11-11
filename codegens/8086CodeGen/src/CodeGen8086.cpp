@@ -34,6 +34,9 @@ CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 Cod
     this->is_cmp_expression = false;
     this->do_signed = false;
     this->handling_pointer = false;
+    this->scope_size = 0;
+
+
 }
 
 CodeGen8086::~CodeGen8086()
@@ -581,6 +584,11 @@ void CodeGen8086::make_array_variable_access(std::shared_ptr<VarIdentifierBranch
     }
 }
 
+void CodeGen8086::make_move_mem_to_mem(std::string start_mem_loc, std::string end_mem_loc, std::string size)
+{
+
+}
+
 void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value)
 {
     /* Note: PTR is pointer access it means we are trying to assign a value in memory pointed to by a pointer
@@ -598,18 +606,31 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
     else
     {
         std::shared_ptr<VDEFBranch> variable_def = std::dynamic_pointer_cast<VDEFBranch>(getVariable(var_branch));
-        bool is_word = (variable_def->isPointer() || variable_def->getDataTypeSize() == 2 ? true : false);
-        std::string asm_addr = getASMAddressForVariableFormatted(var_branch);
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
-        if (var_iden_branch->hasRootArrayIndexBranch())
+        std::string asm_addr = getASMAddressForVariableFormatted(var_branch);
+
+        if (variable_def->getType() == "STRUCT_DEF")
         {
-            make_array_variable_access(var_iden_branch);
-            // bx = correct memory location for memory
-            make_mem_assignment("bx", value, is_word);
+            if (var_iden_branch->hasRootArrayIndexBranch())
+            {
+                make_array_variable_access(var_iden_branch);
+                // bx = correct memory location for memory
+                //     make_move_mem_to_mem("[bx]", 
+            }
         }
         else
         {
-            make_mem_assignment(asm_addr, value, is_word);
+            bool is_word = (variable_def->isPointer() || variable_def->getDataTypeSize() == 2 ? true : false);
+            if (var_iden_branch->hasRootArrayIndexBranch())
+            {
+                make_array_variable_access(var_iden_branch);
+                // bx = correct memory location for memory
+                make_mem_assignment("bx", value, is_word);
+            }
+            else
+            {
+                make_mem_assignment(asm_addr, value, is_word);
+            }
         }
     }
 }
@@ -669,10 +690,30 @@ void CodeGen8086::handle_func_args(std::shared_ptr<Branch> arguments)
 
 void CodeGen8086::handle_body(std::shared_ptr<Branch> body)
 {
+    // First we need to calculate the entire scope size, its important
+    for (std::shared_ptr<Branch> stmt : body->getChildren())
+    {
+        if (stmt->getType() == "V_DEF" ||
+                stmt->getType() == "STRUCT_DEF")
+        {
+            std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(stmt);
+            this->scope_size += getSizeOfVariableBranch(vdef_branch);
+        }
+    }
+    
+    /* NOTE: THIS CALCULATING OF SCOPE SIZE WILL NOT WORK CORRECTLY WITH ANYTHING THAT HAS A BODY, SUCH AS
+    * IF STATMENTS, FOR LOOPS. SCOPE_SIZE MAY ALSO NEED TO BECOME A STACK*/
+    
+    // Generate some ASM to reserve space on the stack for this scope
+    do_asm("sub sp, " + std::to_string(this->scope_size));
+
+    // Now we can handle very statement
     for (std::shared_ptr<Branch> stmt : body->getChildren())
     {
         handle_stmt(stmt);
     }
+
+    this->scope_size = 0;
 }
 
 void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
@@ -757,6 +798,8 @@ void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
     }
 
 
+    // Readjust the stack pointer back to normal
+    do_asm("add sp, " + std::to_string(this->scope_size));
     // Pop from the stack back to the BP(Base Pointer) now we are leaving this function
     do_asm("pop bp");
     do_asm("ret");
@@ -939,24 +982,25 @@ int CodeGen8086::getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch
         {
             var_size = compiler->getDataTypeSize(data_type_branch->getValue());
         }
+    }
 
-        // Check to see if we have an array going on here
-        if (var_identifier_branch->hasRootArrayIndexBranch())
+    // Check to see if we have an array going on here
+    if (var_identifier_branch->hasRootArrayIndexBranch())
+    {
+        // We need to multiply all of the array indexes together so we know how many elements we have
+        std::shared_ptr<ArrayIndexBranch> array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(var_identifier_branch->getRootArrayIndexBranch());
+        int total_array_indexes = stoi(array_index_branch->getValueBranch()->getValue());
+        while (array_index_branch->hasNextArrayIndexBranch())
         {
-            // We need to multiply all of the array indexes together so we know how many elements we have
-            std::shared_ptr<ArrayIndexBranch> array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(var_identifier_branch->getRootArrayIndexBranch());
-            int total_array_indexes = stoi(array_index_branch->getValueBranch()->getValue());
-            while (array_index_branch->hasNextArrayIndexBranch())
-            {
-                array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(array_index_branch->getNextArrayIndexBranch());
-                total_array_indexes *= stoi(array_index_branch->getValueBranch()->getValue());
-            }
-
-            // Calculate the array size
-            var_size = total_array_indexes * var_size;
+            array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(array_index_branch->getNextArrayIndexBranch());
+            total_array_indexes *= stoi(array_index_branch->getValueBranch()->getValue());
         }
 
+        // Calculate the array size
+        var_size = total_array_indexes * var_size;
     }
+
+
 
     return var_size;
 }
@@ -1007,7 +1051,7 @@ std::shared_ptr<STRUCTBranch> CodeGen8086::getStructureFromScopeVariable(std::sh
 {
     std::shared_ptr<Branch> scope_var = getScopeVariable(branch);
     std::shared_ptr<STRUCTDEFBranch> struct_def = std::dynamic_pointer_cast<STRUCTDEFBranch>(scope_var);
-    std::shared_ptr<Branch> struct_def_name_branch = struct_def->getDataTypeBranch();
+    std::shared_ptr<Branch> struct_def_name_branch = struct_def->getNameBranch();
     for (int i = 0; i < this->structures.size(); i++)
     {
         std::shared_ptr<STRUCTBranch> structure = this->structures.at(i);
@@ -1026,8 +1070,7 @@ std::shared_ptr<Branch> CodeGen8086::getVariableFromStructure(std::shared_ptr<ST
     for (std::shared_ptr<Branch> branch : structure->getStructBodyBranch()->getChildren())
     {
         if (branch->getType() == "V_DEF" ||
-                branch->getType() == "STRUCT_DEF" ||
-                branch->getType() == "V_DEF_PTR")
+                branch->getType() == "STRUCT_DEF")
         {
             std::shared_ptr<VDEFBranch> v_def_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
             if (v_def_branch->getNameBranch()->getValue() == var_name)
@@ -1162,7 +1205,7 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
              this is because of how we are storing the memory and the way the 8086 processor
              handles writes and reads to words, more can be read about this in the development diary
              on Day 48 at 21:33*/
-            
+
             if (vdef_branch->isPointer() ||
                     data_type_branch->getValue() == "int16" ||
                     data_type_branch->getValue() == "uint16")
@@ -1173,10 +1216,10 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
             /* If this is an array its important that the offset starts at the end of the array
              and not the beginning this is important so that accessing array elements through pointers
              will work as expected more is described in the diary on Day 48 at 22:59.*/
-            
+
             if (var_iden_branch->hasRootArrayIndexBranch())
             {
-                offset += var_size -1;
+                offset += var_size - 1;
             }
             break;
         }
@@ -1242,7 +1285,7 @@ int CodeGen8086::getVariableType(std::shared_ptr<Branch> var_branch)
 int CodeGen8086::getSumOfScopeVariablesSizeSoFar()
 {
     // Will need to be changed eventually due to structures
-    // * 2 as scope variables currently use minimum and maximum of 2 bytes.
+    // * 2 as scope variablesles.size() * 2); currently use minimum and maximum of 2 bytes.
     return (this->scope_variables.size() * 2);
 }
 
