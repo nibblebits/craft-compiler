@@ -120,7 +120,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
     {
         exp_start_func();
     }
-    
+
     if (exp->getType() != "E")
     {
         make_expression_left(exp, "ax");
@@ -478,6 +478,13 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<Branch
     if (variable_branch->isSigned())
     {
         this->do_signed = true;
+    }
+
+    if (variable_branch->getDataTypeSize() == 1)
+    {
+        /* Bytes must use the lower end of the registers and not the full register
+         * we must break it down here before continuing */
+        reg = convert_full_reg_to_low_reg(reg);
     }
 
     std::string asm_addr = getASMAddressForVariableFormatted(var_branch);
@@ -1298,6 +1305,32 @@ int CodeGen8086::getVariableType(std::shared_ptr<Branch> var_branch)
         return ARGUMENT_VARIABLE;
 
     return GLOBAL_VARIABLE;
+}
+
+std::string CodeGen8086::convert_full_reg_to_low_reg(std::string reg)
+{
+    if (reg == "ax")
+    {
+        reg = "al";
+    }
+    else if (reg == "bx")
+    {
+        reg = "bl";
+    }
+    else if (reg == "cx")
+    {
+        reg = "cl";
+    }
+    else if (reg == "dx")
+    {
+        reg = "dl";
+    }
+    else
+    {
+        throw CodeGeneratorException("CodeGen8086::convert_full_reg_to_low_reg(std::string reg): you must provide a valid full register, only lowercase is accepted");
+    }
+    
+    return reg;
 }
 
 int CodeGen8086::getSumOfScopeVariablesSizeSoFar()

@@ -57,8 +57,8 @@ public:
     inline std::string make_unique_label();
     inline std::string build_unique_label();
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
-    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word = false, std::function<void()> assignment_val_processed=NULL);
-    void make_expression(std::shared_ptr<Branch> exp, std::function<void()> exp_start_func=NULL, std::function<void()> exp_end_func=NULL);
+    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word = false, std::function<void() > assignment_val_processed = NULL);
+    void make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func = NULL, std::function<void() > exp_end_func = NULL);
     void make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_right(std::shared_ptr<Branch> exp);
@@ -100,10 +100,11 @@ public:
     bool hasScopeVariable(std::shared_ptr<Branch> var_branch);
     bool hasArgumentVariable(std::shared_ptr<Branch> var_branch);
     int getVariableType(std::shared_ptr<Branch> var_branch);
-    
+    std::string convert_full_reg_to_low_reg(std::string reg);
+
     [[deprecated("No longer required, method possibly errornous")]]
     int getSumOfScopeVariablesSizeSoFar();
-    
+
     struct VARIABLE_ADDRESS getASMAddressForVariable(std::shared_ptr<Branch> var_branch);
     std::string getASMAddressForVariableFormatted(std::shared_ptr<Branch> var_branch);
 
@@ -113,6 +114,7 @@ public:
 
     bool isVariablePointer(std::shared_ptr<Branch> var_branch);
     inline bool is_cmp_logic_operator_nothing_or_and();
+
 
     void generate_global_branch(std::shared_ptr<Branch> branch);
     void assemble(std::string assembly);
@@ -129,7 +131,7 @@ private:
     std::string cmp_exp_false_label_name;
     std::string cmp_exp_end_label_name;
     std::string cmp_exp_last_logic_operator;
-    
+
     bool is_cmp_expression;
     bool do_signed;
     bool handling_pointer;
