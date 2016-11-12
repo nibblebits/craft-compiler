@@ -67,7 +67,8 @@ public:
     void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch);
     void make_array_variable_access(std::shared_ptr<VarIdentifierBranch> var_branch);
-    void make_move_mem_to_mem(std::string start_mem_loc, std::string end_mem_loc, std::string size);
+    void make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size);
+    void make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size);
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
     void handle_ptr(std::shared_ptr<PTRBranch> ptr_branch);

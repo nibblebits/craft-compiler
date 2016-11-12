@@ -603,9 +603,46 @@ void CodeGen8086::make_array_variable_access(std::shared_ptr<VarIdentifierBranch
     }
 }
 
-void CodeGen8086::make_move_mem_to_mem(std::string start_mem_loc, std::string end_mem_loc, std::string size)
+void CodeGen8086::make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size)
 {
+    std::string continue_lbl_name;
+    do_asm("mov si, " + from_loc.segment);
+    if (from_loc.op == "+")
+    {
+        do_asm("add si, " + std::to_string(from_loc.offset));
+    }
+    else if (from_loc.op == "-")
+    {
+        do_asm("sub si, " + std::to_string(from_loc.offset));
+    }
 
+    do_asm("mov di, " + dest_loc.segment);
+    if (dest_loc.op == "+")
+    {
+        do_asm("add si, " + std::to_string(dest_loc.offset));
+    }
+    else if (dest_loc.op == "-")
+    {
+        do_asm("sub si, " + std::to_string(dest_loc.offset));
+    }
+
+    do_asm("mov cx, " + std::to_string(size));
+    continue_lbl_name = make_unique_label();
+    do_asm("lodsb");
+    do_asm("stosb");
+    do_asm("loop " + continue_lbl_name);
+}
+
+void CodeGen8086::make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size)
+{
+    std::string continue_lbl_name;
+    do_asm("mov si, " + from_loc);
+    do_asm("mov di, " + dest_loc);
+    do_asm("mov cx, " + std::to_string(size));
+    continue_lbl_name = make_unique_label();
+    do_asm("lodsb");
+    do_asm("stosb");
+    do_asm("loop " + continue_lbl_name);
 }
 
 void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value)
@@ -625,16 +662,30 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
     else
     {
         std::shared_ptr<VDEFBranch> variable_def = std::dynamic_pointer_cast<VDEFBranch>(getVariable(var_branch));
+        std::string data_type_name = variable_def->getDataTypeBranch()->getValue();
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
         std::string asm_addr = getASMAddressForVariableFormatted(var_branch);
 
         if (variable_def->getType() == "STRUCT_DEF")
         {
+            std::shared_ptr<VarIdentifierBranch> value_struct = std::dynamic_pointer_cast<VarIdentifierBranch>(value);
+            int struct_size = getStructSize(data_type_name);
             if (var_iden_branch->hasRootArrayIndexBranch())
             {
+                // Make the array variable access for the destination
                 make_array_variable_access(var_iden_branch);
                 // bx = correct memory location for memory
-                //     make_move_mem_to_mem("[bx]", 
+                // Save the BX register to the DX register
+                do_asm("mov dx, bx");
+                // Make the array variable access for the structure we are copying
+                make_array_variable_access(value_struct);
+                make_move_mem_to_mem("dx", "bx", struct_size);
+            }
+            else
+            {
+                VARIABLE_ADDRESS value_struct_addr = getASMAddressForVariable(value_struct);
+                VARIABLE_ADDRESS var_addr = getASMAddressForVariable(var_branch);
+                make_move_mem_to_mem(var_addr, value_struct_addr, struct_size);
             }
         }
         else
@@ -1329,7 +1380,7 @@ std::string CodeGen8086::convert_full_reg_to_low_reg(std::string reg)
     {
         throw CodeGeneratorException("CodeGen8086::convert_full_reg_to_low_reg(std::string reg): you must provide a valid full register, only lowercase is accepted");
     }
-    
+
     return reg;
 }
 
