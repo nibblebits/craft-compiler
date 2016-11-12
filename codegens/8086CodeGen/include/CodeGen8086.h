@@ -57,8 +57,8 @@ public:
     inline std::string make_unique_label();
     inline std::string build_unique_label();
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
-    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word = false);
-    void make_expression(std::shared_ptr<Branch> exp);
+    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word = false, std::function<void()> assignment_val_processed=NULL);
+    void make_expression(std::shared_ptr<Branch> exp, std::function<void()> exp_start_func=NULL, std::function<void()> exp_end_func=NULL);
     void make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_right(std::shared_ptr<Branch> exp);

@@ -91,10 +91,10 @@ void CodeGen8086::make_variable(std::string name, std::string datatype, std::sha
     }
 }
 
-void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word)
+void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word, std::function<void() > assignment_val_processed)
 {
     // We have a value expression here so make it.
-    make_expression(value_exp);
+    make_expression(value_exp, NULL, assignment_val_processed);
 
     // Handle any compare expression if any
     if (this->is_cmp_expression)
@@ -113,8 +113,14 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
     }
 }
 
-void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
+void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func, std::function<void() > exp_end_func)
 {
+    // Do we have something we need to notify about starting this expression?
+    if (exp_start_func != NULL)
+    {
+        exp_start_func();
+    }
+    
     if (exp->getType() != "E")
     {
         make_expression_left(exp, "ax");
@@ -210,6 +216,12 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp)
                 make_math_instruction(exp->getValue(), "ax", "cx");
             }
         }
+    }
+
+    // Do we have something we need to notify about ending this expression?
+    if (exp_end_func != NULL)
+    {
+        exp_end_func();
     }
 }
 
@@ -624,8 +636,14 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
             if (var_iden_branch->hasRootArrayIndexBranch())
             {
                 make_array_variable_access(var_iden_branch);
+                do_asm("push bx");
+
                 // bx = correct memory location for memory
-                make_mem_assignment("bx", value, is_word);
+                make_mem_assignment("bx", value, is_word, [&]
+                {
+                    do_asm("pop bx");
+                });
+
             }
             else
             {
@@ -700,10 +718,10 @@ void CodeGen8086::handle_body(std::shared_ptr<Branch> body)
             this->scope_size += getSizeOfVariableBranch(vdef_branch);
         }
     }
-    
+
     /* NOTE: THIS CALCULATING OF SCOPE SIZE WILL NOT WORK CORRECTLY WITH ANYTHING THAT HAS A BODY, SUCH AS
-    * IF STATMENTS, FOR LOOPS. SCOPE_SIZE MAY ALSO NEED TO BECOME A STACK*/
-    
+     * IF STATMENTS, FOR LOOPS. SCOPE_SIZE MAY ALSO NEED TO BECOME A STACK*/
+
     // Generate some ASM to reserve space on the stack for this scope
     do_asm("sub sp, " + std::to_string(this->scope_size));
 
