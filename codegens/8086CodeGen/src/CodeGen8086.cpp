@@ -484,6 +484,8 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<Branch
     {
         /* Bytes must use the lower end of the registers and not the full register
          * we must break it down here before continuing */
+        // At this point though the register CH may be set due to previous expressions so we need to clear it
+        do_asm("xor ch, ch");
         reg = convert_full_reg_to_low_reg(reg);
     }
 
