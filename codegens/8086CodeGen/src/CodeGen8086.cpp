@@ -857,12 +857,6 @@ void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
 
     std::vector<std::shared_ptr < Branch>> params = func_params_branch->getChildren();
 
-    int t_scope_size = getSumOfScopeVariablesSizeSoFar();
-
-    /* Subtract the stack pointer by the size of the scope at this time, this is required
-     * as other wise the scope will be overwritten by the function call arguments */
-    do_asm("sub sp, " + std::to_string(t_scope_size));
-
     // Parameters are treated as an expression, they must be pushed on backwards due to how the stack works
     for (int i = params.size() - 1; i >= 0; i--)
     {
@@ -876,7 +870,7 @@ void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
     do_asm("call _" + func_name_branch->getValue());
 
     /* Restore the stack pointer to what it was to recycle the memory */
-    do_asm("add sp, " + std::to_string((params.size() * 2) + t_scope_size));
+    do_asm("add sp, " + std::to_string(params.size() * 2));
 }
 
 void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch)
@@ -1517,11 +1511,13 @@ std::shared_ptr<VDEFBranch> CodeGen8086::getVariable(std::shared_ptr<Branch> var
 
 std::shared_ptr<Branch> CodeGen8086::getFunctionArgumentVariable(std::shared_ptr<Branch> var_branch)
 {
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+    std::string var_iden_name = var_iden_branch->getVariableNameBranch()->getValue();
     for (std::shared_ptr<Branch> variable : this->func_arguments)
     {
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(variable);
         std::shared_ptr<Branch> variable_name_branch = vdef_branch->getNameBranch();
-        if (variable_name_branch->getValue() == var_branch->getValue())
+        if (variable_name_branch->getValue() == var_iden_name)
         {
             return variable;
         }
