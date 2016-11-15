@@ -262,6 +262,18 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
 
 void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store)
 {
+    /* Blank AH ready for 8 bit identifiers.
+     * This is required due to data left in the AH register due to previous expressions,
+     * I believe a better alternative can be thought of but for now this will do.
+     */
+    if (exp->getType() == "VAR_IDENTIFIER")
+    {
+        std::shared_ptr<VDEFBranch> vdef_branch = getVariable(exp);
+        if (vdef_branch->getDataTypeSize() == 1)
+        {
+            do_asm("xor ah, ah");
+        }
+    }
     make_expression_part(exp, register_to_store);
 }
 
@@ -289,6 +301,19 @@ void CodeGen8086::make_expression_right(std::shared_ptr<Branch> exp)
     }
     else
     {
+        /* Blank CH ready for 8 bit identifiers.
+         * This is required due to data left in the CH register due to previous expressions,
+         * I believe a better alternative can be thought of but for now this will do.
+         */
+        if (exp->getType() == "VAR_IDENTIFIER")
+        {
+            std::shared_ptr<VDEFBranch> vdef_branch = getVariable(exp);
+            if (vdef_branch->getDataTypeSize() == 1)
+            {
+                do_asm("xor ch, ch");
+            }
+        }
+
         make_expression_part(exp, "cx");
     }
 
@@ -484,8 +509,6 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<Branch
     {
         /* Bytes must use the lower end of the registers and not the full register
          * we must break it down here before continuing */
-        // At this point though the register CH may be set due to previous expressions so we need to clear it
-        do_asm("xor ch, ch");
         reg = convert_full_reg_to_low_reg(reg);
     }
 
