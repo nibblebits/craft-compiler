@@ -519,11 +519,9 @@ void Parser::process_structure_access()
     std::shared_ptr<Branch> left = NULL;
     std::shared_ptr<Branch> right = NULL;
 
-    shift_pop();
-    if (!is_branch_type("identifier"))
-    {
-        error_expecting("identifier", this->token_type);
-    }
+    process_variable_access();
+    pop_branch();
+    
     left = this->branch;
 
     while (true)
@@ -538,13 +536,10 @@ void Parser::process_structure_access()
         // Shift and pop off the "."
         shift_pop();
 
-        // Check to see if the token after the "." is an identifier.
-        shift_pop();
-        if (!is_branch_type("identifier"))
-        {
-            error_expecting("identifier", this->token_type);
-        }
-
+        // Process the variable identifier
+        process_variable_access();
+        pop_branch();
+        
         right = this->branch;
 
         struct_access_root = std::shared_ptr<STRUCTAccessBranch>(new STRUCTAccessBranch(compiler));
