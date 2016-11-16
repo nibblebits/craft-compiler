@@ -39,7 +39,6 @@
 #include "Scope.h"
 #include "def.h"
 
-
 class EXPORT CodeGenerator : public CompilerEntity
 {
 public:

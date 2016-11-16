@@ -120,9 +120,20 @@ bool handle_parser_errors_and_warnings()
 
 }
 
-
+struct Test
+{
+    char a;
+    char b;
+};
 int main(int argc, char** argv)
 {
+    short array[20];
+    array[0] = 97;
+   struct Test* test_array = (struct Test*)&array;
+    struct Test element = test_array[0];
+    std::cout << std::hex << element.a << std::endl;
+    std::cout << std::hex << element.b << std::endl;
+    
     int b = 0;
     int k = (b = 0);
     

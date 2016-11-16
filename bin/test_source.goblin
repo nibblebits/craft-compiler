@@ -1,10 +1,11 @@
-struct test
+uint8 test(uint8 a, uint8 b)
 {
-  uint8 b;
+	return a + b;
 }
+
 uint8 main()
 {
-   uint8 test = *(300);
-   test = 3;
-   
+	uint16 a = test(10, 20);
+	uint8 b = a + 2;
+	return b;
 }

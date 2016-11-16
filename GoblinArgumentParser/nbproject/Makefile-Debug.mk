@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=MinGW-Windows
+CND_PLATFORM=Cygwin-Windows
 CND_DLIB_EXT=dll
 CND_CONF=Debug
 CND_DISTDIR=dist
@@ -64,17 +64,17 @@ LDLIBSOPTIONS=
 	${MKDIR} -p ../bin
 	${LINK.cc} -o ../bin/GoblinArgumentParser.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
 
-${OBJECTDIR}/GoblinArgumentParser.o: GoblinArgumentParser.cpp 
+${OBJECTDIR}/GoblinArgumentParser.o: GoblinArgumentParser.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/GoblinArgumentParser.o GoblinArgumentParser.cpp
 
-${OBJECTDIR}/src/Argument.o: src/Argument.cpp 
+${OBJECTDIR}/src/Argument.o: src/Argument.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Argument.o src/Argument.cpp
 
-${OBJECTDIR}/src/ArgumentContainer.o: src/ArgumentContainer.cpp 
+${OBJECTDIR}/src/ArgumentContainer.o: src/ArgumentContainer.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArgumentContainer.o src/ArgumentContainer.cpp
@@ -85,7 +85,6 @@ ${OBJECTDIR}/src/ArgumentContainer.o: src/ArgumentContainer.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ../bin/GoblinArgumentParser.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:

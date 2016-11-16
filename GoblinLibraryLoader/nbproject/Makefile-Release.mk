@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=MinGW-Windows
+CND_PLATFORM=Cygwin-Windows
 CND_DLIB_EXT=dll
 CND_CONF=Release
 CND_DISTDIR=dist
@@ -62,7 +62,7 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGoblinLibraryLoader.${CND_DLIB_EXT
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGoblinLibraryLoader.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
 
-${OBJECTDIR}/src/GoblinLibraryLoader.o: src/GoblinLibraryLoader.c 
+${OBJECTDIR}/src/GoblinLibraryLoader.o: src/GoblinLibraryLoader.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinLibraryLoader.o src/GoblinLibraryLoader.c
@@ -73,7 +73,6 @@ ${OBJECTDIR}/src/GoblinLibraryLoader.o: src/GoblinLibraryLoader.c
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGoblinLibraryLoader.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:
