@@ -759,6 +759,28 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
     }
 }
 
+void CodeGen8086::calculate_scope_size(std::shared_ptr<Branch> body_branch)
+{
+    for (std::shared_ptr<Branch> stmt : body_branch->getChildren())
+    {
+        if (stmt->getType() == "V_DEF" ||
+                stmt->getType() == "STRUCT_DEF")
+        {
+            std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(stmt);
+            this->scope_size += getSizeOfVariableBranch(vdef_branch);
+        }
+    }
+
+    // Generate some ASM to reserve space on the stack for this scope
+    do_asm("sub sp, " + std::to_string(this->scope_size));
+
+}
+
+void CodeGen8086::reset_scope_size()
+{
+    this->scope_size = 0;
+}
+
 void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
 {
     this->first_pointer_variable = NULL;
@@ -799,8 +821,15 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
 
     // Handle the arguments
     handle_func_args(arguments_branch);
+
+    // First we need to calculate the entire scope size, its important
+    calculate_scope_size(body_branch);
+
     // Handle the body
     handle_body(body_branch);
+
+    // Reset the scope size
+    reset_scope_size();
 
 }
 
@@ -815,30 +844,11 @@ void CodeGen8086::handle_func_args(std::shared_ptr<Branch> arguments)
 
 void CodeGen8086::handle_body(std::shared_ptr<Branch> body)
 {
-    // First we need to calculate the entire scope size, its important
-    for (std::shared_ptr<Branch> stmt : body->getChildren())
-    {
-        if (stmt->getType() == "V_DEF" ||
-                stmt->getType() == "STRUCT_DEF")
-        {
-            std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(stmt);
-            this->scope_size += getSizeOfVariableBranch(vdef_branch);
-        }
-    }
-
-    /* NOTE: THIS CALCULATING OF SCOPE SIZE WILL NOT WORK CORRECTLY WITH ANYTHING THAT HAS A BODY, SUCH AS
-     * IF STATMENTS, FOR LOOPS. SCOPE_SIZE MAY ALSO NEED TO BECOME A STACK*/
-
-    // Generate some ASM to reserve space on the stack for this scope
-    do_asm("sub sp, " + std::to_string(this->scope_size));
-
-    // Now we can handle very statement
+    // Now we can handle every statement
     for (std::shared_ptr<Branch> stmt : body->getChildren())
     {
         handle_stmt(stmt);
     }
-
-    this->scope_size = 0;
 }
 
 void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)

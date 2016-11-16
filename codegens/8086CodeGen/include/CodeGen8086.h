@@ -71,6 +71,9 @@ public:
     void make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size);
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
+    void calculate_scope_size(std::shared_ptr<Branch> body_branch);
+    void reset_scope_size();
+    
     void handle_ptr(std::shared_ptr<PTRBranch> ptr_branch);
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_structure(std::shared_ptr<STRUCTBranch> struct_branch);
