@@ -36,6 +36,8 @@ CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 Cod
     this->handling_pointer = false;
     this->scope_size = 0;
 
+    this->first_pointer_variable = NULL;
+
 
 }
 
@@ -233,6 +235,13 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     }
     else if (exp->getType() == "VAR_IDENTIFIER")
     {
+        /* If we are handling a pointer then we must keep track of the first pointer variable
+         * so that we can determine later on if its a byte or a word */
+        if (this->handling_pointer && this->first_pointer_variable == NULL)
+        {
+            std::shared_ptr<VDEFBranch> var_branch = getVariable(exp);
+            this->first_pointer_variable = var_branch;
+        }
         // This is a variable so set register to store to the value of this variable
         make_move_reg_variable(register_to_store, exp);
     }
@@ -240,6 +249,20 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(exp);
         handle_ptr(ptr_branch);
+        // Return the value that is being pointed to.
+        do_asm("mov bx, ax");
+        if (this->first_pointer_variable != NULL &&
+                this->first_pointer_variable->getDataTypeSize() == 1)
+        {
+            // This is pointing to a byte 
+            do_asm("xor ah, ah");
+            do_asm("mov al, [bx]");
+        }
+        else
+        {
+            // This is pointing to a word.
+            do_asm("mov ax, [bx]");
+        }
     }
     else if (exp->getType() == "FUNC_CALL")
     {
@@ -269,7 +292,7 @@ void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string 
     if (exp->getType() == "VAR_IDENTIFIER")
     {
         std::shared_ptr<VDEFBranch> vdef_branch = getVariable(exp);
-        if (vdef_branch->getDataTypeSize() == 1)
+        if (!vdef_branch->isPointer() && vdef_branch->getDataTypeSize() == 1)
         {
             do_asm("xor ah, ah");
         }
@@ -505,7 +528,7 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<Branch
         this->do_signed = true;
     }
 
-    if (variable_branch->getDataTypeSize() == 1)
+    if (!variable_branch->isPointer() && variable_branch->getDataTypeSize() == 1)
     {
         /* Bytes must use the lower end of the registers and not the full register
          * we must break it down here before continuing */
@@ -682,7 +705,7 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         handle_ptr(ptr_branch);
         // Ok we have handled the pointer now we need to set our value to it
         do_asm("mov bx, ax");
-        make_mem_assignment("bx", value, false);
+        make_mem_assignment("bx", value, this->first_pointer_variable->getDataTypeSize() == 2);
     }
     else
     {
@@ -738,6 +761,7 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
 
 void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
 {
+    this->first_pointer_variable = NULL;
     this->handling_pointer = true;
     std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
     make_expression(exp_branch);

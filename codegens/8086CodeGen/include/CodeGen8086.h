@@ -136,6 +136,8 @@ private:
     bool is_cmp_expression;
     bool do_signed;
     bool handling_pointer;
+    
+    std::shared_ptr<VDEFBranch> first_pointer_variable;
     int current_label_index;
     int scope_size;
 
