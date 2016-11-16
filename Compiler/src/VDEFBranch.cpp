@@ -99,10 +99,5 @@ bool VDEFBranch::isSigned()
 
 int VDEFBranch::getDataTypeSize()
 {
-    if (isPointer())
-    {
-        throw Exception("VDEFBranch::getDataTypeSize(): the size of a pointer depends on the system architecture");
-    }
-
     return this->getCompiler()->getDataTypeSize(getDataTypeBranch()->getValue());
 }
