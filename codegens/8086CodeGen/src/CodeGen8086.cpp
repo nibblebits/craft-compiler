@@ -1138,9 +1138,14 @@ int CodeGen8086::getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch)
 {
     std::string var_name;
 
+    if (var_branch->getType() == "STRUCT_ACCESS")
+    {
+        std::shared_ptr<STRUCTAccessBranch> s_access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
+        var_branch = s_access_branch->getFirstChild();
+    }
+
     std::shared_ptr<VarIdentifierBranch> identifier_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
     var_name = identifier_branch->getVariableNameBranch()->getValue();
-
 
     for (int i = 0; i < this->func_arguments.size(); i++)
     {
@@ -1294,7 +1299,7 @@ int CodeGen8086::getStructSize(std::string struct_name)
         }
         else
         {
-            size += compiler->getDataTypeSize(data_type_branch->getValue());
+            size += getSizeOfVariableBranch(vdef_branch);
         }
     }
 
@@ -1374,13 +1379,12 @@ bool CodeGen8086::hasScopeVariable(std::shared_ptr<Branch> var_branch)
     if (var_branch->getType() == "STRUCT_ACCESS")
     {
         std::shared_ptr<STRUCTAccessBranch> access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_branch);
-        var_branch = access_branch->getDeepestAccessBranch()->getFirstChild();
+        var_branch = access_branch->getFirstChild();
     }
-    else
-    {
-        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
-        var_name = var_iden_branch->getVariableNameBranch()->getValue();
-    }
+
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+    var_name = var_iden_branch->getVariableNameBranch()->getValue();
+
 
     for (int i = 0; i < this->scope_variables.size(); i++)
     {
