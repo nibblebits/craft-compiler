@@ -39,6 +39,7 @@ CodeGenerator::~CodeGenerator()
 {
     delete this->stream;
 }
+
 void CodeGenerator::generate(std::shared_ptr<Tree> tree)
 {
     // Generate all the global branches, the "generate_global_branch" method should handle their children
@@ -47,14 +48,33 @@ void CodeGenerator::generate(std::shared_ptr<Tree> tree)
     {
         generate_global_branch(branch);
     }
-    
+
     // Assemble it all together
-    assemble(this->assembly);
+    std::string assembly_str = "";
+    for (asm_map_it iterator = this->assembly.begin();
+            iterator != this->assembly.end(); iterator++)
+    {
+        struct formatted_segment segment = format_segment(iterator->first);
+        assembly_str += segment.start_segment + "\n"
+                + iterator->second + segment.end_segment + "\n";
+    }
+    assemble(assembly_str);
 }
 
-void CodeGenerator::do_asm(std::string asm_ins)
+void CodeGenerator::do_asm(std::string asm_ins, std::string segment)
 {
-    this->assembly += asm_ins + "\n";
+    std::map<std::string, std::string>::const_iterator it = this->assembly.find(segment);
+    bool exists = it != this->assembly.end();
+
+    std::string asm_str = "";
+    if (exists)
+    {
+        asm_str = this->assembly[segment];
+    }
+
+    asm_str += asm_ins + "\n";
+
+    this->assembly[segment] = asm_str;
 }
 
 Stream* CodeGenerator::getStream()

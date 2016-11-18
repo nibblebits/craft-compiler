@@ -39,6 +39,13 @@
 #include "Scope.h"
 #include "def.h"
 
+struct formatted_segment
+{
+    std::string start_segment;
+    std::string end_segment;
+};
+
+typedef std::map<std::string, std::string>::iterator asm_map_it;
 class EXPORT CodeGenerator : public CompilerEntity
 {
 public:
@@ -49,12 +56,14 @@ public:
     virtual void generate(std::shared_ptr<Tree> tree);
     virtual std::shared_ptr<Linker> getLinker() = 0;
 protected:
-    void do_asm(std::string asm_ins);
+    void do_asm(std::string asm_ins, std::string segment="code");
     virtual void generate_global_branch(std::shared_ptr<Branch> branch) = 0;
     virtual void assemble(std::string assembly) = 0;
+    virtual struct formatted_segment format_segment(std::string segment_name) = 0;
     Stream* stream;
 private:
-    std::string assembly;
+    // Key = segment, value = assembly for segment.
+    std::map<std::string, std::string> assembly;
 };
 
 #endif /* CODEGENERATOR_H */

@@ -71,7 +71,8 @@ std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
     // Check for built in code generators
     if (codegen_name == "goblin_bytecode")
     {
-        codegen = std::shared_ptr<CodeGenerator>(new GoblinByteCodeGenerator(&compiler));
+        // DEPRECATED
+//        codegen = std::shared_ptr<CodeGenerator>(new GoblinByteCodeGenerator(&compiler));
     }
     else
     {
@@ -120,23 +121,8 @@ bool handle_parser_errors_and_warnings()
 
 }
 
-struct Test
-{
-    char a;
-    char b;
-};
 int main(int argc, char** argv)
 {
-    short array[20];
-    array[0] = 97;
-   struct Test* test_array = (struct Test*)&array;
-    struct Test element = test_array[0];
-    std::cout << std::hex << element.a << std::endl;
-    std::cout << std::hex << element.b << std::endl;
-    
-    int b = 0;
-    int k = (b = 0);
-    
     std::string codegen_name;
     std::string input_file_name;
     std::string output_file_name;
