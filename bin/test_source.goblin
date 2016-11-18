@@ -1,11 +1,5 @@
-uint8 test(uint8 a, uint8 b)
-{
-	return a + b;
-}
-
 uint8 main()
 {
-	uint16 a = test(10, 20);
-	uint8 b = a + 2;
-	return b;
+	uint8 a = 50;
+	return a;
 }

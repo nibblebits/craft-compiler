@@ -52,6 +52,8 @@ public:
     CodeGen8086(Compiler* compiler);
     virtual ~CodeGen8086();
 
+    virtual struct formatted_segment format_segment(std::string segment_name);
+    
     inline void make_label(std::string label);
     inline void make_exact_label(std::string label);
     inline std::string make_unique_label();
@@ -73,7 +75,7 @@ public:
 
     void calculate_scope_size(std::shared_ptr<Branch> body_branch);
     void reset_scope_size();
-    
+
     void handle_ptr(std::shared_ptr<PTRBranch> ptr_branch);
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_structure(std::shared_ptr<STRUCTBranch> struct_branch);
@@ -139,7 +141,7 @@ private:
     bool is_cmp_expression;
     bool do_signed;
     bool handling_pointer;
-    
+
     std::shared_ptr<VDEFBranch> first_pointer_variable;
     int current_label_index;
     int scope_size;

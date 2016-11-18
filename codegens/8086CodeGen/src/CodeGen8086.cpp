@@ -45,6 +45,14 @@ CodeGen8086::~CodeGen8086()
 {
 }
 
+struct formatted_segment CodeGen8086::format_segment(std::string segment_name)
+{
+    struct formatted_segment segment;
+    segment.start_segment = segment_name + " segment";
+    segment.end_segment = "ends";
+    return segment;
+}
+
 void CodeGen8086::make_label(std::string label)
 {
     do_asm("_" + label + ":");
@@ -792,10 +800,7 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
 
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
 {
-    throw new Exception("Global variables are not yet supported.");
-    //std::string var_keyword_value = vdef_branch->getDataTypeBranch()->getValue();
-    //std::string var_name_value = vdef_branch->getNameBranch()->getValue();
-    //make_variable(var_name_value, var_keyword_value, vdef_branch->getValueExpBranch());
+    
 }
 
 void CodeGen8086::handle_structure(std::shared_ptr<STRUCTBranch> struct_branch)
