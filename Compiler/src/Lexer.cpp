@@ -34,7 +34,7 @@ const std::string general_keywords[] = {
 
 const std::string data_type_keywords[] = {
     "nibble", "bit", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64",
-    "struct"
+    "struct", "void"
 };
 
 Lexer::Lexer(Compiler* compiler) : CompilerEntity(compiler)
