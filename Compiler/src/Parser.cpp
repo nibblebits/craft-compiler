@@ -118,6 +118,11 @@ void Parser::process_top()
                     error_unexpected_token();
                 }
             }
+            else if(is_peak_operator("*"))
+            {
+                process_variable_declaration();
+                process_semicolon();
+            }
         }
     }
     else if (is_peak_symbol("#"))
