@@ -102,7 +102,7 @@ void Parser::process_top()
             {
                 // Check to see if this is a function or a variable declaration
                 peak(2);
-                if (is_peak_operator("=") || is_peak_symbol(";"))
+                if (is_peak_symbol("[") || is_peak_operator("=") || is_peak_symbol(";"))
                 {
                     process_variable_declaration();
                     process_semicolon();

@@ -26,6 +26,7 @@
 #define VDEFBRANCH_H
 
 #include "CustomBranch.h"
+#include "VarIdentifierBranch.h"
 
 struct array_def
 {
@@ -46,7 +47,7 @@ public:
     void setPointer(bool is_pointer);
 
     std::shared_ptr<Branch> getDataTypeBranch();
-    std::shared_ptr<Branch> getVariableIdentifierBranch();
+    std::shared_ptr<VarIdentifierBranch> getVariableIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
     std::shared_ptr<Branch> getNameBranch();
     

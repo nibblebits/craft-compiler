@@ -63,9 +63,9 @@ std::shared_ptr<Branch> VDEFBranch::getDataTypeBranch()
     return this->getRegisteredBranchByName("data_type_branch");
 }
 
-std::shared_ptr<Branch> VDEFBranch::getVariableIdentifierBranch()
+std::shared_ptr<VarIdentifierBranch> VDEFBranch::getVariableIdentifierBranch()
 {
-    return this->getRegisteredBranchByName("var_identifier_branch");
+    return std::dynamic_pointer_cast<VarIdentifierBranch>(this->getRegisteredBranchByName("var_identifier_branch"));
 }
 
 std::shared_ptr<Branch> VDEFBranch::getValueExpBranch()
