@@ -54,8 +54,8 @@ public:
 
     virtual struct formatted_segment format_segment(std::string segment_name);
     
-    inline void make_label(std::string label);
-    inline void make_exact_label(std::string label);
+    inline void make_label(std::string label, std::string segment="code");
+    inline void make_exact_label(std::string label, std::string segment="code");
     inline std::string make_unique_label();
     inline std::string build_unique_label();
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
@@ -95,6 +95,7 @@ public:
     int getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch);
     int getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch);
     int getBPOffsetForArgument(std::shared_ptr<Branch> var_branch);
+    int getOffsetForGlobalVariable(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<STRUCTBranch> getStructure(std::string struct_name);
     std::shared_ptr<STRUCTBranch> getStructureFromScopeVariable(std::shared_ptr<Branch> branch);
     std::shared_ptr<Branch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
@@ -116,6 +117,7 @@ public:
 
     std::shared_ptr<VDEFBranch> getVariable(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getScopeVariable(std::shared_ptr<Branch> var_branch);
+    std::shared_ptr<Branch> getGlobalVariable(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getFunctionArgumentVariable(std::shared_ptr<Branch> var_branch);
 
     bool isVariablePointer(std::shared_ptr<Branch> var_branch);
@@ -129,6 +131,7 @@ private:
     Compiler* compiler;
     std::shared_ptr<Linker> linker;
     std::vector<std::shared_ptr<Branch>> func_arguments;
+    std::vector<std::shared_ptr<Branch>> global_variables;
     std::vector<std::shared_ptr<Branch>> scope_variables;
     std::vector<std::shared_ptr<STRUCTBranch>> structures;
     std::shared_ptr<STRUCTBranch> last_structure;

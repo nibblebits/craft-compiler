@@ -53,14 +53,14 @@ struct formatted_segment CodeGen8086::format_segment(std::string segment_name)
     return segment;
 }
 
-void CodeGen8086::make_label(std::string label)
+void CodeGen8086::make_label(std::string label, std::string segment)
 {
-    do_asm("_" + label + ":");
+    do_asm("_" + label + ":", segment);
 }
 
-void CodeGen8086::make_exact_label(std::string label)
+void CodeGen8086::make_exact_label(std::string label, std::string segment)
 {
-    do_asm(label + ":");
+    do_asm(label + ":", segment);
 }
 
 std::string CodeGen8086::build_unique_label()
@@ -640,7 +640,7 @@ void CodeGen8086::make_array_variable_access(std::shared_ptr<VarIdentifierBranch
 
     if (var_addr.var_type == GLOBAL_VARIABLE)
     {
-        do_asm("mov bx, " + var_addr.offset);
+        do_asm("mov bx, " + var_addr.segment + "+" + std::to_string(var_addr.offset));
         do_asm("add bx, ax");
     }
     else
@@ -800,7 +800,33 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
 
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
 {
-    
+    // Push this variable definition to the global variables vector
+    this->global_variables.push_back(vdef_branch);
+
+    // Handle the variable declaration
+    std::shared_ptr<VarIdentifierBranch> variable_iden_branch = vdef_branch->getVariableIdentifierBranch();
+    std::shared_ptr<Branch> variable_data_type_branch = vdef_branch->getDataTypeBranch();
+    std::shared_ptr<Branch> variable_name_branch = variable_iden_branch->getVariableNameBranch();
+    std::shared_ptr<Branch> value_branch = vdef_branch->getValueExpBranch();
+
+    make_label(variable_name_branch->getValue(), "data");
+    if (vdef_branch->getType() == "STRUCT_DEF")
+    {
+        int struct_size = getSizeOfVariableBranch(vdef_branch);
+        do_asm("rb " + std::to_string(struct_size), "data");
+    }
+    else
+    {
+        if (vdef_branch->isPointer() || vdef_branch->getDataTypeSize() == 2)
+        {
+            do_asm("dw 0", "data");
+        }
+        else
+        {
+            do_asm("db 0", "data");
+        }
+    }
+
 }
 
 void CodeGen8086::handle_structure(std::shared_ptr<STRUCTBranch> struct_branch)
@@ -1171,6 +1197,11 @@ int CodeGen8086::getBPOffsetForArgument(std::shared_ptr<Branch> var_branch)
     return (getFunctionArgumentIndex(var_branch) * 2) + 4;
 }
 
+int CodeGen8086::getOffsetForGlobalVariable(std::shared_ptr<Branch> var_branch)
+{
+    return 0;
+}
+
 std::shared_ptr<STRUCTBranch> CodeGen8086::getStructure(std::string struct_name)
 {
     for (std::shared_ptr<Branch> branch : this->structures)
@@ -1469,6 +1500,13 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Br
         address.op = "-";
         address.offset = getBPOffsetForScopeVariable(var_branch);
         break;
+    case GLOBAL_VARIABLE:
+        std::shared_ptr<VarIdentifierBranch> iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+        std::shared_ptr<Branch> iden_branch_name = iden_branch->getVariableNameBranch();
+        address.segment = "_" + iden_branch_name->getValue();
+        address.op = "+";
+        address.offset = getOffsetForGlobalVariable(var_branch);
+        break;
     }
 
     return address;
@@ -1535,6 +1573,23 @@ std::shared_ptr<Branch> CodeGen8086::getScopeVariable(std::shared_ptr<Branch> va
     return NULL;
 }
 
+std::shared_ptr<Branch> CodeGen8086::getGlobalVariable(std::shared_ptr<Branch> var_branch)
+{
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+    std::shared_ptr<Branch> var_iden_name_branch = var_iden_branch->getVariableNameBranch();
+    for (std::shared_ptr<Branch> global_var : this->global_variables)
+    {
+        std::shared_ptr<VDEFBranch> global_var_def_branch = std::dynamic_pointer_cast<VDEFBranch>(global_var);
+        std::shared_ptr<Branch> global_var_def_name_branch = global_var_def_branch->getNameBranch();
+        if (global_var_def_name_branch->getValue() == var_iden_name_branch->getValue())
+        {
+            return global_var_def_branch;
+        }
+    }
+
+    return NULL;
+}
+
 std::shared_ptr<VDEFBranch> CodeGen8086::getVariable(std::shared_ptr<Branch> var_branch)
 {
     std::shared_ptr<Branch> variable_branch = NULL;
@@ -1546,6 +1601,9 @@ std::shared_ptr<VDEFBranch> CodeGen8086::getVariable(std::shared_ptr<Branch> var
         break;
     case SCOPE_VARIABLE:
         variable_branch = getScopeVariable(var_branch);
+        break;
+    case GLOBAL_VARIABLE:
+        variable_branch = getGlobalVariable(var_branch);
         break;
     }
 
@@ -1581,7 +1639,8 @@ bool CodeGen8086::is_cmp_logic_operator_nothing_or_and()
 
 void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
 {
-    if (branch->getType() == "V_DEF")
+    if (branch->getType() == "V_DEF" ||
+            branch->getType() == "STRUCT_DEF")
     {
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
         handle_global_var_def(vdef_branch);
