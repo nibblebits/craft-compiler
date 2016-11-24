@@ -56,8 +56,10 @@ public:
     
     inline void make_label(std::string label, std::string segment="code");
     inline void make_exact_label(std::string label, std::string segment="code");
-    inline std::string make_unique_label();
+    inline std::string make_unique_label(std::string segment="code");
     inline std::string build_unique_label();
+    
+    std::string make_string(std::shared_ptr<Branch> string_branch);
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
     void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word = false, std::function<void() > assignment_val_processed = NULL);
     void make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func = NULL, std::function<void() > exp_end_func = NULL);
@@ -68,7 +70,7 @@ public:
     void make_move_reg_variable(std::string reg_name, std::shared_ptr<Branch> var_branch);
     void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch);
-    void make_array_variable_access(std::shared_ptr<VarIdentifierBranch> var_branch);
+    std::string make_array_variable_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg="bx");
     void make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size);
     void make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size);
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
