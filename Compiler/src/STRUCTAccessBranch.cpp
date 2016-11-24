@@ -33,15 +33,3 @@ STRUCTAccessBranch::STRUCTAccessBranch(Compiler* compiler) : CustomBranch(compil
 STRUCTAccessBranch::~STRUCTAccessBranch()
 {
 }
-
-std::shared_ptr<Branch> STRUCTAccessBranch::getDeepestAccessBranch()
-{
-    std::shared_ptr<Branch> scope_var = this->getptr();
-    do
-    {
-        scope_var = scope_var->getFirstChild();
-    }
-    while (scope_var->getType() == "STRUCT_ACCESS");
-
-    return scope_var->getParent();
-}

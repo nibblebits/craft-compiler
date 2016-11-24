@@ -30,8 +30,6 @@ class EXPORT STRUCTAccessBranch : public CustomBranch {
 public:
     STRUCTAccessBranch(Compiler* compiler);
     virtual ~STRUCTAccessBranch();
-    
-    std::shared_ptr<Branch> getDeepestAccessBranch();
 private:
 
 };
