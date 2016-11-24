@@ -44,6 +44,11 @@ void VarIdentifierBranch::setRootArrayIndexBranch(std::shared_ptr<Branch> array_
     CustomBranch::registerBranch("root_array_index_branch", array_index_branch);
 }
 
+void VarIdentifierBranch::setStructureAccessBranch(std::shared_ptr<Branch> structure_access_branch)
+{
+    CustomBranch::registerBranch("structure_access_branch", structure_access_branch);
+}
+
 std::shared_ptr<Branch> VarIdentifierBranch::getVariableNameBranch()
 {
     return CustomBranch::getRegisteredBranchByName("variable_name_branch");
@@ -55,7 +60,18 @@ bool VarIdentifierBranch::hasRootArrayIndexBranch()
     return root_array_index_branch != NULL;
 }
 
+bool VarIdentifierBranch::hasStructureAccessBranch()
+{
+    std::shared_ptr<Branch> structure_access_branch = getStructureAccessBranch();
+    return structure_access_branch != NULL;
+}
+
 std::shared_ptr<ArrayIndexBranch> VarIdentifierBranch::getRootArrayIndexBranch()
 {
     return std::dynamic_pointer_cast<ArrayIndexBranch>(CustomBranch::getRegisteredBranchByName("root_array_index_branch"));
+}
+
+std::shared_ptr<Branch> VarIdentifierBranch::getStructureAccessBranch()
+{
+    return CustomBranch::getRegisteredBranchByName("structure_access_branch");
 }

@@ -118,7 +118,7 @@ void Parser::process_top()
                     error_unexpected_token();
                 }
             }
-            else if(is_peak_operator("*"))
+            else if (is_peak_operator("*"))
             {
                 process_variable_declaration();
                 process_semicolon();
@@ -515,48 +515,39 @@ void Parser::process_variable_access()
         var_identifier_branch->setRootArrayIndexBranch(this->branch);
     }
 
+    // Peak further to see if there is any structure access
+    peak();
+    if (is_peak_symbol("."))
+    {
+        process_structure_access();
+        pop_branch();
+        var_identifier_branch->setStructureAccessBranch(this->branch);
+    }
+
     push_branch(var_identifier_branch);
 }
 
 void Parser::process_structure_access()
 {
     std::shared_ptr<Branch> struct_access_root = NULL;
-    std::shared_ptr<Branch> left = NULL;
-    std::shared_ptr<Branch> right = NULL;
 
-    process_variable_access();
-    pop_branch();
-    
-    left = this->branch;
-
-    while (true)
+    // Check to see if this structure access is valid
+    peak();
+    if (!is_peak_symbol("."))
     {
-        // Check to see if we have any more structure access to process
-        peak();
-        if (!is_peak_symbol("."))
-        {
-            break;
-        }
-
-        // Shift and pop off the "."
-        shift_pop();
-
-        // Process the variable identifier
-        process_variable_access();
-        pop_branch();
-        
-        right = this->branch;
-
-        struct_access_root = std::shared_ptr<STRUCTAccessBranch>(new STRUCTAccessBranch(compiler));
-        struct_access_root->addChild(left);
-        struct_access_root->addChild(right);
-
-        left = struct_access_root;
+        error_expecting(".", this->peak_token_value);
     }
 
-    // Push the branch to the tree
-    push_branch(struct_access_root);
+    // Shift and pop off the "."
+    shift_pop();
 
+    // Process the variable identifier
+    process_variable_access();
+    pop_branch();
+
+    struct_access_root = std::shared_ptr<STRUCTAccessBranch>(new STRUCTAccessBranch(compiler));
+    struct_access_root->addChild(this->branch);
+    push_branch(struct_access_root);
 }
 
 void Parser::process_expression(bool strict_mode)
@@ -764,14 +755,6 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
             pop_branch();
             b = this->branch;
         }
-        else if (is_peak_symbol("."))
-        {
-            // We must be accessing a structure element
-            process_structure_access();
-            // Pop the result from the stack
-            pop_branch();
-            b = this->branch;
-        }
         else
         {
             // Process the variable access
@@ -787,21 +770,9 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         // Shift and pop the "&" symbol we do not need it anymore
         shift_pop();
 
-        // Peak ahead to see if we are getting the address of a structure or a variable
-        peak();
-        if (is_peak_type("identifier") && is_peak_symbol(".", 1))
-        {
-            // This is a structure
-            process_structure_access();
-            // Pop the newly created structure access branch root from the stack.
-            pop_branch();
-        }
-        else
-        {
-            // This is an identifier, e.g a variable name so process the variable access
-            process_variable_access();
-            pop_branch();
-        }
+        // This is an identifier, e.g a variable name so process the variable access
+        process_variable_access();
+        pop_branch();
 
         std::shared_ptr<AddressOfBranch> address_of_branch = std::shared_ptr<AddressOfBranch>(new AddressOfBranch(this->getCompiler()));
         address_of_branch->setVariableBranch(this->branch);
