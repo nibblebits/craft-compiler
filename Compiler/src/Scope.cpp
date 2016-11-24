@@ -169,10 +169,10 @@ std::shared_ptr<struct variable> Scope::createVariableFromBranch(std::shared_ptr
 
     if (type_branch->getType() == "keyword")
     {
-        int size_per_elem = Compiler::getDataTypeSize(type_value);
-        variable = std::shared_ptr<struct variable > (new struct variable);
-        variable->size = size_per_elem;
-        variable->is_array = false;
+        //int size_per_elem = Compiler::getDataTypeSize(type_value);
+        //variable = std::shared_ptr<struct variable > (new struct variable);
+        //variable->size = size_per_elem;
+        //variable->is_array = false;
     }
 
     variable->name = name_branch->getValue();

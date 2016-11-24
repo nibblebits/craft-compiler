@@ -36,5 +36,5 @@ STRUCTDEFBranch::~STRUCTDEFBranch()
 
 int STRUCTDEFBranch::getDataTypeSize()
 {
-    throw Exception("Not yet supported for structure definitions.");
+    return getCompiler()->getDataTypeSizeFromVarDef(std::dynamic_pointer_cast<VDEFBranch>(this->getptr()));
 }

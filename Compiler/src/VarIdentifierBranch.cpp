@@ -55,7 +55,7 @@ bool VarIdentifierBranch::hasRootArrayIndexBranch()
     return root_array_index_branch != NULL;
 }
 
-std::shared_ptr<Branch> VarIdentifierBranch::getRootArrayIndexBranch()
+std::shared_ptr<ArrayIndexBranch> VarIdentifierBranch::getRootArrayIndexBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("root_array_index_branch");
+    return std::dynamic_pointer_cast<ArrayIndexBranch>(CustomBranch::getRegisteredBranchByName("root_array_index_branch"));
 }

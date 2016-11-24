@@ -99,5 +99,5 @@ bool VDEFBranch::isSigned()
 
 int VDEFBranch::getDataTypeSize()
 {
-    return this->getCompiler()->getDataTypeSize(getDataTypeBranch()->getValue());
+    return this->getCompiler()->getPrimativeDataTypeSize(getDataTypeBranch()->getValue());
 }

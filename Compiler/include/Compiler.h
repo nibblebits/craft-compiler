@@ -37,6 +37,7 @@
 #include "common.h"
 #include "def.h"
 
+class VDEFBranch;
 class EXPORT Compiler {
 public:
     Compiler();
@@ -50,7 +51,8 @@ public:
     ASTAssistant* getASTAssistant();
     std::shared_ptr<CodeGenerator> getCodeGenerator();
     std::shared_ptr<Linker> getLinker();
-    static int getDataTypeSize(std::string type);
+    static int getPrimativeDataTypeSize(std::string type);
+    int getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> vdef_branch);
     std::string getTypeFromNumber(int number);
     bool canCast(std::string type1, std::string type2);
     bool isCompareOperator(std::string value);

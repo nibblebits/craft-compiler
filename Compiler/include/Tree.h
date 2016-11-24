@@ -26,10 +26,15 @@
 #define TREE_H
 
 #include "Branch.h"
+
+class STRUCTBranch;
 class Tree {
 public:
     Tree();
     virtual ~Tree();
+    
+    // Returns a structure based on the structure name
+    std::shared_ptr<STRUCTBranch> getGlobalStructureByName(std::string name);
     std::shared_ptr<Branch> root;
 private:
 

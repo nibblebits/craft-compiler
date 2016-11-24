@@ -25,6 +25,9 @@
  */
 
 #include "Compiler.h"
+#include "VDEFBranch.h"
+#include "STRUCTBranch.h"
+#include "STRUCTDEFBranch.h"
 
 Compiler::Compiler()
 {
@@ -86,7 +89,7 @@ std::shared_ptr<Linker> Compiler::getLinker()
     return this->linker;
 }
 
-int Compiler::getDataTypeSize(std::string type)
+int Compiler::getPrimativeDataTypeSize(std::string type)
 {
     /* Note for now data types such as bit and nibble will consume 1 byte, this will hopefully be changed in the future to work at the bit level*/
     if (type == "bit" || type == "nibble" || type == "uint8" || type == "int8")
@@ -107,7 +110,32 @@ int Compiler::getDataTypeSize(std::string type)
     }
     else
     {
-        throw Exception("int Compiler::getDataTypeSize(std::string type): Invalid date type: " + type);
+        throw Exception("int Compiler::getDataTypeSize(std::string type): Invalid primative date type: " + type);
+    }
+}
+
+int Compiler::getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> branch)
+{
+    std::string type = branch->getType();
+    if (type == "STRUCT_DEF")
+    {
+        std::shared_ptr<Tree> tree = this->parser->getTree();
+        std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(branch);
+        std::shared_ptr<Branch> struct_def_data_type = struct_def_branch->getDataTypeBranch();
+        std::shared_ptr<STRUCTBranch> struct_branch = 
+                std::dynamic_pointer_cast<STRUCTBranch>(tree->getGlobalStructureByName(struct_def_data_type->getValue()));
+
+        int size = 0;
+        for (std::shared_ptr<Branch> struct_branch_child : struct_branch->getStructBodyBranch()->getChildren())
+        {
+            size += getDataTypeSizeFromVarDef(std::dynamic_pointer_cast<VDEFBranch>(struct_branch_child));
+        }
+        return size;
+    }
+    else if (type == "V_DEF")
+    {
+        std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+        return vdef_branch->getDataTypeSize();
     }
 }
 
@@ -179,12 +207,12 @@ bool Compiler::isCompareOperator(std::string value)
     return false;
 }
 
- bool Compiler::isLogicalOperator(std::string value)
- {
-     if (
-             value == "&&" ||
-             value == "||")
-         return true;
-     
-     return false;
- }
+bool Compiler::isLogicalOperator(std::string value)
+{
+    if (
+            value == "&&" ||
+            value == "||")
+        return true;
+
+    return false;
+}
