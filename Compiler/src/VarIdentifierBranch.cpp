@@ -66,6 +66,12 @@ bool VarIdentifierBranch::hasStructureAccessBranch()
     return structure_access_branch != NULL;
 }
 
+bool VarIdentifierBranch::isVariableAlone()
+{
+    // A variable is alone when it does not have an array index or structure access branch.
+    return !this->hasRootArrayIndexBranch() && !this->hasStructureAccessBranch();
+}
+
 std::shared_ptr<ArrayIndexBranch> VarIdentifierBranch::getRootArrayIndexBranch()
 {
     return std::dynamic_pointer_cast<ArrayIndexBranch>(CustomBranch::getRegisteredBranchByName("root_array_index_branch"));

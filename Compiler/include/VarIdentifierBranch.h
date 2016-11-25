@@ -43,6 +43,7 @@ public:
     std::shared_ptr<ArrayIndexBranch> getRootArrayIndexBranch();
     bool hasRootArrayIndexBranch();
     bool hasStructureAccessBranch();
+    bool isVariableAlone();
 private:
 
 };
