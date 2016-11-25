@@ -38,11 +38,14 @@
 #include "def.h"
 
 class VDEFBranch;
-class EXPORT Compiler {
+class STRUCTBranch;
+class ArrayIndexBranch;
+class EXPORT Compiler
+{
 public:
     Compiler();
     virtual ~Compiler();
-    
+
     void setCodeGenerator(std::shared_ptr<CodeGenerator> codegen);
     void setLinker(std::shared_ptr<Linker> linker);
     Lexer* getLexer();
@@ -51,8 +54,13 @@ public:
     ASTAssistant* getASTAssistant();
     std::shared_ptr<CodeGenerator> getCodeGenerator();
     std::shared_ptr<Linker> getLinker();
+    int getSizeOfVarDef(std::shared_ptr<VDEFBranch> vdef_branch);
+   
     static int getPrimativeDataTypeSize(std::string type);
     int getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> vdef_branch);
+    int getSizeOfStructure(std::shared_ptr<STRUCTBranch> structure);
+    int getSumOfArrayIndexes(std::shared_ptr<ArrayIndexBranch> root_array_index_branch);
+    
     std::string getTypeFromNumber(int number);
     bool canCast(std::string type1, std::string type2);
     bool isCompareOperator(std::string value);
@@ -65,9 +73,11 @@ private:
     TypeChecker* typeChecker;
     ASTAssistant* astAssistant;
     
+    int pointer_size;
+
     // The code generator must be shared as we are not the sole owner of it and it would be unsafe to not have this as a shared pointer.
     std::shared_ptr<CodeGenerator> codeGenerator;
-    
+
     std::shared_ptr<Linker> linker;
 };
 

@@ -49,12 +49,13 @@ typedef std::map<std::string, std::string>::iterator asm_map_it;
 class EXPORT CodeGenerator : public CompilerEntity
 {
 public:
-    CodeGenerator(Compiler* compiler, std::string code_gen_desc);
+    CodeGenerator(Compiler* compiler, std::string code_gen_desc, int pointer_size);
     virtual ~CodeGenerator();
     Stream* getStream();
 
     virtual void generate(std::shared_ptr<Tree> tree);
     virtual std::shared_ptr<Linker> getLinker() = 0;
+    int getPointerSize();
 protected:
     void do_asm(std::string asm_ins, std::string segment="code");
     virtual void generate_global_branch(std::shared_ptr<Branch> branch) = 0;
@@ -64,6 +65,7 @@ protected:
 private:
     // Key = segment, value = assembly for segment.
     std::map<std::string, std::string> assembly;
+    int pointer_size;
 };
 
 #endif /* CODEGENERATOR_H */

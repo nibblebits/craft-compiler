@@ -30,9 +30,10 @@
 #include "CodeGenerator.h"
 #include "branches.h"
 
-CodeGenerator::CodeGenerator(Compiler* compiler, std::string code_gen_desc) : CompilerEntity(compiler)
+CodeGenerator::CodeGenerator(Compiler* compiler, std::string code_gen_desc, int pointer_size) : CompilerEntity(compiler)
 {
     this->stream = new Stream();
+    this->pointer_size = pointer_size;
 }
 
 CodeGenerator::~CodeGenerator()
@@ -59,6 +60,11 @@ void CodeGenerator::generate(std::shared_ptr<Tree> tree)
                 + iterator->second + segment.end_segment + "\n";
     }
     assemble(assembly_str);
+}
+
+int CodeGenerator::getPointerSize()
+{
+    return this->pointer_size;
 }
 
 void CodeGenerator::do_asm(std::string asm_ins, std::string segment)

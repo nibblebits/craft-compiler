@@ -2,7 +2,7 @@
 #include "GoblinByteCodeLinker.h"
 #include "branches.h"
 
-GoblinByteCodeGenerator::GoblinByteCodeGenerator(Compiler* compiler) : CodeGenerator(compiler, "goblin_bytecode")
+GoblinByteCodeGenerator::GoblinByteCodeGenerator(Compiler* compiler) : CodeGenerator(compiler, "goblin_bytecode", 0)
 {
     this->linker = std::shared_ptr<Linker>(new GoblinByteCodeLinker(compiler));
 }

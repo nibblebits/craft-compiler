@@ -28,6 +28,7 @@
 #include "VDEFBranch.h"
 #include "STRUCTBranch.h"
 #include "STRUCTDEFBranch.h"
+#include "ArrayIndexBranch.h"
 
 Compiler::Compiler()
 {
@@ -89,6 +90,18 @@ std::shared_ptr<Linker> Compiler::getLinker()
     return this->linker;
 }
 
+int Compiler::getSizeOfVarDef(std::shared_ptr<VDEFBranch> vdef_branch)
+{
+    int size = getDataTypeSizeFromVarDef(vdef_branch);
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch = vdef_branch->getVariableIdentifierBranch();
+    if (var_iden_branch->hasRootArrayIndexBranch())
+    {
+        size *= getSumOfArrayIndexes(var_iden_branch->getRootArrayIndexBranch());
+    }
+
+    return size;
+}
+
 int Compiler::getPrimativeDataTypeSize(std::string type)
 {
     /* Note for now data types such as bit and nibble will consume 1 byte, this will hopefully be changed in the future to work at the bit level*/
@@ -117,26 +130,65 @@ int Compiler::getPrimativeDataTypeSize(std::string type)
 int Compiler::getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> branch)
 {
     std::string type = branch->getType();
+    int size = 0;
+    if (branch->isPointer())
+    {
+        return this->codeGenerator->getPointerSize();
+    }
     if (type == "STRUCT_DEF")
     {
         std::shared_ptr<Tree> tree = this->parser->getTree();
         std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(branch);
         std::shared_ptr<Branch> struct_def_data_type = struct_def_branch->getDataTypeBranch();
-        std::shared_ptr<STRUCTBranch> struct_branch = 
+        std::shared_ptr<STRUCTBranch> struct_branch =
                 std::dynamic_pointer_cast<STRUCTBranch>(tree->getGlobalStructureByName(struct_def_data_type->getValue()));
 
-        int size = 0;
-        for (std::shared_ptr<Branch> struct_branch_child : struct_branch->getStructBodyBranch()->getChildren())
-        {
-            size += getDataTypeSizeFromVarDef(std::dynamic_pointer_cast<VDEFBranch>(struct_branch_child));
-        }
-        return size;
+        size = getSizeOfStructure(struct_branch);
     }
     else if (type == "V_DEF")
     {
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
-        return vdef_branch->getDataTypeSize();
+        size = vdef_branch->getDataTypeSize();
     }
+
+    return size;
+}
+
+int Compiler::getSizeOfStructure(std::shared_ptr<STRUCTBranch> structure)
+{
+    int t_size = 0;
+    for (std::shared_ptr<Branch> struct_branch_child : structure->getStructBodyBranch()->getChildren())
+    {
+        std::shared_ptr<VDEFBranch> vdef_child_branch = std::dynamic_pointer_cast<VDEFBranch>(struct_branch_child);
+        std::shared_ptr<VarIdentifierBranch> var_iden_child_branch = vdef_child_branch->getVariableIdentifierBranch();
+        int size = getDataTypeSizeFromVarDef(std::dynamic_pointer_cast<VDEFBranch>(vdef_child_branch));
+        // Check to see if we have an array going on here
+        if (var_iden_child_branch->hasRootArrayIndexBranch())
+        {
+            // We need to multiply all of the array indexes together so we know how many elements we have
+            std::shared_ptr<ArrayIndexBranch> array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(var_iden_child_branch->getRootArrayIndexBranch());
+            int total_array_indexes = getSumOfArrayIndexes(array_index_branch);
+            // Calculate the array size
+            size = total_array_indexes * size;
+        }
+
+        t_size += size;
+    }
+
+    return t_size;
+}
+
+int Compiler::getSumOfArrayIndexes(std::shared_ptr<ArrayIndexBranch> root_array_index_branch)
+{
+    std::shared_ptr<ArrayIndexBranch> array_index_branch = root_array_index_branch;
+    int total_array_indexes = stoi(array_index_branch->getValueBranch()->getValue());
+    while (array_index_branch->hasNextArrayIndexBranch())
+    {
+        array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(array_index_branch->getNextArrayIndexBranch());
+        total_array_indexes *= stoi(array_index_branch->getValueBranch()->getValue());
+    }
+
+    return total_array_indexes;
 }
 
 std::string Compiler::getTypeFromNumber(int number)
