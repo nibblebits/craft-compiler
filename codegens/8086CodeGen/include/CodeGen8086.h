@@ -67,12 +67,15 @@ public:
     void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_right(std::shared_ptr<Branch> exp);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
-    void make_move_reg_variable(std::string reg_name, std::shared_ptr<Branch> var_branch);
+    void make_move_reg_variable(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
-    void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch);
-    std::string make_array_variable_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg="bx");
+    void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem=1);
+    [[deprecated("make_array_variable_access has been taken over by the make_var_access method.")]]
+    void make_array_variable_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg="bx");
     void make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size);
     void make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size);
+    void make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg="bx", std::shared_ptr<STRUCTBranch> current_struct=NULL);
+    std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg="bx");
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
     void calculate_scope_size(std::shared_ptr<Branch> body_branch);
@@ -100,7 +103,7 @@ public:
     int getOffsetForGlobalVariable(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<STRUCTBranch> getStructure(std::string struct_name);
     std::shared_ptr<STRUCTBranch> getStructureFromScopeVariable(std::shared_ptr<Branch> branch);
-    std::shared_ptr<Branch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
+    std::shared_ptr<VDEFBranch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
     int getStructureVariableOffset(std::string struct_name, std::string var_name);
     int getStructureVariableOffset(std::shared_ptr<STRUCTBranch> struct_branch, std::string var_name);
     int getPosForStructureVariable(std::shared_ptr<Branch> branch);
@@ -148,6 +151,7 @@ private:
     bool handling_pointer;
 
     std::shared_ptr<VDEFBranch> first_pointer_variable;
+    std::shared_ptr<VDEFBranch> last_found_var_access_variable;
     int current_label_index;
     int scope_size;
 
