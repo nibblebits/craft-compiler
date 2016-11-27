@@ -460,9 +460,19 @@ void Parser::process_ptr()
 
     std::shared_ptr<PTRBranch> ptr_branch = std::shared_ptr<PTRBranch>(new PTRBranch(compiler));
 
-    // Process the expression
-    process_expression(true);
-    pop_branch();
+    peak();
+    if (is_peak_symbol("("))
+    {
+        // Process the expression
+        process_expression(true);
+        pop_branch();
+    }
+    else
+    {
+        // No expression? This is variable access.
+        process_variable_access();
+        pop_branch();
+    }
 
     ptr_branch->setExpressionBranch(this->branch);
 
