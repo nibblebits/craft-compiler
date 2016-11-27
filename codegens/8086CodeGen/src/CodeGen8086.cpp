@@ -26,7 +26,7 @@
 
 #include "CodeGen8086.h"
 
-CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 CodeGenerator")
+CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 CodeGenerator", POINTER_SIZE)
 {
     this->linker = std::shared_ptr<Linker>(new GoblinByteCodeLinker(compiler));
     this->compiler = compiler;
@@ -36,7 +36,7 @@ CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 Cod
     this->handling_pointer = false;
     this->scope_size = 0;
 
-    this->first_pointer_variable = NULL;
+    this->pointer_selected_variable = NULL;
     this->last_found_var_access_variable = NULL;
 
 
@@ -276,10 +276,10 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     {
         /* If we are handling a pointer then we must keep track of the first pointer variable
          * so that we can determine later on if its a byte or a word */
-        if (this->handling_pointer && this->first_pointer_variable == NULL)
+        if (this->handling_pointer && this->pointer_selected_variable == NULL)
         {
             std::shared_ptr<VDEFBranch> var_branch = getVariable(exp);
-            this->first_pointer_variable = var_branch;
+            this->pointer_selected_variable = var_branch;
         }
         // This is a variable so set register to store to the value of this variable
         make_move_reg_variable(register_to_store, std::dynamic_pointer_cast<VarIdentifierBranch>(exp));
@@ -289,9 +289,8 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(exp);
         handle_ptr(ptr_branch);
         // Return the value that is being pointed to.
-        do_asm("mov bx, ax");
-        if (this->first_pointer_variable != NULL &&
-                this->first_pointer_variable->getDataTypeSize() == 1)
+        if (this->pointer_selected_variable != NULL &&
+                this->pointer_selected_variable->getDataTypeSize() == 1)
         {
             // This is pointing to a byte 
             do_asm("xor ah, ah");
@@ -568,7 +567,7 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
     {
         // We don't want anything left in the register so lets blank it
         do_asm("xor " + reg + ", " + reg);
-        
+
         /* Bytes must use the lower end of the registers and not the full register
          * we must break it down here before continuing */
         reg = convert_full_reg_to_low_reg(reg);
@@ -579,17 +578,8 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
 
 void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch)
 {
-    std::string asm_addr_formatted = getASMAddressForVariableFormatted(var_branch);
-    if (var_branch->hasRootArrayIndexBranch())
-    {
-        std::string pos = "fix me!";
-        //  std::string pos = make_array_variable_access(var_branch);
-        do_asm("lea " + reg_name + ", [" + pos + "]");
-    }
-    else
-    {
-        do_asm("lea " + reg_name + ", " + asm_addr_formatted);
-    }
+    std::string pos = make_var_access(var_branch);
+    do_asm("lea " + reg_name + ", [" + pos + "]");
 }
 
 void CodeGen8086::make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem)
@@ -623,25 +613,6 @@ void CodeGen8086::make_array_offset_instructions(std::shared_ptr<ArrayIndexBranc
         do_asm("mov cx, " + std::to_string(size_p_elem));
         do_asm("mul cx");
     }
-}
-
-void CodeGen8086::make_array_variable_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg)
-{
-    std::shared_ptr<VDEFBranch> vdef_branch = getVariable(var_branch);
-    VARIABLE_ADDRESS var_addr = this->getASMAddressForVariable(var_branch);
-    // We are handling an array
-    std::shared_ptr<ArrayIndexBranch> root_array_index = std::dynamic_pointer_cast<ArrayIndexBranch>(var_branch->getRootArrayIndexBranch());
-    // Calculates memory location for element.
-    // make_array_offset_instructions(root_array_index);
-    // Offset to correct element based on data type size
-    int data_type_size = vdef_branch->getDataTypeSize();
-    if (data_type_size == 2)
-    {
-        // Shift the bits to the left, the same at multiply by 2
-        do_asm("shl ax, 1");
-    }
-    do_asm("mov " + base_reg + ", bp");
-    do_asm("add " + base_reg + ", ax");
 }
 
 void CodeGen8086::make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size)
@@ -737,7 +708,6 @@ std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> va
 
     std::string pos;
 
-    do_asm("; VAR_ACCESS_HERE!!!!");
     // Alone variables have no array indexes or structures attached to them. For example "a" is an alone variable. "b[5]" is not.
     if (!var_branch->isVariableAlone())
     {
@@ -763,23 +733,20 @@ std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> va
 
 void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value)
 {
-    /* Note: PTR is pointer access it means we are trying to assign a value in memory pointed to by a pointer
-     * it is not the same as the code further down this method that makes memory assignments to pointers as 2 bytes as pointers should
- hold 2 byte addresses in the 8086 processor.*/
+    bool is_word;
 
     if (var_branch->getType() == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
         handle_ptr(ptr_branch);
-        // Ok we have handled the pointer now we need to set our value to it
-        do_asm("mov bx, ax");
-        make_mem_assignment("bx", value, this->first_pointer_variable->getDataTypeSize() == 2);
+        is_word = is_alone_var_to_be_word(this->pointer_selected_variable);
+        make_mem_assignment("bx", value, is_word);
     }
     else
     {
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
         std::string pos = make_var_access(var_iden_branch);
-        bool is_word = (this->last_found_var_access_variable->getDataTypeSize() == 2) ? 2 : 0;
+        is_word = is_alone_var_to_be_word(this->last_found_var_access_variable);
         make_mem_assignment(pos, value, is_word);
     }
 }
@@ -808,10 +775,28 @@ void CodeGen8086::reset_scope_size()
 
 void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
 {
-    this->first_pointer_variable = NULL;
+    this->pointer_selected_variable = NULL;
     this->handling_pointer = true;
-    std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
-    make_expression(exp_branch);
+
+    do_asm("; POINTER HANDLING ");
+    std::shared_ptr<Branch> ptr_exp_branch = ptr_branch->getExpressionBranch();
+    if (ptr_exp_branch->getType() == "VAR_IDENTIFIER")
+    {
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(ptr_exp_branch);
+        std::string asm_addr = getASMAddressForVariableFormatted(var_iden_branch);
+        do_asm("mov bx, " + asm_addr);
+        make_var_access_rel_base(var_iden_branch, "bx");
+        this->pointer_selected_variable = this->last_found_var_access_variable;
+    }
+    else
+    {
+        // Expression pointers cannot be handled traditionally due to their nature.
+        std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
+        make_expression(exp_branch);
+        // Memory address in question is stored in AX but we need it in BX so it can be accessed later.
+        do_asm("mov bx, ax");
+    }
+
     this->handling_pointer = false;
 }
 
@@ -1142,46 +1127,9 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
 
 int CodeGen8086::getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch)
 {
-    std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
     std::shared_ptr<VarIdentifierBranch> var_identifier_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(vdef_branch->getVariableIdentifierBranch());
 
-    int var_size;
-    if (vdef_branch->getType() == "STRUCT_DEF")
-    {
-        var_size = getStructSize(data_type_branch->getValue());
-    }
-    else
-    {
-        // Variable sizes are 2 for pointers in the 8086 architecture
-        if (vdef_branch->isPointer())
-        {
-            var_size = 2;
-        }
-        else
-        {
-            var_size = compiler->getPrimativeDataTypeSize(data_type_branch->getValue());
-        }
-    }
-
-    // Check to see if we have an array going on here
-    if (var_identifier_branch->hasRootArrayIndexBranch())
-    {
-        // We need to multiply all of the array indexes together so we know how many elements we have
-        std::shared_ptr<ArrayIndexBranch> array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(var_identifier_branch->getRootArrayIndexBranch());
-        int total_array_indexes = stoi(array_index_branch->getValueBranch()->getValue());
-        while (array_index_branch->hasNextArrayIndexBranch())
-        {
-            array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(array_index_branch->getNextArrayIndexBranch());
-            total_array_indexes *= stoi(array_index_branch->getValueBranch()->getValue());
-        }
-
-        // Calculate the array size
-        var_size = total_array_indexes * var_size;
-    }
-
-
-
-    return var_size;
+    return this->compiler->getSizeOfVarDef(vdef_branch);
 }
 
 int CodeGen8086::getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch)
@@ -1363,7 +1311,6 @@ int CodeGen8086::getStructSize(std::string struct_name)
 
 int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
 {
-    std::shared_ptr<STRUCTAccessBranch> access_branch = NULL;
     std::string var_name;
     std::shared_ptr<VDEFBranch> vdef_branch;
     std::shared_ptr<Branch> data_type_branch;
@@ -1376,42 +1323,19 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
     {
         std::shared_ptr<Branch> scope_var = this->scope_variables.at(i);
         vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
-        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(vdef_branch->getVariableIdentifierBranch());
         std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
         data_type_branch = vdef_branch->getDataTypeBranch();
 
         int var_size = getSizeOfVariableBranch(vdef_branch);
-
-        /* If the data type is int16 or uint16, a pointer or even two bytes in width, then we need to add one more to it
-this is because of how we are storing the memory and the way the 8086 processor
-handles writes and reads to words, more can be read about this in the development diary
-on Day 48 at 21:33, This may cause a problem in the future so beware.*/
-
-        if (vdef_branch->getDataTypeSize() == 2)
-        {
-            // offset += 2;
-        }
-
         offset += var_size;
 
         if (name_branch->getValue() == var_name)
         {
-            /* If this is an array its important that the offset starts at the end of the array
- and not the beginning this is important so that accessing array elements through pointers
- will work as expected more is described in the diary on Day 48 at 22:59.*/
-
-            if (var_iden_branch->hasRootArrayIndexBranch())
-            {
-                //       offset += var_size - 1;
-            }
             break;
         }
 
     }
 
-
-    // Used to make sure the base pointer is not over written.
-    // int to_add = data_type_branch->getValue() == "uint16" || data_type_branch->getValue() == "int16" ? 2 : 1;
     return offset;
 }
 
@@ -1475,13 +1399,6 @@ std::string CodeGen8086::convert_full_reg_to_low_reg(std::string reg)
     }
 
     return reg;
-}
-
-int CodeGen8086::getSumOfScopeVariablesSizeSoFar()
-{
-    // Will need to be changed eventually due to structures
-    // * 2 as scope variablesles.size() * 2); currently use minimum and maximum of 2 bytes.
-    return (this->scope_variables.size() * 2);
 }
 
 struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Branch> var_branch)
@@ -1628,6 +1545,25 @@ bool CodeGen8086::isVariablePointer(std::shared_ptr<Branch> var_branch)
 bool CodeGen8086::is_cmp_logic_operator_nothing_or_and()
 {
     return this->cmp_exp_last_logic_operator == "" || this->cmp_exp_last_logic_operator == "&&";
+}
+
+bool CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VDEFBranch> vdef_branch)
+{
+    std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
+    return vdef_branch->isPointer() ||
+            data_type_branch->getValue() == "uint16" ||
+            data_type_branch->getValue() == "int16";
+}
+
+bool CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VarIdentifierBranch> var_branch)
+{
+    if (!var_branch->isVariableAlone())
+    {
+        throw CodeGeneratorException("CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VarIdentifierBranch> var_branch): can only handle alone variables");
+    }
+
+    std::shared_ptr<VDEFBranch> vdef_branch = getVariable(var_branch);
+    return is_alone_var_to_be_word(vdef_branch);
 }
 
 void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)

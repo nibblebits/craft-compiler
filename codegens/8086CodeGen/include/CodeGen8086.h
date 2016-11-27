@@ -31,6 +31,8 @@
 #include "CodeGenerator.h"
 #include "branches.h"
 
+#define POINTER_SIZE 2
+
 enum
 {
     GLOBAL_VARIABLE,
@@ -53,12 +55,12 @@ public:
     virtual ~CodeGen8086();
 
     virtual struct formatted_segment format_segment(std::string segment_name);
-    
-    inline void make_label(std::string label, std::string segment="code");
-    inline void make_exact_label(std::string label, std::string segment="code");
-    inline std::string make_unique_label(std::string segment="code");
+
+    inline void make_label(std::string label, std::string segment = "code");
+    inline void make_exact_label(std::string label, std::string segment = "code");
+    inline std::string make_unique_label(std::string segment = "code");
     inline std::string build_unique_label();
-    
+
     std::string make_string(std::shared_ptr<Branch> string_branch);
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
     void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word = false, std::function<void() > assignment_val_processed = NULL);
@@ -69,13 +71,11 @@ public:
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_move_reg_variable(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
-    void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem=1);
-    [[deprecated("make_array_variable_access has been taken over by the make_var_access method.")]]
-    void make_array_variable_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg="bx");
+    void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem = 1);
     void make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size);
     void make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size);
-    void make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg="bx", std::shared_ptr<STRUCTBranch> current_struct=NULL);
-    std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg="bx");
+    void make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg = "bx", std::shared_ptr<STRUCTBranch> current_struct = NULL);
+    std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg = "bx");
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
     void calculate_scope_size(std::shared_ptr<Branch> body_branch);
@@ -114,9 +114,6 @@ public:
     int getVariableType(std::shared_ptr<Branch> var_branch);
     std::string convert_full_reg_to_low_reg(std::string reg);
 
-    [[deprecated("No longer required, method possibly errornous")]]
-    int getSumOfScopeVariablesSizeSoFar();
-
     struct VARIABLE_ADDRESS getASMAddressForVariable(std::shared_ptr<Branch> var_branch);
     std::string getASMAddressForVariableFormatted(std::shared_ptr<Branch> var_branch);
 
@@ -127,6 +124,8 @@ public:
 
     bool isVariablePointer(std::shared_ptr<Branch> var_branch);
     inline bool is_cmp_logic_operator_nothing_or_and();
+    inline bool is_alone_var_to_be_word(std::shared_ptr<VDEFBranch> vdef_branch);
+    inline bool is_alone_var_to_be_word(std::shared_ptr<VarIdentifierBranch> var_branch);
 
 
     void generate_global_branch(std::shared_ptr<Branch> branch);
@@ -150,7 +149,7 @@ private:
     bool do_signed;
     bool handling_pointer;
 
-    std::shared_ptr<VDEFBranch> first_pointer_variable;
+    std::shared_ptr<VDEFBranch> pointer_selected_variable;
     std::shared_ptr<VDEFBranch> last_found_var_access_variable;
     int current_label_index;
     int scope_size;
