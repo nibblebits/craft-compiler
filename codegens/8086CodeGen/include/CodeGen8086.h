@@ -46,6 +46,17 @@ struct VARIABLE_ADDRESS
     std::string segment;
     std::string op;
     int offset;
+    
+    inline std::string to_string()
+    {
+        // No OP? then just return the segment.
+        if (op == "")
+        {
+            return segment;
+        }
+        
+        return segment + op + std::to_string(offset);
+    }
 };
 
 class CodeGen8086 : public CodeGenerator
@@ -74,8 +85,8 @@ public:
     void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem = 1);
     void make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size);
     void make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size);
-    void make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg = "bx", std::shared_ptr<STRUCTBranch> current_struct = NULL);
-    std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::string base_reg = "bx");
+    void make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch=NULL, std::string base_reg = "bx", std::shared_ptr<STRUCTBranch> current_struct = NULL);
+    std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch=NULL, std::string base_reg = "bx");
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
     void calculate_scope_size(std::shared_ptr<Branch> body_branch);
@@ -126,7 +137,6 @@ public:
     inline bool is_cmp_logic_operator_nothing_or_and();
     inline bool is_alone_var_to_be_word(std::shared_ptr<VDEFBranch> vdef_branch);
     inline bool is_alone_var_to_be_word(std::shared_ptr<VarIdentifierBranch> var_branch);
-
 
     void generate_global_branch(std::shared_ptr<Branch> branch);
     void assemble(std::string assembly);
