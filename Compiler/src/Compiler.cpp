@@ -102,7 +102,25 @@ int Compiler::getSizeOfVarDef(std::shared_ptr<VDEFBranch> vdef_branch)
     return size;
 }
 
-int Compiler::getPrimativeDataTypeSize(std::string type)
+bool Compiler::isPrimitiveDataType(std::string type)
+{
+    // Should be changed to access an array.
+    return (
+            type == "void" ||
+            type == "bit" ||
+            type == "nibble" ||
+            type == "uint8" ||
+            type == "uint16" ||
+            type == "uint32" ||
+            type == "uint64" ||
+            type == "int8" ||
+            type == "int16" ||
+            type == "int32" ||
+            type == "int64"
+            );
+}
+
+int Compiler::getPrimitiveDataTypeSize(std::string type)
 {
     /* Note for now data types such as bit and nibble will consume 1 byte, this will hopefully be changed in the future to work at the bit level*/
     if (type == "bit" || type == "nibble" || type == "uint8" || type == "int8")

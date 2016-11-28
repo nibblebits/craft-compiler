@@ -53,6 +53,7 @@ public:
     
     bool isPointer();
     bool isSigned();
+    bool isPrimitive();
     virtual int getDataTypeSize();
 private:
     bool is_pointer;

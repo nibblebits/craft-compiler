@@ -97,7 +97,13 @@ bool VDEFBranch::isSigned()
             );
 }
 
+bool VDEFBranch::isPrimitive()
+{
+    std::shared_ptr<Branch> data_type_branch = getDataTypeBranch();
+    return this->getCompiler()->isPrimitiveDataType(data_type_branch->getValue());
+}
+
 int VDEFBranch::getDataTypeSize()
 {
-    return this->getCompiler()->getPrimativeDataTypeSize(getDataTypeBranch()->getValue());
+    return this->getCompiler()->getPrimitiveDataTypeSize(getDataTypeBranch()->getValue());
 }
