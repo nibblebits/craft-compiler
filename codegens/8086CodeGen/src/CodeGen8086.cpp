@@ -274,7 +274,7 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     else if (exp->getType() == "string")
     {
         std::string addr_to_str = make_string(exp);
-        do_asm("mov " + register_to_store + ", " + addr_to_str);
+        do_asm("lea " + register_to_store + ", " + addr_to_str);
     }
     else if (exp->getType() == "VAR_IDENTIFIER")
     {
