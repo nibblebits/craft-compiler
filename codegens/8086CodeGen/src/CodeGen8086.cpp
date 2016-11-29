@@ -274,33 +274,46 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     }
     else if (exp->getType() == "VAR_IDENTIFIER")
     {
-        /* If we are handling a pointer then we must keep track of the first pointer variable
-         * so that we can determine later on if its a byte or a word */
-        if (this->handling_pointer && this->pointer_selected_variable == NULL)
+        if (this->handling_pointer)
         {
-            std::shared_ptr<VDEFBranch> var_branch = getVariable(exp);
-            this->pointer_selected_variable = var_branch;
+            // When handling pointers only addresses should be calculated the value should not be brought back
+            std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(exp);
+            std::string pos = make_var_access(var_iden_branch, true, &this->pointer_selected_variable);
+            do_asm("mov " + register_to_store + ", " + pos);
         }
-        // This is a variable so set register to store to the value of this variable
-        make_move_reg_variable(register_to_store, std::dynamic_pointer_cast<VarIdentifierBranch>(exp));
+        else
+        {
+            // This is a variable so set register to store to the value of this variable
+            make_move_reg_variable(register_to_store, std::dynamic_pointer_cast<VarIdentifierBranch>(exp));
+        }
     }
     else if (exp->getType() == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(exp);
         handle_ptr(ptr_branch);
-        // Return the value that is being pointed to.
-        if (this->pointer_selected_variable != NULL &&
-                this->pointer_selected_variable->getDataTypeSize() == 1)
+
+        /* If the selected pointer variable is primitive then we should assign AX or AL to the value 
+         * the pointer is pointing to, if its not primitive then we should not do anything as it must be
+         a structure. */
+        if (this->pointer_selected_variable != NULL)
         {
-            // This is pointing to a byte 
-            do_asm("xor ah, ah");
-            do_asm("mov al, [bx]");
+            if (this->pointer_selected_variable->isPrimitive())
+            {
+                if (this->pointer_selected_variable->getDataTypeSize(true) == 2)
+                {
+                    // This is pointing to a word.
+                    do_asm("mov " + register_to_store + ", [bx]");
+                }
+                else
+                {
+                    
+                    // This is pointing to a byte 
+                    do_asm("xor " + register_to_store + ", " + register_to_store);
+                    do_asm("mov " + convert_full_reg_to_low_reg(register_to_store) + ", [bx]");
+                }
+            }
         }
-        else
-        {
-            // This is pointing to a word.
-            do_asm("mov ax, [bx]");
-        }
+
     }
     else if (exp->getType() == "FUNC_CALL")
     {
@@ -557,12 +570,13 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
 void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIdentifierBranch> var_branch)
 {
     std::shared_ptr<VDEFBranch> variable_branch = NULL;
-    std::string pos = make_var_access(var_branch, &variable_branch);
+    std::string pos = make_var_access(var_branch, false, &variable_branch);
     if (variable_branch->isSigned())
     {
         this->do_signed = true;
     }
 
+    do_asm("; MAKE MOVE REG VARIABLE");
     if (!variable_branch->isPointer() && variable_branch->getDataTypeSize() == 1)
     {
         // We don't want anything left in the register so lets blank it
@@ -681,8 +695,7 @@ void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> 
 
     if (root_iden_branch->hasRootArrayIndexBranch())
     {
-        make_array_offset_instructions(root_iden_branch->getRootArrayIndexBranch(), root_vdef_branch->getDataTypeSize());
-
+        make_array_offset_instructions(root_iden_branch->getRootArrayIndexBranch(), root_vdef_branch->getDataTypeSize(true));
     }
 
 
@@ -704,7 +717,7 @@ void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> 
 
 }
 
-std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch, std::string base_reg)
+std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, bool pointer_access, std::shared_ptr<VDEFBranch>* vdef_in_question_branch, std::string base_reg)
 {
     VARIABLE_ADDRESS var_addr = getASMAddressForVariable(var_branch);
     std::shared_ptr<VDEFBranch> vdef_branch = getVariable(var_branch);
@@ -717,13 +730,29 @@ std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> va
         // Save AX as it may have previously been used
         do_asm("push ax");
         do_asm("xor ax, ax");
-        do_asm("mov " + base_reg + ", bp");
+        if (pointer_access)
+        {
+            do_asm("mov " + base_reg + ", [" + var_addr.to_string() + "]");
+        }
+        else
+        {
+            do_asm("mov " + base_reg + ", bp");
+        }
         make_var_access_rel_base(var_branch, vdef_in_question_branch, base_reg);
+        // When arrays are used we need to add on the offset.
         do_asm("add " + base_reg + ", ax");
         // Restore AX
         do_asm("pop ax");
 
-        pos = base_reg + "-" + std::to_string(var_addr.offset);
+        // Only when accessing scope variables directly will we minus the stack.
+        if (!pointer_access && hasScopeVariable(var_branch))
+        {
+            pos = base_reg + "-" + std::to_string(var_addr.offset);
+        }
+        else
+        {
+            return base_reg;
+        }
     }
     else
     {
@@ -752,15 +781,22 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
         std::shared_ptr<VDEFBranch> vdef_in_question_branch = NULL;
 
-        std::string pos = make_var_access(var_iden_branch, &vdef_in_question_branch);
+        std::string pos = make_var_access(var_iden_branch, false, &vdef_in_question_branch);
 
         // Remember pointers are primitive types even if the pointer is a STRUCT_DEF
         if (!vdef_in_question_branch->isPointer() && vdef_in_question_branch->getType() == "STRUCT_DEF")
         {
+            /* Here we are assigning a STRUCT_DEF 
+             * so we need to move the source structure to the destination structure
+             * Example code:
+             * struct test t;
+             * struct test o = t;
+             */
+
             // This is a structure assignment
             // Make the var_access for the value
-            std::string v_pos = make_var_access(std::dynamic_pointer_cast<VarIdentifierBranch>(value));
-            make_move_mem_to_mem(pos, v_pos, vdef_in_question_branch->getDataTypeSize());
+            make_expression(value);
+            make_move_mem_to_mem(pos, "bx", vdef_in_question_branch->getDataTypeSize());
         }
         else
         {
@@ -799,22 +835,17 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
     this->handling_pointer = true;
 
     do_asm("; POINTER HANDLING ");
-    std::shared_ptr<Branch> ptr_exp_branch = ptr_branch->getExpressionBranch();
-    if (ptr_exp_branch->getType() == "VAR_IDENTIFIER")
-    {
-        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(ptr_exp_branch);
-        std::string asm_addr = getASMAddressForVariableFormatted(var_iden_branch);
-        do_asm("mov bx, " + asm_addr);
-        make_var_access_rel_base(var_iden_branch, &this->pointer_selected_variable);
-    }
-    else
-    {
-        // Expression pointers cannot be handled traditionally due to their nature.
-        std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
-        make_expression(exp_branch);
-        // Memory address in question is stored in AX but we need it in BX so it can be accessed later.
-        do_asm("mov bx, ax");
-    }
+
+    // Save AX incase its been used
+    do_asm("push ax");
+    std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
+    make_expression(exp_branch);
+    // Memory address in question is stored in AX but we need it in BX so it can be accessed later.
+    do_asm("mov bx, ax");
+    
+    // Restore AX
+    do_asm("pop ax");
+    do_asm("; END OF POINTER HANDLING ");
 
     this->handling_pointer = false;
 }
@@ -1264,7 +1295,7 @@ int CodeGen8086::getStructureVariableOffset(std::shared_ptr<STRUCTBranch> struct
         }
         else
         {
-            size += compiler->getPrimativeDataTypeSize(data_type_branch->getValue());
+            size += compiler->getPrimitiveDataTypeSize(data_type_branch->getValue());
         }
     }
 

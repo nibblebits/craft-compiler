@@ -86,7 +86,7 @@ public:
     void make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size);
     void make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size);
     void make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch=NULL, std::string base_reg = "bx", std::shared_ptr<STRUCTBranch> current_struct = NULL);
-    std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch=NULL, std::string base_reg = "bx");
+    std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, bool pointer_access=false, std::shared_ptr<VDEFBranch>* vdef_in_question_branch=NULL, std::string base_reg = "bx");
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
     void calculate_scope_size(std::shared_ptr<Branch> body_branch);
