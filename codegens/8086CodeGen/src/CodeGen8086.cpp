@@ -685,7 +685,7 @@ void CodeGen8086::make_move_mem_to_mem(std::string dest_loc, std::string from_lo
     do_asm("loop " + continue_lbl_name);
 }
 
-void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch, std::string base_reg, std::shared_ptr<STRUCTBranch> current_struct)
+void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch, std::string base_reg, std::shared_ptr<STRUCTBranch> current_struct)
 {
 
     std::shared_ptr<VarIdentifierBranch> root_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
@@ -712,10 +712,14 @@ void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> 
     }
 
 
-    // Store the last found access variable, we will need to use this later.
+    // Store the last found VDEF variable, we will need to use this later.
     if (vdef_in_question_branch != NULL)
         *vdef_in_question_branch = root_vdef_branch;
 
+    // Store the last found access var identifier variable, we will need to use this later
+    if(var_access_iden_branch != NULL)
+        *var_access_iden_branch = root_iden_branch;
+    
     std::shared_ptr<Branch> root_vdef_data_type_branch = root_vdef_branch->getDataTypeBranch();
     if (root_iden_branch->hasStructureAccessBranch())
     {
@@ -723,6 +727,7 @@ void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> 
         make_var_access_rel_base(
                                  std::dynamic_pointer_cast<VarIdentifierBranch>(root_iden_branch->getStructureAccessBranch()->getFirstChild()),
                                  vdef_in_question_branch,
+                                 var_access_iden_branch,
                                  base_reg,
                                  structure
                                  );
@@ -730,7 +735,7 @@ void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> 
 
 }
 
-std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, bool pointer_access, std::shared_ptr<VDEFBranch>* vdef_in_question_branch, std::string base_reg)
+std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, bool pointer_access, std::shared_ptr<VDEFBranch>* vdef_in_question_branch, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch, std::string base_reg)
 {
     VARIABLE_ADDRESS var_addr = getASMAddressForVariable(var_branch);
     std::shared_ptr<VDEFBranch> vdef_branch = getVariable(var_branch);
@@ -751,7 +756,7 @@ std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> va
         {
             do_asm("mov " + base_reg + ", " + var_addr.segment);
         }
-        make_var_access_rel_base(var_branch, vdef_in_question_branch, base_reg);
+        make_var_access_rel_base(var_branch, vdef_in_question_branch, var_access_iden_branch, base_reg);
         // When arrays are used we need to add on the offset.
         do_asm("add " + base_reg + ", ax");
         // Restore AX
@@ -771,6 +776,9 @@ std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> va
     {
         if (vdef_in_question_branch != NULL)
             *vdef_in_question_branch = vdef_branch;
+        
+        if (var_access_iden_branch != NULL)
+            *var_access_iden_branch = var_branch;
 
         pos = var_addr.to_string();
     }
@@ -786,15 +794,16 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
         handle_ptr(ptr_branch);
-        is_word = is_alone_var_to_be_word(this->pointer_selected_variable);
+        is_word = is_alone_var_to_be_word(this->pointer_selected_variable, true);
         make_mem_assignment("bx", value, is_word);
     }
     else
     {
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
         std::shared_ptr<VDEFBranch> vdef_in_question_branch = NULL;
+        std::shared_ptr<VarIdentifierBranch> access_var_iden_branch_in_question = NULL;
 
-        std::string pos = make_var_access(var_iden_branch, false, &vdef_in_question_branch);
+        std::string pos = make_var_access(var_iden_branch, false, &vdef_in_question_branch, &access_var_iden_branch_in_question);
 
         // Remember pointers are primitive types even if the pointer is a STRUCT_DEF
         if (!vdef_in_question_branch->isPointer() && vdef_in_question_branch->getType() == "STRUCT_DEF")
@@ -1621,15 +1630,12 @@ bool CodeGen8086::is_cmp_logic_operator_nothing_or_and()
     return this->cmp_exp_last_logic_operator == "" || this->cmp_exp_last_logic_operator == "&&";
 }
 
-bool CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VDEFBranch> vdef_branch)
+bool CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VDEFBranch> vdef_branch, bool ignore_pointer)
 {
-    std::shared_ptr<Branch> data_type_branch = vdef_branch->getDataTypeBranch();
-    return vdef_branch->isPointer() ||
-            data_type_branch->getValue() == "uint16" ||
-            data_type_branch->getValue() == "int16";
+    return vdef_branch->isPrimitive() && vdef_branch->getDataTypeSize(ignore_pointer) == 2;
 }
 
-bool CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VarIdentifierBranch> var_branch)
+bool CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VarIdentifierBranch> var_branch, bool ignore_pointer)
 {
     if (!var_branch->isVariableAlone())
     {
@@ -1637,7 +1643,7 @@ bool CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VarIdentifierBranch> v
     }
 
     std::shared_ptr<VDEFBranch> vdef_branch = getVariable(var_branch);
-    return is_alone_var_to_be_word(vdef_branch);
+    return is_alone_var_to_be_word(vdef_branch, ignore_pointer);
 }
 
 void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
