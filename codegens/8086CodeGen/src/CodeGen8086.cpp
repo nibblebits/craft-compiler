@@ -33,7 +33,7 @@ CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 Cod
     this->current_label_index = 0;
     this->is_cmp_expression = false;
     this->do_signed = false;
-    this->handling_pointer = false;
+    this->is_handling_pointer = false;
     this->scope_size = 0;
 
     this->pointer_selected_variable = NULL;
@@ -153,8 +153,16 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
     }
 }
 
-void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func, std::function<void() > exp_end_func)
+void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func, std::function<void() > exp_end_func, bool postpone_pointer)
 {
+
+    // Only if we are currently handling a pointer should we have to postpone it.
+    if (postpone_pointer)
+    {
+        // Postpone any pointer handling going on as its unrelated.
+        postpone_pointer_handling();
+    }
+
     // Do we have something we need to notify about starting this expression?
     if (exp_start_func != NULL)
     {
@@ -258,11 +266,17 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
         }
     }
 
+
+    // Prepone any pointer handling going to restore the previous state.
+    if (postpone_pointer)
+        prepone_pointer_handling();
+
     // Do we have something we need to notify about ending this expression?
     if (exp_end_func != NULL)
     {
         exp_end_func();
     }
+
 }
 
 void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store)
@@ -278,12 +292,15 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     }
     else if (exp->getType() == "VAR_IDENTIFIER")
     {
-        if (this->handling_pointer)
+        if (this->is_handling_pointer)
         {
             // When handling pointers only addresses should be calculated the value should not be brought back
             std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(exp);
             std::string pos = make_var_access(var_iden_branch, true, &this->pointer_selected_variable);
-            do_asm("mov " + register_to_store + ", " + pos);
+            if (this->pointer_selected_variable->isPointer())
+            {
+                do_asm("mov " + register_to_store + ", " + pos);
+            }
         }
         else
         {
@@ -717,9 +734,9 @@ void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> 
         *vdef_in_question_branch = root_vdef_branch;
 
     // Store the last found access var identifier variable, we will need to use this later
-    if(var_access_iden_branch != NULL)
+    if (var_access_iden_branch != NULL)
         *var_access_iden_branch = root_iden_branch;
-    
+
     std::shared_ptr<Branch> root_vdef_data_type_branch = root_vdef_branch->getDataTypeBranch();
     if (root_iden_branch->hasStructureAccessBranch())
     {
@@ -776,7 +793,7 @@ std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> va
     {
         if (vdef_in_question_branch != NULL)
             *vdef_in_question_branch = vdef_branch;
-        
+
         if (var_access_iden_branch != NULL)
             *var_access_iden_branch = var_branch;
 
@@ -801,9 +818,8 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
     {
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
         std::shared_ptr<VDEFBranch> vdef_in_question_branch = NULL;
-        std::shared_ptr<VarIdentifierBranch> access_var_iden_branch_in_question = NULL;
 
-        std::string pos = make_var_access(var_iden_branch, false, &vdef_in_question_branch, &access_var_iden_branch_in_question);
+        std::string pos = make_var_access(var_iden_branch, false, &vdef_in_question_branch);
 
         // Remember pointers are primitive types even if the pointer is a STRUCT_DEF
         if (!vdef_in_question_branch->isPointer() && vdef_in_question_branch->getType() == "STRUCT_DEF")
@@ -854,14 +870,15 @@ void CodeGen8086::reset_scope_size()
 void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
 {
     this->pointer_selected_variable = NULL;
-    this->handling_pointer = true;
+    this->is_handling_pointer = true;
 
     do_asm("; POINTER HANDLING ");
 
     // Save AX incase its been used
     do_asm("push ax");
     std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
-    make_expression(exp_branch);
+    // False to prevent postponing of the pointer
+    make_expression(exp_branch, NULL, NULL, false);
     // Memory address in question is stored in AX but we need it in BX so it can be accessed later.
     do_asm("mov bx, ax");
 
@@ -869,7 +886,7 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
     do_asm("pop ax");
     do_asm("; END OF POINTER HANDLING ");
 
-    this->handling_pointer = false;
+    this->is_handling_pointer = false;
 }
 
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
@@ -1194,6 +1211,31 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     make_exact_label(false_label);
 
 
+}
+
+bool CodeGen8086::has_postponed_pointer_handling()
+{
+    return !this->current_pointers_to_handle.empty();
+}
+
+void CodeGen8086::postpone_pointer_handling()
+{
+    struct HANDLING_POINTER handling_ptr;
+    handling_ptr.is_handling = this->is_handling_pointer;
+    handling_ptr.pointer_selected_variable = this->pointer_selected_variable;
+    this->current_pointers_to_handle.push_back(handling_ptr);
+
+    // Now reset
+    this->is_handling_pointer = false;
+    this->pointer_selected_variable = NULL;
+}
+
+void CodeGen8086::prepone_pointer_handling()
+{
+    struct HANDLING_POINTER handling_ptr = this->current_pointers_to_handle.back();
+    this->is_handling_pointer = handling_ptr.is_handling;
+    this->pointer_selected_variable = handling_ptr.pointer_selected_variable;
+    this->current_pointers_to_handle.pop_back();
 }
 
 int CodeGen8086::getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch)
