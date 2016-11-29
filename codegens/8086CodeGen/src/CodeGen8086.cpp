@@ -749,7 +749,7 @@ std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> va
         }
         else
         {
-            do_asm("mov " + base_reg + ", bp");
+            do_asm("mov " + base_reg + ", " + var_addr.segment);
         }
         make_var_access_rel_base(var_branch, vdef_in_question_branch, base_reg);
         // When arrays are used we need to add on the offset.
