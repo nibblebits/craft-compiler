@@ -49,8 +49,12 @@ CodeGen8086::~CodeGen8086()
 struct formatted_segment CodeGen8086::format_segment(std::string segment_name)
 {
     struct formatted_segment segment;
-    segment.start_segment = segment_name + " segment";
-    segment.end_segment = "ends";
+
+    // Temp replacement due to the fact I can't change segment locations in the emulator, should change back once no longer emulating.
+    segment.start_segment = "; " + segment_name + " SEGMENT";
+    segment.end_segment = "; END SEGMENT";
+    // segment.start_segment = segment_name + " segment";
+    //segment.end_segment = "ends";
     return segment;
 }
 
@@ -306,7 +310,7 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
                 }
                 else
                 {
-                    
+
                     // This is pointing to a byte 
                     do_asm("xor " + register_to_store + ", " + register_to_store);
                     do_asm("mov " + convert_full_reg_to_low_reg(register_to_store) + ", [bx]");
@@ -587,7 +591,16 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
         reg = convert_full_reg_to_low_reg(reg);
     }
 
-    do_asm("mov " + reg + ", " + "[" + pos + "]");
+    // Global variables must be accessed different
+    if (hasGlobalVariable(variable_branch->getVariableIdentifierBranch()))
+    {
+        do_asm("mov bx, " + pos);
+        do_asm("mov " + reg + ", " + "[bx]");
+    }
+    else
+    {
+        do_asm("mov " + reg + ", " + "[" + pos + "]");
+    }
 }
 
 void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch)
@@ -842,7 +855,7 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
     make_expression(exp_branch);
     // Memory address in question is stored in AX but we need it in BX so it can be accessed later.
     do_asm("mov bx, ax");
-    
+
     // Restore AX
     do_asm("pop ax");
     do_asm("; END OF POINTER HANDLING ");
@@ -955,7 +968,7 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
     else if (branch->getType() == "V_DEF" ||
             branch->getType() == "STRUCT_DEF")
     {
-        handle_scope_variable_declaration(branch);
+        handle_scope_variable_declaration(std::dynamic_pointer_cast<VDEFBranch>(branch));
     }
     else if (branch->getType() == "IF")
     {
@@ -1065,14 +1078,13 @@ void CodeGen8086::handle_compare_expression()
 
 }
 
-void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<Branch> branch)
+void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> def_branch)
 {
     // Register a scope variable
-    this->scope_variables.push_back(branch);
+    this->scope_variables.push_back(def_branch);
 
 
     // Handle the variable declaration
-    std::shared_ptr<VDEFBranch> def_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
     std::shared_ptr<Branch> variable_branch = def_branch->getVariableIdentifierBranch();
     std::shared_ptr<Branch> value_branch = def_branch->getValueExpBranch();
 
@@ -1385,6 +1397,19 @@ int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
     }
 
     return offset;
+}
+
+bool CodeGen8086::hasGlobalVariable(std::shared_ptr<VarIdentifierBranch> var_branch)
+{
+    std::string var_name = var_branch->getVariableNameBranch()->getValue();
+    for (std::shared_ptr<VDEFBranch> global_var_branch : this->global_variables)
+    {
+        std::string global_var_name = global_var_branch->
+                getVariableIdentifierBranch()->getVariableNameBranch()->getValue();
+        if (var_name == global_var_name)
+            return true;
+    }
+    return false;
 }
 
 bool CodeGen8086::hasScopeVariable(std::shared_ptr<Branch> var_branch)

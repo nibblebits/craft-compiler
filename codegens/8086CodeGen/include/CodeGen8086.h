@@ -104,7 +104,7 @@ public:
     void handle_scope_return(std::shared_ptr<Branch> branch);
     void handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Branch> branch);
     void handle_compare_expression();
-    void handle_scope_variable_declaration(std::shared_ptr<Branch> branch);
+    void handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> branch);
     void handle_if_stmt(std::shared_ptr<IFBranch> branch);
     void handle_for_stmt(std::shared_ptr<FORBranch> branch);
 
@@ -120,6 +120,7 @@ public:
     int getPosForStructureVariable(std::shared_ptr<Branch> branch);
     int getStructSize(std::string struct_name);
     int getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch);
+    bool hasGlobalVariable(std::shared_ptr<VarIdentifierBranch> var_branch);
     bool hasScopeVariable(std::shared_ptr<Branch> var_branch);
     bool hasArgumentVariable(std::shared_ptr<Branch> var_branch);
     int getVariableType(std::shared_ptr<Branch> var_branch);
@@ -145,8 +146,8 @@ private:
     Compiler* compiler;
     std::shared_ptr<Linker> linker;
     std::vector<std::shared_ptr<Branch>> func_arguments;
-    std::vector<std::shared_ptr<Branch>> global_variables;
-    std::vector<std::shared_ptr<Branch>> scope_variables;
+    std::vector<std::shared_ptr<VDEFBranch>> global_variables;
+    std::vector<std::shared_ptr<VDEFBranch>> scope_variables;
     std::vector<std::shared_ptr<STRUCTBranch>> structures;
     std::shared_ptr<STRUCTBranch> last_structure;
 
