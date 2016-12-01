@@ -25,21 +25,26 @@
 #ifndef FORBRANCH_H
 #define FORBRANCH_H
 
-#include "CustomBranch.h"
-class EXPORT FORBranch : public CustomBranch {
+#include "ScopeBranch.h"
+
+class BODYBranch;
+class EXPORT FORBranch : public ScopeBranch
+{
 public:
     FORBranch(Compiler* compiler);
     virtual ~FORBranch();
-    
+
     void setInitBranch(std::shared_ptr<Branch> branch);
     void setCondBranch(std::shared_ptr<Branch> branch);
     void setLoopBranch(std::shared_ptr<Branch> branch);
-    void setBodyBranch(std::shared_ptr<Branch> branch);
-    
+    void setBodyBranch(std::shared_ptr<BODYBranch> branch);
+
     std::shared_ptr<Branch> getInitBranch();
     std::shared_ptr<Branch> getCondBranch();
     std::shared_ptr<Branch> getLoopBranch();
-    std::shared_ptr<Branch> getBodyBranch();
+    std::shared_ptr<BODYBranch> getBodyBranch();
+
+    virtual int getScopeSize(bool include_subscopes=false);
 private:
 
 };

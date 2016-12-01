@@ -74,6 +74,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/STRUCTBranch.o \
 	${OBJECTDIR}/src/STRUCTDEFBranch.o \
 	${OBJECTDIR}/src/Scope.o \
+	${OBJECTDIR}/src/ScopeBranch.o \
 	${OBJECTDIR}/src/Stream.o \
 	${OBJECTDIR}/src/Token.o \
 	${OBJECTDIR}/src/Tree.o \
@@ -305,6 +306,11 @@ ${OBJECTDIR}/src/Scope.o: src/Scope.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Scope.o src/Scope.cpp
+
+${OBJECTDIR}/src/ScopeBranch.o: src/ScopeBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ScopeBranch.o src/ScopeBranch.cpp
 
 ${OBJECTDIR}/src/Stream.o: src/Stream.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

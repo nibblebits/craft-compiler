@@ -25,8 +25,10 @@
  */
 
 #include "FORBranch.h"
+#include "BODYBranch.h"
+#include "VDEFBranch.h"
 
-FORBranch::FORBranch(Compiler* compiler) : CustomBranch(compiler, "FOR", "")
+FORBranch::FORBranch(Compiler* compiler) : ScopeBranch(compiler, "FOR", "")
 {
 }
 
@@ -49,7 +51,7 @@ void FORBranch::setLoopBranch(std::shared_ptr<Branch> branch)
     CustomBranch::registerBranch("loop_branch", branch);
 }
 
-void FORBranch::setBodyBranch(std::shared_ptr<Branch> branch)
+void FORBranch::setBodyBranch(std::shared_ptr<BODYBranch> branch)
 {
     CustomBranch::registerBranch("body_branch", branch);
 }
@@ -69,7 +71,23 @@ std::shared_ptr<Branch> FORBranch::getLoopBranch()
     return CustomBranch::getRegisteredBranchByName("loop_branch");
 }
 
-std::shared_ptr<Branch> FORBranch::getBodyBranch()
+std::shared_ptr<BODYBranch> FORBranch::getBodyBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("body_branch");
+    return std::dynamic_pointer_cast<BODYBranch>(CustomBranch::getRegisteredBranchByName("body_branch"));
+}
+
+int FORBranch::getScopeSize(bool include_subscopes)
+{
+    int size = 0;
+    std::shared_ptr<Branch> init_branch = getInitBranch();
+    if (init_branch->getType() == "V_DEF")
+    {
+        std::shared_ptr<VDEFBranch> vdef_init_branch = std::dynamic_pointer_cast<VDEFBranch>(init_branch);
+        // The INIT branch of our "for" loop is a V_DEF so its a declaration, which means it has a size
+        size = getCompiler()->getSizeOfVarDef(vdef_init_branch);
+    }
+    
+    std::shared_ptr<BODYBranch> body_branch = getBodyBranch();
+    size += body_branch->getScopeSize();
+    return size;
 }

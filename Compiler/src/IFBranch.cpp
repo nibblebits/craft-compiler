@@ -90,6 +90,6 @@ bool IFBranch::hasElseIfBranch()
     {
         return true;
     }
-    
+
     return false;
 }

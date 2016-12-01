@@ -1250,7 +1250,7 @@ void Parser::process_for_stmt()
     std::shared_ptr<Branch> init_var = NULL;
     std::shared_ptr<Branch> cond_exp = NULL;
     std::shared_ptr<Branch> loop_stmt = NULL;
-    std::shared_ptr<Branch> body = NULL;
+    std::shared_ptr<BODYBranch> body = NULL;
 
     // Handle the init part of the statement
 
@@ -1336,7 +1336,8 @@ void Parser::process_for_stmt()
     process_body();
     // Pop the resulting body from the stack
     pop_branch();
-    body = this->branch;
+    
+    body = std::dynamic_pointer_cast<BODYBranch>(this->branch);
 
     // Put it all together
     std::shared_ptr<FORBranch> for_stmt = std::shared_ptr<FORBranch>(new FORBranch(compiler));

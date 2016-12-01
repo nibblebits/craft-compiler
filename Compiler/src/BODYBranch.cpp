@@ -26,11 +26,37 @@
 
 #include "BODYBranch.h"
 #include "VDEFBranch.h"
+#include "FORBranch.h"
 
-BODYBranch::BODYBranch(Compiler* compiler) : CustomBranch(compiler, "BODY", "")
+BODYBranch::BODYBranch(Compiler* compiler) : ScopeBranch(compiler, "BODY", "")
 {
 }
 
 BODYBranch::~BODYBranch()
 {
+}
+
+int BODYBranch::getScopeSize(bool include_subscopes)
+{
+    int size = 0;
+    for (std::shared_ptr<Branch> child : this->getChildren())
+    {
+        std::string child_type = child->getType();
+        if (child_type == "V_DEF" ||
+                child_type == "STRUCT_DEF")
+        {
+            std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(child);
+            size += vdef_branch->getDataTypeSize();
+        }
+        else if(include_subscopes)
+        {
+            if (child_type == "FOR")
+            {
+                std::shared_ptr<FORBranch> for_branch = std::dynamic_pointer_cast<FORBranch>(child);
+                size += for_branch->getScopeSize();
+            }
+        }
+    }
+
+    return size;
 }

@@ -49,6 +49,7 @@
 #include "FORBranch.h"
 #include "ArrayIndexBranch.h"
 #include "VarIdentifierBranch.h"
+#include "ScopeBranch.h"
 
 #endif /* BRANCHES_H */
 

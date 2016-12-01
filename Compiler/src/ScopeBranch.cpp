@@ -16,28 +16,19 @@
  */
 
 /* 
- * File:   BODYBranch.h
+ * File:   ScopeBranch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 19 October 2016, 16:04
+ * Created on 01 December 2016, 17:25
+ * 
+ * Description: Abstract class extended by all branches who hold a scope.
  */
-
-#ifndef BODYBRANCH_H
-#define BODYBRANCH_H
 
 #include "ScopeBranch.h"
 
-class EXPORT BODYBranch : public ScopeBranch
-{
-public:
-    BODYBranch(Compiler* compiler);
-    virtual ~BODYBranch();
+ScopeBranch::ScopeBranch(Compiler* compiler, std::string name, std::string value) : CustomBranch(compiler, name, value) {
+}
 
-    virtual int getScopeSize(bool include_subscopes=false);
-
-private:
-
-};
-
-#endif /* BODYBRANCH_H */
+ScopeBranch::~ScopeBranch() {
+}
 

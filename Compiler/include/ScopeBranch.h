@@ -16,28 +16,26 @@
  */
 
 /* 
- * File:   BODYBranch.h
+ * File:   ScopeBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 19 October 2016, 16:04
+ * Created on 01 December 2016, 17:25
  */
 
-#ifndef BODYBRANCH_H
-#define BODYBRANCH_H
+#ifndef SCOPEBRANCH_H
+#define SCOPEBRANCH_H
 
-#include "ScopeBranch.h"
+#include "CustomBranch.h"
 
-class EXPORT BODYBranch : public ScopeBranch
+class EXPORT ScopeBranch : public CustomBranch
 {
 public:
-    BODYBranch(Compiler* compiler);
-    virtual ~BODYBranch();
-
-    virtual int getScopeSize(bool include_subscopes=false);
-
+    ScopeBranch(Compiler* compiler, std::string name, std::string value);
+    virtual ~ScopeBranch();
+    virtual int getScopeSize(bool include_subscopes=false) = 0;
 private:
 
 };
 
-#endif /* BODYBRANCH_H */
+#endif /* SCOPEBRANCH_H */
 

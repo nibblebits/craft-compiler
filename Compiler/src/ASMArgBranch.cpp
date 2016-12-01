@@ -47,10 +47,10 @@ void ASMArgBranch::setNextStringBranch(std::shared_ptr<Branch> next_string_branc
 
 std::shared_ptr<Branch> ASMArgBranch::getArgumentValueBranch()
 {
-    CustomBranch::getRegisteredBranchByName("argument_value_branch");
+    return CustomBranch::getRegisteredBranchByName("argument_value_branch");
 }
 std::shared_ptr<Branch> ASMArgBranch::getNextStringBranch()       
 {
-    CustomBranch::getRegisteredBranchByName("next_string_branch");
+    return CustomBranch::getRegisteredBranchByName("next_string_branch");
 }
 
