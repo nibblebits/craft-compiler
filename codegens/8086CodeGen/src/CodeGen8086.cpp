@@ -90,6 +90,21 @@ std::string CodeGen8086::make_string(std::shared_ptr<Branch> string_branch)
     return label_name;
 }
 
+void CodeGen8086::make_inline_asm(std::shared_ptr<ASMBranch> asm_branch)
+{
+    std::string asm_str = asm_branch->getInstructionStartStringBranch()->getValue();
+    for (std::shared_ptr<Branch> child_branch : asm_branch->getInstructionArgumentsBranch()->getChildren())
+    {
+        std::shared_ptr<ASMArgBranch> arg_child_branch = std::dynamic_pointer_cast<ASMArgBranch>(child_branch);
+        std::shared_ptr<Branch> arg_child_value_branch = arg_child_branch->getArgumentValueBranch();
+        // Assumed to be variable, will crash in certain cases.
+        std::string asm_addr = getASMAddressForVariableFormatted(arg_child_value_branch);
+        asm_str += asm_addr + arg_child_branch->getNextStringBranch()->getValue();
+    }
+
+    do_asm(asm_str);
+}
+
 void CodeGen8086::make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp)
 {
     make_label(name);
@@ -982,6 +997,11 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
         std::shared_ptr<AssignBranch> assign_branch = std::dynamic_pointer_cast<AssignBranch>(branch);
         handle_scope_assignment(assign_branch);
     }
+    else if (branch->getType() == "ASM")
+    {
+        std::shared_ptr<ASMBranch> asm_branch = std::dynamic_pointer_cast<ASMBranch>(branch);
+        make_inline_asm(asm_branch);
+    }
     else if (branch->getType() == "FUNC_CALL")
     {
         std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(branch);
@@ -1700,6 +1720,11 @@ void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
     {
         std::shared_ptr<FuncBranch> func_branch = std::dynamic_pointer_cast<FuncBranch>(branch);
         handle_function(func_branch);
+    }
+    else if (branch->getType() == "ASM")
+    {
+        std::shared_ptr<ASMBranch> asm_branch = std::dynamic_pointer_cast<ASMBranch>(branch);
+        make_inline_asm(asm_branch);
     }
     else if (branch->getType() == "STRUCT")
     {

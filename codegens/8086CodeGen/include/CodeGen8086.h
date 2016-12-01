@@ -80,6 +80,7 @@ public:
     inline std::string build_unique_label();
 
     std::string make_string(std::shared_ptr<Branch> string_branch);
+    void make_inline_asm(std::shared_ptr<ASMBranch> asm_branch);
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
     void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word = false, std::function<void() > assignment_val_processed = NULL);
     void make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func = NULL, std::function<void() > exp_end_func = NULL, bool postpone_pointer=true);
