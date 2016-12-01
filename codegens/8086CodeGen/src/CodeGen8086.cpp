@@ -870,6 +870,17 @@ void CodeGen8086::calculate_scope_size(std::shared_ptr<Branch> body_branch)
             std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(stmt);
             this->scope_size += getSizeOfVariableBranch(vdef_branch);
         }
+        else if(stmt->getType() == "FOR")
+        {
+            std::shared_ptr<FORBranch> for_branch = std::dynamic_pointer_cast<FORBranch>(stmt);
+            std::shared_ptr<Branch> init_branch = for_branch->getInitBranch();
+            if (init_branch->getType() == "V_DEF")
+            {
+                // Ok the init branch of the FOR loop is a V_DEF so lets add it to the scope size
+                this->scope_size += getSizeOfVariableBranch(std::dynamic_pointer_cast<VDEFBranch>(init_branch));
+            }
+            
+        }
     }
 
     // Generate some ASM to reserve space on the stack for this scope
