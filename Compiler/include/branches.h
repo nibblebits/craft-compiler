@@ -34,6 +34,7 @@
 #include "MathEBranch.h"
 #include "EBranch.h"
 #include "ASMBranch.h"
+#include "ASMArgBranch.h"
 #include "ASMArgsBranch.h"
 #include "ArrayBranch.h"
 #include "FuncCallBranch.h"

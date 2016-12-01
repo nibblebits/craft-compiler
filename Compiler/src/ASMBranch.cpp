@@ -35,9 +35,9 @@ ASMBranch::~ASMBranch()
 {
 }
 
-void ASMBranch::setInstructionStringBranch(std::shared_ptr<Branch> branch)
+void ASMBranch::setInstructionStartStringBranch(std::shared_ptr<Branch> branch)
 {
-    CustomBranch::registerBranch("instruction_str_branch", branch);
+    CustomBranch::registerBranch("instruction_start_str_branch", branch);
 }
 
 void ASMBranch::setInstructionArgumentsBranch(std::shared_ptr<Branch> branch)
@@ -45,9 +45,9 @@ void ASMBranch::setInstructionArgumentsBranch(std::shared_ptr<Branch> branch)
     CustomBranch::registerBranch("instruction_args_branch", branch);
 }
 
-std::shared_ptr<Branch> ASMBranch::getInstructionStringBranch()
+std::shared_ptr<Branch> ASMBranch::getInstructionStartStringBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("instruction_str_branch");
+    return CustomBranch::getRegisteredBranchByName("instruction_start_str_branch");
 }
 
 std::shared_ptr<Branch> ASMBranch::getInstructionArgumentsBranch()

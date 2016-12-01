@@ -48,6 +48,7 @@ public:
     void exclude(bool excluded);
     bool excluded();
     void setParent(std::shared_ptr<Branch> branch);
+    void setValue(std::string value);
     std::shared_ptr<Branch> getFirstChild();
     std::shared_ptr<Branch> getSecondChild();
     std::shared_ptr<Branch> getThirdChild();

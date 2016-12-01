@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/src/ASMArgBranch.o \
 	${OBJECTDIR}/src/ASMArgsBranch.o \
 	${OBJECTDIR}/src/ASMBranch.o \
 	${OBJECTDIR}/src/ASTAssistant.o \
@@ -105,6 +106,11 @@ LDLIBSOPTIONS=
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/compiler.exe: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/compiler ${OBJECTFILES} ${LDLIBSOPTIONS}
+
+${OBJECTDIR}/src/ASMArgBranch.o: src/ASMArgBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASMArgBranch.o src/ASMArgBranch.cpp
 
 ${OBJECTDIR}/src/ASMArgsBranch.o: src/ASMArgsBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

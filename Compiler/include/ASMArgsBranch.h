@@ -26,7 +26,7 @@
 #define ASMARGSBRANCH_H
 
 #include "CustomBranch.h"
-class ASMArgsBranch : public CustomBranch {
+class EXPORT ASMArgsBranch : public CustomBranch {
 public:
     ASMArgsBranch(Compiler* compiler);
     virtual ~ASMArgsBranch();

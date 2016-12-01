@@ -95,7 +95,7 @@ void Parser::process_top()
                 }
             }
         }
-        else if(keyword_value == "__asm")
+        else if (keyword_value == "__asm")
         {
             process_inline_asm();
             process_semicolon();
@@ -233,10 +233,14 @@ void Parser::process_inline_asm()
             // Process the expression
             process_expression();
             // Pop off the result
-            pop_branch();       
+            pop_branch();
+
+            std::shared_ptr<ASMArgBranch> asm_arg_branch = std::shared_ptr<ASMArgBranch>(new ASMArgBranch(this->compiler));
+            asm_arg_branch->setArgumentValueBranch(this->branch);
+
             // Store it in the assembly arguments
-            asm_args->addChild(this->branch);
-            
+            asm_args->addChild(asm_arg_branch);
+
             // Next! 
             shift_pop();
         }
@@ -248,11 +252,52 @@ void Parser::process_inline_asm()
         error_expecting(")", this->branch_value);
     }
 
-    
+
+    // We must now iterate through the given assembly string and modify the branches appropriately, %i signifies an argument must go here.
+    std::string string_value = string_branch->getValue();
+
+    // Concat the first string
+    std::size_t found = string_value.find("%i", 2);
+    if (found != std::string::npos)
+    {
+        // Update the string branch with the starting string.
+        std::string starting_string = string_value.substr(0, found);
+        string_branch->setValue(starting_string);
+
+        std::size_t start_offset = found + 2;
+        int t_found = 1;
+        // Ok brilliant, now its time to handle all the arguments
+        for (std::shared_ptr<Branch> child : asm_args->getChildren())
+        {
+            std::shared_ptr<ASMArgBranch> arg_branch = std::dynamic_pointer_cast<ASMArgBranch>(child);
+            std::string next_string = "";
+            found = string_value.find("%i", start_offset, 2);
+            if (found != std::string::npos)
+            {
+                std::size_t end_offset = found;
+                next_string = string_value.substr(start_offset, end_offset - start_offset);
+                start_offset = found + 2;
+                t_found++;
+            }
+            else
+            {
+                next_string = string_value.substr(start_offset);
+            }
+            std::shared_ptr<Branch> next_string_branch = std::shared_ptr<Branch>(new Branch("string", next_string));
+            arg_branch->setNextStringBranch(next_string_branch);
+        }
+
+        // Check for an error
+        if (t_found != asm_args->getChildren().size())
+        {
+            error("string shows more arguments than defined in the __asm arguments");
+        }
+    }
+
     std::shared_ptr<ASMBranch> asm_branch = std::shared_ptr<ASMBranch>(new ASMBranch(this->compiler));
-    asm_branch->setInstructionStringBranch(string_branch);
+    asm_branch->setInstructionStartStringBranch(string_branch);
     asm_branch->setInstructionArgumentsBranch(asm_args);
-    
+
     // Push the resulting ASM branch to the stack
     push_branch(asm_branch);
 }
@@ -384,7 +429,7 @@ void Parser::process_stmt()
             // Process the "if" statement
             process_if_stmt();
         }
-        else if(is_peak_value("__asm"))
+        else if (is_peak_value("__asm"))
         {
             process_inline_asm();
             process_semicolon();

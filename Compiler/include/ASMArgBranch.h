@@ -16,29 +16,29 @@
  */
 
 /* 
- * File:   ASMBranch.h
+ * File:   ASMArgBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 06 July 2016, 19:39
+ * Created on 01 December 2016, 10:09
  */
 
-#ifndef ASMBRANCH_H
-#define ASMBRANCH_H
+#ifndef ASMARGBRANCH_H
+#define ASMARGBRANCH_H
 
 #include "CustomBranch.h"
-class EXPORT ASMBranch : public CustomBranch {
+class EXPORT ASMArgBranch : public CustomBranch {
 public:
-    ASMBranch(Compiler* compiler);
-    virtual ~ASMBranch();
+    ASMArgBranch(Compiler* compiler);
+    virtual ~ASMArgBranch();
     
-    void setInstructionStartStringBranch(std::shared_ptr<Branch> branch);
-    void setInstructionArgumentsBranch(std::shared_ptr<Branch> branch);
+    void setArgumentValueBranch(std::shared_ptr<Branch> arg_value_branch);
+    void setNextStringBranch(std::shared_ptr<Branch> next_string_branch);
     
-    std::shared_ptr<Branch> getInstructionStartStringBranch();
-    std::shared_ptr<Branch> getInstructionArgumentsBranch();
+    std::shared_ptr<Branch> getArgumentValueBranch();
+    std::shared_ptr<Branch> getNextStringBranch();
 private:
 
 };
 
-#endif /* ASMBRANCH_H */
+#endif /* ASMARGBRANCH_H */
 

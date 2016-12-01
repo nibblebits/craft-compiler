@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/src/ASMArgBranch.o \
 	${OBJECTDIR}/src/ASMArgsBranch.o \
 	${OBJECTDIR}/src/ASMBranch.o \
 	${OBJECTDIR}/src/ASTAssistant.o \
@@ -109,6 +110,11 @@ LDLIBSOPTIONS=../bin/GoblinArgumentParser.dll ../bin/GoblinLibraryLoader.dll
 ../bin/Compiler.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ../bin
 	${LINK.cc} -o ../bin/Compiler.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
+
+${OBJECTDIR}/src/ASMArgBranch.o: src/ASMArgBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASMArgBranch.o src/ASMArgBranch.cpp
 
 ${OBJECTDIR}/src/ASMArgsBranch.o: src/ASMArgsBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

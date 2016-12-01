@@ -4,6 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>include/ASMArgBranch.h</itemPath>
       <itemPath>include/ASMArgsBranch.h</itemPath>
       <itemPath>include/ASMBranch.h</itemPath>
       <itemPath>include/ASTAssistant.h</itemPath>
@@ -69,6 +70,7 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>src/ASMArgBranch.cpp</itemPath>
       <itemPath>src/ASMArgsBranch.cpp</itemPath>
       <itemPath>src/ASMBranch.cpp</itemPath>
       <itemPath>src/ASTAssistant.cpp</itemPath>
@@ -155,6 +157,8 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
+      <item path="include/ASMArgBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/ASMArgsBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ASMBranch.h" ex="false" tool="3" flavor2="0">
@@ -271,6 +275,8 @@
       <item path="include/def.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/structs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/ASMArgBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/ASMArgsBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -383,6 +389,8 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
+      <item path="include/ASMArgBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/ASMArgsBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ASMBranch.h" ex="false" tool="3" flavor2="0">
@@ -499,6 +507,8 @@
       <item path="include/def.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/structs.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/ASMArgBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/ASMArgsBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
