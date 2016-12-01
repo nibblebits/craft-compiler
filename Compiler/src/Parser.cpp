@@ -95,6 +95,11 @@ void Parser::process_top()
                 }
             }
         }
+        else if(keyword_value == "__asm")
+        {
+            process_inline_asm();
+            process_semicolon();
+        }
         else
         {
             peak(1);
@@ -195,6 +200,61 @@ void Parser::process_macro()
     {
         error("invalid macro.");
     }
+}
+
+void Parser::process_inline_asm()
+{
+    // Pop the ASM keyword
+    shift_pop();
+    if (!is_branch_keyword("__asm"))
+    {
+        error_expecting("__asm", this->branch_value);
+    }
+
+    shift_pop();
+    if (!is_branch_symbol("("))
+    {
+        error_expecting("(", this->branch_value);
+    }
+
+    shift_pop();
+    if (!is_branch_type("string"))
+    {
+        error_expecting("string", this->branch_type);
+    }
+
+    std::shared_ptr<Branch> string_branch = this->branch;
+    std::shared_ptr<ASMArgsBranch> asm_args = std::shared_ptr<ASMArgsBranch>(new ASMArgsBranch(this->compiler));
+    shift_pop();
+    if (is_branch_symbol(","))
+    {
+        do
+        {
+            // Process the expression
+            process_expression();
+            // Pop off the result
+            pop_branch();       
+            // Store it in the assembly arguments
+            asm_args->addChild(this->branch);
+            
+            // Next! 
+            shift_pop();
+        }
+        while (is_branch_symbol(","));
+    }
+
+    if (!is_branch_symbol(")"))
+    {
+        error_expecting(")", this->branch_value);
+    }
+
+    
+    std::shared_ptr<ASMBranch> asm_branch = std::shared_ptr<ASMBranch>(new ASMBranch(this->compiler));
+    asm_branch->setInstructionStringBranch(string_branch);
+    asm_branch->setInstructionArgumentsBranch(asm_args);
+    
+    // Push the resulting ASM branch to the stack
+    push_branch(asm_branch);
 }
 
 /* 
@@ -323,6 +383,11 @@ void Parser::process_stmt()
         {
             // Process the "if" statement
             process_if_stmt();
+        }
+        else if(is_peak_value("__asm"))
+        {
+            process_inline_asm();
+            process_semicolon();
         }
         else if (is_peak_value("struct"))
         {

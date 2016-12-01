@@ -16,26 +16,19 @@
  */
 
 /* 
- * File:   STRUCTDEFBranch.h
+ * File:   ASMArgsBranch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 14 October 2016, 04:20
+ * Created on 01 December 2016, 09:51
+ * 
+ * Description: 
  */
 
-#ifndef STRUCTDEFBRANCH_H
-#define STRUCTDEFBRANCH_H
+#include "ASMArgsBranch.h"
 
-#include "VDEFBranch.h"
+ASMArgsBranch::ASMArgsBranch(Compiler* compiler) : CustomBranch(compiler, "ASM_ARGS", "") {
+}
 
-class EXPORT STRUCTDEFBranch : public VDEFBranch
-{
-public:
-    STRUCTDEFBranch(Compiler* compiler);
-    virtual ~STRUCTDEFBranch();
-    
-private:
-
-};
-
-#endif /* STRUCTDEFBRANCH_H */
+ASMArgsBranch::~ASMArgsBranch() {
+}
 

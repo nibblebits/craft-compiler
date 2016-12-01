@@ -145,13 +145,18 @@ int Compiler::getPrimitiveDataTypeSize(std::string type)
     }
 }
 
-int Compiler::getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> branch)
+int Compiler::getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> branch, bool no_pointer)
 {
     std::string type = branch->getType();
     int size = 0;
-    if (branch->isPointer())
+    
+    // Sometimes people may want to get the data type size as if the branch was not a pointer.
+    if (!no_pointer)
     {
-        return this->codeGenerator->getPointerSize();
+        if (branch->isPointer())
+        {
+            return this->codeGenerator->getPointerSize();
+        }
     }
     if (type == "STRUCT_DEF")
     {
@@ -166,7 +171,7 @@ int Compiler::getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> branch)
     else if (type == "V_DEF")
     {
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
-        size = vdef_branch->getDataTypeSize();
+        size = getPrimitiveDataTypeSize(vdef_branch->getDataTypeBranch()->getValue());
     }
 
     return size;

@@ -60,6 +60,7 @@ public:
 private:
     void process_top();
     void process_macro();
+    void process_inline_asm();
     void process_function();
     void process_body();
     void process_stmt();

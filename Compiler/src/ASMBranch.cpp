@@ -20,20 +20,37 @@
  * Author: Daniel McCarthy
  *
  * Created on 06 July 2016, 19:39
+ * Rewrote on 01 December 2016, 09:42
  * 
  * Description: The branch object that represents an "ASM" branch
  */
 
 #include "ASMBranch.h"
 
-ASMBranch::ASMBranch(Compiler* compiler) : CustomBranch(compiler, "ASM", "") {
-}
-
-ASMBranch::~ASMBranch() {
-}
-
-
-std::vector<std::shared_ptr<Branch>> ASMBranch::getASMInstructions()
+ASMBranch::ASMBranch(Compiler* compiler) : CustomBranch(compiler, "ASM", "")
 {
-    return this->getCompiler()->getASTAssistant()->findAllChildrenOfType(this->getptr(), "string");
+}
+
+ASMBranch::~ASMBranch()
+{
+}
+
+void ASMBranch::setInstructionStringBranch(std::shared_ptr<Branch> branch)
+{
+    CustomBranch::registerBranch("instruction_str_branch", branch);
+}
+
+void ASMBranch::setInstructionArgumentsBranch(std::shared_ptr<Branch> branch)
+{
+    CustomBranch::registerBranch("instruction_args_branch", branch);
+}
+
+std::shared_ptr<Branch> ASMBranch::getInstructionStringBranch()
+{
+    return CustomBranch::getRegisteredBranchByName("instruction_str_branch");
+}
+
+std::shared_ptr<Branch> ASMBranch::getInstructionArgumentsBranch()
+{
+    return CustomBranch::getRegisteredBranchByName("instruction_args_branch");
 }

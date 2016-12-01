@@ -103,7 +103,7 @@ bool VDEFBranch::isPrimitive()
     return this->getCompiler()->isPrimitiveDataType(data_type_branch->getValue());
 }
 
-int VDEFBranch::getDataTypeSize()
+int VDEFBranch::getDataTypeSize(bool no_pointer)
 {
-    return this->getCompiler()->getPrimitiveDataTypeSize(getDataTypeBranch()->getValue());
+    return this->getCompiler()->getDataTypeSizeFromVarDef(std::dynamic_pointer_cast<VDEFBranch>(this->getptr()), no_pointer);
 }

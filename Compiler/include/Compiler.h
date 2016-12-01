@@ -40,6 +40,7 @@
 class VDEFBranch;
 class STRUCTBranch;
 class ArrayIndexBranch;
+
 class EXPORT Compiler
 {
 public:
@@ -52,21 +53,21 @@ public:
     Parser* getParser();
     TypeChecker* getTypeChecker();
     ASTAssistant* getASTAssistant();
-    std::shared_ptr<CodeGenerator> getCodeGenerator();
+    std::shared_ptr<CodeGenerator> getCodeGenerator(); 
     std::shared_ptr<Linker> getLinker();
     int getSizeOfVarDef(std::shared_ptr<VDEFBranch> vdef_branch);
-   
+
     static bool isPrimitiveDataType(std::string type);
     static int getPrimitiveDataTypeSize(std::string type);
-    int getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> vdef_branch);
+    int getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> vdef_branch, bool no_pointer=false);
     int getSizeOfStructure(std::shared_ptr<STRUCTBranch> structure);
     int getSumOfArrayIndexes(std::shared_ptr<ArrayIndexBranch> root_array_index_branch);
-    
+
     std::string getTypeFromNumber(int number);
     bool canCast(std::string type1, std::string type2);
     bool isCompareOperator(std::string value);
     bool isLogicalOperator(std::string value);
-    
+
 private:
     /* Ideally these do not have to be pointers but since arguments now exist in the constructors of these objects I have ran into issues calling them.
      * I plan to change this soon */
@@ -74,7 +75,7 @@ private:
     Parser* parser;
     TypeChecker* typeChecker;
     ASTAssistant* astAssistant;
-    
+
     int pointer_size;
 
     // The code generator must be shared as we are not the sole owner of it and it would be unsafe to not have this as a shared pointer.

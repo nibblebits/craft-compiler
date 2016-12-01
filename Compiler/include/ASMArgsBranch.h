@@ -16,26 +16,24 @@
  */
 
 /* 
- * File:   STRUCTDEFBranch.h
+ * File:   ASMArgsBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 14 October 2016, 04:20
+ * Created on 01 December 2016, 09:51
  */
 
-#ifndef STRUCTDEFBRANCH_H
-#define STRUCTDEFBRANCH_H
+#ifndef ASMARGSBRANCH_H
+#define ASMARGSBRANCH_H
 
-#include "VDEFBranch.h"
-
-class EXPORT STRUCTDEFBranch : public VDEFBranch
-{
+#include "CustomBranch.h"
+class ASMArgsBranch : public CustomBranch {
 public:
-    STRUCTDEFBranch(Compiler* compiler);
-    virtual ~STRUCTDEFBranch();
-    
+    ASMArgsBranch(Compiler* compiler);
+    virtual ~ASMArgsBranch();
+   
 private:
 
 };
 
-#endif /* STRUCTDEFBRANCH_H */
+#endif /* ASMARGSBRANCH_H */
 

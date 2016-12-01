@@ -33,8 +33,3 @@ STRUCTDEFBranch::STRUCTDEFBranch(Compiler* compiler) : VDEFBranch(compiler, "STR
 STRUCTDEFBranch::~STRUCTDEFBranch()
 {
 }
-
-int STRUCTDEFBranch::getDataTypeSize()
-{
-    return getCompiler()->getDataTypeSizeFromVarDef(std::dynamic_pointer_cast<VDEFBranch>(this->getptr()));
-}

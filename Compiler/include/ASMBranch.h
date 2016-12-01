@@ -31,7 +31,11 @@ public:
     ASMBranch(Compiler* compiler);
     virtual ~ASMBranch();
     
-   std::vector<std::shared_ptr<Branch>> getASMInstructions();
+    void setInstructionStringBranch(std::shared_ptr<Branch> branch);
+    void setInstructionArgumentsBranch(std::shared_ptr<Branch> branch);
+    
+    std::shared_ptr<Branch> getInstructionStringBranch();
+    std::shared_ptr<Branch> getInstructionArgumentsBranch();
 private:
 
 };
