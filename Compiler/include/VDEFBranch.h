@@ -51,7 +51,7 @@ public:
     std::shared_ptr<Branch> getValueExpBranch();
     std::shared_ptr<Branch> getNameBranch();
 
-    int getPositionRelZero(std::function<void(std::shared_ptr<VDEFBranch> current_vdef, int *offset_adjustment) > position_alignment_proc = NULL);
+    int getPositionRelZero(bool loc_start_with_filesize=false);
 
     bool isPointer();
     bool isSigned();
