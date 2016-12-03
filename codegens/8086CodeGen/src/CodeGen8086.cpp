@@ -860,37 +860,31 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
     }
 }
 
-void CodeGen8086::calculate_scope_size(std::shared_ptr<Branch> body_branch)
+void CodeGen8086::calculate_scope_size(std::shared_ptr<ScopeBranch> scope_branch)
 {
-    for (std::shared_ptr<Branch> stmt : body_branch->getChildren())
-    {
-        if (stmt->getType() == "V_DEF" ||
-                stmt->getType() == "STRUCT_DEF")
-        {
-            std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(stmt);
-            this->scope_size += getSizeOfVariableBranch(vdef_branch);
-        }
-        else if(stmt->getType() == "FOR")
-        {
-            std::shared_ptr<FORBranch> for_branch = std::dynamic_pointer_cast<FORBranch>(stmt);
-            std::shared_ptr<Branch> init_branch = for_branch->getInitBranch();
-            if (init_branch->getType() == "V_DEF")
-            {
-                // Ok the init branch of the FOR loop is a V_DEF so lets add it to the scope size
-                this->scope_size += getSizeOfVariableBranch(std::dynamic_pointer_cast<VDEFBranch>(init_branch));
-            }
-            
-        }
-    }
+    this->scope_size = scope_branch->getScopeSize();
 
     // Generate some ASM to reserve space on the stack for this scope
     do_asm("sub sp, " + std::to_string(this->scope_size));
+
+    current_scopes.push_back(this->scope_size);
 
 }
 
 void CodeGen8086::reset_scope_size()
 {
-    this->scope_size = 0;
+    // Add the stack pointer by the scope size so the memory is recycled.
+    do_asm("add sp, " + std::to_string(this->scope_size));
+    current_scopes.pop_back();
+
+    if (current_scopes.empty())
+    {
+        this->scope_size = 0;
+    }
+    else
+    {
+        this->scope_size = current_scopes.back();
+    }
 }
 
 void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
@@ -973,13 +967,11 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     handle_func_args(arguments_branch);
 
     // First we need to calculate the entire scope size, its important
-    calculate_scope_size(body_branch);
+    calculate_scope_size(std::dynamic_pointer_cast<ScopeBranch>(body_branch));
 
     // Handle the body
     handle_body(body_branch);
 
-    // Reset the scope size
-    reset_scope_size();
 
 }
 
@@ -1081,9 +1073,8 @@ void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
         make_expression(return_child);
     }
 
+    reset_scope_size();
 
-    // Readjust the stack pointer back to normal
-    do_asm("add sp, " + std::to_string(this->scope_size));
     // Pop from the stack back to the BP(Base Pointer) now we are leaving this function
     do_asm("pop bp");
     do_asm("ret");
@@ -1140,7 +1131,6 @@ void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> 
     // Register a scope variable
     this->scope_variables.push_back(def_branch);
 
-
     // Handle the variable declaration
     std::shared_ptr<Branch> variable_branch = def_branch->getVariableIdentifierBranch();
     std::shared_ptr<Branch> value_branch = def_branch->getValueExpBranch();
@@ -1155,7 +1145,7 @@ void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> 
 void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
 {
     std::shared_ptr<Branch> exp_branch = branch->getExpressionBranch();
-    std::shared_ptr<Branch> body_branch = branch->getBodyBranch();
+    std::shared_ptr<BODYBranch> body_branch = branch->getBodyBranch();
 
     // Process the expression of the "IF" statement
     make_expression(exp_branch);
@@ -1172,8 +1162,12 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
     // This is where we will jump if its true
     make_exact_label(true_label);
 
+    calculate_scope_size(body_branch);
+    
     // Handle the "IF" statements body.
     handle_body(body_branch);
+    
+    reset_scope_size();
 
     // This is where we will jump if its false, the body will never be run.
     make_exact_label(false_label);
@@ -1210,6 +1204,9 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     std::string false_label = build_unique_label();
     std::string loop_label = build_unique_label();
 
+    // Calculate the scope size for the "for" loop
+    calculate_scope_size(std::dynamic_pointer_cast<ScopeBranch>(branch));
+
     // Handle the init branch.
     handle_stmt(init_branch);
 
@@ -1241,6 +1238,7 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     // This is where we will jump if its false, the body will never be run.
     make_exact_label(false_label);
 
+    reset_scope_size();
 
 }
 
@@ -1453,32 +1451,8 @@ int CodeGen8086::getStructSize(std::string struct_name)
 
 int CodeGen8086::getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch)
 {
-    std::string var_name;
-    std::shared_ptr<VDEFBranch> vdef_branch;
-    std::shared_ptr<Branch> data_type_branch;
-
-    std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
-    var_name = var_iden_branch->getVariableNameBranch()->getValue();
-
-    int offset = 0;
-    for (int i = 0; i < this->scope_variables.size(); i++)
-    {
-        std::shared_ptr<Branch> scope_var = this->scope_variables.at(i);
-        vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(scope_var);
-        std::shared_ptr<Branch> name_branch = vdef_branch->getNameBranch();
-        data_type_branch = vdef_branch->getDataTypeBranch();
-
-        int var_size = getSizeOfVariableBranch(vdef_branch);
-        offset += var_size;
-
-        if (name_branch->getValue() == var_name)
-        {
-            break;
-        }
-
-    }
-
-    return offset;
+    std::shared_ptr<VDEFBranch> vdef_branch = getVariable(var_branch);
+    return vdef_branch->getPositionRelZero(true);
 }
 
 bool CodeGen8086::hasGlobalVariable(std::shared_ptr<VarIdentifierBranch> var_branch)

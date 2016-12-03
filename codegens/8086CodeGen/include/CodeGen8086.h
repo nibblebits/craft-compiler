@@ -97,7 +97,7 @@ public:
     std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, bool pointer_access = false, std::shared_ptr<VDEFBranch>* vdef_in_question_branch = NULL, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch = NULL, std::string base_reg = "bx");
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
-    void calculate_scope_size(std::shared_ptr<Branch> body_branch);
+    void calculate_scope_size(std::shared_ptr<ScopeBranch> scope_branch);
     void reset_scope_size();
 
     void handle_ptr(std::shared_ptr<PTRBranch> ptr_branch);
@@ -178,6 +178,10 @@ private:
     /*  Holds pointer handling information for a given pointer 
      stack is required due to sub expressions that are non pointer related. */
     std::deque<HANDLING_POINTER> current_pointers_to_handle;
+    
+    /* Holds current scopes, this is used so nesting of scopes is compatible. */
+    std::deque<int> current_scopes;
+    
     int current_label_index;
     int scope_size;
 
