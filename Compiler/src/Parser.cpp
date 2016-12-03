@@ -35,6 +35,8 @@ Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
     this->tree = std::shared_ptr<Tree>(new Tree());
     this->logger = std::shared_ptr<Logger>(new Logger());
     this->token = NULL;
+    this->root_scope = NULL;
+    this->current_local_scope = NULL;
     this->compiler = compiler;
 }
 
@@ -358,9 +360,11 @@ void Parser::process_function()
         }
     }
 
-
+    std::shared_ptr<FuncBranch> func_branch = std::shared_ptr<FuncBranch>(new FuncBranch(this->getCompiler()));
+    std::shared_ptr<BODYBranch> body_root = std::shared_ptr<BODYBranch>(new BODYBranch(compiler));
+    this->root_scope = body_root;
     // Process the function body
-    process_body();
+    process_body(body_root);
 
     // Pop off the body
     pop_branch();
@@ -368,7 +372,6 @@ void Parser::process_function()
     std::shared_ptr<Branch> body = this->branch;
 
     // Finally create the function branch and merge it all together
-    std::shared_ptr<FuncBranch> func_branch = std::shared_ptr<FuncBranch>(new FuncBranch(this->getCompiler()));
     func_branch->setReturnTypeBranch(func_return_type);
     func_branch->setNameBranch(func_name);
     func_branch->setArgumentsBranch(func_arguments);
@@ -378,7 +381,7 @@ void Parser::process_function()
     push_branch(func_branch);
 }
 
-void Parser::process_body()
+void Parser::process_body(std::shared_ptr<BODYBranch> body_root, bool new_scope)
 {
     // Check that the next branch is a left bracket all bodys must start with them.
     shift_pop();
@@ -387,8 +390,17 @@ void Parser::process_body()
         error_expecting("{", this->branch_value);
     }
 
-    std::shared_ptr<BODYBranch> body_root = std::shared_ptr<BODYBranch>(new BODYBranch(compiler));
+    // Sometimes the caller may wish to use their own body, and sometimes not.
+    if (body_root == NULL)
+    {
+        body_root = std::shared_ptr<BODYBranch>(new BODYBranch(compiler));
+    }
 
+    if (new_scope)
+    {
+        // Start the local scope.
+        start_local_scope(body_root);
+    }
     while (true)
     {
         // Check to see if we are at the end of the body
@@ -412,6 +424,12 @@ void Parser::process_body()
         }
     }
 
+
+    if (new_scope)
+    {
+        // Finish the local scope
+        finish_local_scope();
+    }
     // Push the body root onto the branch stack
     push_branch(body_root);
 }
@@ -1247,6 +1265,8 @@ void Parser::process_while_stmt()
 
 void Parser::process_for_stmt()
 {
+    std::shared_ptr<FORBranch> for_stmt = std::shared_ptr<FORBranch>(new FORBranch(compiler));
+
     std::shared_ptr<Branch> init_var = NULL;
     std::shared_ptr<Branch> cond_exp = NULL;
     std::shared_ptr<Branch> loop_stmt = NULL;
@@ -1271,6 +1291,9 @@ void Parser::process_for_stmt()
     /* Now we are either expecting a variable declaration, assignment or both.
      * We also allow just a semicolon if the programmer does not wish to define or set anything*/
     peak();
+
+    // Start the "for_stmt" local scope.
+    start_local_scope(for_stmt);
     if (is_peak_type("keyword") || is_peak_type("identifier"))
     {
         if (is_peak_type("keyword"))
@@ -1333,18 +1356,20 @@ void Parser::process_for_stmt()
     }
 
     // Process the "for" loop body
-    process_body();
+    process_body(NULL, false);
     // Pop the resulting body from the stack
     pop_branch();
-    
+
     body = std::dynamic_pointer_cast<BODYBranch>(this->branch);
 
     // Put it all together
-    std::shared_ptr<FORBranch> for_stmt = std::shared_ptr<FORBranch>(new FORBranch(compiler));
     for_stmt->setInitBranch(init_var);
     for_stmt->setCondBranch(cond_exp);
     for_stmt->setLoopBranch(loop_stmt);
     for_stmt->setBodyBranch(body);
+
+    // Finish the scope for the "for_stmt"
+    finish_local_scope();
 
     // Push the for statement to the stack
     push_branch(for_stmt);
@@ -1523,15 +1548,31 @@ void Parser::pop_branch()
 
 void Parser::push_branch(std::shared_ptr<Branch> branch)
 {
-
+    // Before pushing we must assign the scopes to the branch
+    branch->setLocalScope(this->current_local_scope);
+    branch->setRootScope(this->root_scope);
     this->branches.push_back(branch);
 }
 
 void Parser::shift_pop()
 {
-
     this->shift();
     this->pop_branch();
+}
+
+void Parser::start_local_scope(std::shared_ptr<ScopeBranch> local_scope)
+{
+    this->current_local_scope = local_scope;
+    this->local_scopes.push_back(local_scope);
+}
+
+void Parser::finish_local_scope()
+{
+    this->local_scopes.pop_back();
+    if (!this->local_scopes.empty())
+    {
+        this->current_local_scope = this->local_scopes.back();
+    }
 }
 
 void Parser::handle_left_or_right(std::shared_ptr<Branch>* left, std::shared_ptr<Branch>* right)

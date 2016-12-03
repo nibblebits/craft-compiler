@@ -76,18 +76,46 @@ std::shared_ptr<BODYBranch> FORBranch::getBodyBranch()
     return std::dynamic_pointer_cast<BODYBranch>(CustomBranch::getRegisteredBranchByName("body_branch"));
 }
 
-int FORBranch::getScopeSize(bool include_subscopes)
+int FORBranch::getScopeSize(bool include_subscopes, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end, bool *should_stop)
 {
     int size = 0;
     std::shared_ptr<Branch> init_branch = getInitBranch();
+    // Our first child is the init_branch which we are processing.
+    if (child_proc_start != NULL)
+    {
+        if (!child_proc_start(init_branch))
+        {
+            if (should_stop != NULL)
+            {
+                *should_stop = true;
+            }
+            return size;
+        }
+    }
     if (init_branch->getType() == "V_DEF")
     {
         std::shared_ptr<VDEFBranch> vdef_init_branch = std::dynamic_pointer_cast<VDEFBranch>(init_branch);
         // The INIT branch of our "for" loop is a V_DEF so its a declaration, which means it has a size
         size = getCompiler()->getSizeOfVarDef(vdef_init_branch);
     }
-    
+
+    // Our first child is the init_branch which we are processing.
+    if (child_proc_end != NULL)
+    {
+        if (!child_proc_end(init_branch))
+        {
+            if (should_stop != NULL)
+            {
+                *should_stop = true;
+            }
+
+            return size;
+        }
+    }
+
+
     std::shared_ptr<BODYBranch> body_branch = getBodyBranch();
-    size += body_branch->getScopeSize();
+    size += body_branch->getScopeSize(include_subscopes, child_proc_start, child_proc_end, should_stop);
+
     return size;
 }

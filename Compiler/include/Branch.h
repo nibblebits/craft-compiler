@@ -36,6 +36,7 @@
 #define BRANCH_TYPE_BRANCH 0
 #define BRANCH_TYPE_TOKEN 1
 
+class ScopeBranch;
 class EXPORT Branch : public std::enable_shared_from_this<Branch>
 {
 public:
@@ -49,6 +50,9 @@ public:
     bool excluded();
     void setParent(std::shared_ptr<Branch> branch);
     void setValue(std::string value);
+    void setRootScope(std::shared_ptr<ScopeBranch> root_scope);
+    void setLocalScope(std::shared_ptr<ScopeBranch> local_scope);
+    
     std::shared_ptr<Branch> getFirstChild();
     std::shared_ptr<Branch> getSecondChild();
     std::shared_ptr<Branch> getThirdChild();
@@ -64,6 +68,9 @@ public:
     std::string getType();
     std::string getValue();
 
+    std::shared_ptr<ScopeBranch> getRootScope();
+    std::shared_ptr<ScopeBranch> getLocalScope();
+
     std::shared_ptr<Branch> getptr();
     virtual int getBranchType();
 private:
@@ -72,6 +79,9 @@ private:
     std::vector<std::shared_ptr<Branch>> children;
     std::shared_ptr<Branch> parent;
     bool excluded_from_tree;
+    std::shared_ptr<ScopeBranch> root_scope;
+    std::shared_ptr<ScopeBranch> local_scope;
+
 };
 
 #endif /* BRANCH_H */

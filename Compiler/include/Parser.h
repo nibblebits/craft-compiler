@@ -45,7 +45,9 @@
 #define PARSER_RULE_COMPATIBLE_NO_BRANCH 1
 #define PARSER_RULE_INCOMPATIBLE 2
 
+
 class CompilerEntity;
+class BODYBranch;
 
 class EXPORT Parser : public CompilerEntity
 {
@@ -62,7 +64,7 @@ private:
     void process_macro();
     void process_inline_asm();
     void process_function();
-    void process_body();
+    void process_body(std::shared_ptr<BODYBranch> body_root=NULL, bool new_scope=true);
     void process_stmt();
     void process_variable_declaration();
     void process_ptr();
@@ -93,6 +95,9 @@ private:
     void pop_branch();
     void push_branch(std::shared_ptr<Branch> branch);
     void shift_pop();
+    
+    void start_local_scope(std::shared_ptr<ScopeBranch> local_scope);
+    void finish_local_scope();
 
     inline void handle_left_or_right(std::shared_ptr<Branch>* left, std::shared_ptr<Branch>* right);
     inline bool is_branch_symbol(std::string symbol);
@@ -126,6 +131,11 @@ private:
     std::shared_ptr<Branch> branch;
     std::string branch_type;
     std::string branch_value;
+    
+    
+    std::vector<std::shared_ptr<ScopeBranch>> local_scopes;
+    std::shared_ptr<ScopeBranch> current_local_scope;
+    std::shared_ptr<ScopeBranch> root_scope;
 
     Compiler* compiler;
     std::shared_ptr<Tree> tree;

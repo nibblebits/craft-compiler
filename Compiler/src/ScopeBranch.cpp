@@ -25,10 +25,12 @@
  */
 
 #include "ScopeBranch.h"
+#include "VDEFBranch.h"
 
-ScopeBranch::ScopeBranch(Compiler* compiler, std::string name, std::string value) : CustomBranch(compiler, name, value) {
+ScopeBranch::ScopeBranch(Compiler* compiler, std::string name, std::string value) : CustomBranch(compiler, name, value)
+{
 }
 
-ScopeBranch::~ScopeBranch() {
+ScopeBranch::~ScopeBranch()
+{
 }
-

@@ -25,6 +25,7 @@
  */
 
 #include "Branch.h"
+#include "ScopeBranch.h"
 
 Branch::Branch(std::string type, std::string value)
 {
@@ -32,6 +33,8 @@ Branch::Branch(std::string type, std::string value)
     this->value = value;
     this->parent = NULL;
     this->excluded_from_tree = false;
+    this->root_scope = NULL;
+    this->local_scope = NULL;
 }
 
 Branch::~Branch()
@@ -114,6 +117,17 @@ void Branch::setValue(std::string value)
 {
     this->value = value;
 }
+
+void Branch::setRootScope(std::shared_ptr<ScopeBranch> root_scope)
+{
+    this->root_scope = root_scope;
+}
+
+void Branch::setLocalScope(std::shared_ptr<ScopeBranch> local_scope)
+{
+    this->local_scope = local_scope;
+}
+
 
 std::shared_ptr<Branch> Branch::getFirstChild()
 {
@@ -207,6 +221,16 @@ std::string Branch::getType()
 std::string Branch::getValue()
 {
     return this->value;
+}
+
+std::shared_ptr<ScopeBranch> Branch::getRootScope()
+{
+    return this->root_scope;
+}
+
+std::shared_ptr<ScopeBranch> Branch::getLocalScope()
+{
+    return this->local_scope;
 }
 
 std::shared_ptr<Branch> Branch::getptr()

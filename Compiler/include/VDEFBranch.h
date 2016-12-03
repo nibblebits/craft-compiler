@@ -50,11 +50,13 @@ public:
     std::shared_ptr<VarIdentifierBranch> getVariableIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
     std::shared_ptr<Branch> getNameBranch();
-    
+
+    int getPositionRelZero(std::function<void(std::shared_ptr<VDEFBranch> current_vdef, int *offset_adjustment) > position_alignment_proc = NULL);
+
     bool isPointer();
     bool isSigned();
     bool isPrimitive();
-    virtual int getDataTypeSize(bool no_pointer=false);
+    virtual int getDataTypeSize(bool no_pointer = false);
 private:
     bool is_pointer;
 };

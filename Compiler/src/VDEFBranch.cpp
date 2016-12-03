@@ -28,6 +28,7 @@
 #include "ArrayBranch.h"
 #include "PTRBranch.h"
 #include "VarIdentifierBranch.h"
+#include "ScopeBranch.h"
 
 VDEFBranch::VDEFBranch(Compiler* compiler, std::string branch_name, std::string branch_value) : CustomBranch(compiler, branch_name, branch_value)
 {
@@ -78,6 +79,61 @@ std::shared_ptr<Branch> VDEFBranch::getNameBranch()
     std::shared_ptr<Branch> identifier_branch = getVariableIdentifierBranch();
     std::shared_ptr<VarIdentifierBranch> var_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(identifier_branch);
     return var_branch->getVariableNameBranch();
+}
+
+int VDEFBranch::getPositionRelZero(std::function<void(std::shared_ptr<VDEFBranch> current_vdef, int *offset_adjustment) > position_alignment_proc)
+{
+    std::shared_ptr<ScopeBranch> root_scope = getRootScope();
+    std::shared_ptr<ScopeBranch> local_scope = getLocalScope();
+    // Get the size of all variables in this variables scope up to this variable.
+    int pos = 0;
+    int offset = 0;
+    pos = local_scope->getScopeSize(false, [&](std::shared_ptr<Branch> branch) -> bool
+    {
+        // This allows for realignment of the position in real time
+        // Consider providing better functionality at a later date as this is probably not a very fast or efficient way of doing things
+        std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+        if (vdef_branch != NULL &&
+            position_alignment_proc != NULL)
+        {
+            position_alignment_proc(vdef_branch, &offset);
+        }
+        
+        if (branch == this->getptr())
+            return false;
+
+        return true;
+    });
+    
+    pos += offset;
+    
+    // Now get the size of all variables above up to the scope after them
+    std::shared_ptr<ScopeBranch> scope_branch = local_scope;
+    std::shared_ptr<ScopeBranch> prev_scope_branch = NULL;
+    while (scope_branch != root_scope)
+    {
+        prev_scope_branch = scope_branch;
+        scope_branch = prev_scope_branch->getLocalScope();
+        offset = 0;
+        pos += scope_branch->getScopeSize(false, [&](std::shared_ptr<Branch> branch) -> bool
+        {
+            // This allows for realignment of the position in real time
+            // Consider providing better functionality at a later date as this is probably not a very fast or efficient way of doing things
+            std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+            if (vdef_branch != NULL &&
+                position_alignment_proc != NULL)
+            {
+                position_alignment_proc(vdef_branch, &offset);
+            }
+            
+            if (branch == prev_scope_branch)
+                return false;
+            
+            return true;
+        });
+        pos += offset;
+    }
+    return pos;
 }
 
 bool VDEFBranch::isPointer()
