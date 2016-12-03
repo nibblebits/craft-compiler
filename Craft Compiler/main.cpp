@@ -72,29 +72,29 @@ std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
     if (codegen_name == "goblin_bytecode")
     {
         // DEPRECATED
-//        codegen = std::shared_ptr<CodeGenerator>(new GoblinByteCodeGenerator(&compiler));
+        //        codegen = std::shared_ptr<CodeGenerator>(new GoblinByteCodeGenerator(&compiler));
     }
     else
     {
         // Ok the generator is not a built in code generator so look for a library for it
         void* lib_addr = GoblinLoadLibrary(std::string(std::string(CODEGEN_DIR)
                                                        + "/" + codegen_name + std::string(CODEGEN_EXT)).c_str());
-        
+
         if (lib_addr == NULL)
         {
             throw Exception("The code generator: " + codegen_name + " could not be found or loaded");
         }
-        
-        
+
+
         InitFunc init_func = (InitFunc) GoblinGetAddress(lib_addr, "Init");
         if (init_func == NULL)
         {
             throw Exception("The code generator: " + codegen_name + " does not have an \"Init\" method.");
         }
-        
+
         // Call the libraries Init method and get their code generator.
         codegen = std::shared_ptr<CodeGenerator>(init_func(&compiler));
-        
+
         if (codegen == NULL)
         {
             throw Exception("The code generator: " + codegen_name + " returned a NULL pointer when expecting a CodeGenerator object");
