@@ -25,6 +25,7 @@
  */
 
 #include "IFBranch.h"
+#include "BODYBranch.h"
 
 IFBranch::IFBranch(Compiler* compiler) : CustomBranch(compiler, "IF", "")
 {
@@ -59,9 +60,9 @@ std::shared_ptr<Branch> IFBranch::getExpressionBranch()
     return CustomBranch::getRegisteredBranchByName("exp_branch");
 }
 
-std::shared_ptr<Branch> IFBranch::getBodyBranch()
+std::shared_ptr<BODYBranch> IFBranch::getBodyBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("body_branch");
+    return std::dynamic_pointer_cast<BODYBranch>(CustomBranch::getRegisteredBranchByName("body_branch"));
 }
 
 std::shared_ptr<Branch> IFBranch::getElseBranch()

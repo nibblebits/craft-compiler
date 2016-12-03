@@ -26,6 +26,7 @@
 #define IFBRANCH_H
 
 #include "CustomBranch.h"
+class BODYBranch;
 class EXPORT IFBranch : public CustomBranch {
 public:
     IFBranch(Compiler* compiler);
@@ -37,7 +38,7 @@ public:
     void setElseIfBranch(std::shared_ptr<Branch> branch);
     
     std::shared_ptr<Branch> getExpressionBranch();
-    std::shared_ptr<Branch> getBodyBranch();
+    std::shared_ptr<BODYBranch> getBodyBranch();
     std::shared_ptr<Branch> getElseBranch();
     std::shared_ptr<Branch> getElseIfBranch();
     bool hasElseBranch();
