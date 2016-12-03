@@ -85,18 +85,18 @@ int VDEFBranch::getPositionRelZero(bool loc_start_with_filesize)
 {
     std::shared_ptr<ScopeBranch> root_scope = getRootScope();
     std::shared_ptr<ScopeBranch> local_scope = getLocalScope();
-    
+    std::shared_ptr<Branch> target_branch = this->getptr();
     std::function<bool(std::shared_ptr<Branch> branch) > kill_proc = [&](std::shared_ptr<Branch> branch) -> bool
     {
-        if (branch == this->getptr())
+        if (branch == target_branch)
             return false;
 
         return true;
     };
-    
+
     std::function<bool(std::shared_ptr<Branch> branch) > before_proc = NULL;
     std::function<bool(std::shared_ptr<Branch> branch) > after_proc = NULL;
-    
+
     if (loc_start_with_filesize)
     {
         after_proc = kill_proc;
@@ -105,17 +105,23 @@ int VDEFBranch::getPositionRelZero(bool loc_start_with_filesize)
     {
         before_proc = kill_proc;
     }
-    
+
     // Get the size of all variables in this variables scope up to this variable.
     int pos = local_scope->getScopeSize(false, before_proc, after_proc);
-    
+
     // Now get the size of all variables above up to the scope after them
     std::shared_ptr<ScopeBranch> scope_branch = local_scope;
-    std::shared_ptr<ScopeBranch> prev_scope_branch = NULL;
     while (scope_branch != root_scope)
     {
-        prev_scope_branch = scope_branch;
-        scope_branch = prev_scope_branch->getLocalScope();
+        target_branch = scope_branch;
+        /* Is the target branch a BODY branch? 
+         * if so then we need to step up once more as this is the target we need to reach when
+         * we want to stop counting */
+        if (target_branch->getType() == "BODY")
+        {
+            target_branch = target_branch->getParent();
+        }
+        scope_branch = target_branch->getLocalScope();
         pos += scope_branch->getScopeSize(false, before_proc, after_proc);
     }
     return pos;
