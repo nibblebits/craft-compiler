@@ -33,10 +33,15 @@
 #include "Exception.h"
 #include "def.h"
 
-#define BRANCH_TYPE_BRANCH 0
-#define BRANCH_TYPE_TOKEN 1
+enum
+{
+    BRANCH_TYPE_BRANCH,
+    BRANCH_TYPE_TOKEN,
+    BRANCH_TYPE_VDEF
+};
 
 class ScopeBranch;
+class RootBranch;
 class EXPORT Branch : public std::enable_shared_from_this<Branch>
 {
 public:
@@ -50,6 +55,7 @@ public:
     bool excluded();
     void setParent(std::shared_ptr<Branch> branch);
     void setValue(std::string value);
+    void setRoot(std::shared_ptr<RootBranch> root_branch);
     void setRootScope(std::shared_ptr<ScopeBranch> root_scope);
     void setLocalScope(std::shared_ptr<ScopeBranch> local_scope);
     
@@ -68,6 +74,7 @@ public:
     std::string getType();
     std::string getValue();
 
+    std::shared_ptr<RootBranch> getRoot();
     std::shared_ptr<ScopeBranch> getRootScope();
     std::shared_ptr<ScopeBranch> getLocalScope();
 
@@ -79,6 +86,9 @@ private:
     std::vector<std::shared_ptr<Branch>> children;
     std::shared_ptr<Branch> parent;
     bool excluded_from_tree;
+    // Points to the highest point of the tree the root.
+    std::shared_ptr<RootBranch> root_branch;
+    
     std::shared_ptr<ScopeBranch> root_scope;
     std::shared_ptr<ScopeBranch> local_scope;
 

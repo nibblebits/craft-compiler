@@ -45,6 +45,7 @@
       <itemPath>include/ParserException.h</itemPath>
       <itemPath>include/ParserRule.h</itemPath>
       <itemPath>include/ParserRuleRequirement.h</itemPath>
+      <itemPath>include/RootBranch.h</itemPath>
       <itemPath>include/STRUCTAccessBranch.h</itemPath>
       <itemPath>include/STRUCTBranch.h</itemPath>
       <itemPath>include/STRUCTDEFBranch.h</itemPath>
@@ -106,6 +107,7 @@
       <itemPath>src/Parser.cpp</itemPath>
       <itemPath>src/ParserRule.cpp</itemPath>
       <itemPath>src/ParserRuleRequirement.cpp</itemPath>
+      <itemPath>src/RootBranch.cpp</itemPath>
       <itemPath>src/STRUCTAccessBranch.cpp</itemPath>
       <itemPath>src/STRUCTBranch.cpp</itemPath>
       <itemPath>src/STRUCTDEFBranch.cpp</itemPath>
@@ -241,6 +243,8 @@
       </item>
       <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/RootBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/STRUCTAccessBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/STRUCTBranch.h" ex="false" tool="3" flavor2="0">
@@ -349,6 +353,8 @@
       <item path="src/ParserRule.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/RootBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/STRUCTAccessBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -477,6 +483,8 @@
       </item>
       <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/RootBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/STRUCTAccessBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/STRUCTBranch.h" ex="false" tool="3" flavor2="0">
@@ -585,6 +593,8 @@
       <item path="src/ParserRule.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/RootBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/STRUCTAccessBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

@@ -53,13 +53,15 @@ public:
     Parser* getParser();
     TypeChecker* getTypeChecker();
     ASTAssistant* getASTAssistant();
-    std::shared_ptr<CodeGenerator> getCodeGenerator(); 
+    std::shared_ptr<CodeGenerator> getCodeGenerator();
     std::shared_ptr<Linker> getLinker();
+
+    std::shared_ptr<VDEFBranch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
     int getSizeOfVarDef(std::shared_ptr<VDEFBranch> vdef_branch);
 
     static bool isPrimitiveDataType(std::string type);
     static int getPrimitiveDataTypeSize(std::string type);
-    int getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> vdef_branch, bool no_pointer=false);
+    int getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> vdef_branch, bool no_pointer = false);
     int getSizeOfStructure(std::shared_ptr<STRUCTBranch> structure);
     int getSumOfArrayIndexes(std::shared_ptr<ArrayIndexBranch> root_array_index_branch);
 

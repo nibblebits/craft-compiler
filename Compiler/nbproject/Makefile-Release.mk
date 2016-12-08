@@ -70,6 +70,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/ParserRule.o \
 	${OBJECTDIR}/src/ParserRuleRequirement.o \
+	${OBJECTDIR}/src/RootBranch.o \
 	${OBJECTDIR}/src/STRUCTAccessBranch.o \
 	${OBJECTDIR}/src/STRUCTBranch.o \
 	${OBJECTDIR}/src/STRUCTDEFBranch.o \
@@ -282,6 +283,11 @@ ${OBJECTDIR}/src/ParserRuleRequirement.o: src/ParserRuleRequirement.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ParserRuleRequirement.o src/ParserRuleRequirement.cpp
+
+${OBJECTDIR}/src/RootBranch.o: src/RootBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/RootBranch.o src/RootBranch.cpp
 
 ${OBJECTDIR}/src/STRUCTAccessBranch.o: src/STRUCTAccessBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

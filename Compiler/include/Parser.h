@@ -64,14 +64,14 @@ private:
     void process_macro();
     void process_inline_asm();
     void process_function();
-    void process_body(std::shared_ptr<BODYBranch> body_root=NULL, bool new_scope=true);
+    void process_body(std::shared_ptr<BODYBranch> body_root = NULL, bool new_scope = true);
     void process_stmt();
     void process_variable_declaration();
     void process_ptr();
     void process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op);
     void process_variable_access();
     void process_structure_access();
-    void process_expression(bool strict_mode=false);
+    void process_expression(bool strict_mode = false);
     void process_expression_part(bool strict_mode);
     std::shared_ptr<Branch> process_expression_operand();
     std::shared_ptr<Branch> process_expression_operator();
@@ -95,7 +95,7 @@ private:
     void pop_branch();
     void push_branch(std::shared_ptr<Branch> branch);
     void shift_pop();
-    
+
     void start_local_scope(std::shared_ptr<ScopeBranch> local_scope);
     void finish_local_scope();
 
@@ -116,7 +116,7 @@ private:
     inline bool is_peak_operator(std::string op);
     inline bool is_peak_operator(std::string op, int peak);
     inline bool is_peak_identifier(std::string identifier);
-    
+
     std::shared_ptr<Logger> logger;
     std::deque<std::shared_ptr<Token>> input;
     std::deque<std::shared_ptr<Branch>> branches;
@@ -131,9 +131,9 @@ private:
     std::shared_ptr<Branch> branch;
     std::string branch_type;
     std::string branch_value;
-    
-    
+
     std::vector<std::shared_ptr<ScopeBranch>> local_scopes;
+    std::shared_ptr<RootBranch> root_branch;
     std::shared_ptr<ScopeBranch> current_local_scope;
     std::shared_ptr<ScopeBranch> root_scope;
 

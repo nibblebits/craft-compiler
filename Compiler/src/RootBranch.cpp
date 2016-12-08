@@ -16,41 +16,38 @@
  */
 
 /* 
- * File:   STRUCTBranch.cpp
+ * File:   RootBranch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 13 October 2016, 05:47
+ * Created on 08 December 2016, 15:25
  * 
- * Description: 
+ * Description: The branch for the root of the tree.
  */
 
+#include "RootBranch.h"
 #include "STRUCTBranch.h"
-#include "BODYBranch.h"
 
-STRUCTBranch::STRUCTBranch(Compiler* compiler) : CustomBranch(compiler, "STRUCT", "")
+RootBranch::RootBranch(Compiler* compiler) : CustomBranch(compiler, "root", "")
 {
 }
 
-STRUCTBranch::~STRUCTBranch()
+RootBranch::~RootBranch()
 {
 }
 
-void STRUCTBranch::setStructNameBranch(std::shared_ptr<Branch> branch)
+std::shared_ptr<STRUCTBranch> RootBranch::getDeclaredStructureByName(std::string name)
 {
-    CustomBranch::registerBranch("struct_name_branch", branch);
-}
+    for (std::shared_ptr<Branch> child : Branch::getChildren())
+    {
+        std::cout << child->getType() << std::endl;
+        if (child->getType() == "STRUCT")
+        {
+            std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(child);
+            std::shared_ptr<Branch> struct_name_branch = struct_branch->getStructNameBranch();
+            if (struct_name_branch->getValue() == name)
+                return struct_branch;
+        }
+    }
 
-void STRUCTBranch::setStructBodyBranch(std::shared_ptr<BODYBranch> branch)
-{
-    CustomBranch::registerBranch("struct_body_branch", branch);
-}
-
-std::shared_ptr<Branch> STRUCTBranch::getStructNameBranch()
-{
-    return CustomBranch::getRegisteredBranchByName("struct_name_branch");
-}
-
-std::shared_ptr<BODYBranch> STRUCTBranch::getStructBodyBranch()
-{
-    return std::dynamic_pointer_cast<BODYBranch>(CustomBranch::getRegisteredBranchByName("struct_body_branch"));
+    return NULL;
 }

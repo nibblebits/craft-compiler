@@ -26,6 +26,7 @@
 #define STRUCTBRANCH_H
 
 #include "CustomBranch.h"
+class BODYBranch;
 class EXPORT STRUCTBranch : public CustomBranch
 {
 public:
@@ -33,10 +34,10 @@ public:
     virtual ~STRUCTBranch();
     
     void setStructNameBranch(std::shared_ptr<Branch> branch);
-    void setStructBodyBranch(std::shared_ptr<Branch> branch);
+    void setStructBodyBranch(std::shared_ptr<BODYBranch> branch);
     
     std::shared_ptr<Branch> getStructNameBranch();
-    std::shared_ptr<Branch> getStructBodyBranch();
+    std::shared_ptr<BODYBranch> getStructBodyBranch();
 private:
 
 };

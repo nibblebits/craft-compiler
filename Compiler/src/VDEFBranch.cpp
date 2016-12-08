@@ -154,3 +154,8 @@ int VDEFBranch::getDataTypeSize(bool no_pointer)
 {
     return this->getCompiler()->getDataTypeSizeFromVarDef(std::dynamic_pointer_cast<VDEFBranch>(this->getptr()), no_pointer);
 }
+
+int VDEFBranch::getBranchType()
+{
+    return BRANCH_TYPE_VDEF;
+}

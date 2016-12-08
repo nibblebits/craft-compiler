@@ -27,6 +27,9 @@
 #include "BODYBranch.h"
 #include "VDEFBranch.h"
 #include "FORBranch.h"
+#include "STRUCTDEFBranch.h"
+#include "STRUCTBranch.h"
+#include "RootBranch.h"
 
 BODYBranch::BODYBranch(Compiler* compiler) : ScopeBranch(compiler, "BODY", "")
 {
@@ -86,4 +89,69 @@ int BODYBranch::getScopeSize(bool include_subscopes, std::function<bool(std::sha
         }
     }
     return size;
+}
+
+std::shared_ptr<VDEFBranch> BODYBranch::getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope)
+{
+    std::shared_ptr<VDEFBranch> found_branch = NULL;
+    std::shared_ptr<Branch> var_iden_name_branch = var_iden->getVariableNameBranch();
+    // Check local scope
+    for (std::shared_ptr<Branch> child : this->getChildren())
+    {
+        if (child->getBranchType() == BRANCH_TYPE_VDEF)
+        {
+            std::shared_ptr<VDEFBranch> c_vdef = std::dynamic_pointer_cast<VDEFBranch>(child);
+            std::shared_ptr<VarIdentifierBranch> c_vdef_var_iden = c_vdef->getVariableIdentifierBranch();
+            std::shared_ptr<Branch> c_var_name_branch = c_vdef_var_iden->getVariableNameBranch();
+            if (c_var_name_branch->getValue() == var_iden_name_branch->getValue())
+            {
+                // Match on local scope!
+                found_branch = std::dynamic_pointer_cast<VDEFBranch>(child);
+                break;
+            }
+        }
+    }
+
+    if (found_branch == NULL)
+    {
+        if (lookup_scope)
+        {
+            /* Ok we need to lookup the scope as we did not find the result in our own scope
+             * This will act as a recursive action until either the variable is found or it is not */
+            found_branch = getLocalScope()->getVariableDefinitionBranch(var_iden, true);
+        }
+    }
+
+    if (var_iden->hasStructureAccessBranch())
+    {
+        if (found_branch != NULL)
+        {
+            std::shared_ptr<STRUCTBranch> struct_branch = getRoot()->getDeclaredStructureByName(found_branch->getDataTypeBranch()->getValue());
+            std::shared_ptr<VarIdentifierBranch> next_iden = std::dynamic_pointer_cast<VarIdentifierBranch>(var_iden->getStructureAccessBranch()->getFirstChild());
+            while (true)
+            {
+                std::shared_ptr<BODYBranch> struct_body = struct_branch->getStructBodyBranch();
+                std::shared_ptr<VDEFBranch> r_branch = struct_body->getVariableDefinitionBranch(next_iden);
+                if (next_iden->hasStructureAccessBranch())
+                {
+                    next_iden = std::dynamic_pointer_cast<VarIdentifierBranch>(next_iden->getStructureAccessBranch()->getFirstChild()); 
+                    struct_branch = getRoot()->getDeclaredStructureByName(r_branch->getDataTypeBranch()->getValue());
+                }
+                else
+                {
+                    found_branch = r_branch;
+                    break;
+                }
+            }
+        }
+    }
+
+
+
+    return found_branch;
+}
+
+std::shared_ptr<VDEFBranch> BODYBranch::getVariableDefinitionBranch(std::string var_name, bool lookup_scope)
+{
+
 }

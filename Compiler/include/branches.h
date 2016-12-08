@@ -50,6 +50,7 @@
 #include "ArrayIndexBranch.h"
 #include "VarIdentifierBranch.h"
 #include "ScopeBranch.h"
+#include "RootBranch.h"
 
 #endif /* BRANCHES_H */
 

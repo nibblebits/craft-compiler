@@ -90,6 +90,24 @@ std::shared_ptr<Linker> Compiler::getLinker()
     return this->linker;
 }
 
+std::shared_ptr<VDEFBranch> Compiler::getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name)
+{
+    for (std::shared_ptr<Branch> branch : structure->getStructBodyBranch()->getChildren())
+    {
+        if (branch->getType() == "V_DEF" ||
+                branch->getType() == "STRUCT_DEF")
+        {
+            std::shared_ptr<VDEFBranch> v_def_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+            if (v_def_branch->getNameBranch()->getValue() == var_name)
+            {
+                return v_def_branch;
+            }
+        }
+    }
+
+    return NULL;
+}
+
 int Compiler::getSizeOfVarDef(std::shared_ptr<VDEFBranch> vdef_branch)
 {
     int size = getDataTypeSizeFromVarDef(vdef_branch);

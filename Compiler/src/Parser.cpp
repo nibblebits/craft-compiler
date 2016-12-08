@@ -35,6 +35,7 @@ Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
     this->tree = std::shared_ptr<Tree>(new Tree());
     this->logger = std::shared_ptr<Logger>(new Logger());
     this->token = NULL;
+    this->root_branch = NULL;
     this->root_scope = NULL;
     this->current_local_scope = NULL;
     this->compiler = compiler;
@@ -1138,7 +1139,7 @@ void Parser::process_structure()
 
     // Pop off the resulting body
     pop_branch();
-    std::shared_ptr<Branch> struct_body = this->branch;
+    std::shared_ptr<BODYBranch> struct_body = std::dynamic_pointer_cast<BODYBranch>(this->branch);
 
     // Create the structure branch
     std::shared_ptr<STRUCTBranch> struct_root = std::shared_ptr<STRUCTBranch>(new STRUCTBranch(compiler));
@@ -1548,7 +1549,8 @@ void Parser::pop_branch()
 
 void Parser::push_branch(std::shared_ptr<Branch> branch)
 {
-    // Before pushing we must assign the scopes to the branch
+    // Before pushing we must assign the root branch and the scopes to the branch
+    branch->setRoot(this->root_branch);
     branch->setLocalScope(this->current_local_scope);
     branch->setRootScope(this->root_scope);
     this->branches.push_back(branch);
@@ -1724,20 +1726,19 @@ void Parser::buildTree()
         throw ParserException("Nothing to parse.");
     }
 
+    this->root_branch = std::shared_ptr<RootBranch>(new RootBranch(this->compiler));
     while (!this->input.empty())
     {
         this->process_top();
     }
 
-    std::shared_ptr<Branch> root = std::shared_ptr<Branch>(new Branch("root", ""));
     while (!this->branches.empty())
     {
-
         std::shared_ptr<Branch> branch = this->branches.front();
-        root->addChild(branch);
+        this->root_branch->addChild(branch);
         this->branches.pop_front();
     }
-    this->tree->root = root;
+    this->tree->root = this->root_branch;
 
 }
 

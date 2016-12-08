@@ -16,22 +16,25 @@
  */
 
 /* 
- * File:   ScopeBranch.cpp
+ * File:   RootBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 01 December 2016, 17:25
- * 
- * Description: Abstract class extended by all branches who hold a scope.
+ * Created on 08 December 2016, 15:25
  */
 
-#include "ScopeBranch.h"
-#include "VDEFBranch.h"
-#include "VarIdentifierBranch.h"
+#ifndef ROOTBRANCH_H
+#define ROOTBRANCH_H
 
-ScopeBranch::ScopeBranch(Compiler* compiler, std::string name, std::string value) : CustomBranch(compiler, name, value)
-{
-}
+#include "CustomBranch.h"
+class RootBranch : public CustomBranch {
+public:
+    RootBranch(Compiler* compiler);
+    virtual ~RootBranch();
+    
+    std::shared_ptr<STRUCTBranch> getDeclaredStructureByName(std::string name);
+private:
 
-ScopeBranch::~ScopeBranch()
-{
-}
+};
+
+#endif /* ROOTBRANCH_H */
+

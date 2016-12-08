@@ -47,6 +47,7 @@ public:
     Compiler* getCompiler();
 private:
     std::map<std::string, std::shared_ptr<Branch>> registered_branches;
+    
     Compiler* compiler;
 };
 

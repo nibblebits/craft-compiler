@@ -57,6 +57,7 @@ public:
     bool isSigned();
     bool isPrimitive();
     virtual int getDataTypeSize(bool no_pointer = false);
+    virtual int getBranchType();
 private:
     bool is_pointer;
 };

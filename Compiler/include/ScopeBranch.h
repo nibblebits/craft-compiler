@@ -28,12 +28,15 @@
 #include "CustomBranch.h"
 
 class VDEFBranch;
+class VarIdentifierBranch;
 class EXPORT ScopeBranch : public CustomBranch
 {
 public:
     ScopeBranch(Compiler* compiler, std::string name, std::string value);
     virtual ~ScopeBranch();
     virtual int getScopeSize(bool include_subscopes=false, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start = NULL, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end = NULL, bool *should_stop=NULL) = 0;
+    virtual std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope=true) = 0;
+    virtual std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(std::string var_name, bool lookup_scope=true) = 0;
 private:
 
 };
