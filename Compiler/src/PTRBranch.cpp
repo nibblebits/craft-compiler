@@ -43,3 +43,14 @@ std::shared_ptr<Branch> PTRBranch::getExpressionBranch()
 {
     return CustomBranch::getRegisteredBranchByName("expression_branch");
 }
+
+void PTRBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<PTRBranch> ptr_branch_clone = std::dynamic_pointer_cast<PTRBranch>(cloned_branch);
+    ptr_branch_clone->setExpressionBranch(getExpressionBranch()->clone());
+}
+
+std::shared_ptr<Branch> PTRBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new PTRBranch(getCompiler()));
+}

@@ -26,16 +26,21 @@
 #define ASMBRANCH_H
 
 #include "CustomBranch.h"
-class EXPORT ASMBranch : public CustomBranch {
+
+class EXPORT ASMBranch : public CustomBranch
+{
 public:
     ASMBranch(Compiler* compiler);
     virtual ~ASMBranch();
-    
+
     void setInstructionStartStringBranch(std::shared_ptr<Branch> branch);
     void setInstructionArgumentsBranch(std::shared_ptr<Branch> branch);
-    
+
     std::shared_ptr<Branch> getInstructionStartStringBranch();
     std::shared_ptr<Branch> getInstructionArgumentsBranch();
+
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
 private:
 
 };

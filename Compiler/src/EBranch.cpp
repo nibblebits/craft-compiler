@@ -26,9 +26,24 @@
 
 #include "EBranch.h"
 
-EBranch::EBranch(Compiler* compiler) : CustomBranch(compiler, "E", "") {
+EBranch::EBranch(Compiler* compiler) : CustomBranch(compiler, "E", "")
+{
 }
 
-EBranch::~EBranch() {
+EBranch::~EBranch()
+{
 }
 
+void EBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    // Clone all our children
+    for (std::shared_ptr<Branch> child : cloned_branch->getChildren())
+    {
+        cloned_branch->addChild(child->clone());
+    }
+}
+
+std::shared_ptr<Branch> EBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new EBranch(getCompiler()));
+}

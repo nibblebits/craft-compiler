@@ -27,17 +27,21 @@
 
 #include "CustomBranch.h"
 class BODYBranch;
+
 class EXPORT STRUCTBranch : public CustomBranch
 {
 public:
     STRUCTBranch(Compiler* compiler);
     virtual ~STRUCTBranch();
-    
+
     void setStructNameBranch(std::shared_ptr<Branch> branch);
     void setStructBodyBranch(std::shared_ptr<BODYBranch> branch);
-    
+
     std::shared_ptr<Branch> getStructNameBranch();
     std::shared_ptr<BODYBranch> getStructBodyBranch();
+
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
 private:
 
 };

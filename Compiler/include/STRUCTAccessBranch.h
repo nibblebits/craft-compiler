@@ -26,10 +26,16 @@
 #define STRUCTACCESS_H
 
 #include "CustomBranch.h"
-class EXPORT STRUCTAccessBranch : public CustomBranch {
+
+class EXPORT STRUCTAccessBranch : public CustomBranch
+{
 public:
     STRUCTAccessBranch(Compiler* compiler);
     virtual ~STRUCTAccessBranch();
+
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
+
 private:
 
 };

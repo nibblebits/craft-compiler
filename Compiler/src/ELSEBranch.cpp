@@ -43,3 +43,14 @@ std::shared_ptr<Branch> ELSEBranch::getBodyBranch()
 {
     return CustomBranch::getRegisteredBranchByName("body_branch");
 }
+
+void ELSEBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<ELSEBranch> else_branch_cloned = std::dynamic_pointer_cast<ELSEBranch>(cloned_branch);
+    else_branch_cloned->setBodyBranch(getBodyBranch()->clone());
+}
+
+std::shared_ptr<Branch> ELSEBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new ELSEBranch(getCompiler()));
+}

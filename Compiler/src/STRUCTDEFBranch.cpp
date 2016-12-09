@@ -25,6 +25,7 @@
  */
 
 #include "STRUCTDEFBranch.h"
+#include "BODYBranch.h"
 
 STRUCTDEFBranch::STRUCTDEFBranch(Compiler* compiler) : VDEFBranch(compiler, "STRUCT_DEF")
 {
@@ -32,4 +33,27 @@ STRUCTDEFBranch::STRUCTDEFBranch(Compiler* compiler) : VDEFBranch(compiler, "STR
 
 STRUCTDEFBranch::~STRUCTDEFBranch()
 {
+}
+
+void STRUCTDEFBranch::setStructBody(std::shared_ptr<BODYBranch> struct_body_branch)
+{
+    this->unique_struct_body_branch = struct_body_branch;
+}
+
+std::shared_ptr<BODYBranch> STRUCTDEFBranch::getStructBody()
+{
+    return this->unique_struct_body_branch;
+}
+
+void STRUCTDEFBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<STRUCTDEFBranch> struct_def_branch_clone = 
+            std::dynamic_pointer_cast<STRUCTDEFBranch>(cloned_branch);
+    
+    struct_def_branch_clone->setStructBody(std::dynamic_pointer_cast<BODYBranch>(getStructBody()->clone()));
+}
+
+std::shared_ptr<Branch> STRUCTDEFBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new STRUCTDEFBranch(getCompiler()));
 }

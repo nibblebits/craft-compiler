@@ -1150,6 +1150,9 @@ void Parser::process_structure()
 
     // Finally add the structure root to the main tree
     push_branch(struct_root);
+
+    // Lets just add the declared structure to the vector so we can access it later during parsing
+    this->declared_structs.push_back(struct_root);
 }
 
 void Parser::process_structure_declaration()
@@ -1214,6 +1217,15 @@ void Parser::process_structure_declaration()
     struct_declaration->setDataTypeBranch(struct_name_branch);
     struct_declaration->setVariableIdentifierBranch(identifier_branch);
     struct_declaration->setValueExpBranch(var_value_branch);
+
+    /* We need to clone the body of the structure that this structure definition is referring to
+     * this is because the framework requires unique children for it to do certain things.
+     * Upon cloning we will then let the new structure definition know about it.
+     */
+    std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(getDeclaredStructure(struct_name_branch->getValue()));
+    std::shared_ptr<BODYBranch> struct_branch_body = struct_branch->getStructBodyBranch();
+    std::shared_ptr<BODYBranch> unique_body = std::dynamic_pointer_cast<BODYBranch>(struct_branch_body->clone());
+    struct_declaration->setStructBody(unique_body);
 
     // Now push it to the stack
     push_branch(struct_declaration);
@@ -1717,6 +1729,19 @@ bool Parser::is_peak_identifier(std::string identifier)
 {
 
     return is_peak_type("identifier") && is_peak_value(identifier);
+}
+
+std::shared_ptr<STRUCTBranch> Parser::getDeclaredStructure(std::string struct_name)
+{
+    for (std::shared_ptr<STRUCTBranch> struct_branch : this->declared_structs)
+    {
+        if (struct_branch->getStructNameBranch()->getValue() == struct_name)
+        {
+            return struct_branch;
+        }
+    }
+
+    return NULL;
 }
 
 void Parser::buildTree()

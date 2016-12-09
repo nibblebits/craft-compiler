@@ -49,8 +49,22 @@ std::shared_ptr<Branch> ASMArgBranch::getArgumentValueBranch()
 {
     return CustomBranch::getRegisteredBranchByName("argument_value_branch");
 }
-std::shared_ptr<Branch> ASMArgBranch::getNextStringBranch()       
+
+std::shared_ptr<Branch> ASMArgBranch::getNextStringBranch()
 {
     return CustomBranch::getRegisteredBranchByName("next_string_branch");
 }
 
+void ASMArgBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<ASMArgBranch> asm_cloned_arg_branch = std::dynamic_pointer_cast<ASMArgBranch>(cloned_branch);
+    std::shared_ptr<Branch> argument_value_branch = getArgumentValueBranch()->clone();
+    std::shared_ptr<Branch> next_string_branch = getNextStringBranch()->clone();
+    asm_cloned_arg_branch->setArgumentValueBranch(argument_value_branch);
+    asm_cloned_arg_branch->setNextStringBranch(next_string_branch);
+}
+
+std::shared_ptr<Branch> ASMArgBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new ASMArgBranch(getCompiler()));
+}

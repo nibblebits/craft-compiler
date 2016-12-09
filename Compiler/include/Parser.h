@@ -33,8 +33,6 @@
 #include <algorithm>
 #include "Logger.h"
 #include "Helper.h"
-#include "ParserRule.h"
-#include "ParserRuleRequirement.h"
 #include "ParserException.h"
 #include "Tree.h"
 #include "Token.h"
@@ -117,6 +115,8 @@ private:
     inline bool is_peak_operator(std::string op, int peak);
     inline bool is_peak_identifier(std::string identifier);
 
+    std::shared_ptr<STRUCTBranch> getDeclaredStructure(std::string struct_name);
+    
     std::shared_ptr<Logger> logger;
     std::deque<std::shared_ptr<Token>> input;
     std::deque<std::shared_ptr<Branch>> branches;
@@ -132,6 +132,7 @@ private:
     std::string branch_type;
     std::string branch_value;
 
+    std::vector<std::shared_ptr<STRUCTBranch>> declared_structs;
     std::vector<std::shared_ptr<ScopeBranch>> local_scopes;
     std::shared_ptr<RootBranch> root_branch;
     std::shared_ptr<ScopeBranch> current_local_scope;

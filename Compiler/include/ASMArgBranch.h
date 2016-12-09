@@ -26,16 +26,20 @@
 #define ASMARGBRANCH_H
 
 #include "CustomBranch.h"
-class EXPORT ASMArgBranch : public CustomBranch {
+
+class EXPORT ASMArgBranch : public CustomBranch
+{
 public:
     ASMArgBranch(Compiler* compiler);
     virtual ~ASMArgBranch();
-    
+
     void setArgumentValueBranch(std::shared_ptr<Branch> arg_value_branch);
     void setNextStringBranch(std::shared_ptr<Branch> next_string_branch);
-    
+
     std::shared_ptr<Branch> getArgumentValueBranch();
     std::shared_ptr<Branch> getNextStringBranch();
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
 private:
 
 };

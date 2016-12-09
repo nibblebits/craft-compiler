@@ -40,12 +40,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/ASMBranch.o \
 	${OBJECTDIR}/src/ASTAssistant.o \
 	${OBJECTDIR}/src/AddressOfBranch.o \
-	${OBJECTDIR}/src/ArrayBranch.o \
 	${OBJECTDIR}/src/ArrayIndexBranch.o \
 	${OBJECTDIR}/src/AssignBranch.o \
 	${OBJECTDIR}/src/BODYBranch.o \
 	${OBJECTDIR}/src/Branch.o \
-	${OBJECTDIR}/src/CallBranch.o \
 	${OBJECTDIR}/src/CodeGenerator.o \
 	${OBJECTDIR}/src/Compiler.o \
 	${OBJECTDIR}/src/CompilerEntity.o \
@@ -64,12 +62,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Lexer.o \
 	${OBJECTDIR}/src/Linker.o \
 	${OBJECTDIR}/src/Logger.o \
-	${OBJECTDIR}/src/MathEBranch.o \
-	${OBJECTDIR}/src/PTRAssignBranch.o \
 	${OBJECTDIR}/src/PTRBranch.o \
 	${OBJECTDIR}/src/Parser.o \
-	${OBJECTDIR}/src/ParserRule.o \
-	${OBJECTDIR}/src/ParserRuleRequirement.o \
 	${OBJECTDIR}/src/RootBranch.o \
 	${OBJECTDIR}/src/STRUCTAccessBranch.o \
 	${OBJECTDIR}/src/STRUCTBranch.o \
@@ -134,11 +128,6 @@ ${OBJECTDIR}/src/AddressOfBranch.o: src/AddressOfBranch.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/AddressOfBranch.o src/AddressOfBranch.cpp
 
-${OBJECTDIR}/src/ArrayBranch.o: src/ArrayBranch.cpp
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArrayBranch.o src/ArrayBranch.cpp
-
 ${OBJECTDIR}/src/ArrayIndexBranch.o: src/ArrayIndexBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -158,11 +147,6 @@ ${OBJECTDIR}/src/Branch.o: src/Branch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Branch.o src/Branch.cpp
-
-${OBJECTDIR}/src/CallBranch.o: src/CallBranch.cpp
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CallBranch.o src/CallBranch.cpp
 
 ${OBJECTDIR}/src/CodeGenerator.o: src/CodeGenerator.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -254,16 +238,6 @@ ${OBJECTDIR}/src/Logger.o: src/Logger.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Logger.o src/Logger.cpp
 
-${OBJECTDIR}/src/MathEBranch.o: src/MathEBranch.cpp
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MathEBranch.o src/MathEBranch.cpp
-
-${OBJECTDIR}/src/PTRAssignBranch.o: src/PTRAssignBranch.cpp
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PTRAssignBranch.o src/PTRAssignBranch.cpp
-
 ${OBJECTDIR}/src/PTRBranch.o: src/PTRBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -273,16 +247,6 @@ ${OBJECTDIR}/src/Parser.o: src/Parser.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Parser.o src/Parser.cpp
-
-${OBJECTDIR}/src/ParserRule.o: src/ParserRule.cpp
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ParserRule.o src/ParserRule.cpp
-
-${OBJECTDIR}/src/ParserRuleRequirement.o: src/ParserRuleRequirement.cpp
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ParserRuleRequirement.o src/ParserRuleRequirement.cpp
 
 ${OBJECTDIR}/src/RootBranch.o: src/RootBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

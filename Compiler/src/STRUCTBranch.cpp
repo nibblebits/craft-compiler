@@ -54,3 +54,15 @@ std::shared_ptr<BODYBranch> STRUCTBranch::getStructBodyBranch()
 {
     return std::dynamic_pointer_cast<BODYBranch>(CustomBranch::getRegisteredBranchByName("struct_body_branch"));
 }
+
+void STRUCTBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<STRUCTBranch> struct_branch_clone = std::dynamic_pointer_cast<STRUCTBranch>(cloned_branch);
+    struct_branch_clone->setStructBodyBranch(std::dynamic_pointer_cast<BODYBranch>(getStructNameBranch()->clone()));
+    struct_branch_clone->setStructBodyBranch(std::dynamic_pointer_cast<BODYBranch>(getStructBodyBranch()->clone()));
+}
+
+std::shared_ptr<Branch> STRUCTBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new STRUCTBranch(getCompiler()));
+}

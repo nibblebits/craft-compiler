@@ -34,10 +34,11 @@ FuncBranch::~FuncBranch()
 {
 }
 
-    void FuncBranch::setReturnTypeBranch(std::shared_ptr<Branch> returnTypeBranch)
-    {
-        this->registerBranch("func_return_type_branch", returnTypeBranch);
-    }
+void FuncBranch::setReturnTypeBranch(std::shared_ptr<Branch> returnTypeBranch)
+{
+    this->registerBranch("func_return_type_branch", returnTypeBranch);
+}
+
 void FuncBranch::setNameBranch(std::shared_ptr<Branch> nameBranch)
 {
     this->registerBranch("func_name_branch", nameBranch);
@@ -71,4 +72,17 @@ std::shared_ptr<Branch> FuncBranch::getArgumentsBranch()
 std::shared_ptr<Branch> FuncBranch::getBodyBranch()
 {
     return this->getRegisteredBranchByName("func_body_branch");
+}
+
+void FuncBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<FuncBranch> func_branch_cloned = std::dynamic_pointer_cast<FuncBranch>(cloned_branch);
+    func_branch_cloned->setReturnTypeBranch(getReturnTypeBranch()->clone());
+    func_branch_cloned->setNameBranch(getNameBranch()->clone());
+    func_branch_cloned->setArgumentsBranch(getArgumentsBranch()->clone());
+    func_branch_cloned->setBodyBranch(getBodyBranch()->clone());
+}
+std::shared_ptr<Branch> FuncBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new FuncBranch(getCompiler()));
 }

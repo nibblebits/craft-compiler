@@ -27,22 +27,28 @@
 
 #include "CustomBranch.h"
 class BODYBranch;
-class EXPORT IFBranch : public CustomBranch {
+
+class EXPORT IFBranch : public CustomBranch
+{
 public:
     IFBranch(Compiler* compiler);
     virtual ~IFBranch();
-    
+
     void setExpressionBranch(std::shared_ptr<Branch> branch);
     void setBodyBranch(std::shared_ptr<Branch> branch);
     void setElseBranch(std::shared_ptr<Branch> branch);
     void setElseIfBranch(std::shared_ptr<Branch> branch);
-    
+
     std::shared_ptr<Branch> getExpressionBranch();
     std::shared_ptr<BODYBranch> getBodyBranch();
     std::shared_ptr<Branch> getElseBranch();
     std::shared_ptr<Branch> getElseIfBranch();
     bool hasElseBranch();
     bool hasElseIfBranch();
+
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
+
 private:
 
 };

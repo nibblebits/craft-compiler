@@ -37,13 +37,17 @@ public:
     void setVariableNameBranch(std::shared_ptr<Branch> name_branch);
     void setRootArrayIndexBranch(std::shared_ptr<Branch> array_index_branch);
     void setStructureAccessBranch(std::shared_ptr<Branch> structure_access_branch);
-    
+
     std::shared_ptr<Branch> getVariableNameBranch();
     std::shared_ptr<Branch> getStructureAccessBranch();
     std::shared_ptr<ArrayIndexBranch> getRootArrayIndexBranch();
     bool hasRootArrayIndexBranch();
     bool hasStructureAccessBranch();
     bool isVariableAlone();
+
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
+
 private:
 
 };

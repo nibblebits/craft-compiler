@@ -26,12 +26,18 @@
 #define ROOTBRANCH_H
 
 #include "CustomBranch.h"
-class RootBranch : public CustomBranch {
+
+class RootBranch : public CustomBranch
+{
 public:
     RootBranch(Compiler* compiler);
     virtual ~RootBranch();
-    
+
     std::shared_ptr<STRUCTBranch> getDeclaredStructureByName(std::string name);
+
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
+
 private:
 
 };

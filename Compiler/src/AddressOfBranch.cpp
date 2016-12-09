@@ -43,3 +43,14 @@ std::shared_ptr<Branch> AddressOfBranch::getVariableBranch()
 {
     return this->getRegisteredBranchByName("variable_branch");
 }
+
+void AddressOfBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<AddressOfBranch> address_of_branch_clone = std::dynamic_pointer_cast<AddressOfBranch>(cloned_branch);
+    address_of_branch_clone->setVariableBranch(getVariableBranch()->clone());
+}
+
+std::shared_ptr<Branch> AddressOfBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new AddressOfBranch(getCompiler()));
+} 

@@ -33,3 +33,17 @@ STRUCTAccessBranch::STRUCTAccessBranch(Compiler* compiler) : CustomBranch(compil
 STRUCTAccessBranch::~STRUCTAccessBranch()
 {
 }
+
+void STRUCTAccessBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    // Clone all our children
+    for (std::shared_ptr<Branch> child : cloned_branch->getChildren())
+    {
+        cloned_branch->addChild(child->clone());
+    }
+}
+
+std::shared_ptr<Branch> STRUCTAccessBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new STRUCTAccessBranch(getCompiler()));
+}

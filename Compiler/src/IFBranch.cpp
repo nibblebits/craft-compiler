@@ -94,3 +94,16 @@ bool IFBranch::hasElseIfBranch()
 
     return false;
 }
+
+void IFBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<IFBranch> if_branch_clone = std::dynamic_pointer_cast<IFBranch>(cloned_branch);
+    if_branch_clone->setBodyBranch(getBodyBranch()->clone());
+    if_branch_clone->setElseBranch(getElseBranch()->clone());
+    if_branch_clone->setElseIfBranch(getElseIfBranch()->clone());
+}
+
+std::shared_ptr<Branch> IFBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new IFBranch(getCompiler()));
+}

@@ -129,3 +129,17 @@ std::shared_ptr<VDEFBranch> FORBranch::getVariableDefinitionBranch(std::string v
 {
 
 }
+
+void FORBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<FORBranch> for_branch_cloned = std::dynamic_pointer_cast<FORBranch>(cloned_branch);
+    for_branch_cloned->setInitBranch(getInitBranch()->clone());
+    for_branch_cloned->setCondBranch(getCondBranch()->clone());
+    for_branch_cloned->setLoopBranch(getLoopBranch()->clone());
+    for_branch_cloned->setBodyBranch(std::dynamic_pointer_cast<BODYBranch>(getBodyBranch()->clone()));
+}
+
+std::shared_ptr<Branch> FORBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new FORBranch(getCompiler()));
+}

@@ -31,23 +31,26 @@
 
 typedef std::map<std::string, std::shared_ptr<Branch>>::iterator map_it;
 
-class EXPORT CustomBranch : public Branch {
+class EXPORT CustomBranch : public Branch
+{
 public:
     CustomBranch(Compiler* compiler, std::string name, std::string value);
     virtual ~CustomBranch();
-    
+
     void registerBranch(std::string name, std::shared_ptr<Branch> branch);
     std::shared_ptr<Branch> getRegisteredBranchByName(std::string name);
     bool isBranchRegistered(std::string name);
-    
 
     void output_registered_branches();
-
-    
     Compiler* getCompiler();
+    
+    virtual std::shared_ptr<Branch> clone();
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch) = 0;
+    virtual std::shared_ptr<Branch> create_clone() = 0;
+
 private:
     std::map<std::string, std::shared_ptr<Branch>> registered_branches;
-    
+
     Compiler* compiler;
 };
 

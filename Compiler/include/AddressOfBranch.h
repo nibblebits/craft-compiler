@@ -25,14 +25,18 @@
 #ifndef ADDRESSOFBRANCH_H
 #define ADDRESSOFBRANCH_H
 #include "CustomBranch.h"
+
 class EXPORT AddressOfBranch : public CustomBranch
 {
 public:
     AddressOfBranch(Compiler* compiler);
     virtual ~AddressOfBranch();
-    
+
     void setVariableBranch(std::shared_ptr<Branch> branch);
     std::shared_ptr<Branch> getVariableBranch();
+    
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
 private:
 
 };

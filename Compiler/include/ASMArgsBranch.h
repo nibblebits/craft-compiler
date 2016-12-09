@@ -26,11 +26,15 @@
 #define ASMARGSBRANCH_H
 
 #include "CustomBranch.h"
-class EXPORT ASMArgsBranch : public CustomBranch {
+
+class EXPORT ASMArgsBranch : public CustomBranch
+{
 public:
     ASMArgsBranch(Compiler* compiler);
     virtual ~ASMArgsBranch();
-   
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
+
 private:
 
 };

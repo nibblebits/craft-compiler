@@ -134,7 +134,7 @@ std::shared_ptr<VDEFBranch> BODYBranch::getVariableDefinitionBranch(std::shared_
                 std::shared_ptr<VDEFBranch> r_branch = struct_body->getVariableDefinitionBranch(next_iden);
                 if (next_iden->hasStructureAccessBranch())
                 {
-                    next_iden = std::dynamic_pointer_cast<VarIdentifierBranch>(next_iden->getStructureAccessBranch()->getFirstChild()); 
+                    next_iden = std::dynamic_pointer_cast<VarIdentifierBranch>(next_iden->getStructureAccessBranch()->getFirstChild());
                     struct_branch = getRoot()->getDeclaredStructureByName(r_branch->getDataTypeBranch()->getValue());
                 }
                 else
@@ -154,4 +154,18 @@ std::shared_ptr<VDEFBranch> BODYBranch::getVariableDefinitionBranch(std::shared_
 std::shared_ptr<VDEFBranch> BODYBranch::getVariableDefinitionBranch(std::string var_name, bool lookup_scope)
 {
 
+}
+
+void BODYBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    // Clone all our children
+    for (std::shared_ptr<Branch> child : Branch::getChildren())
+    {
+        cloned_branch->addChild(child->clone());
+    }
+}
+
+std::shared_ptr<Branch> BODYBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new BODYBranch(getCompiler()));
 }

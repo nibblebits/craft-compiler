@@ -253,3 +253,15 @@ int Branch::getBranchType()
 {
     return BRANCH_TYPE_BRANCH;
 }
+
+// Scopes must not be cloned.
+std::shared_ptr<Branch> Branch::clone()
+{
+    // This is not a custom branch, just clone our children
+    std::shared_ptr<Branch> cloned_branch = std::shared_ptr<Branch>(new Branch(getType(), getValue()));
+    for (std::shared_ptr<Branch> child : Branch::getChildren())
+    {
+        cloned_branch->addChild(child->clone());
+    }
+    return cloned_branch;
+}

@@ -51,3 +51,17 @@ std::shared_ptr<STRUCTBranch> RootBranch::getDeclaredStructureByName(std::string
 
     return NULL;
 }
+
+void RootBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    // Clone all our children
+    for(std::shared_ptr<Branch> child : cloned_branch->getChildren())
+    {
+        cloned_branch->addChild(child->clone());
+    }
+}
+
+std::shared_ptr<Branch> RootBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new RootBranch(getCompiler()));
+}

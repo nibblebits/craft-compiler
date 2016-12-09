@@ -26,11 +26,14 @@
 #define EBRANCH_H
 
 #include "CustomBranch.h"
-class EBranch : public CustomBranch {
+
+class EBranch : public CustomBranch
+{
 public:
     EBranch(Compiler* compiler);
     virtual ~EBranch();
-   
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
 private:
 
 };

@@ -26,7 +26,9 @@
 #define FUNCBRANCH_H
 
 #include "CustomBranch.h"
-class EXPORT FuncBranch : public CustomBranch {
+
+class EXPORT FuncBranch : public CustomBranch
+{
 public:
     FuncBranch(Compiler* compiler);
     virtual ~FuncBranch();
@@ -38,8 +40,12 @@ public:
     std::shared_ptr<Branch> getNameBranch();
     std::shared_ptr<Branch> getArgumentsBranch();
     std::shared_ptr<Branch> getBodyBranch();
-private:
     
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
+
+private:
+
 };
 
 #endif /* FUNCBRANCH_H */

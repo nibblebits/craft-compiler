@@ -25,7 +25,6 @@
  */
 
 #include "AssignBranch.h"
-#include "ArrayBranch.h"
 
 AssignBranch::AssignBranch(Compiler* compiler) : CustomBranch(compiler, "ASSIGN", "")
 {
@@ -33,8 +32,9 @@ AssignBranch::AssignBranch(Compiler* compiler) : CustomBranch(compiler, "ASSIGN"
 
 AssignBranch::AssignBranch(Compiler* compiler, std::string branch_name) : CustomBranch(compiler, branch_name, "")
 {
-    
+
 }
+
 AssignBranch::~AssignBranch()
 {
 }
@@ -57,4 +57,16 @@ std::shared_ptr<Branch> AssignBranch::getVariableToAssignBranch()
 std::shared_ptr<Branch> AssignBranch::getValueBranch()
 {
     return this->getRegisteredBranchByName("value_to_assign_branch");
+}
+
+void AssignBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<AssignBranch> assign_branch_cloned = std::dynamic_pointer_cast<AssignBranch>(cloned_branch);
+    assign_branch_cloned->setValueBranch(getValueBranch()->clone());
+    assign_branch_cloned->setVariableToAssignBranch(getVariableToAssignBranch()->clone());
+}
+
+std::shared_ptr<Branch> AssignBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new AssignBranch(getCompiler()));
 }

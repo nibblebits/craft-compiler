@@ -26,19 +26,25 @@
 #define ARRAYINDEXBRANCH_H
 
 #include "CustomBranch.h"
-class EXPORT ArrayIndexBranch : public CustomBranch {
+
+class EXPORT ArrayIndexBranch : public CustomBranch
+{
 public:
     ArrayIndexBranch(Compiler* compiler);
     virtual ~ArrayIndexBranch();
-    
+
     void setValueBranch(std::shared_ptr<Branch> value_branch);
     void setNextArrayIndexBranch(std::shared_ptr<Branch> next_array_index_branch);
     std::shared_ptr<Branch> getValueBranch();
     std::shared_ptr<Branch> getNextArrayIndexBranch();
-    
+
     bool hasNextArrayIndexBranch();
     bool hasParentArrayIndexBranch();
     std::shared_ptr<Branch> getDeepestArrayIndexBranch();
+
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
+
 private:
 
 };

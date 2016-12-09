@@ -53,3 +53,15 @@ std::shared_ptr<Branch> FuncCallBranch::getFuncParamsBranch()
 {
     return this->getRegisteredBranchByName("func_params_branch");
 }
+
+void FuncCallBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<FuncCallBranch> func_call_branch_clone = std::dynamic_pointer_cast<FuncCallBranch>(cloned_branch);
+    func_call_branch_clone->setFuncNameBranch(getFuncNameBranch()->clone());
+    func_call_branch_clone->setFuncParamsBranch(getFuncParamsBranch()->clone());
+}
+
+std::shared_ptr<Branch> FuncCallBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new FuncCallBranch(getCompiler()));
+}

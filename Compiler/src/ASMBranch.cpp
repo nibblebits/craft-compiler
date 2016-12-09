@@ -54,3 +54,17 @@ std::shared_ptr<Branch> ASMBranch::getInstructionArgumentsBranch()
 {
     return CustomBranch::getRegisteredBranchByName("instruction_args_branch");
 }
+
+void ASMBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<Branch> instruction_start_string_branch = getInstructionStartStringBranch()->clone();
+    std::shared_ptr<Branch> instruction_arguments_branch = getInstructionArgumentsBranch()->clone();
+    std::shared_ptr<ASMBranch> cloned_asm_branch = std::dynamic_pointer_cast<ASMBranch>(cloned_branch);
+    cloned_asm_branch->setInstructionStartStringBranch(instruction_start_string_branch);
+    cloned_asm_branch->setInstructionArgumentsBranch(instruction_arguments_branch);
+}
+
+std::shared_ptr<Branch> ASMBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new ASMBranch(getCompiler()));
+}

@@ -25,7 +25,6 @@
  */
 
 #include "VDEFBranch.h"
-#include "ArrayBranch.h"
 #include "PTRBranch.h"
 #include "VarIdentifierBranch.h"
 #include "ScopeBranch.h"
@@ -72,6 +71,11 @@ std::shared_ptr<VarIdentifierBranch> VDEFBranch::getVariableIdentifierBranch()
 std::shared_ptr<Branch> VDEFBranch::getValueExpBranch()
 {
     return this->getRegisteredBranchByName("value_exp_branch");
+}
+
+bool VDEFBranch::hasValueExpBranch()
+{
+    return getValueExpBranch() != NULL;
 }
 
 std::shared_ptr<Branch> VDEFBranch::getNameBranch()
@@ -158,4 +162,20 @@ int VDEFBranch::getDataTypeSize(bool no_pointer)
 int VDEFBranch::getBranchType()
 {
     return BRANCH_TYPE_VDEF;
+}
+
+void VDEFBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<VDEFBranch> vdef_branch_clone = std::dynamic_pointer_cast<VDEFBranch>(cloned_branch);
+    vdef_branch_clone->setDataTypeBranch(getDataTypeBranch()->clone());
+    vdef_branch_clone->setVariableIdentifierBranch(getVariableIdentifierBranch()->clone());
+    if (hasValueExpBranch())
+    {
+        vdef_branch_clone->setValueExpBranch(getValueExpBranch()->clone());
+    }
+}
+
+std::shared_ptr<Branch> VDEFBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new VDEFBranch(getCompiler(), Branch::getType(), Branch::getValue()));
 }

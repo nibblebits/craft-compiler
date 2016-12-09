@@ -9,12 +9,10 @@
       <itemPath>include/ASMBranch.h</itemPath>
       <itemPath>include/ASTAssistant.h</itemPath>
       <itemPath>include/AddressOfBranch.h</itemPath>
-      <itemPath>include/ArrayBranch.h</itemPath>
       <itemPath>include/ArrayIndexBranch.h</itemPath>
       <itemPath>include/AssignBranch.h</itemPath>
       <itemPath>include/BODYBranch.h</itemPath>
       <itemPath>include/Branch.h</itemPath>
-      <itemPath>include/CallBranch.h</itemPath>
       <itemPath>include/CharPos.h</itemPath>
       <itemPath>include/CodeGenerator.h</itemPath>
       <itemPath>include/CodeGeneratorException.h</itemPath>
@@ -38,13 +36,9 @@
       <itemPath>include/Linker.h</itemPath>
       <itemPath>include/LinkerException.h</itemPath>
       <itemPath>include/Logger.h</itemPath>
-      <itemPath>include/MathEBranch.h</itemPath>
-      <itemPath>include/PTRAssignBranch.h</itemPath>
       <itemPath>include/PTRBranch.h</itemPath>
       <itemPath>include/Parser.h</itemPath>
       <itemPath>include/ParserException.h</itemPath>
-      <itemPath>include/ParserRule.h</itemPath>
-      <itemPath>include/ParserRuleRequirement.h</itemPath>
       <itemPath>include/RootBranch.h</itemPath>
       <itemPath>include/STRUCTAccessBranch.h</itemPath>
       <itemPath>include/STRUCTBranch.h</itemPath>
@@ -77,12 +71,10 @@
       <itemPath>src/ASMBranch.cpp</itemPath>
       <itemPath>src/ASTAssistant.cpp</itemPath>
       <itemPath>src/AddressOfBranch.cpp</itemPath>
-      <itemPath>src/ArrayBranch.cpp</itemPath>
       <itemPath>src/ArrayIndexBranch.cpp</itemPath>
       <itemPath>src/AssignBranch.cpp</itemPath>
       <itemPath>src/BODYBranch.cpp</itemPath>
       <itemPath>src/Branch.cpp</itemPath>
-      <itemPath>src/CallBranch.cpp</itemPath>
       <itemPath>src/CodeGenerator.cpp</itemPath>
       <itemPath>src/Compiler.cpp</itemPath>
       <itemPath>src/CompilerEntity.cpp</itemPath>
@@ -101,12 +93,8 @@
       <itemPath>src/Lexer.cpp</itemPath>
       <itemPath>src/Linker.cpp</itemPath>
       <itemPath>src/Logger.cpp</itemPath>
-      <itemPath>src/MathEBranch.cpp</itemPath>
-      <itemPath>src/PTRAssignBranch.cpp</itemPath>
       <itemPath>src/PTRBranch.cpp</itemPath>
       <itemPath>src/Parser.cpp</itemPath>
-      <itemPath>src/ParserRule.cpp</itemPath>
-      <itemPath>src/ParserRuleRequirement.cpp</itemPath>
       <itemPath>src/RootBranch.cpp</itemPath>
       <itemPath>src/STRUCTAccessBranch.cpp</itemPath>
       <itemPath>src/STRUCTBranch.cpp</itemPath>
@@ -171,8 +159,6 @@
       </item>
       <item path="include/AddressOfBranch.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/ArrayBranch.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/ArrayIndexBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
@@ -180,8 +166,6 @@
       <item path="include/BODYBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/CallBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/CharPos.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -229,19 +213,11 @@
       </item>
       <item path="include/Logger.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/MathEBranch.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/PTRAssignBranch.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/ParserRule.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/RootBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -294,8 +270,6 @@
       </item>
       <item path="src/AddressOfBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/ArrayBranch.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/ArrayIndexBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
@@ -303,8 +277,6 @@
       <item path="src/BODYBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/CallBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CodeGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -342,17 +314,9 @@
       </item>
       <item path="src/Logger.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/MathEBranch.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/PTRAssignBranch.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/PTRBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/ParserRule.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RootBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -411,8 +375,6 @@
       </item>
       <item path="include/AddressOfBranch.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/ArrayBranch.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/ArrayIndexBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
@@ -420,8 +382,6 @@
       <item path="include/BODYBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/CallBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/CharPos.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -469,19 +429,11 @@
       </item>
       <item path="include/Logger.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/MathEBranch.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/PTRAssignBranch.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/ParserRule.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/ParserRuleRequirement.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/RootBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -534,8 +486,6 @@
       </item>
       <item path="src/AddressOfBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/ArrayBranch.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/ArrayIndexBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
@@ -543,8 +493,6 @@
       <item path="src/BODYBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/CallBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CodeGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -582,17 +530,9 @@
       </item>
       <item path="src/Logger.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/MathEBranch.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/PTRAssignBranch.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="src/PTRBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/ParserRule.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="src/ParserRuleRequirement.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RootBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

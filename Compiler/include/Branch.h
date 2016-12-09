@@ -80,6 +80,7 @@ public:
 
     std::shared_ptr<Branch> getptr();
     virtual int getBranchType();
+    virtual std::shared_ptr<Branch> clone();
 private:
     std::string type;
     std::string value;

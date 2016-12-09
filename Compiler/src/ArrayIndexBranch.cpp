@@ -69,10 +69,22 @@ bool ArrayIndexBranch::hasParentArrayIndexBranch()
 std::shared_ptr<Branch> ArrayIndexBranch::getDeepestArrayIndexBranch()
 {
     std::shared_ptr<ArrayIndexBranch> current_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(this->getptr());
-    while(current_branch->hasNextArrayIndexBranch())
+    while (current_branch->hasNextArrayIndexBranch())
     {
         current_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(current_branch->getNextArrayIndexBranch());
     }
-    
+
     return current_branch;
+}
+
+void ArrayIndexBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<ArrayIndexBranch> array_index_cloned_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(cloned_branch);
+    array_index_cloned_branch->setValueBranch(getValueBranch()->clone());
+    array_index_cloned_branch->setNextArrayIndexBranch(getNextArrayIndexBranch()->clone());
+}
+
+std::shared_ptr<Branch> ArrayIndexBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new ArrayIndexBranch(getCompiler()));
 }

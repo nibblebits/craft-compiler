@@ -34,6 +34,10 @@ public:
     virtual ~PTRBranch();
     void setExpressionBranch(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getExpressionBranch();
+
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
+
 private:
 
 };

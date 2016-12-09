@@ -26,9 +26,20 @@
 
 #include "ASMArgsBranch.h"
 
-ASMArgsBranch::ASMArgsBranch(Compiler* compiler) : CustomBranch(compiler, "ASM_ARGS", "") {
+ASMArgsBranch::ASMArgsBranch(Compiler* compiler) : CustomBranch(compiler, "ASM_ARGS", "")
+{
 }
 
-ASMArgsBranch::~ASMArgsBranch() {
+ASMArgsBranch::~ASMArgsBranch()
+{
 }
 
+void ASMArgsBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    
+}
+
+std::shared_ptr<Branch> ASMArgsBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new ASMArgsBranch(getCompiler()));
+}

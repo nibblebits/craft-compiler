@@ -50,14 +50,20 @@ public:
     std::shared_ptr<VarIdentifierBranch> getVariableIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
     std::shared_ptr<Branch> getNameBranch();
+    
+    bool hasValueExpBranch();
 
-    int getPositionRelZero(bool loc_start_with_filesize=false);
+    int getPositionRelZero(bool loc_start_with_filesize = false);
 
     bool isPointer();
     bool isSigned();
     bool isPrimitive();
     virtual int getDataTypeSize(bool no_pointer = false);
     virtual int getBranchType();
+
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
+
 private:
     bool is_pointer;
 };

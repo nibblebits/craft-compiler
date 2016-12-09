@@ -26,6 +26,7 @@
  */
 
 #include "CustomBranch.h"
+#include "ScopeBranch.h"
 
 CustomBranch::CustomBranch(Compiler* compiler, std::string name, std::string value) : Branch(name, value)
 {
@@ -64,7 +65,6 @@ bool CustomBranch::isBranchRegistered(std::string name)
     return it != this->registered_branches.end();
 }
 
-
 void CustomBranch::output_registered_branches()
 {
     debug_output_branch(this->getptr());
@@ -78,4 +78,12 @@ void CustomBranch::output_registered_branches()
 Compiler* CustomBranch::getCompiler()
 {
     return this->compiler;
+}
+
+// Scopes must not be cloned.
+std::shared_ptr<Branch> CustomBranch::clone()
+{
+    std::shared_ptr<Branch> cloned_branch = create_clone();
+    imp_clone(cloned_branch);
+    return cloned_branch;
 }

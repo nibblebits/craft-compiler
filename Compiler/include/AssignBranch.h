@@ -26,16 +26,21 @@
 #define ASSIGNBRANCH_H
 
 #include "CustomBranch.h"
-class EXPORT AssignBranch : public CustomBranch {
+
+class EXPORT AssignBranch : public CustomBranch
+{
 public:
     AssignBranch(Compiler* compiler);
     AssignBranch(Compiler* compiler, std::string branch_name);
     virtual ~AssignBranch();
-    
+
     void setVariableToAssignBranch(std::shared_ptr<Branch> var_branch);
     void setValueBranch(std::shared_ptr<Branch> value_branch);
     std::shared_ptr<Branch> getVariableToAssignBranch();
     std::shared_ptr<Branch> getValueBranch();
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
+
 private:
 
 };

@@ -81,3 +81,18 @@ std::shared_ptr<Branch> VarIdentifierBranch::getStructureAccessBranch()
 {
     return CustomBranch::getRegisteredBranchByName("structure_access_branch");
 }
+
+void VarIdentifierBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch_clone = std::dynamic_pointer_cast<VarIdentifierBranch>(cloned_branch);
+    var_iden_branch_clone->setVariableNameBranch(getVariableNameBranch()->clone());
+    if (hasStructureAccessBranch())
+    {
+        var_iden_branch_clone->setStructureAccessBranch(getStructureAccessBranch()->clone());
+    }
+}
+
+std::shared_ptr<Branch> VarIdentifierBranch::create_clone()
+{
+    return std::shared_ptr<Branch>(new VarIdentifierBranch(getCompiler()));
+}
