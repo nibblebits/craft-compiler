@@ -50,7 +50,7 @@ public:
     std::shared_ptr<VarIdentifierBranch> getVariableIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
     std::shared_ptr<Branch> getNameBranch();
-    
+   
     bool hasValueExpBranch();
 
     int getPositionRelZero(bool loc_start_with_filesize = false);

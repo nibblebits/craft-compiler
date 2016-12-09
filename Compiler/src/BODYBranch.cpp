@@ -29,6 +29,7 @@
 #include "FORBranch.h"
 #include "STRUCTDEFBranch.h"
 #include "STRUCTBranch.h"
+#include "STRUCTAccessBranch.h"
 #include "RootBranch.h"
 
 BODYBranch::BODYBranch(Compiler* compiler) : ScopeBranch(compiler, "BODY", "")
@@ -126,23 +127,12 @@ std::shared_ptr<VDEFBranch> BODYBranch::getVariableDefinitionBranch(std::shared_
     {
         if (found_branch != NULL)
         {
-            std::shared_ptr<STRUCTBranch> struct_branch = getRoot()->getDeclaredStructureByName(found_branch->getDataTypeBranch()->getValue());
-            std::shared_ptr<VarIdentifierBranch> next_iden = std::dynamic_pointer_cast<VarIdentifierBranch>(var_iden->getStructureAccessBranch()->getFirstChild());
-            while (true)
-            {
-                std::shared_ptr<BODYBranch> struct_body = struct_branch->getStructBodyBranch();
-                std::shared_ptr<VDEFBranch> r_branch = struct_body->getVariableDefinitionBranch(next_iden);
-                if (next_iden->hasStructureAccessBranch())
-                {
-                    next_iden = std::dynamic_pointer_cast<VarIdentifierBranch>(next_iden->getStructureAccessBranch()->getFirstChild());
-                    struct_branch = getRoot()->getDeclaredStructureByName(r_branch->getDataTypeBranch()->getValue());
-                }
-                else
-                {
-                    found_branch = r_branch;
-                    break;
-                }
-            }
+            // We have a structure access branch so we need to keep going
+            std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(found_branch);
+            std::shared_ptr<BODYBranch> struct_body = struct_def_branch->getStructBody();
+            std::shared_ptr<VarIdentifierBranch> next_var_iden_branch = 
+                    std::dynamic_pointer_cast<VarIdentifierBranch>(var_iden->getStructureAccessBranch()->getFirstChild());
+            found_branch = struct_body->getVariableDefinitionBranch(next_var_iden_branch, false);
         }
     }
 

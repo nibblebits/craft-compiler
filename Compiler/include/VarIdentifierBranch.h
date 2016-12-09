@@ -41,6 +41,7 @@ public:
     std::shared_ptr<Branch> getVariableNameBranch();
     std::shared_ptr<Branch> getStructureAccessBranch();
     std::shared_ptr<ArrayIndexBranch> getRootArrayIndexBranch();
+    std::shared_ptr<VDEFBranch> getVariableDefinitionBranch();
     bool hasRootArrayIndexBranch();
     bool hasStructureAccessBranch();
     bool isVariableAlone();

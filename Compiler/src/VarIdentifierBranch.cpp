@@ -25,6 +25,7 @@
  */
 
 #include "VarIdentifierBranch.h"
+#include "ScopeBranch.h"
 
 VarIdentifierBranch::VarIdentifierBranch(Compiler* compiler) : CustomBranch(compiler, "VAR_IDENTIFIER", "")
 {
@@ -58,6 +59,11 @@ bool VarIdentifierBranch::hasRootArrayIndexBranch()
 {
     std::shared_ptr<Branch> root_array_index_branch = getRootArrayIndexBranch();
     return root_array_index_branch != NULL;
+}
+
+std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch()
+{
+    return Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()));
 }
 
 bool VarIdentifierBranch::hasStructureAccessBranch()
