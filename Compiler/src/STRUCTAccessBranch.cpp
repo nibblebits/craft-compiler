@@ -25,22 +25,47 @@
  */
 
 #include "STRUCTAccessBranch.h"
+#include "STRUCTDEFBranch.h"
+#include "VarIdentifierBranch.h"
 
 STRUCTAccessBranch::STRUCTAccessBranch(Compiler* compiler) : CustomBranch(compiler, "STRUCT_ACCESS", "")
 {
+    this->struct_def_branch = NULL;
 }
 
 STRUCTAccessBranch::~STRUCTAccessBranch()
 {
 }
 
+void STRUCTAccessBranch::setVarIdentifierBranch(std::shared_ptr<VarIdentifierBranch> var_iden_branch)
+{
+    CustomBranch::registerBranch("var_iden_branch", var_iden_branch);
+}
+
+void STRUCTAccessBranch::setStructDefBranch(std::shared_ptr<STRUCTDEFBranch> struct_def_branch)
+{
+    this->struct_def_branch = struct_def_branch;
+}
+
+std::shared_ptr<STRUCTDEFBranch> STRUCTAccessBranch::getStructDefBranch()
+{
+    return this->struct_def_branch;
+}
+
+std::shared_ptr<VarIdentifierBranch> STRUCTAccessBranch::getVarIdentifierBranch()
+{
+    return std::dynamic_pointer_cast<VarIdentifierBranch>(CustomBranch::getRegisteredBranchByName("var_iden_branch"));
+}
+
 void STRUCTAccessBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
+    std::shared_ptr<STRUCTAccessBranch> s_access_branch_cloned = std::dynamic_pointer_cast<STRUCTAccessBranch>(cloned_branch);
     // Clone all our children
     for (std::shared_ptr<Branch> child : cloned_branch->getChildren())
     {
         cloned_branch->addChild(child->clone());
     }
+
 }
 
 std::shared_ptr<Branch> STRUCTAccessBranch::create_clone()

@@ -16,30 +16,32 @@
  */
 
 /* 
- * File:   Tree.h
+ * File:   LexerException.h
  * Author: Daniel McCarthy
  *
- * Created on 29 May 2016, 20:35
+ * Created on 27 May 2016, 16:52
  */
 
-#ifndef TREE_H
-#define TREE_H
+#ifndef SEMANTICVALIDATOREXCEPTION_H
+#define SEMANTICVALIDATOREXCEPTION_H
+#include "SourceCodeRelatedException.h"
+#include "CharPos.h"
 
-#include "Branch.h"
-
-class STRUCTBranch;
-class RootBranch;
-class Tree {
+class SemanticValidatorException : public SourceCodeRelatedException
+{
 public:
-    Tree();
-    virtual ~Tree();
-    
-    // Returns a structure based on the structure name
-    std::shared_ptr<STRUCTBranch> getGlobalStructureByName(std::string name);
-    std::shared_ptr<RootBranch> root;
-private:
 
+    SemanticValidatorException(std::string message) :
+    SourceCodeRelatedException(message)
+    {
+    }
+    
+    SemanticValidatorException(CharPos position, std::string cause) :
+    SourceCodeRelatedException(position, "validation error", cause)
+    {
+
+    }
 };
 
-#endif /* TREE_H */
+#endif /* TYPECHECKEREXCEPTION_H */
 

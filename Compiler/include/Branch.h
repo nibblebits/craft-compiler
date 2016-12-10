@@ -56,8 +56,8 @@ public:
     void setParent(std::shared_ptr<Branch> branch);
     void setValue(std::string value);
     void setRoot(std::shared_ptr<RootBranch> root_branch);
-    void setRootScope(std::shared_ptr<ScopeBranch> root_scope);
-    void setLocalScope(std::shared_ptr<ScopeBranch> local_scope);
+    void setRootScope(std::shared_ptr<ScopeBranch> root_scope, bool set_to_all_children=false);
+    void setLocalScope(std::shared_ptr<ScopeBranch> local_scope, bool set_to_all_children=false);
     
     std::shared_ptr<Branch> getFirstChild();
     std::shared_ptr<Branch> getSecondChild();

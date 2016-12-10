@@ -92,7 +92,7 @@ int BODYBranch::getScopeSize(bool include_subscopes, std::function<bool(std::sha
     return size;
 }
 
-std::shared_ptr<VDEFBranch> BODYBranch::getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope)
+std::shared_ptr<VDEFBranch> BODYBranch::getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope, bool no_follow)
 {
     std::shared_ptr<VDEFBranch> found_branch = NULL;
     std::shared_ptr<Branch> var_iden_name_branch = var_iden->getVariableNameBranch();
@@ -123,19 +123,23 @@ std::shared_ptr<VDEFBranch> BODYBranch::getVariableDefinitionBranch(std::shared_
         }
     }
 
-    if (var_iden->hasStructureAccessBranch())
+    // Are we allowed to follow a structure access?
+    if (!no_follow)
     {
-        if (found_branch != NULL)
+        if (var_iden->hasStructureAccessBranch())
         {
-            // We have a structure access branch so we need to keep going
-            std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(found_branch);
-            std::shared_ptr<BODYBranch> struct_body = struct_def_branch->getStructBody();
-            std::shared_ptr<VarIdentifierBranch> next_var_iden_branch = 
-                    std::dynamic_pointer_cast<VarIdentifierBranch>(var_iden->getStructureAccessBranch()->getFirstChild());
-            found_branch = struct_body->getVariableDefinitionBranch(next_var_iden_branch, false);
+            if (found_branch != NULL
+                    && found_branch->getType() == "STRUCT_DEF")
+            {
+                // We have a structure access branch so we need to keep going
+                std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(found_branch);
+                std::shared_ptr<BODYBranch> struct_body = struct_def_branch->getStructBody();
+                std::shared_ptr<VarIdentifierBranch> next_var_iden_branch =
+                        std::dynamic_pointer_cast<VarIdentifierBranch>(var_iden->getStructureAccessBranch()->getFirstChild());
+                found_branch = struct_body->getVariableDefinitionBranch(next_var_iden_branch, false);
+            }
         }
     }
-
 
 
     return found_branch;

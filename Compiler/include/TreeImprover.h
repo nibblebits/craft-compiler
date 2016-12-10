@@ -16,30 +16,41 @@
  */
 
 /* 
- * File:   Tree.h
+ * File:   TreeImprover.h
  * Author: Daniel McCarthy
  *
- * Created on 29 May 2016, 20:35
+ * Created on 10 December 2016, 12:52
  */
 
-#ifndef TREE_H
-#define TREE_H
+#ifndef TREEIMPROVER_H
+#define TREEIMPROVER_H
 
-#include "Branch.h"
+#include <memory>
+#include "CompilerEntity.h"
 
-class STRUCTBranch;
-class RootBranch;
-class Tree {
+class Tree;
+class FuncBranch;
+class Branch;
+class VarIdentifierBranch;
+class BODYBranch;
+class EXPORT TreeImprover : public CompilerEntity
+{
 public:
-    Tree();
-    virtual ~Tree();
-    
-    // Returns a structure based on the structure name
-    std::shared_ptr<STRUCTBranch> getGlobalStructureByName(std::string name);
-    std::shared_ptr<RootBranch> root;
+    TreeImprover(Compiler* compiler);
+    virtual ~TreeImprover();
+
+    void setTree(std::shared_ptr<Tree> tree);
+    void improve();
 private:
+    void improve_top();
+    void improve_func(std::shared_ptr<FuncBranch> func_branch);
+    void improve_body(std::shared_ptr<BODYBranch> body_branch);
+    void improve_expression(std::shared_ptr<Branch> expression_branch);
+    void improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
+
+    std::shared_ptr<Tree> tree;
 
 };
 
-#endif /* TREE_H */
+#endif /* TREEIMPROVER_H */
 

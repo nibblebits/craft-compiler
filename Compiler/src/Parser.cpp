@@ -630,7 +630,7 @@ void Parser::process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Br
     push_branch(assign_branch);
 }
 
-void Parser::process_variable_access()
+void Parser::process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struct_def)
 {
     std::shared_ptr<VarIdentifierBranch> var_identifier_branch = std::shared_ptr<VarIdentifierBranch>(new VarIdentifierBranch(compiler));
     peak();
@@ -668,7 +668,7 @@ void Parser::process_variable_access()
 
 void Parser::process_structure_access()
 {
-    std::shared_ptr<Branch> struct_access_root = NULL;
+    std::shared_ptr<STRUCTAccessBranch> struct_access_root = NULL;
 
     // Check to see if this structure access is valid
     peak();
@@ -685,7 +685,7 @@ void Parser::process_structure_access()
     pop_branch();
 
     struct_access_root = std::shared_ptr<STRUCTAccessBranch>(new STRUCTAccessBranch(compiler));
-    struct_access_root->addChild(this->branch);
+    struct_access_root->setVarIdentifierBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->branch));
     push_branch(struct_access_root);
 }
 
@@ -1218,17 +1218,9 @@ void Parser::process_structure_declaration()
     struct_declaration->setVariableIdentifierBranch(identifier_branch);
     struct_declaration->setValueExpBranch(var_value_branch);
 
-    /* We need to clone the body of the structure that this structure definition is referring to
-     * this is because the framework requires unique children for it to do certain things.
-     * Upon cloning we will then let the new structure definition know about it.
-     */
-    std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(getDeclaredStructure(struct_name_branch->getValue()));
-    std::shared_ptr<BODYBranch> struct_branch_body = struct_branch->getStructBodyBranch();
-    std::shared_ptr<BODYBranch> unique_body = std::dynamic_pointer_cast<BODYBranch>(struct_branch_body->clone());
-    struct_declaration->setStructBody(unique_body);
-
     // Now push it to the stack
     push_branch(struct_declaration);
+
 }
 
 void Parser::process_while_stmt()
@@ -1559,12 +1551,20 @@ void Parser::pop_branch()
     }
 }
 
+void Parser::setRootAndScopes(std::shared_ptr<Branch> branch)
+{
+    branch->setRoot(this->root_branch);
+    // We should not set scopes to themselves!
+    if (this->current_local_scope != branch)
+        branch->setLocalScope(this->current_local_scope);
+    if (this->root_scope != branch)
+        branch->setRootScope(this->root_scope);
+}
+
 void Parser::push_branch(std::shared_ptr<Branch> branch)
 {
     // Before pushing we must assign the root branch and the scopes to the branch
-    branch->setRoot(this->root_branch);
-    branch->setLocalScope(this->current_local_scope);
-    branch->setRootScope(this->root_scope);
+    setRootAndScopes(branch);
     this->branches.push_back(branch);
 }
 

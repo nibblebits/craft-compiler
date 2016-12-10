@@ -16,32 +16,30 @@
  */
 
 /* 
- * File:   LexerException.h
+ * File:   SemanticValidator.cpp
  * Author: Daniel McCarthy
  *
- * Created on 27 May 2016, 16:52
+ * Created on 10 December 2016, 00:07
+ * 
+ * Description: 
  */
 
-#ifndef TYPECHECKEREXCEPTION_H
-#define TYPECHECKEREXCEPTION_H
-#include "SourceCodeRelatedException.h"
-#include "CharPos.h"
-
-class TypeCheckerException : public SourceCodeRelatedException
+#include "SemanticValidator.h"
+#include "Tree.h"
+SemanticValidator::SemanticValidator(Compiler* compiler) : CompilerEntity(compiler)
 {
-public:
+}
 
-    TypeCheckerException(std::string message) :
-    SourceCodeRelatedException(message)
-    {
-    }
-    
-    TypeCheckerException(CharPos position, std::string cause) :
-    SourceCodeRelatedException(position, "Type error", cause)
-    {
+SemanticValidator::~SemanticValidator()
+{
+}
 
-    }
-};
+void SemanticValidator::setTree(std::shared_ptr<Tree> tree)
+{
+    this->tree = tree;
+}
 
-#endif /* TYPECHECKEREXCEPTION_H */
-
+void SemanticValidator::validate()
+{
+    // nothing to do yet.
+}

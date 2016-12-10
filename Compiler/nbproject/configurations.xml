@@ -45,13 +45,14 @@
       <itemPath>include/STRUCTDEFBranch.h</itemPath>
       <itemPath>include/Scope.h</itemPath>
       <itemPath>include/ScopeBranch.h</itemPath>
+      <itemPath>include/SemanticValidator.h</itemPath>
+      <itemPath>include/SemanticValidatorException.h</itemPath>
       <itemPath>include/SourceCodeRelatedException.h</itemPath>
       <itemPath>include/Stack.h</itemPath>
       <itemPath>include/Stream.h</itemPath>
       <itemPath>include/Token.h</itemPath>
       <itemPath>include/Tree.h</itemPath>
-      <itemPath>include/TypeChecker.h</itemPath>
-      <itemPath>include/TypeCheckerException.h</itemPath>
+      <itemPath>include/TreeImprover.h</itemPath>
       <itemPath>include/VDEFBranch.h</itemPath>
       <itemPath>include/VarIdentifierBranch.h</itemPath>
       <itemPath>include/branches.h</itemPath>
@@ -101,10 +102,11 @@
       <itemPath>src/STRUCTDEFBranch.cpp</itemPath>
       <itemPath>src/Scope.cpp</itemPath>
       <itemPath>src/ScopeBranch.cpp</itemPath>
+      <itemPath>src/SemanticValidator.cpp</itemPath>
       <itemPath>src/Stream.cpp</itemPath>
       <itemPath>src/Token.cpp</itemPath>
       <itemPath>src/Tree.cpp</itemPath>
-      <itemPath>src/TypeChecker.cpp</itemPath>
+      <itemPath>src/TreeImprover.cpp</itemPath>
       <itemPath>src/VDEFBranch.cpp</itemPath>
       <itemPath>src/VarIdentifierBranch.cpp</itemPath>
       <itemPath>src/common.cpp</itemPath>
@@ -231,6 +233,13 @@
       </item>
       <item path="include/ScopeBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SemanticValidator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SemanticValidatorException.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="include/SourceCodeRelatedException.h"
             ex="false"
             tool="3"
@@ -244,9 +253,7 @@
       </item>
       <item path="include/Tree.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/TypeChecker.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/TypeCheckerException.h" ex="false" tool="3" flavor2="0">
+      <item path="include/TreeImprover.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/VDEFBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -330,13 +337,15 @@
       </item>
       <item path="src/ScopeBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SemanticValidator.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Stream.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Token.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Tree.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/TypeChecker.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/TreeImprover.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VDEFBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -447,6 +456,13 @@
       </item>
       <item path="include/ScopeBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/SemanticValidator.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/SemanticValidatorException.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="include/SourceCodeRelatedException.h"
             ex="false"
             tool="3"
@@ -460,9 +476,7 @@
       </item>
       <item path="include/Tree.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="include/TypeChecker.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include/TypeCheckerException.h" ex="false" tool="3" flavor2="0">
+      <item path="include/TreeImprover.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/VDEFBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -546,13 +560,15 @@
       </item>
       <item path="src/ScopeBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/SemanticValidator.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/Stream.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Token.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Tree.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/TypeChecker.cpp" ex="false" tool="1" flavor2="0">
+      <item path="src/TreeImprover.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VDEFBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

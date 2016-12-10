@@ -26,6 +26,7 @@
 
 #include "Tree.h"
 #include "STRUCTBranch.h"
+#include "RootBranch.h"
 
 Tree::Tree()
 {
@@ -38,19 +39,5 @@ Tree::~Tree()
 
 std::shared_ptr<STRUCTBranch> Tree::getGlobalStructureByName(std::string name)
 {
-    std::vector<std::shared_ptr<Branch>> root_children = this->root->getChildren();
-    for (std::shared_ptr<Branch> child : root_children)
-    {
-        if (child->getType() == "STRUCT")
-        {
-            std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(child);
-            std::shared_ptr<Branch> struct_name_branch = struct_branch->getStructNameBranch();
-            if (struct_name_branch->getValue() == name)
-            {
-                return struct_branch;
-            }
-        }
-    }
-    
-    return NULL;
+    return this->root->getDeclaredStructureByName(name);
 }

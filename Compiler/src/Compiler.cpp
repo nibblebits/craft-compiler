@@ -29,20 +29,22 @@
 #include "STRUCTBranch.h"
 #include "STRUCTDEFBranch.h"
 #include "ArrayIndexBranch.h"
+#include "BODYBranch.h"
 
 Compiler::Compiler()
 {
     this->lexer = new Lexer(this);
     this->parser = new Parser(this);
-    this->typeChecker = new TypeChecker(this);
+    this->semanticValidator = new SemanticValidator(this);
     this->astAssistant = new ASTAssistant(this);
+    this->treeImprover = new TreeImprover(this);
     this->codeGenerator = NULL;
     this->linker = NULL;
 }
 
 Compiler::~Compiler()
 {
-    delete this->typeChecker;
+
 }
 
 void Compiler::setCodeGenerator(std::shared_ptr<CodeGenerator> codegen)
@@ -70,9 +72,14 @@ Parser* Compiler::getParser()
     return this->parser;
 }
 
-TypeChecker* Compiler::getTypeChecker()
+SemanticValidator* Compiler::getSemanticValidator()
 {
-    return this->typeChecker;
+    return this->semanticValidator;
+}
+
+TreeImprover* Compiler::getTreeImprover()
+{
+    return this->treeImprover;
 }
 
 ASTAssistant* Compiler::getASTAssistant()
@@ -167,7 +174,7 @@ int Compiler::getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> branch, bool
 {
     std::string type = branch->getType();
     int size = 0;
-    
+
     // Sometimes people may want to get the data type size as if the branch was not a pointer.
     if (!no_pointer)
     {

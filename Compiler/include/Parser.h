@@ -46,6 +46,7 @@
 
 class CompilerEntity;
 class BODYBranch;
+class STRUCTDEFBranch;
 
 class EXPORT Parser : public CompilerEntity
 {
@@ -58,6 +59,7 @@ public:
     std::shared_ptr<Tree> getTree();
     std::shared_ptr<Logger> getLogger();
 private:
+    void finalize();
     void process_top();
     void process_macro();
     void process_inline_asm();
@@ -67,7 +69,7 @@ private:
     void process_variable_declaration();
     void process_ptr();
     void process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op);
-    void process_variable_access();
+    void process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struct_def=NULL);
     void process_structure_access();
     void process_expression(bool strict_mode = false);
     void process_expression_part(bool strict_mode);
@@ -91,6 +93,7 @@ private:
     void shift();
     void peak(int offset = -1);
     void pop_branch();
+    void setRootAndScopes(std::shared_ptr<Branch> branch);
     void push_branch(std::shared_ptr<Branch> branch);
     void shift_pop();
 

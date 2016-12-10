@@ -29,7 +29,8 @@
 #include <string>
 #include "Lexer.h"
 #include "Parser.h"
-#include "TypeChecker.h"
+#include "SemanticValidator.h"
+#include "TreeImprover.h"
 #include "ASTAssistant.h"
 #include "CodeGenerator.h"
 #include "Exception.h"
@@ -40,7 +41,6 @@
 class VDEFBranch;
 class STRUCTBranch;
 class ArrayIndexBranch;
-
 class EXPORT Compiler
 {
 public:
@@ -51,7 +51,8 @@ public:
     void setLinker(std::shared_ptr<Linker> linker);
     Lexer* getLexer();
     Parser* getParser();
-    TypeChecker* getTypeChecker();
+    SemanticValidator* getSemanticValidator();
+    TreeImprover* getTreeImprover();
     ASTAssistant* getASTAssistant();
     std::shared_ptr<CodeGenerator> getCodeGenerator();
     std::shared_ptr<Linker> getLinker();
@@ -75,7 +76,8 @@ private:
      * I plan to change this soon */
     Lexer* lexer;
     Parser* parser;
-    TypeChecker* typeChecker;
+    SemanticValidator* semanticValidator;
+    TreeImprover* treeImprover;
     ASTAssistant* astAssistant;
 
     int pointer_size;

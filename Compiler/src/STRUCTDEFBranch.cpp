@@ -48,10 +48,13 @@ std::shared_ptr<BODYBranch> STRUCTDEFBranch::getStructBody()
 void STRUCTDEFBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     VDEFBranch::imp_clone(cloned_branch);
-    std::shared_ptr<STRUCTDEFBranch> struct_def_branch_clone = 
+    std::shared_ptr<STRUCTDEFBranch> struct_def_branch_clone =
             std::dynamic_pointer_cast<STRUCTDEFBranch>(cloned_branch);
-    
-    struct_def_branch_clone->setStructBody(std::dynamic_pointer_cast<BODYBranch>(getStructBody()->clone()));
+
+    if (this->unique_struct_body_branch != NULL)
+    {
+        struct_def_branch_clone->setStructBody(std::dynamic_pointer_cast<BODYBranch>(this->unique_struct_body_branch->clone()));
+    }
 }
 
 std::shared_ptr<Branch> STRUCTDEFBranch::create_clone()

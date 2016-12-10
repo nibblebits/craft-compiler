@@ -120,7 +120,7 @@ int FORBranch::getScopeSize(bool include_subscopes, std::function<bool(std::shar
     return size;
 }
 
-std::shared_ptr<VDEFBranch> FORBranch::getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope)
+std::shared_ptr<VDEFBranch> FORBranch::getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope, bool no_follow)
 {
 
 }

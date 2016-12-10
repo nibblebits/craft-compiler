@@ -26,8 +26,8 @@
 #define VARIDENTIFIERBRANCH_H
 
 #include "CustomBranch.h"
-#include "ArrayIndexBranch.h"
-
+class ArrayIndexBranch;
+class STRUCTAccessBranch;
 class EXPORT VarIdentifierBranch : public CustomBranch
 {
 public:
@@ -39,9 +39,9 @@ public:
     void setStructureAccessBranch(std::shared_ptr<Branch> structure_access_branch);
 
     std::shared_ptr<Branch> getVariableNameBranch();
-    std::shared_ptr<Branch> getStructureAccessBranch();
+    std::shared_ptr<STRUCTAccessBranch> getStructureAccessBranch();
     std::shared_ptr<ArrayIndexBranch> getRootArrayIndexBranch();
-    std::shared_ptr<VDEFBranch> getVariableDefinitionBranch();
+    std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(bool no_follow=false);
     bool hasRootArrayIndexBranch();
     bool hasStructureAccessBranch();
     bool isVariableAlone();

@@ -26,6 +26,8 @@
 
 #include "VarIdentifierBranch.h"
 #include "ScopeBranch.h"
+#include "ArrayIndexBranch.h"
+#include "STRUCTAccessBranch.h"
 
 VarIdentifierBranch::VarIdentifierBranch(Compiler* compiler) : CustomBranch(compiler, "VAR_IDENTIFIER", "")
 {
@@ -61,9 +63,9 @@ bool VarIdentifierBranch::hasRootArrayIndexBranch()
     return root_array_index_branch != NULL;
 }
 
-std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch()
+std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch(bool no_follow)
 {
-    return Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()));
+    return Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), true, no_follow);
 }
 
 bool VarIdentifierBranch::hasStructureAccessBranch()
@@ -83,9 +85,9 @@ std::shared_ptr<ArrayIndexBranch> VarIdentifierBranch::getRootArrayIndexBranch()
     return std::dynamic_pointer_cast<ArrayIndexBranch>(CustomBranch::getRegisteredBranchByName("root_array_index_branch"));
 }
 
-std::shared_ptr<Branch> VarIdentifierBranch::getStructureAccessBranch()
+std::shared_ptr<STRUCTAccessBranch> VarIdentifierBranch::getStructureAccessBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("structure_access_branch");
+    return std::dynamic_pointer_cast<STRUCTAccessBranch>(CustomBranch::getRegisteredBranchByName("structure_access_branch"));
 }
 
 void VarIdentifierBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)

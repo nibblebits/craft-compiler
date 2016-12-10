@@ -125,14 +125,39 @@ void Branch::setRoot(std::shared_ptr<RootBranch> root_branch)
     this->root_branch = root_branch;
 }
 
-void Branch::setRootScope(std::shared_ptr<ScopeBranch> root_scope)
+void Branch::setRootScope(std::shared_ptr<ScopeBranch> root_scope, bool set_to_all_children)
 {
+    if (local_scope == this->getptr())
+        throw Exception("Branch::setRootScope(std::shared_ptr<ScopeBranch> root_scope): attempting to set scope to self");
+
     this->root_scope = root_scope;
+
+    if (set_to_all_children)
+    {
+        // Ok we should set the scope to all children, and they will set it to all their children
+        for (std::shared_ptr<Branch> child : this->getChildren())
+        {
+            child->setRootScope(root_scope, true);
+        }
+    }
 }
 
-void Branch::setLocalScope(std::shared_ptr<ScopeBranch> local_scope)
+void Branch::setLocalScope(std::shared_ptr<ScopeBranch> local_scope, bool set_to_all_children)
 {
+    if (local_scope == this->getptr())
+        throw Exception("Branch::setLocalScope(std::shared_ptr<ScopeBranch> local_scope): attempting to set scope to self");
+
     this->local_scope = local_scope;
+
+    if (set_to_all_children)
+    {
+        // Ok we should set the scope to all children, and they will set it to all their children
+        for (std::shared_ptr<Branch> child : this->getChildren())
+        {
+            child->setLocalScope(local_scope, true);
+        }
+    }
+
 }
 
 std::shared_ptr<Branch> Branch::getFirstChild()
@@ -255,6 +280,7 @@ int Branch::getBranchType()
 }
 
 // Scopes must not be cloned.
+
 std::shared_ptr<Branch> Branch::clone()
 {
     // This is not a custom branch, just clone our children

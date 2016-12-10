@@ -27,17 +27,24 @@
 
 #include "CustomBranch.h"
 
+class STRUCTDEFBranch;
+class VarIdentifierBranch;
 class EXPORT STRUCTAccessBranch : public CustomBranch
 {
 public:
     STRUCTAccessBranch(Compiler* compiler);
     virtual ~STRUCTAccessBranch();
 
+    void setVarIdentifierBranch(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
+    void setStructDefBranch(std::shared_ptr<STRUCTDEFBranch> struct_def_branch);
+    std::shared_ptr<STRUCTDEFBranch> getStructDefBranch();
+    std::shared_ptr<VarIdentifierBranch> getVarIdentifierBranch();
+
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
 
 private:
-
+    std::shared_ptr<STRUCTDEFBranch> struct_def_branch;
 };
 
 #endif /* STRUCTACCESS_H */

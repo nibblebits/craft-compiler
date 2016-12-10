@@ -16,30 +16,28 @@
  */
 
 /* 
- * File:   Tree.h
+ * File:   SemanticValidator.h
  * Author: Daniel McCarthy
  *
- * Created on 29 May 2016, 20:35
+ * Created on 10 December 2016, 00:07
  */
 
-#ifndef TREE_H
-#define TREE_H
+#ifndef SEMANTICVALIDATOR_H
+#define SEMANTICVALIDATOR_H
 
-#include "Branch.h"
-
-class STRUCTBranch;
-class RootBranch;
-class Tree {
+#include <memory>
+#include "CompilerEntity.h"
+class Tree;
+class EXPORT SemanticValidator : public CompilerEntity {
 public:
-    Tree();
-    virtual ~Tree();
+    SemanticValidator(Compiler* compiler);
+    virtual ~SemanticValidator();
     
-    // Returns a structure based on the structure name
-    std::shared_ptr<STRUCTBranch> getGlobalStructureByName(std::string name);
-    std::shared_ptr<RootBranch> root;
+    void setTree(std::shared_ptr<Tree> tree);
+    void validate();
 private:
-
+    std::shared_ptr<Tree> tree;
 };
 
-#endif /* TREE_H */
+#endif /* SEMANTICVALIDATOR_H */
 

@@ -70,10 +70,11 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/STRUCTDEFBranch.o \
 	${OBJECTDIR}/src/Scope.o \
 	${OBJECTDIR}/src/ScopeBranch.o \
+	${OBJECTDIR}/src/SemanticValidator.o \
 	${OBJECTDIR}/src/Stream.o \
 	${OBJECTDIR}/src/Token.o \
 	${OBJECTDIR}/src/Tree.o \
-	${OBJECTDIR}/src/TypeChecker.o \
+	${OBJECTDIR}/src/TreeImprover.o \
 	${OBJECTDIR}/src/VDEFBranch.o \
 	${OBJECTDIR}/src/VarIdentifierBranch.o \
 	${OBJECTDIR}/src/common.o
@@ -278,6 +279,11 @@ ${OBJECTDIR}/src/ScopeBranch.o: src/ScopeBranch.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ScopeBranch.o src/ScopeBranch.cpp
 
+${OBJECTDIR}/src/SemanticValidator.o: src/SemanticValidator.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/SemanticValidator.o src/SemanticValidator.cpp
+
 ${OBJECTDIR}/src/Stream.o: src/Stream.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -293,10 +299,10 @@ ${OBJECTDIR}/src/Tree.o: src/Tree.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Tree.o src/Tree.cpp
 
-${OBJECTDIR}/src/TypeChecker.o: src/TypeChecker.cpp
+${OBJECTDIR}/src/TreeImprover.o: src/TreeImprover.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/TypeChecker.o src/TypeChecker.cpp
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/TreeImprover.o src/TreeImprover.cpp
 
 ${OBJECTDIR}/src/VDEFBranch.o: src/VDEFBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

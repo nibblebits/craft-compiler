@@ -39,7 +39,6 @@ std::shared_ptr<STRUCTBranch> RootBranch::getDeclaredStructureByName(std::string
 {
     for (std::shared_ptr<Branch> child : Branch::getChildren())
     {
-        std::cout << child->getType() << std::endl;
         if (child->getType() == "STRUCT")
         {
             std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(child);
