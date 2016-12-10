@@ -125,6 +125,13 @@ int VDEFBranch::getPositionRelZero(bool loc_start_with_filesize)
         {
             target_branch = target_branch->getParent();
         }
+
+        if (target_branch->getType() == "STRUCT_DEF")
+        {
+            // In certain situations we need to ensure that the size is not included, such as where we are getting the location of a variable in a structure
+            if (loc_start_with_filesize)
+                before_proc = kill_proc;
+        }
         scope_branch = target_branch->getLocalScope();
         pos += scope_branch->getScopeSize(false, before_proc, after_proc);
     }
