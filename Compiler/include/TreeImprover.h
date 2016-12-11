@@ -33,6 +33,10 @@ class FuncBranch;
 class Branch;
 class VarIdentifierBranch;
 class BODYBranch;
+class IFBranch;
+class FORBranch;
+
+
 class EXPORT TreeImprover : public CompilerEntity
 {
 public:
@@ -43,12 +47,16 @@ public:
     void improve();
 private:
     void improve_top();
+    void improve_branch(std::shared_ptr<Branch> branch);
     void improve_func(std::shared_ptr<FuncBranch> func_branch);
+    void improve_func_arguments(std::shared_ptr<Branch> func_args_branch);
     void improve_body(std::shared_ptr<BODYBranch> body_branch);
     void improve_expression(std::shared_ptr<Branch> expression_branch);
     void improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
-
+    void improve_if(std::shared_ptr<IFBranch> if_branch);
+    void improve_for(std::shared_ptr<FORBranch> for_branch);
     std::shared_ptr<Tree> tree;
+    VARIABLE_TYPE current_var_type;
 
 };
 

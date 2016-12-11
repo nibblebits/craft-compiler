@@ -26,6 +26,7 @@
 
 #include "IFBranch.h"
 #include "BODYBranch.h"
+#include "ELSEBranch.h"
 
 IFBranch::IFBranch(Compiler* compiler) : CustomBranch(compiler, "IF", "")
 {
@@ -40,17 +41,17 @@ void IFBranch::setExpressionBranch(std::shared_ptr<Branch> branch)
     CustomBranch::registerBranch("exp_branch", branch);
 }
 
-void IFBranch::setBodyBranch(std::shared_ptr<Branch> branch)
+void IFBranch::setBodyBranch(std::shared_ptr<BODYBranch> branch)
 {
     CustomBranch::registerBranch("body_branch", branch);
 }
 
-void IFBranch::setElseBranch(std::shared_ptr<Branch> branch)
+void IFBranch::setElseBranch(std::shared_ptr<ELSEBranch> branch)
 {
     CustomBranch::registerBranch("else_branch", branch);
 }
 
-void IFBranch::setElseIfBranch(std::shared_ptr<Branch> branch)
+void IFBranch::setElseIfBranch(std::shared_ptr<IFBranch> branch)
 {
     CustomBranch::registerBranch("else_if_branch", branch);
 }
@@ -65,14 +66,14 @@ std::shared_ptr<BODYBranch> IFBranch::getBodyBranch()
     return std::dynamic_pointer_cast<BODYBranch>(CustomBranch::getRegisteredBranchByName("body_branch"));
 }
 
-std::shared_ptr<Branch> IFBranch::getElseBranch()
+std::shared_ptr<ELSEBranch> IFBranch::getElseBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("else_branch");
+    return std::dynamic_pointer_cast<ELSEBranch>(CustomBranch::getRegisteredBranchByName("else_branch"));
 }
 
-std::shared_ptr<Branch> IFBranch::getElseIfBranch()
+std::shared_ptr<IFBranch> IFBranch::getElseIfBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("else_if_branch");
+    return std::dynamic_pointer_cast<IFBranch>(CustomBranch::getRegisteredBranchByName("else_if_branch"));
 }
 
 bool IFBranch::hasElseBranch()
@@ -98,9 +99,9 @@ bool IFBranch::hasElseIfBranch()
 void IFBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<IFBranch> if_branch_clone = std::dynamic_pointer_cast<IFBranch>(cloned_branch);
-    if_branch_clone->setBodyBranch(getBodyBranch()->clone());
-    if_branch_clone->setElseBranch(getElseBranch()->clone());
-    if_branch_clone->setElseIfBranch(getElseIfBranch()->clone());
+    if_branch_clone->setBodyBranch(std::dynamic_pointer_cast<BODYBranch>(getBodyBranch()->clone()));
+    if_branch_clone->setElseBranch(std::dynamic_pointer_cast<ELSEBranch>(getElseBranch()->clone()));
+    if_branch_clone->setElseIfBranch(std::dynamic_pointer_cast<IFBranch>(getElseIfBranch()->clone()));
 }
 
 std::shared_ptr<Branch> IFBranch::create_clone()

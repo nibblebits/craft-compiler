@@ -58,6 +58,11 @@ void VDEFBranch::setPointer(bool is_pointer)
     this->is_pointer = is_pointer;
 }
 
+void VDEFBranch::setVariableType(VARIABLE_TYPE var_type)
+{
+    this->var_type = var_type;
+}
+
 std::shared_ptr<Branch> VDEFBranch::getDataTypeBranch()
 {
     return this->getRegisteredBranchByName("data_type_branch");
@@ -83,6 +88,11 @@ std::shared_ptr<Branch> VDEFBranch::getNameBranch()
     std::shared_ptr<Branch> identifier_branch = getVariableIdentifierBranch();
     std::shared_ptr<VarIdentifierBranch> var_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(identifier_branch);
     return var_branch->getVariableNameBranch();
+}
+
+VARIABLE_TYPE VDEFBranch::getVariableType()
+{
+    return this->var_type;
 }
 
 int VDEFBranch::getPositionRelZero(bool loc_start_with_filesize)

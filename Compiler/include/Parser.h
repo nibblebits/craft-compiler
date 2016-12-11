@@ -47,6 +47,7 @@
 class CompilerEntity;
 class BODYBranch;
 class STRUCTDEFBranch;
+class VDEFBranch;
 
 class EXPORT Parser : public CompilerEntity
 {

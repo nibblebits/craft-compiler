@@ -33,13 +33,6 @@
 #include "Exception.h"
 #include "def.h"
 
-enum
-{
-    BRANCH_TYPE_BRANCH,
-    BRANCH_TYPE_TOKEN,
-    BRANCH_TYPE_VDEF
-};
-
 class ScopeBranch;
 class RootBranch;
 class EXPORT Branch : public std::enable_shared_from_this<Branch>
@@ -51,6 +44,7 @@ public:
     void addChild(std::shared_ptr<Branch> branch);
     void replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch);
     virtual void removeChild(std::shared_ptr<Branch> child);
+    void iterate_children(std::function<void(std::shared_ptr<Branch> child_branch) > iterate_func);
     void exclude(bool excluded);
     bool excluded();
     void setParent(std::shared_ptr<Branch> branch);
@@ -58,7 +52,7 @@ public:
     void setRoot(std::shared_ptr<RootBranch> root_branch);
     void setRootScope(std::shared_ptr<ScopeBranch> root_scope, bool set_to_all_children=false);
     void setLocalScope(std::shared_ptr<ScopeBranch> local_scope, bool set_to_all_children=false);
-    
+
     std::shared_ptr<Branch> getFirstChild();
     std::shared_ptr<Branch> getSecondChild();
     std::shared_ptr<Branch> getThirdChild();

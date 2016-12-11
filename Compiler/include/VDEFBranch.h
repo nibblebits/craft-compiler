@@ -28,13 +28,6 @@
 #include "CustomBranch.h"
 #include "VarIdentifierBranch.h"
 
-struct array_def
-{
-    int dimensions;
-    size_t t_size;
-    std::vector<size_t> sizes;
-};
-
 class EXPORT VDEFBranch : public CustomBranch
 {
 public:
@@ -45,12 +38,14 @@ public:
     void setVariableIdentifierBranch(std::shared_ptr<Branch> branch);
     void setValueExpBranch(std::shared_ptr<Branch> branch);
     void setPointer(bool is_pointer);
-
+    void setVariableType(VARIABLE_TYPE var_type);
+    
     std::shared_ptr<Branch> getDataTypeBranch();
     std::shared_ptr<VarIdentifierBranch> getVariableIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
     std::shared_ptr<Branch> getNameBranch();
-   
+    VARIABLE_TYPE getVariableType();
+    
     bool hasValueExpBranch();
 
     int getPositionRelZero(bool loc_start_with_filesize = false);
@@ -58,6 +53,7 @@ public:
     bool isPointer();
     bool isSigned();
     bool isPrimitive();
+
     virtual int getDataTypeSize(bool no_pointer = false);
     virtual int getBranchType();
 
@@ -65,6 +61,7 @@ public:
     virtual std::shared_ptr<Branch> create_clone();
 
 private:
+    VARIABLE_TYPE var_type;
     bool is_pointer;
 };
 

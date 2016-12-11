@@ -31,6 +31,7 @@
 
 TreeImprover::TreeImprover(Compiler* compiler) : CompilerEntity(compiler)
 {
+    this->current_var_type = VARIABLE_TYPE_UNKNOWN;
 }
 
 TreeImprover::~TreeImprover()
@@ -49,67 +50,105 @@ void TreeImprover::improve()
 
 void TreeImprover::improve_top()
 {
-    for (std::shared_ptr<Branch> child : this->tree->root->getChildren())
+    this->tree->root->iterate_children([&](std::shared_ptr<Branch> child_branch)
     {
-        if (child->getType() == "FUNC")
+        // The top is always a global variable
+        this->current_var_type = VARIABLE_TYPE_GLOBAL_VARIABLE;
+        improve_branch(child_branch);
+    });
+}
+
+void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
+{
+    if (branch->getType() == "FUNC")
+    {
+        improve_func(std::dynamic_pointer_cast<FuncBranch>(branch));
+    }
+    else if (branch->getType() == "IF")
+    {
+        improve_if(std::dynamic_pointer_cast<IFBranch>(branch));
+    }
+    else if (branch->getType() == "FOR")
+    {
+        improve_for(std::dynamic_pointer_cast<FORBranch>(branch));
+    }
+    else if (branch->getType() == "ASSIGN")
+    {
+        std::shared_ptr<AssignBranch> assign_child = std::dynamic_pointer_cast<AssignBranch>(branch);
+        std::shared_ptr<Branch> value_branch = assign_child->getValueBranch();
+        improve_expression(value_branch);
+        improve_var_iden(std::dynamic_pointer_cast<VarIdentifierBranch>(assign_child->getVariableToAssignBranch()));
+    }
+    else if (branch->getType() == "STRUCT_DEF")
+    {
+        /* We need to clone the body of the structure that this structure definition is referring to
+         * this is because the framework requires unique children for it to do certain things.
+         * Upon cloning we will then let the new structure definition know about it.
+         */
+        std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(branch);
+        std::shared_ptr<Branch> struct_name_branch = struct_def_branch->getDataTypeBranch();
+        std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(this->tree->root->getDeclaredStructureByName(struct_name_branch->getValue()));
+        std::shared_ptr<BODYBranch> struct_branch_body = struct_branch->getStructBodyBranch();
+        std::shared_ptr<BODYBranch> unique_body = std::dynamic_pointer_cast<BODYBranch>(struct_branch_body->clone());
+        struct_def_branch->setStructBody(unique_body);
+
+        // Scopes for struct_declaration are set after pushing the branch.
+        // We need to set the local scope and root scope to match that of the structure declaration body's scope
+        unique_body->setLocalScope(struct_def_branch->getLocalScope());
+        unique_body->setRootScope(struct_def_branch->getRootScope());
+
+        // We now need to set all the unique body's children scopes to point to the unique_body
+        unique_body->iterate_children([&](std::shared_ptr<Branch> child_branch)
         {
-            improve_func(std::dynamic_pointer_cast<FuncBranch>(child));
-        }
+            child_branch->setLocalScope(unique_body);
+            child_branch->setRootScope(unique_body->getRootScope());
+        });
+
+
+        // Set the unique body's parent to our struct declaration
+        unique_body->setParent(struct_def_branch);
+
+        // Now lets process this unique structure body
+        improve_body(unique_body);
+    }
+
+    // Set the variable type if this is a variable definition
+    if (branch->getBranchType() == BRANCH_TYPE_VDEF)
+    {
+        std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
+        vdef_branch->setVariableType(this->current_var_type);
     }
 }
 
 void TreeImprover::improve_func(std::shared_ptr<FuncBranch> func_branch)
 {
+    std::shared_ptr<Branch> func_arguments_branch = func_branch->getArgumentsBranch();
     std::shared_ptr<BODYBranch> func_body_branch = std::dynamic_pointer_cast<BODYBranch>(func_branch->getBodyBranch());
+
+    // Improve the function arguments
+    this->current_var_type = VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE;
+    improve_func_arguments(func_arguments_branch);
+
+
+    // Improve the function body
+    this->current_var_type = VARIABLE_TYPE_FUNCTION_VARIABLE;
     improve_body(func_body_branch);
+}
+
+void TreeImprover::improve_func_arguments(std::shared_ptr<Branch> func_args_branch)
+{
+    func_args_branch->iterate_children([&](std::shared_ptr<Branch> child_branch)
+    {
+        improve_branch(child_branch);
+    });
 }
 
 void TreeImprover::improve_body(std::shared_ptr<BODYBranch> body_branch)
 {
-
-    for (std::shared_ptr<Branch> child : body_branch->getChildren())
+    body_branch->iterate_children([&](std::shared_ptr<Branch> child_branch)
     {
-        if (child->getType() == "ASSIGN")
-        {
-            std::shared_ptr<AssignBranch> assign_child = std::dynamic_pointer_cast<AssignBranch>(child);
-            std::shared_ptr<Branch> value_branch = assign_child->getValueBranch();
-            improve_expression(value_branch);
-            improve_var_iden(std::dynamic_pointer_cast<VarIdentifierBranch>(assign_child->getVariableToAssignBranch()));
-        }
-        else if (child->getType() == "STRUCT_DEF")
-        {
-            /* We need to clone the body of the structure that this structure definition is referring to
-             * this is because the framework requires unique children for it to do certain things.
-             * Upon cloning we will then let the new structure definition know about it.
-             */
-            std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(child);
-            std::shared_ptr<Branch> struct_name_branch = struct_def_branch->getDataTypeBranch();
-            std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(this->tree->root->getDeclaredStructureByName(struct_name_branch->getValue()));
-            std::shared_ptr<BODYBranch> struct_branch_body = struct_branch->getStructBodyBranch();
-            std::shared_ptr<BODYBranch> unique_body = std::dynamic_pointer_cast<BODYBranch>(struct_branch_body->clone());
-            struct_def_branch->setStructBody(unique_body);
-
-
-
-            // Scopes for struct_declaration are set after pushing the branch.
-            // We need to set the local scope and root scope to match that of the structure declaration body's scope
-            unique_body->setLocalScope(struct_def_branch->getLocalScope());
-            unique_body->setRootScope(struct_def_branch->getRootScope());
-
-            // We now need to set all the unique body's children scopes to point to the unique_body
-            for (std::shared_ptr<Branch> child : unique_body->getChildren())
-            {
-                child->setLocalScope(unique_body);
-                child->setRootScope(unique_body->getRootScope());
-            }
-
-            // Set the unique body's parent to our struct declaration
-            unique_body->setParent(struct_def_branch);
-            
-            // Now lets process this unique structure body
-            improve_body(unique_body);
-        }
-    }
+        improve_branch(child_branch);
+    });
 }
 
 void TreeImprover::improve_expression(std::shared_ptr<Branch> expression_branch)
@@ -135,4 +174,27 @@ void TreeImprover::improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_ide
         // Process the VAR_IDENTIFIER below it
         improve_var_iden(next_var_iden_branch);
     }
+}
+
+void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch)
+{
+    // Improve the body of the if statement
+    improve_body(if_branch->getBodyBranch());
+
+    if (if_branch->hasElseIfBranch())
+    {
+        // Improve the body of the else if branch
+        improve_body(if_branch->getElseIfBranch()->getBodyBranch());
+    }
+
+    if (if_branch->hasElseBranch())
+    {
+        // Improve the body of the else branch
+        improve_body(if_branch->getElseBranch()->getBodyBranch());
+    }
+}
+
+void TreeImprover::improve_for(std::shared_ptr<FORBranch> for_branch)
+{
+    
 }

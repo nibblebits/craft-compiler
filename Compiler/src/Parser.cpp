@@ -364,6 +364,7 @@ void Parser::process_function()
     std::shared_ptr<FuncBranch> func_branch = std::shared_ptr<FuncBranch>(new FuncBranch(this->getCompiler()));
     std::shared_ptr<BODYBranch> body_root = std::shared_ptr<BODYBranch>(new BODYBranch(compiler));
     this->root_scope = body_root;
+    
     // Process the function body
     process_body(body_root);
 
@@ -1036,7 +1037,7 @@ void Parser::process_if_stmt()
     process_body();
     // Pop off the body
     pop_branch();
-    std::shared_ptr<Branch> if_body = this->branch;
+    std::shared_ptr<BODYBranch> if_body = std::dynamic_pointer_cast<BODYBranch>(this->branch);
 
     std::shared_ptr<IFBranch> if_stmt = std::shared_ptr<IFBranch>(new IFBranch(this->getCompiler()));
     if_stmt->setExpressionBranch(if_exp);
@@ -1059,7 +1060,7 @@ void Parser::process_if_stmt()
             pop_branch();
 
             // Add the else if branch to this if statement branch.
-            if_stmt->setElseIfBranch(this->branch);
+            if_stmt->setElseIfBranch(std::dynamic_pointer_cast<IFBranch>(this->branch));
         }
         else
         {
@@ -1070,7 +1071,7 @@ void Parser::process_if_stmt()
             // Pop the result off the stack
             pop_branch();
             // Add the body to the else statement
-            else_stmt->setBodyBranch(this->branch);
+            else_stmt->setBodyBranch(std::dynamic_pointer_cast<BODYBranch>(this->branch));
             // Add the else statement to the if statement
             if_stmt->setElseBranch(else_stmt);
         }

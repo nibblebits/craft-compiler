@@ -25,6 +25,7 @@
  */
 
 #include "ELSEBranch.h"
+#include "BODYBranch.h"
 
 ELSEBranch::ELSEBranch(Compiler* compiler) : CustomBranch(compiler, "ELSE", "")
 {
@@ -34,20 +35,20 @@ ELSEBranch::~ELSEBranch()
 {
 }
 
-void ELSEBranch::setBodyBranch(std::shared_ptr<Branch> branch)
+void ELSEBranch::setBodyBranch(std::shared_ptr<BODYBranch> branch)
 {
     CustomBranch::registerBranch("body_branch", branch);
 }
 
-std::shared_ptr<Branch> ELSEBranch::getBodyBranch()
+std::shared_ptr<BODYBranch> ELSEBranch::getBodyBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("body_branch");
+    return std::dynamic_pointer_cast<BODYBranch>(CustomBranch::getRegisteredBranchByName("body_branch"));
 }
 
 void ELSEBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<ELSEBranch> else_branch_cloned = std::dynamic_pointer_cast<ELSEBranch>(cloned_branch);
-    else_branch_cloned->setBodyBranch(getBodyBranch()->clone());
+    else_branch_cloned->setBodyBranch(std::dynamic_pointer_cast<BODYBranch>(getBodyBranch()->clone()));
 }
 
 std::shared_ptr<Branch> ELSEBranch::create_clone()

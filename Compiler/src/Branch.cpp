@@ -81,6 +81,14 @@ void Branch::removeChild(std::shared_ptr<Branch> child)
     }
 }
 
+void Branch::iterate_children(std::function<void(std::shared_ptr<Branch> child_branch) > iterate_func)
+{
+    for (std::shared_ptr<Branch> child_branch : this->getChildren())
+    {
+        iterate_func(child_branch);
+    }
+}
+
 void Branch::exclude(bool excluded)
 {
     this->excluded_from_tree = excluded;

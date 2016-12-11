@@ -27,14 +27,15 @@
 
 #include "CustomBranch.h"
 
+class BODYBranch;
 class EXPORT ELSEBranch : public CustomBranch
 {
 public:
     ELSEBranch(Compiler* compiler);
     virtual ~ELSEBranch();
 
-    void setBodyBranch(std::shared_ptr<Branch> branch);
-    std::shared_ptr<Branch> getBodyBranch();
+    void setBodyBranch(std::shared_ptr<BODYBranch> branch);
+    std::shared_ptr<BODYBranch> getBodyBranch();
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();

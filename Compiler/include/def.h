@@ -56,5 +56,26 @@
 #define EXPORT __declspec(dllexport)
 #endif
 
+
+enum
+{
+    BRANCH_TYPE_BRANCH,
+    BRANCH_TYPE_TOKEN,
+    BRANCH_TYPE_VDEF
+};
+
+typedef unsigned int VARIABLE_TYPE;
+
+enum
+{
+    VARIABLE_TYPE_UNKNOWN,
+    VARIABLE_TYPE_GLOBAL_VARIABLE,
+    VARIABLE_TYPE_FUNCTION_VARIABLE,
+    VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE
+};
+
+
+
+
 #endif /* DEF_H */
 
