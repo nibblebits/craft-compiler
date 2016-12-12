@@ -72,12 +72,20 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
     {
         improve_for(std::dynamic_pointer_cast<FORBranch>(branch));
     }
+    else if(branch->getType() == "PTR")
+    {
+        improve_ptr(std::dynamic_pointer_cast<PTRBranch>(branch));
+    }
     else if (branch->getType() == "ASSIGN")
     {
         std::shared_ptr<AssignBranch> assign_child = std::dynamic_pointer_cast<AssignBranch>(branch);
         std::shared_ptr<Branch> value_branch = assign_child->getValueBranch();
-        improve_expression(value_branch);
-        improve_var_iden(std::dynamic_pointer_cast<VarIdentifierBranch>(assign_child->getVariableToAssignBranch()));
+        improve_branch(value_branch);
+        improve_branch(assign_child->getVariableToAssignBranch());
+    }
+    else if(branch->getType() == "VAR_IDENTIFIER")
+    {
+        improve_var_iden(std::dynamic_pointer_cast<VarIdentifierBranch>(branch));
     }
     else if (branch->getType() == "STRUCT_DEF")
     {
@@ -111,6 +119,7 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
         // Now lets process this unique structure body
         improve_body(unique_body);
     }
+    
 
     // Set the variable type if this is a variable definition
     if (branch->getBranchType() == BRANCH_TYPE_VDEF)
@@ -197,4 +206,9 @@ void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch)
 void TreeImprover::improve_for(std::shared_ptr<FORBranch> for_branch)
 {
     
+}
+
+void TreeImprover::improve_ptr(std::shared_ptr<PTRBranch> ptr_branch)
+{
+    improve_branch(ptr_branch->getExpressionBranch());
 }

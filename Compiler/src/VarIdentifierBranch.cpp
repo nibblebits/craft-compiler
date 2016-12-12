@@ -94,13 +94,12 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<A
             else
             {
                 // This array index is not static, we cannot know it at runtime so lets get the programmer to fill in the gaps
-                unpredictable_func(array_index_branch, size);          
+                unpredictable_func(array_index_branch, size);
             }
             return true;
         });
     }
-    pos += vdef_branch->getPositionRelZero();
-
+    
     // Ok lets get the next variable identifier(if any) and do the same thing
     if (hasStructureAccessBranch())
     {

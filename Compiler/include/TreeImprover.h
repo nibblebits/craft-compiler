@@ -35,7 +35,7 @@ class VarIdentifierBranch;
 class BODYBranch;
 class IFBranch;
 class FORBranch;
-
+class PTRBranch;
 
 class EXPORT TreeImprover : public CompilerEntity
 {
@@ -55,6 +55,8 @@ private:
     void improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     void improve_if(std::shared_ptr<IFBranch> if_branch);
     void improve_for(std::shared_ptr<FORBranch> for_branch);
+    void improve_ptr(std::shared_ptr<PTRBranch> ptr_branch);
+
     std::shared_ptr<Tree> tree;
     VARIABLE_TYPE current_var_type;
 
