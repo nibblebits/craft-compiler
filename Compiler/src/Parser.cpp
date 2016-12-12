@@ -1414,7 +1414,7 @@ void Parser::process_array_indexes()
         process_array_indexes();
         pop_branch();
         // Pop the result and attach it as a child to our array index branch
-        array_index_branch->setNextArrayIndexBranch(this->branch);
+        array_index_branch->setNextArrayIndexBranch(std::dynamic_pointer_cast<ArrayIndexBranch>(this->branch));
     }
 
     // Push our resulting array index branch

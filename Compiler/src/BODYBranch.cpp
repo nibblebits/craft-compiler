@@ -57,15 +57,15 @@ int BODYBranch::getScopeSize(bool include_subscopes, std::function<bool(std::sha
             }
         }
 
-        std::string child_type = child->getType();
-        if (child_type == "V_DEF" ||
-                child_type == "STRUCT_DEF")
+        if (child->getBranchType() == BRANCH_TYPE_VDEF)
         {
             std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(child);
-            size += vdef_branch->getDataTypeSize();
+            size += vdef_branch->getSize();
+            
         }
         else if (include_subscopes)
         {
+            std::string child_type = child->getType();
             if (child_type == "FOR")
             {
                 std::shared_ptr<FORBranch> for_branch = std::dynamic_pointer_cast<FORBranch>(child);

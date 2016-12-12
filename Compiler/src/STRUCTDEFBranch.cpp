@@ -45,6 +45,11 @@ std::shared_ptr<BODYBranch> STRUCTDEFBranch::getStructBody()
     return this->unique_struct_body_branch;
 }
 
+int STRUCTDEFBranch::getBranchType()
+{
+    return BRANCH_TYPE_VDEF;
+}
+
 void STRUCTDEFBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     VDEFBranch::imp_clone(cloned_branch);

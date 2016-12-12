@@ -28,6 +28,7 @@
 #include "PTRBranch.h"
 #include "VarIdentifierBranch.h"
 #include "ScopeBranch.h"
+#include "ArrayIndexBranch.h"
 
 VDEFBranch::VDEFBranch(Compiler* compiler, std::string branch_name, std::string branch_value) : CustomBranch(compiler, branch_name, branch_value)
 {
@@ -146,6 +147,7 @@ int VDEFBranch::getPositionRelZero(bool loc_start_with_filesize)
         pos += scope_branch->getScopeSize(false, before_proc, after_proc);
     }
     return pos;
+
 }
 
 bool VDEFBranch::isPointer()
@@ -169,6 +171,32 @@ bool VDEFBranch::isPrimitive()
 {
     std::shared_ptr<Branch> data_type_branch = getDataTypeBranch();
     return this->getCompiler()->isPrimitiveDataType(data_type_branch->getValue());
+}
+
+int VDEFBranch::getSize()
+{
+    int size = getDataTypeSize();
+    std::shared_ptr<VarIdentifierBranch> var_identifier_branch = getVariableIdentifierBranch();
+    if (var_identifier_branch->hasRootArrayIndexBranch())
+    {
+        // We have an array here.
+        std::shared_ptr<ArrayIndexBranch> array_index_branch = var_identifier_branch->getRootArrayIndexBranch();
+        while (true)
+        {
+            /* Array indexes with variable definitions are currently guaranteed to be integers. 
+             * this may change in the future if I allow arrays to be declared with a variable for size */
+            size *= std::stoi(array_index_branch->getValueBranch()->getValue());
+            if (array_index_branch->hasNextArrayIndexBranch())
+            {
+                array_index_branch = array_index_branch->getNextArrayIndexBranch();
+                continue;
+            }
+
+            break;
+        };
+    }
+
+    return size;
 }
 
 int VDEFBranch::getDataTypeSize(bool no_pointer)

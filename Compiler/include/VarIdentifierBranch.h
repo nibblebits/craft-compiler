@@ -42,6 +42,7 @@ public:
     std::shared_ptr<STRUCTAccessBranch> getStructureAccessBranch();
     std::shared_ptr<ArrayIndexBranch> getRootArrayIndexBranch();
     std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(bool no_follow=false);
+    int getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > unpredictable_func);
     bool hasRootArrayIndexBranch();
     bool hasStructureAccessBranch();
     bool isVariableAlone();

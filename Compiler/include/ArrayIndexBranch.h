@@ -33,10 +33,14 @@ public:
     ArrayIndexBranch(Compiler* compiler);
     virtual ~ArrayIndexBranch();
 
+    void iterate_array_indexes(std::function<bool(std::shared_ptr<ArrayIndexBranch> array_index_branch) > iterate_func);
+    bool isStatic();
+    bool areAllStatic();
+    
     void setValueBranch(std::shared_ptr<Branch> value_branch);
-    void setNextArrayIndexBranch(std::shared_ptr<Branch> next_array_index_branch);
+    void setNextArrayIndexBranch(std::shared_ptr<ArrayIndexBranch> next_array_index_branch);
     std::shared_ptr<Branch> getValueBranch();
-    std::shared_ptr<Branch> getNextArrayIndexBranch();
+    std::shared_ptr<ArrayIndexBranch> getNextArrayIndexBranch();
 
     bool hasNextArrayIndexBranch();
     bool hasParentArrayIndexBranch();

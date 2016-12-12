@@ -28,6 +28,7 @@
 #include "ScopeBranch.h"
 #include "ArrayIndexBranch.h"
 #include "STRUCTAccessBranch.h"
+#include "VDEFBranch.h"
 
 VarIdentifierBranch::VarIdentifierBranch(Compiler* compiler) : CustomBranch(compiler, "VAR_IDENTIFIER", "")
 {
@@ -66,6 +67,48 @@ bool VarIdentifierBranch::hasRootArrayIndexBranch()
 std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch(bool no_follow)
 {
     return Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), true, no_follow);
+}
+
+int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > unpredictable_func)
+{
+    if (unpredictable_func == NULL)
+    {
+        throw Exception("int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > unpredictable_func):"
+                        "  You must pass an unpredictable_func so that you can generate appropiate assembly instructions for when the framework cannot calculate the position"
+                        "as it is impossible to know at compile time");
+    }
+
+    std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
+    int pos = 0;
+    if (hasRootArrayIndexBranch())
+    {
+        int size = vdef_branch->getDataTypeSize();
+        int offset = size;
+        getRootArrayIndexBranch()->iterate_array_indexes([&](std::shared_ptr<ArrayIndexBranch> array_index_branch) -> bool
+        {
+            if (array_index_branch->isStatic())
+            {
+                offset *= std::stoi(array_index_branch->getValueBranch()->getValue());
+                pos += offset;
+            }
+            else
+            {
+                // This array index is not static, we cannot know it at runtime so lets get the programmer to fill in the gaps
+                unpredictable_func(array_index_branch, size);          
+            }
+            return true;
+        });
+    }
+    pos += vdef_branch->getPositionRelZero();
+
+    // Ok lets get the next variable identifier(if any) and do the same thing
+    if (hasStructureAccessBranch())
+    {
+        std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
+        pos += struct_access_branch->getVarIdentifierBranch()->getPositionRelZero(unpredictable_func);
+    }
+    return pos;
+
 }
 
 bool VarIdentifierBranch::hasStructureAccessBranch()

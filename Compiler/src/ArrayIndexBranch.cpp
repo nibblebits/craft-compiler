@@ -34,12 +34,50 @@ ArrayIndexBranch::~ArrayIndexBranch()
 {
 }
 
+void ArrayIndexBranch::iterate_array_indexes(std::function<bool(std::shared_ptr<ArrayIndexBranch> array_index_branch) > iterate_func)
+{
+    std::shared_ptr<ArrayIndexBranch> a_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(this->getptr());
+    // Pass us
+    if (iterate_func(a_index_branch))
+    {
+        // Pass the rest of us
+        while (a_index_branch->hasNextArrayIndexBranch())
+        {
+            a_index_branch = a_index_branch->getNextArrayIndexBranch();
+            // Pass the next array index branch
+            if (!iterate_func(a_index_branch))
+                break;
+        }
+    }
+}
+
+bool ArrayIndexBranch::isStatic()
+{
+    return getValueBranch()->getType() == "number";
+}
+
+bool ArrayIndexBranch::areAllStatic()
+{
+    bool are_all_static = true;
+    iterate_array_indexes([&](std::shared_ptr<ArrayIndexBranch> array_index_branch) -> bool
+    {
+        if (!array_index_branch->isStatic())
+        {
+            are_all_static = false;
+            return false;
+        }
+        return true;
+    });
+    
+    return are_all_static;
+}
+
 void ArrayIndexBranch::setValueBranch(std::shared_ptr<Branch> value_branch)
 {
     CustomBranch::registerBranch("value_branch", value_branch);
 }
 
-void ArrayIndexBranch::setNextArrayIndexBranch(std::shared_ptr<Branch> next_array_index_branch)
+void ArrayIndexBranch::setNextArrayIndexBranch(std::shared_ptr<ArrayIndexBranch> next_array_index_branch)
 {
     CustomBranch::registerBranch("next_array_index_branch", next_array_index_branch);
 }
@@ -49,9 +87,9 @@ std::shared_ptr<Branch> ArrayIndexBranch::getValueBranch()
     return CustomBranch::getRegisteredBranchByName("value_branch");
 }
 
-std::shared_ptr<Branch> ArrayIndexBranch::getNextArrayIndexBranch()
+std::shared_ptr<ArrayIndexBranch> ArrayIndexBranch::getNextArrayIndexBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("next_array_index_branch");
+    return std::dynamic_pointer_cast<ArrayIndexBranch>(CustomBranch::getRegisteredBranchByName("next_array_index_branch"));
 }
 
 bool ArrayIndexBranch::hasNextArrayIndexBranch()
@@ -71,7 +109,7 @@ std::shared_ptr<Branch> ArrayIndexBranch::getDeepestArrayIndexBranch()
     std::shared_ptr<ArrayIndexBranch> current_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(this->getptr());
     while (current_branch->hasNextArrayIndexBranch())
     {
-        current_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(current_branch->getNextArrayIndexBranch());
+        current_branch = current_branch->getNextArrayIndexBranch();
     }
 
     return current_branch;
@@ -81,7 +119,7 @@ void ArrayIndexBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<ArrayIndexBranch> array_index_cloned_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(cloned_branch);
     array_index_cloned_branch->setValueBranch(getValueBranch()->clone());
-    array_index_cloned_branch->setNextArrayIndexBranch(getNextArrayIndexBranch()->clone());
+    array_index_cloned_branch->setNextArrayIndexBranch(std::dynamic_pointer_cast<ArrayIndexBranch>(getNextArrayIndexBranch()->clone()));
 }
 
 std::shared_ptr<Branch> ArrayIndexBranch::create_clone()
