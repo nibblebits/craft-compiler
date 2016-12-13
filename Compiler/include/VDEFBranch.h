@@ -39,15 +39,15 @@ public:
     void setValueExpBranch(std::shared_ptr<Branch> branch);
     void setPointer(bool is_pointer);
     void setVariableType(VARIABLE_TYPE var_type);
-    
+
     std::shared_ptr<Branch> getDataTypeBranch();
     std::shared_ptr<VarIdentifierBranch> getVariableIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
     std::shared_ptr<Branch> getNameBranch();
     VARIABLE_TYPE getVariableType();
-    
-    bool hasValueExpBranch();
 
+    bool hasValueExpBranch();
+    int getPositionRelScope(bool loc_start_with_filesize = false);
     int getPositionRelZero(bool loc_start_with_filesize = false);
 
     bool isPointer();

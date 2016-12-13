@@ -96,6 +96,37 @@ VARIABLE_TYPE VDEFBranch::getVariableType()
     return this->var_type;
 }
 
+int VDEFBranch::getPositionRelScope(bool loc_start_with_filesize)
+{
+    std::shared_ptr<ScopeBranch> scope_branch = getLocalScope();
+    
+    std::shared_ptr<Branch> target_branch = this->getptr();
+    std::function<bool(std::shared_ptr<Branch> branch) > kill_proc = [&](std::shared_ptr<Branch> branch) -> bool
+    {
+        if (branch == target_branch)
+            return false;
+
+        return true;
+    };
+
+    std::function<bool(std::shared_ptr<Branch> branch) > before_proc = NULL;
+    std::function<bool(std::shared_ptr<Branch> branch) > after_proc = NULL;
+
+    if (loc_start_with_filesize)
+    {
+        after_proc = kill_proc;
+    }
+    else
+    {
+        before_proc = kill_proc;
+    }
+
+    // Get the size of all variables in this variables scope up to this variable.
+    int pos = scope_branch->getScopeSize(false, before_proc, after_proc);
+    return pos;
+}
+
+
 int VDEFBranch::getPositionRelZero(bool loc_start_with_filesize)
 {
     std::shared_ptr<ScopeBranch> root_scope = getRootScope();

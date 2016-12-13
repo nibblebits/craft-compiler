@@ -71,9 +71,26 @@ std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch(boo
 
 int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > unpredictable_func)
 {
+    std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
     if (unpredictable_func == NULL)
     {
         throw Exception("int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > unpredictable_func):"
+                        "  You must pass an unpredictable_func so that you can generate appropiate assembly instructions for when the framework cannot calculate the position"
+                        "as it is impossible to know at compile time");
+    }
+
+    // Get the position as if we are not in a scope and ignore structure access if we are a pointer
+    int pos = getPositionRelZeroIgnoreCurrentScope(unpredictable_func, vdef_branch->isPointer());
+    // Now add on the position up to our variable, giving us an absolute address relative to zero.
+    pos += vdef_branch->getPositionRelZero();
+    return pos;
+}
+
+int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > unpredictable_func, bool ignore_structure_access)
+{
+    if (unpredictable_func == NULL)
+    {
+        throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > unpredictable_func, bool ignore_structure_access):"
                         "  You must pass an unpredictable_func so that you can generate appropiate assembly instructions for when the framework cannot calculate the position"
                         "as it is impossible to know at compile time");
     }
@@ -99,15 +116,15 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<A
             return true;
         });
     }
-    
-    // Ok lets get the next variable identifier(if any) and do the same thing
-    if (hasStructureAccessBranch())
+
+    // Ok lets get the next variable identifier(if any) and only if we are not ignoring structures
+    if (!ignore_structure_access && hasStructureAccessBranch())
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
-        pos += struct_access_branch->getVarIdentifierBranch()->getPositionRelZero(unpredictable_func);
+        pos += struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(unpredictable_func);
+        pos += struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope();
     }
     return pos;
-
 }
 
 bool VarIdentifierBranch::hasStructureAccessBranch()
