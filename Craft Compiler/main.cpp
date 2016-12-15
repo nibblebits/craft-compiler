@@ -30,7 +30,9 @@
 #include <string>
 #include "def.h"
 #include "Compiler.h"
+#include "branches.h"
 #include "Exception.h"
+#include "SemanticValidatorException.h"
 #include "GoblinLibraryLoader.h"
 #include "GoblinArgumentParser.h"
 #include "CodeGenerator.h"
@@ -54,16 +56,18 @@ enum
     CODEGENERATOR_LOAD_PROBLEM = 5,
     ERROR_WITH_LEXER = 6,
     ERROR_WITH_PARSER = 7,
-    ERROR_WITH_TYPE_CHECKER = 8,
-    ERROR_WITH_OUTPUT_FILE = 9,
-    ERROR_WITH_CODEGENERATOR = 10
+    ERROR_WITH_SEMANTIC_VALIDATION = 8,
+    ERROR_WITH_TREE_IMPROVER = 9,
+    ERROR_WITH_OUTPUT_FILE = 10,
+    ERROR_WITH_CODEGENERATOR = 11
 } CompilerErrorCode;
 
 Compiler compiler;
 
 Lexer* lexer;
 Parser* parser;
-TypeChecker* typeChecker;
+SemanticValidator* semanticValidator;
+TreeImprover* treeImprover;
 
 std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
 {
@@ -226,7 +230,8 @@ int main(int argc, char** argv)
 
     lexer = compiler.getLexer();
     parser = compiler.getParser();
-    typeChecker = compiler.getTypeChecker();
+    semanticValidator = compiler.getSemanticValidator();
+    treeImprover = compiler.getTreeImprover();
 
     lexer->setInput(source_file_data);
     try
@@ -252,11 +257,6 @@ int main(int argc, char** argv)
     {
         parser->setInput(lexer->getTokens());
         parser->buildTree();
-
-#ifdef DEBUG_MODE
-        debug_output_branch(parser->getTree()->root);
-#endif
-
     }
     catch (ParserException ex)
     {
@@ -268,18 +268,26 @@ int main(int argc, char** argv)
     // Handle parsing warnings and errors
     handle_parser_errors_and_warnings();
 
-
+    // Ensure the input is semantically correct
     try
     {
-        typeChecker->setTree(parser->getTree());
-        typeChecker->validate();
+        semanticValidator->setTree(parser->getTree());
+        semanticValidator->validate();
     }
-    catch (TypeCheckerException ex)
+    catch (SemanticValidatorException ex)
     {
-        std::cout << "Error with types: " << ex.getMessage() << std::endl;
-        return ERROR_WITH_TYPE_CHECKER;
+        std::cout << "Error with validation: " << ex.getMessage() << std::endl;
+        return ERROR_WITH_SEMANTIC_VALIDATION;
     }
 
+    // Improve the tree
+    // Get some exception handling here soon
+    treeImprover->setTree(parser->getTree());
+    treeImprover->improve();
+
+#ifdef DEBUG_MODE
+    debug_output_branch(parser->getTree()->root);
+#endif 
     try
     {
         codegen->generate(parser->getTree());
