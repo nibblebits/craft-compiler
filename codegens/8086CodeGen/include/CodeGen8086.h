@@ -45,24 +45,25 @@ struct HANDLING_POINTER
 {
     bool is_handling;
     std::shared_ptr<VDEFBranch> pointer_selected_variable;
+    std::shared_ptr<VarIdentifierBranch> pointer_selected_var_iden;
 };
 
 struct VARIABLE_ADDRESS
 {
-    int var_type;
     std::string segment;
     std::string op;
     int offset;
+    std::string apply_reg;
 
     inline std::string to_string()
     {
-        // No OP? then just return the segment.
-        if (op == "")
+        std::string result = segment + op + std::to_string(offset);
+        if (apply_reg != "")
         {
-            return segment;
+            result += op + apply_reg;
         }
 
-        return segment + op + std::to_string(offset);
+        return result;
     }
 };
 
@@ -82,8 +83,8 @@ public:
     std::string make_string(std::shared_ptr<Branch> string_branch);
     void make_inline_asm(std::shared_ptr<ASMBranch> asm_branch);
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
-    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp, bool is_word = false, std::function<void() > assignment_val_processed = NULL);
-    void make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func = NULL, std::function<void() > exp_end_func = NULL, bool postpone_pointer=true);
+    void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp = NULL, bool is_word = false, std::function<void() > assignment_val_processed = NULL);
+    void make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func = NULL, std::function<void() > exp_end_func = NULL, bool postpone_pointer = true);
     void make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_right(std::shared_ptr<Branch> exp);
@@ -94,7 +95,7 @@ public:
     void make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size);
     void make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size);
     void make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch = NULL, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch = NULL, std::string base_reg = "bx", std::shared_ptr<STRUCTBranch> current_struct = NULL);
-    std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch, bool pointer_access = false, std::shared_ptr<VDEFBranch>* vdef_in_question_branch = NULL, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch = NULL, std::string base_reg = "bx");
+    std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
 
     void calculate_scope_size(std::shared_ptr<ScopeBranch> scope_branch);
@@ -110,16 +111,16 @@ public:
     void handle_function_call(std::shared_ptr<FuncCallBranch> branch);
     void handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch);
     void handle_scope_return(std::shared_ptr<Branch> branch);
-    void handle_move_pointed_to_reg(std::string reg, std::shared_ptr<Branch> branch);
     void handle_compare_expression();
     void handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> branch);
     void handle_if_stmt(std::shared_ptr<IFBranch> branch);
     void handle_for_stmt(std::shared_ptr<FORBranch> branch);
+    void handle_array_index(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size);
 
     inline bool has_postponed_pointer_handling();
     void postpone_pointer_handling();
     void prepone_pointer_handling();
-    
+
     int getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch);
     int getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch);
     int getBPOffsetForArgument(std::shared_ptr<Branch> var_branch);
@@ -129,7 +130,6 @@ public:
     std::shared_ptr<VDEFBranch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
     int getStructureVariableOffset(std::string struct_name, std::string var_name);
     int getStructureVariableOffset(std::shared_ptr<STRUCTBranch> struct_branch, std::string var_name);
-    int getPosForStructureVariable(std::shared_ptr<Branch> branch);
     int getStructSize(std::string struct_name);
     int getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch);
     bool hasGlobalVariable(std::shared_ptr<VarIdentifierBranch> var_branch);
@@ -138,8 +138,8 @@ public:
     int getVariableType(std::shared_ptr<Branch> var_branch);
     std::string convert_full_reg_to_low_reg(std::string reg);
 
-    struct VARIABLE_ADDRESS getASMAddressForVariable(std::shared_ptr<Branch> var_branch);
-    std::string getASMAddressForVariableFormatted(std::shared_ptr<Branch> var_branch);
+    struct VARIABLE_ADDRESS getASMAddressForVariable(std::shared_ptr<VarIdentifierBranch> var_branch);
+    std::string getASMAddressForVariableFormatted(std::shared_ptr<VarIdentifierBranch> var_branch);
 
     std::shared_ptr<VDEFBranch> getVariable(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getScopeVariable(std::shared_ptr<Branch> var_branch);
@@ -173,15 +173,16 @@ private:
     bool is_handling_pointer;
 
     std::shared_ptr<VDEFBranch> pointer_selected_variable;
+    std::shared_ptr<VarIdentifierBranch> pointer_selected_var_iden;
     std::shared_ptr<VDEFBranch> last_found_var_access_variable;
-    
+
     /*  Holds pointer handling information for a given pointer 
      stack is required due to sub expressions that are non pointer related. */
     std::deque<HANDLING_POINTER> current_pointers_to_handle;
-    
+
     /* Holds current scopes, this is used so nesting of scopes is compatible. */
     std::deque<int> current_scopes;
-    
+
     int current_label_index;
     int scope_size;
 
