@@ -268,7 +268,8 @@ void TreeImprover::improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_ide
     {
         // Time to set local scopes for the structure access to point to correct structure scope bodys
         std::shared_ptr<STRUCTAccessBranch> access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_iden_branch->getStructureAccessBranch());
-        std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(var_iden_branch->getVariableDefinitionBranch(true));
+        std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch(true);
+        std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(vdef_branch);
         std::shared_ptr<BODYBranch> body_branch = struct_def_branch->getStructBody();
         std::shared_ptr<VarIdentifierBranch> next_var_iden_branch = access_branch->getVarIdentifierBranch();
         access_branch->setLocalScope(body_branch);

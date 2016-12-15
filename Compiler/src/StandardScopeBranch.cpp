@@ -115,7 +115,7 @@ std::shared_ptr<VDEFBranch> StandardScopeBranch::getVariableDefinitionBranch(std
         {
             /* Ok we need to lookup the scope as we did not find the result in our own scope
              * This will act as a recursive action until either the variable is found or it is not */
-            found_branch = getLocalScope()->getVariableDefinitionBranch(var_iden, true);
+            found_branch = getLocalScope()->getVariableDefinitionBranch(var_iden, true, no_follow);
         }
     }
 
