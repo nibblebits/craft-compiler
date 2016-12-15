@@ -30,8 +30,12 @@
 class EBranch : public CustomBranch
 {
 public:
-    EBranch(Compiler* compiler);
+    EBranch(Compiler* compiler, std::string value);
     virtual ~EBranch();
+    void iterate_expressions(std::function<void(std::shared_ptr<EBranch> root_e, std::shared_ptr<Branch> left_branch, std::shared_ptr<Branch> right_branch) > func);
+    void iterate_expressions(std::function<void(std::shared_ptr<Branch> left_branch) > left_func, std::function<void(std::shared_ptr<Branch> right_branch) > right_func);
+    virtual void validity_check();
+    virtual void rebuild();
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
 private:

@@ -72,6 +72,8 @@ void Parser::merge(std::shared_ptr<Branch> root)
  */
 void Parser::process_top()
 {
+    this->root_scope = this->root_branch;
+    start_local_scope(this->root_branch);
     peak();
     if (is_peak_type("keyword"))
     {
@@ -142,6 +144,8 @@ void Parser::process_top()
     {
         error_unexpected_token();
     }
+    
+    finish_local_scope();
 }
 
 void Parser::process_macro()
@@ -364,7 +368,7 @@ void Parser::process_function()
     std::shared_ptr<FuncBranch> func_branch = std::shared_ptr<FuncBranch>(new FuncBranch(this->getCompiler()));
     std::shared_ptr<BODYBranch> body_root = std::shared_ptr<BODYBranch>(new BODYBranch(compiler));
     this->root_scope = body_root;
-    
+
     // Process the function body
     process_body(body_root);
 
@@ -431,6 +435,7 @@ void Parser::process_body(std::shared_ptr<BODYBranch> body_root, bool new_scope)
     {
         // Finish the local scope
         finish_local_scope();
+        body_root->setLocalScope(this->current_local_scope);
     }
     // Push the body root onto the branch stack
     push_branch(body_root);
@@ -713,7 +718,7 @@ void Parser::process_expression(bool strict_mode)
         std::shared_ptr<Branch> right = this->branch;
 
         // Put it all together
-        std::shared_ptr<Branch> exp = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
+        std::shared_ptr<Branch> exp = std::shared_ptr<EBranch>(new EBranch(this->compiler, op->getValue()));
         exp->addChild(left);
         exp->addChild(right);
         push_branch(exp);
@@ -762,14 +767,14 @@ void Parser::process_expression_part(bool strict_mode)
                     shift_pop();
                     std::shared_ptr<Branch> r = this->branch;
 
-                    exp_root = std::shared_ptr<Branch>(new Branch("E", o->getValue()));
+                    exp_root = std::shared_ptr<EBranch>(new EBranch(this->compiler, o->getValue()));
                     exp_root->addChild(l);
                     exp_root->addChild(r);
                     right = exp_root;
                 }
             }
 
-            exp_root = std::shared_ptr<Branch>(new Branch("E", op->getValue()));
+            exp_root = std::shared_ptr<EBranch>(new EBranch(this->compiler, op->getValue()));
             exp_root->addChild(left);
             exp_root->addChild(right);
 

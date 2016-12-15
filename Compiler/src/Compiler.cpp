@@ -293,6 +293,21 @@ bool Compiler::canCast(std::string type1, std::string type2)
     return false;
 }
 
+long Compiler::evaluate(long n1, long n2, std::string op)
+{
+    if (op == "+")
+        return n1 + n2;
+    else if (op == "-")
+        return n1 - n2;
+    else if (op == "*")
+        return n1 * n2;
+    else if (op == "/")
+        return n1 / n2;
+
+
+    throw Exception("long Compiler::evaluate(long n1, long n2, std::string op): do not know how to evaluate for operator: \"" + op + "\"");
+}
+
 bool Compiler::isCompareOperator(std::string value)
 {
     if (

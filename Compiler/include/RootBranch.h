@@ -25,9 +25,9 @@
 #ifndef ROOTBRANCH_H
 #define ROOTBRANCH_H
 
-#include "CustomBranch.h"
+#include "StandardScopeBranch.h"
 
-class RootBranch : public CustomBranch
+class RootBranch : public StandardScopeBranch
 {
 public:
     RootBranch(Compiler* compiler);

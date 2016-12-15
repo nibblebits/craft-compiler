@@ -49,6 +49,7 @@
       <itemPath>include/SemanticValidatorException.h</itemPath>
       <itemPath>include/SourceCodeRelatedException.h</itemPath>
       <itemPath>include/Stack.h</itemPath>
+      <itemPath>include/StandardScopeBranch.h</itemPath>
       <itemPath>include/Stream.h</itemPath>
       <itemPath>include/Token.h</itemPath>
       <itemPath>include/Tree.h</itemPath>
@@ -103,6 +104,7 @@
       <itemPath>src/Scope.cpp</itemPath>
       <itemPath>src/ScopeBranch.cpp</itemPath>
       <itemPath>src/SemanticValidator.cpp</itemPath>
+      <itemPath>src/StandardScopeBranch.cpp</itemPath>
       <itemPath>src/Stream.cpp</itemPath>
       <itemPath>src/Token.cpp</itemPath>
       <itemPath>src/Tree.cpp</itemPath>
@@ -247,6 +249,8 @@
       </item>
       <item path="include/Stack.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/StandardScopeBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Stream.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Token.h" ex="false" tool="3" flavor2="0">
@@ -338,6 +342,8 @@
       <item path="src/ScopeBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/SemanticValidator.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/StandardScopeBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Stream.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -470,6 +476,8 @@
       </item>
       <item path="include/Stack.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/StandardScopeBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Stream.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Token.h" ex="false" tool="3" flavor2="0">
@@ -561,6 +569,8 @@
       <item path="src/ScopeBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/SemanticValidator.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/StandardScopeBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Stream.cpp" ex="false" tool="1" flavor2="0">
       </item>

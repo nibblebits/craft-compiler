@@ -25,7 +25,7 @@
 #ifndef BRANCHES_H
 #define BRANCHES_H
 
-
+#include "Token.h"
 #include "FuncBranch.h"
 #include "VDEFBranch.h"
 #include "AssignBranch.h"

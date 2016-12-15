@@ -33,7 +33,8 @@ Branch::Branch(std::string type, std::string value)
     this->type = type;
     this->value = value;
     this->parent = NULL;
-    this->excluded_from_tree = false;
+    this->is_removed = false;
+    this->replacee_branch = NULL;
     this->root_branch = NULL;
     this->root_scope = NULL;
     this->local_scope = NULL;
@@ -65,8 +66,14 @@ void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch>
         {
             this->children[i] = new_branch;
             new_branch->setParent(this->getptr());
+            child->setReplaced(new_branch);
         }
     }
+}
+
+void Branch::replaceSelf(std::shared_ptr<Branch> replacee_branch)
+{
+    getParent()->replaceChild(this->getptr(), replacee_branch);
 }
 
 void Branch::removeChild(std::shared_ptr<Branch> child)
@@ -76,9 +83,26 @@ void Branch::removeChild(std::shared_ptr<Branch> child)
         std::shared_ptr<Branch> c = this->children.at(i);
         if (c == child)
         {
+            child->setRemoved(true);
             this->children.erase(this->children.begin() + i);
         }
     }
+}
+
+void Branch::removeSelf()
+{
+    getParent()->removeChild(this->getptr());
+}
+
+void Branch::setRemoved(bool is_removed)
+{
+    this->is_removed = is_removed;
+}
+
+void Branch::setReplaced(std::shared_ptr<Branch> replacee_branch)
+{
+    setRemoved(true);
+    this->replacee_branch = replacee_branch;
 }
 
 void Branch::iterate_children(std::function<void(std::shared_ptr<Branch> child_branch) > iterate_func)
@@ -87,16 +111,6 @@ void Branch::iterate_children(std::function<void(std::shared_ptr<Branch> child_b
     {
         iterate_func(child_branch);
     }
-}
-
-void Branch::exclude(bool excluded)
-{
-    this->excluded_from_tree = excluded;
-}
-
-bool Branch::excluded()
-{
-    return this->excluded_from_tree;
 }
 
 bool Branch::hasChild(std::shared_ptr<Branch> branch)
@@ -282,9 +296,34 @@ std::shared_ptr<Branch> Branch::getptr()
     return shared_from_this();
 }
 
+bool Branch::wasReplaced()
+{
+    return this->replacee_branch != NULL;
+}
+
+bool Branch::isRemoved()
+{
+    return this->is_removed;
+}
+
+std::shared_ptr<Branch> Branch::getReplaceeBranch()
+{
+    return this->replacee_branch;
+}
+
 int Branch::getBranchType()
 {
     return BRANCH_TYPE_BRANCH;
+}
+
+void Branch::validity_check()
+{
+    // Nothing to validate.
+}
+
+void Branch::rebuild()
+{
+    throw Exception("void Branch::rebuild(): This branch of type \"" + getType() + "\" does not support rebuilding.");
 }
 
 // Scopes must not be cloned.

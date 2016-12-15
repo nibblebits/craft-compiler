@@ -64,6 +64,10 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
     {
         improve_func(std::dynamic_pointer_cast<FuncBranch>(branch));
     }
+    else if (branch->getType() == "E")
+    {
+        improve_expression(std::dynamic_pointer_cast<EBranch>(branch));
+    }
     else if (branch->getType() == "IF")
     {
         improve_if(std::dynamic_pointer_cast<IFBranch>(branch));
@@ -72,7 +76,7 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
     {
         improve_for(std::dynamic_pointer_cast<FORBranch>(branch));
     }
-    else if(branch->getType() == "PTR")
+    else if (branch->getType() == "PTR")
     {
         improve_ptr(std::dynamic_pointer_cast<PTRBranch>(branch));
     }
@@ -83,7 +87,16 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
         improve_branch(value_branch);
         improve_branch(assign_child->getVariableToAssignBranch());
     }
-    else if(branch->getType() == "VAR_IDENTIFIER")
+    else if (branch->getType() == "RETURN")
+    {
+        improve_branch(branch->getFirstChild());
+    }
+    else if (branch->getType() == "ADDRESS_OF")
+    {
+        std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(branch);
+        improve_branch(address_of_branch->getVariableBranch());
+    }
+    else if (branch->getType() == "VAR_IDENTIFIER")
     {
         improve_var_iden(std::dynamic_pointer_cast<VarIdentifierBranch>(branch));
     }
@@ -119,13 +132,18 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
         // Now lets process this unique structure body
         improve_body(unique_body);
     }
-    
+
 
     // Set the variable type if this is a variable definition
     if (branch->getBranchType() == BRANCH_TYPE_VDEF)
     {
         std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
         vdef_branch->setVariableType(this->current_var_type);
+
+        if (vdef_branch->hasValueExpBranch())
+        {
+            improve_branch(vdef_branch->getValueExpBranch());
+        }
     }
 }
 
@@ -160,12 +178,87 @@ void TreeImprover::improve_body(std::shared_ptr<BODYBranch> body_branch)
     });
 }
 
-void TreeImprover::improve_expression(std::shared_ptr<Branch> expression_branch)
+void TreeImprover::improve_expression(std::shared_ptr<EBranch> expression_branch)
 {
-    // This will do barley anything for now as I plan to change the design of expressions in the future, no point wasting precious time.
-    if (expression_branch->getType() == "VAR_IDENTIFIER")
+    /*  We need to try and lower the expression branches to the lowest point we can
+     *  for example 5 + 9 + 3 will become one branch containing 17.*/
+
+    int result_to_add = 0;
+    std::shared_ptr<Branch> new_branch = NULL;
+    std::shared_ptr<Token> last_known_number_branch = NULL;
+    std::function<void(std::shared_ptr<EBranch>, std::shared_ptr<Branch>, std::shared_ptr<Branch>) > func =
+            [&](
+            std::shared_ptr<EBranch> root_e,
+            std::shared_ptr<Branch> left_branch,
+            std::shared_ptr<Branch> right_branch)
+            {
+                if (left_branch->getType() == "number" &&
+                        right_branch->getType() == "number")
+                {
+                    // Both are numbers so we can safely craft a new branch from them
+                    std::shared_ptr<Token> left_token = std::dynamic_pointer_cast<Token>(left_branch);
+                    // Both the left and right branches contain numbers so lets evaluate the numbers and replace them with one branch holding the result
+                    int left_n = std::stoi(left_branch->getValue());
+                    int right_n = std::stoi(right_branch->getValue());
+                    long result = getCompiler()->evaluate(left_n, right_n, root_e->getValue());
+
+                    CharPos pos = left_token->getPosition();
+                    std::shared_ptr<Token> token = std::shared_ptr<Token>(new Token("number", std::to_string(result), pos));
+                    root_e->replaceSelf(token);
+                    last_known_number_branch = token;
+                }
+                else
+                {
+                    if (left_branch->getType() == "number")
+                    {
+                        if (left_branch->getParent()->getValue() == "+")
+                        {
+                            result_to_add += std::stoi(left_branch->getValue());
+                            left_branch->removeSelf();
+                            root_e->rebuild();
+                            last_known_number_branch = std::dynamic_pointer_cast<Token>(left_branch);
+                        }
+                    }
+                    else if (right_branch->getType() == "number")
+                    {
+                        if (right_branch->getParent()->getValue() == "+")
+                        {
+                            result_to_add += std::stoi(right_branch->getValue());
+                            right_branch->removeSelf();
+                            root_e->rebuild();
+                            last_known_number_branch = std::dynamic_pointer_cast<Token>(right_branch);
+                        }
+                    }
+                }
+
+                /* If their was a rebuild the expression branch should have been replaced with its first child. 
+                 * The branch may have also been replaced if the left and right branches was both a number, as shown further above. */
+
+                // We are only interested if we are on the highest root of the expression branch
+                if (expression_branch == root_e)
+                {
+                    if (root_e->wasReplaced())
+                    {
+                        new_branch = root_e->getReplaceeBranch();
+                    }
+                }
+            };
+
+    expression_branch->iterate_expressions(func);
+
+    if (new_branch != NULL)
     {
-        improve_var_iden(std::dynamic_pointer_cast<VarIdentifierBranch>(expression_branch));
+        // We now need to add on the new result (if any)
+        if (result_to_add != 0)
+        {
+            std::shared_ptr<Token> token = std::shared_ptr<Token>(new Token("number", std::to_string(result_to_add), last_known_number_branch->getPosition()));
+            // Create a new expression branch
+            std::shared_ptr<EBranch> e_branch = std::shared_ptr<EBranch>(new EBranch(getCompiler(), "+"));
+            new_branch->replaceSelf(e_branch);
+            e_branch->addChild(token);
+            e_branch->addChild(new_branch);
+            e_branch->rebuild();
+        }
     }
 }
 
@@ -205,7 +298,7 @@ void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch)
 
 void TreeImprover::improve_for(std::shared_ptr<FORBranch> for_branch)
 {
-    
+
 }
 
 void TreeImprover::improve_ptr(std::shared_ptr<PTRBranch> ptr_branch)

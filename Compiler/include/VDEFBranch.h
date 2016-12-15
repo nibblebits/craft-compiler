@@ -47,8 +47,8 @@ public:
     VARIABLE_TYPE getVariableType();
 
     bool hasValueExpBranch();
-    int getPositionRelScope(bool loc_start_with_filesize = false);
-    int getPositionRelZero(bool loc_start_with_filesize = false);
+    int getPositionRelScope(bool loc_start_with_varsize = false);
+    int getPositionRelZero(bool loc_start_with_varsize = false);
 
     bool isPointer();
     bool isSigned();

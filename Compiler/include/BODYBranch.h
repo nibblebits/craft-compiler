@@ -25,17 +25,14 @@
 #ifndef BODYBRANCH_H
 #define BODYBRANCH_H
 
-#include "ScopeBranch.h"
+#include "StandardScopeBranch.h"
 
-class EXPORT BODYBranch : public ScopeBranch
+class EXPORT BODYBranch : public StandardScopeBranch
 {
 public:
     BODYBranch(Compiler* compiler);
     virtual ~BODYBranch();
 
-    virtual int getScopeSize(bool include_subscopes = false, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start = NULL, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end = NULL, bool *should_stop = NULL);
-    virtual std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope = true, bool no_follow=false);
-    virtual std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(std::string var_name, bool lookup_scope = true);
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
 

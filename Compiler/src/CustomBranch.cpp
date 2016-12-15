@@ -80,6 +80,19 @@ Compiler* CustomBranch::getCompiler()
     return this->compiler;
 }
 
+void CustomBranch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)
+{
+    Branch::replaceChild(child, new_branch);
+
+    // The branch we are replacing may be registered so we will need to replace that too.
+    for (map_it iterator = this->registered_branches.begin();
+            iterator != this->registered_branches.end(); iterator++)
+    {
+        if (iterator->second == child)
+            this->registered_branches[iterator->first] = new_branch;
+    }
+}
+
 // Scopes must not be cloned.
 std::shared_ptr<Branch> CustomBranch::clone()
 {

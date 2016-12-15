@@ -27,7 +27,7 @@
 #include "RootBranch.h"
 #include "STRUCTBranch.h"
 
-RootBranch::RootBranch(Compiler* compiler) : CustomBranch(compiler, "root", "")
+RootBranch::RootBranch(Compiler* compiler) : StandardScopeBranch(compiler, "root", "")
 {
 }
 
@@ -54,7 +54,7 @@ std::shared_ptr<STRUCTBranch> RootBranch::getDeclaredStructureByName(std::string
 void RootBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     // Clone all our children
-    for(std::shared_ptr<Branch> child : cloned_branch->getChildren())
+    for (std::shared_ptr<Branch> child : cloned_branch->getChildren())
     {
         cloned_branch->addChild(child->clone());
     }

@@ -71,6 +71,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Scope.o \
 	${OBJECTDIR}/src/ScopeBranch.o \
 	${OBJECTDIR}/src/SemanticValidator.o \
+	${OBJECTDIR}/src/StandardScopeBranch.o \
 	${OBJECTDIR}/src/Stream.o \
 	${OBJECTDIR}/src/Token.o \
 	${OBJECTDIR}/src/Tree.o \
@@ -287,6 +288,11 @@ ${OBJECTDIR}/src/SemanticValidator.o: src/SemanticValidator.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/SemanticValidator.o src/SemanticValidator.cpp
+
+${OBJECTDIR}/src/StandardScopeBranch.o: src/StandardScopeBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/StandardScopeBranch.o src/StandardScopeBranch.cpp
 
 ${OBJECTDIR}/src/Stream.o: src/Stream.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

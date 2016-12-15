@@ -43,7 +43,9 @@ public:
 
     void output_registered_branches();
     Compiler* getCompiler();
-    
+
+    virtual void replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch);
+
     virtual std::shared_ptr<Branch> clone();
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch) = 0;
     virtual std::shared_ptr<Branch> create_clone() = 0;

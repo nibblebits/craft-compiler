@@ -68,6 +68,7 @@ public:
 
     std::string getTypeFromNumber(int number);
     bool canCast(std::string type1, std::string type2);
+    long evaluate(long n1, long n2, std::string op);
     bool isCompareOperator(std::string value);
     bool isLogicalOperator(std::string value);
 
