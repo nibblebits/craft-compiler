@@ -88,6 +88,7 @@ public:
     void make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_right(std::shared_ptr<Branch> exp);
+    bool is_gen_reg_16_bit(std::string reg);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_move_reg_variable(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);

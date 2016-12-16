@@ -416,6 +416,15 @@ void CodeGen8086::make_expression_right(std::shared_ptr<Branch> exp)
 
 }
 
+bool CodeGen8086::is_gen_reg_16_bit(std::string reg)
+{
+    return reg == "ax" ||
+            reg == "bx" ||
+            reg == "cx" ||
+            reg == "dx";
+
+}
+
 void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, std::string second_reg)
 {
     if (op == "+")
@@ -447,7 +456,77 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
             first_reg = second_reg;
         }
         do_asm("div " + first_reg);
+        if (is_gen_reg_16_bit(first_reg))
+        {
+            // This is a 16 bit division so the DX register will contain the remainder, lets move it into the AX register
+            do_asm("mov ax, dx");
+        }
+        else
+        {
+            // This is an 8 bit division so the AH register will contain the result, lets exchange them
+            do_asm("xchg ah, al");
+            // Finally erase the ah register.
+            do_asm("xor ah, ah");
+        }
 
+    }
+    else if (op == "%")
+    {
+        /*
+         * If the first register is ax then set the first register to the second register as "div" instruction
+         * uses ax as first reg regardless */
+        if (first_reg == "ax")
+        {
+            first_reg = second_reg;
+        }
+
+        do_asm("div " + first_reg);
+        if (is_gen_reg_16_bit(first_reg))
+        {
+            // This is a 16 bit division so the DX register will contain the remainder, lets move it into the AX register
+            do_asm("mov ax, dx");
+        }
+        else
+        {
+            // This is an 8 bit division so the AH register will contain the result, lets exchange them
+            do_asm("xchg ah, al");
+            // Finally erase the ah register.
+            do_asm("xor ah, ah");
+        }
+    }
+    else if (op == "^")
+    {
+        do_asm("xor " + first_reg + ", " + second_reg);
+    }
+    else if (op == "|")
+    {
+        do_asm("or " + first_reg + ", " + second_reg);
+    }
+    else if (op == "&")
+    {
+        do_asm("and " + first_reg + ", " + second_reg);
+    }
+    else if (op == "<<")
+    {
+        // Only the CL register can be used as the second parameter so lets see if we need to move anything
+        if (second_reg != "cx" &&
+                second_reg != "cl")
+        {
+            // We need to move the total bits to shift into the CL register
+            do_asm("mov cl, " + convert_full_reg_to_low_reg(second_reg));
+        }
+        do_asm("rcl " + first_reg + ", " + "cl");
+    }
+    else if (op == ">>")
+    {
+        // Only the CL register can be used as the second parameter so lets see if we need to move anything
+        if (second_reg != "cx" &&
+                second_reg != "cl")
+        {
+            // We need to move the total bits to shift into the CL register
+            do_asm("mov cl, " + convert_full_reg_to_low_reg(second_reg));
+        }
+        do_asm("rcr " + first_reg + ", " + "cl");
     }
     else if (
             op == "!=" ||
@@ -1433,10 +1512,6 @@ std::string CodeGen8086::convert_full_reg_to_low_reg(std::string reg)
     else if (reg == "dx")
     {
         reg = "dl";
-    }
-    else
-    {
-        throw CodeGeneratorException("CodeGen8086::convert_full_reg_to_low_reg(std::string reg): you must provide a valid full register, only lowercase is accepted");
     }
 
     return reg;
