@@ -277,6 +277,12 @@ void TreeImprover::improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_ide
         // Process the VAR_IDENTIFIER below it
         improve_var_iden(next_var_iden_branch);
     }
+    
+    if (var_iden_branch->hasRootArrayIndexBranch())
+    {
+        std::shared_ptr<ArrayIndexBranch> array_index_branch = var_iden_branch->getRootArrayIndexBranch();
+        improve_branch(array_index_branch->getValueBranch());
+    }
 }
 
 void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch)
