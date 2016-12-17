@@ -1251,11 +1251,19 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
 
 void CodeGen8086::handle_array_index(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
 {
-    // The current array index is non numeric, the framework needs us to resolve it at runtime.
+    // The current array index the framework needs us to resolve it at runtime.
     std::shared_ptr<Branch> child = array_index_branch->getValueBranch();
     // Save AX incase previously used
     do_asm("push ax");
-    make_move_reg_variable("ax", std::dynamic_pointer_cast<VarIdentifierBranch>(child));
+    if (child->getType() == "E")
+    {
+        // This is an expression.
+        make_expression(child);
+    }
+    else
+    {
+        make_move_reg_variable("ax", std::dynamic_pointer_cast<VarIdentifierBranch>(child));
+    }
     do_asm("mov cx, " + std::to_string(elem_size));
     do_asm("mul cx");
     do_asm("mov di, ax");
