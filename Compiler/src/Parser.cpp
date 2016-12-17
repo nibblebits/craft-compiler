@@ -328,7 +328,9 @@ void Parser::process_function()
         error_expecting("(", this->branch_value);
     }
 
-    std::shared_ptr<Branch> func_arguments = std::shared_ptr<Branch>(new Branch("FUNC_ARGUMENTS", ""));
+    std::shared_ptr<FuncArgumentsBranch> func_arguments = std::shared_ptr<FuncArgumentsBranch>(new FuncArgumentsBranch(getCompiler()));
+    this->root_scope = func_arguments;
+    start_local_scope(func_arguments);
     // Process all the function parameters
     while (true)
     {
@@ -371,6 +373,9 @@ void Parser::process_function()
 
     // Process the function body
     process_body(body_root);
+    
+    // Finish the local scope for the function arguments.
+    finish_local_scope();
 
     // Pop off the body
     pop_branch();

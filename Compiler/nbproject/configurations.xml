@@ -23,6 +23,7 @@
       <itemPath>include/ELSEBranch.h</itemPath>
       <itemPath>include/Exception.h</itemPath>
       <itemPath>include/FORBranch.h</itemPath>
+      <itemPath>include/FuncArgumentsBranch.h</itemPath>
       <itemPath>include/FuncBranch.h</itemPath>
       <itemPath>include/FuncCallBranch.h</itemPath>
       <itemPath>include/GoblinByteCodeGenerator.h</itemPath>
@@ -84,6 +85,7 @@
       <itemPath>src/EBranch.cpp</itemPath>
       <itemPath>src/ELSEBranch.cpp</itemPath>
       <itemPath>src/FORBranch.cpp</itemPath>
+      <itemPath>src/FuncArgumentsBranch.cpp</itemPath>
       <itemPath>src/FuncBranch.cpp</itemPath>
       <itemPath>src/FuncCallBranch.cpp</itemPath>
       <itemPath>src/GoblinByteCodeGenerator.cpp</itemPath>
@@ -190,6 +192,8 @@
       <item path="include/Exception.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/FORBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/FuncArgumentsBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/FuncBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -302,6 +306,8 @@
       <item path="src/ELSEBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/FORBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/FuncArgumentsBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/FuncBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -418,6 +424,8 @@
       </item>
       <item path="include/FORBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/FuncArgumentsBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/FuncBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/FuncCallBranch.h" ex="false" tool="3" flavor2="0">
@@ -529,6 +537,8 @@
       <item path="src/ELSEBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/FORBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/FuncArgumentsBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/FuncBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

@@ -51,6 +51,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/EBranch.o \
 	${OBJECTDIR}/src/ELSEBranch.o \
 	${OBJECTDIR}/src/FORBranch.o \
+	${OBJECTDIR}/src/FuncArgumentsBranch.o \
 	${OBJECTDIR}/src/FuncBranch.o \
 	${OBJECTDIR}/src/FuncCallBranch.o \
 	${OBJECTDIR}/src/GoblinByteCodeGenerator.o \
@@ -188,6 +189,11 @@ ${OBJECTDIR}/src/FORBranch.o: src/FORBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FORBranch.o src/FORBranch.cpp
+
+${OBJECTDIR}/src/FuncArgumentsBranch.o: src/FuncArgumentsBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncArgumentsBranch.o src/FuncArgumentsBranch.cpp
 
 ${OBJECTDIR}/src/FuncBranch.o: src/FuncBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

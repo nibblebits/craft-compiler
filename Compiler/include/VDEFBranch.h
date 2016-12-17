@@ -40,6 +40,7 @@ public:
     void setPointer(bool is_pointer);
     void setVariableType(VARIABLE_TYPE var_type);
 
+    void setCustomDataTypeSize(int size);
     std::shared_ptr<Branch> getDataTypeBranch();
     std::shared_ptr<VarIdentifierBranch> getVariableIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
@@ -53,7 +54,7 @@ public:
     bool isPointer();
     bool isSigned();
     bool isPrimitive();
-
+    bool hasCustomDataTypeSize();
     int getSize();
     virtual int getDataTypeSize(bool no_pointer = false);
     virtual int getBranchType();
@@ -62,6 +63,7 @@ public:
     virtual std::shared_ptr<Branch> create_clone();
 
 private:
+    int custom_data_type_size;
     VARIABLE_TYPE var_type;
     bool is_pointer;
 };

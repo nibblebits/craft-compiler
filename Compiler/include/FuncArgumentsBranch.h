@@ -16,32 +16,22 @@
  */
 
 /* 
- * File:   FuncBranch.h
+ * File:   FuncArgumentsBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 25 June 2016, 01:30
+ * Created on 17 December 2016, 13:59
  */
 
-#ifndef FUNCBRANCH_H
-#define FUNCBRANCH_H
+#ifndef FUNCARGUMENTSBRANCH_H
+#define FUNCARGUMENTSBRANCH_H
 
-#include "CustomBranch.h"
+#include "StandardScopeBranch.h"
 
-class FuncArgumentsBranch;
-
-class EXPORT FuncBranch : public CustomBranch
+class FuncArgumentsBranch : public StandardScopeBranch
 {
 public:
-    FuncBranch(Compiler* compiler);
-    virtual ~FuncBranch();
-    void setReturnTypeBranch(std::shared_ptr<Branch> returnTypeBranch);
-    void setNameBranch(std::shared_ptr<Branch> nameBranch);
-    void setArgumentsBranch(std::shared_ptr<FuncArgumentsBranch> argumentsBranch);
-    void setBodyBranch(std::shared_ptr<Branch> bodyBranch);
-    std::shared_ptr<Branch> getReturnTypeBranch();
-    std::shared_ptr<Branch> getNameBranch();
-    std::shared_ptr<FuncArgumentsBranch> getArgumentsBranch();
-    std::shared_ptr<Branch> getBodyBranch();
+    FuncArgumentsBranch(Compiler* compiler);
+    virtual ~FuncArgumentsBranch();
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
@@ -50,5 +40,5 @@ private:
 
 };
 
-#endif /* FUNCBRANCH_H */
+#endif /* FUNCARGUMENTSBRANCH_H */
 

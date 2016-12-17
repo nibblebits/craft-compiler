@@ -33,6 +33,7 @@
 VDEFBranch::VDEFBranch(Compiler* compiler, std::string branch_name, std::string branch_value) : CustomBranch(compiler, branch_name, branch_value)
 {
     this->is_pointer = false;
+    this->custom_data_type_size = 0;
 }
 
 VDEFBranch::~VDEFBranch()
@@ -62,6 +63,11 @@ void VDEFBranch::setPointer(bool is_pointer)
 void VDEFBranch::setVariableType(VARIABLE_TYPE var_type)
 {
     this->var_type = var_type;
+}
+
+void VDEFBranch::setCustomDataTypeSize(int size)
+{
+    this->custom_data_type_size = size;
 }
 
 std::shared_ptr<Branch> VDEFBranch::getDataTypeBranch()
@@ -99,7 +105,7 @@ VARIABLE_TYPE VDEFBranch::getVariableType()
 int VDEFBranch::getPositionRelScope(bool loc_start_with_varsize)
 {
     std::shared_ptr<ScopeBranch> scope_branch = getLocalScope();
-    
+
     std::shared_ptr<Branch> target_branch = this->getptr();
     std::function<bool(std::shared_ptr<Branch> branch) > kill_proc = [&](std::shared_ptr<Branch> branch) -> bool
     {
@@ -125,7 +131,6 @@ int VDEFBranch::getPositionRelScope(bool loc_start_with_varsize)
     int pos = scope_branch->getScopeSize(false, before_proc, after_proc);
     return pos;
 }
-
 
 int VDEFBranch::getPositionRelZero(bool loc_start_with_varsize)
 {
@@ -204,6 +209,11 @@ bool VDEFBranch::isPrimitive()
     return this->getCompiler()->isPrimitiveDataType(data_type_branch->getValue());
 }
 
+bool VDEFBranch::hasCustomDataTypeSize()
+{
+    return this->custom_data_type_size != 0;
+}
+
 int VDEFBranch::getSize()
 {
     int size = getDataTypeSize();
@@ -232,6 +242,9 @@ int VDEFBranch::getSize()
 
 int VDEFBranch::getDataTypeSize(bool no_pointer)
 {
+    if (hasCustomDataTypeSize())
+        return this->custom_data_type_size;
+
     return this->getCompiler()->getDataTypeSizeFromVarDef(std::dynamic_pointer_cast<VDEFBranch>(this->getptr()), no_pointer);
 }
 

@@ -27,6 +27,7 @@
 
 #include "Token.h"
 #include "FuncBranch.h"
+#include "FuncArgumentsBranch.h"
 #include "VDEFBranch.h"
 #include "AssignBranch.h"
 #include "EBranch.h"
