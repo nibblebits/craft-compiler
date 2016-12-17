@@ -970,7 +970,6 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     // Clear previous scope variables from other functions
     this->scope_variables.clear();
 
-    std::shared_ptr<Branch> return_branch = func_branch->getReturnTypeBranch();
     std::shared_ptr<Branch> name_branch = func_branch->getNameBranch();
     std::shared_ptr<Branch> arguments_branch = func_branch->getArgumentsBranch();
     std::shared_ptr<Branch> body_branch = func_branch->getBodyBranch();
@@ -998,7 +997,10 @@ void CodeGen8086::handle_func_args(std::shared_ptr<Branch> arguments)
     this->func_arguments.clear();
     for (std::shared_ptr<Branch> arg : arguments->getChildren())
     {
-        this->func_arguments.push_back(arg);
+        std::shared_ptr<VDEFBranch> arg_vdef = std::dynamic_pointer_cast<VDEFBranch>(arg);
+        // All function arguments are 2 bytes in size.
+        arg_vdef->setCustomDataTypeSize(2);
+        this->func_arguments.push_back(arg_vdef);
     }
 }
 
@@ -1548,7 +1550,8 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Va
     case VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE:
         address.segment = "bp";
         address.op = "+";
-        address.offset = var_branch->getPositionRelZero(unpredictable_func);
+        // + 4 due to return address and new base pointer
+        address.offset = var_branch->getPositionRelZero(unpredictable_func) + 4;
         break;
     case VARIABLE_TYPE_FUNCTION_VARIABLE:
         if (!top_vdef_branch->isPointer() &&
