@@ -76,6 +76,13 @@ std::string CodeGen8086::build_unique_label()
     return "_" + label_name;
 }
 
+void CodeGen8086::setup_compare_labels()
+{
+    this->cmp_exp_false_label_name = build_unique_label();
+    this->cmp_exp_end_label_name = build_unique_label();
+    this->cmp_exp_true_label_name = build_unique_label();
+}
+
 std::string CodeGen8086::make_unique_label(std::string segment)
 {
     std::string label_name = build_unique_label();
@@ -188,9 +195,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
             // Setup compare labels
             if (!this->is_cmp_expression)
             {
-                this->cmp_exp_false_label_name = build_unique_label();
-                this->cmp_exp_end_label_name = build_unique_label();
-                this->cmp_exp_true_label_name = build_unique_label();
+                setup_compare_labels();
                 is_cmp_expression = true;
             }
         }
@@ -226,9 +231,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
                 compiler->isLogicalOperator(right->getValue()))
         {
             handle_compare_expression();
-            this->cmp_exp_false_label_name = build_unique_label();
-            this->cmp_exp_end_label_name = build_unique_label();
-            this->cmp_exp_true_label_name = build_unique_label();
+            setup_compare_labels();
             is_cmp_expression = true;
         }
 
@@ -313,6 +316,10 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
             // This is a variable so set register to store to the value of this variable
             make_move_reg_variable(register_to_store, std::dynamic_pointer_cast<VarIdentifierBranch>(exp));
         }
+    }
+    else if (exp->getType() == "LOGICAL_NOT")
+    {
+        make_logical_not(std::dynamic_pointer_cast<LogicalNotBranch>(exp), register_to_store);
     }
     else if (exp->getType() == "PTR")
     {
@@ -861,6 +868,20 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         make_mem_assignment(pos, NULL, is_word);
 
     }
+}
+
+void CodeGen8086::make_logical_not(std::shared_ptr<LogicalNotBranch> logical_not_branch, std::string register_to_store)
+{
+    make_expression(logical_not_branch->getSubjectBranch());
+    std::string is_zero_lbl = build_unique_label();
+    std::string end_label = build_unique_label();
+    do_asm("test " + register_to_store + ", " + register_to_store);
+    do_asm("je " + is_zero_lbl);
+    do_asm("xor " + register_to_store + ", " + register_to_store);
+    do_asm("jmp " + end_label);
+    make_exact_label(is_zero_lbl);
+    do_asm("mov " + register_to_store + ", 1");
+    make_exact_label(end_label);
 }
 
 void CodeGen8086::calculate_scope_size(std::shared_ptr<ScopeBranch> scope_branch)

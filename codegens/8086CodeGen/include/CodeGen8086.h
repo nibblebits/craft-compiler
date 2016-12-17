@@ -79,6 +79,8 @@ public:
     inline void make_exact_label(std::string label, std::string segment = "code");
     inline std::string make_unique_label(std::string segment = "code");
     inline std::string build_unique_label();
+    void setup_compare_labels();
+    
 
     std::string make_string(std::shared_ptr<Branch> string_branch);
     void make_inline_asm(std::shared_ptr<ASMBranch> asm_branch);
@@ -98,6 +100,7 @@ public:
     void make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch = NULL, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch = NULL, std::string base_reg = "bx", std::shared_ptr<STRUCTBranch> current_struct = NULL);
     std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value);
+    void make_logical_not(std::shared_ptr<LogicalNotBranch> logical_not_branch, std::string register_to_store);
 
     void calculate_scope_size(std::shared_ptr<ScopeBranch> scope_branch);
     void reset_scope_size();
