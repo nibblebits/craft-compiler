@@ -63,6 +63,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Lexer.o \
 	${OBJECTDIR}/src/Linker.o \
 	${OBJECTDIR}/src/Logger.o \
+	${OBJECTDIR}/src/LogicalNotBranch.o \
 	${OBJECTDIR}/src/PTRBranch.o \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/RootBranch.o \
@@ -245,6 +246,11 @@ ${OBJECTDIR}/src/Logger.o: src/Logger.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Logger.o src/Logger.cpp
+
+${OBJECTDIR}/src/LogicalNotBranch.o: src/LogicalNotBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/LogicalNotBranch.o src/LogicalNotBranch.cpp
 
 ${OBJECTDIR}/src/PTRBranch.o: src/PTRBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

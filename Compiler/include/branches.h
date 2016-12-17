@@ -48,6 +48,7 @@
 #include "VarIdentifierBranch.h"
 #include "ScopeBranch.h"
 #include "RootBranch.h"
+#include "LogicalNotBranch.h"
 
 #endif /* BRANCHES_H */
 

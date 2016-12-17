@@ -144,7 +144,7 @@ void Parser::process_top()
     {
         error_unexpected_token();
     }
-    
+
     finish_local_scope();
 }
 
@@ -373,7 +373,7 @@ void Parser::process_function()
 
     // Process the function body
     process_body(body_root);
-    
+
     // Finish the local scope for the function arguments.
     finish_local_scope();
 
@@ -934,6 +934,13 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         pop_branch();
         b = this->branch;
     }
+    else if (is_peak_operator("!"))
+    {
+        // This is a logical NOT statement.
+        process_logical_not();
+        pop_branch();
+        b = this->branch;
+    }
     else if (is_peak_type("string"))
     {
         // We have a string shift and pop the string 
@@ -1453,6 +1460,33 @@ void Parser::process_identifier()
 
         error("expecting an identifier, however token: \"" + this->token_value + "\" was provided");
     }
+}
+
+void Parser::process_logical_not()
+{
+    shift_pop();
+    if (!is_branch_operator("!"))
+    {
+        error_expecting("!", this->branch_type);
+    }
+
+    std::shared_ptr<LogicalNotBranch> logical_not_branch = std::shared_ptr<LogicalNotBranch>(new LogicalNotBranch(this->compiler));
+    peak();
+    if (is_peak_symbol("("))
+    {
+        // Process the expression
+        process_expression(true);
+        pop_branch();
+    }
+    else
+    {
+        // No expression? This is variable access.
+        process_variable_access();
+        pop_branch();
+    }
+
+    logical_not_branch->setSubjectBranch(this->branch);
+    push_branch(logical_not_branch);
 }
 
 void Parser::error(std::string message, bool token)

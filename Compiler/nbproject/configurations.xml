@@ -37,6 +37,7 @@
       <itemPath>include/Linker.h</itemPath>
       <itemPath>include/LinkerException.h</itemPath>
       <itemPath>include/Logger.h</itemPath>
+      <itemPath>include/LogicalNotBranch.h</itemPath>
       <itemPath>include/PTRBranch.h</itemPath>
       <itemPath>include/Parser.h</itemPath>
       <itemPath>include/ParserException.h</itemPath>
@@ -97,6 +98,7 @@
       <itemPath>src/Lexer.cpp</itemPath>
       <itemPath>src/Linker.cpp</itemPath>
       <itemPath>src/Logger.cpp</itemPath>
+      <itemPath>src/LogicalNotBranch.cpp</itemPath>
       <itemPath>src/PTRBranch.cpp</itemPath>
       <itemPath>src/Parser.cpp</itemPath>
       <itemPath>src/RootBranch.cpp</itemPath>
@@ -221,6 +223,8 @@
       </item>
       <item path="include/Logger.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/LogicalNotBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
@@ -330,6 +334,8 @@
       <item path="src/Linker.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Logger.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LogicalNotBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PTRBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -452,6 +458,8 @@
       </item>
       <item path="include/Logger.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/LogicalNotBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
@@ -561,6 +569,8 @@
       <item path="src/Linker.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Logger.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/LogicalNotBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PTRBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
