@@ -79,19 +79,21 @@ public:
     inline void make_exact_label(std::string label, std::string segment = "code");
     inline std::string make_unique_label(std::string segment = "code");
     inline std::string build_unique_label();
-    void setup_compare_labels();
-    
+    void setup_comparing();
+
 
     std::string make_string(std::shared_ptr<Branch> string_branch);
     void make_inline_asm(std::shared_ptr<ASMBranch> asm_branch);
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
     void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp = NULL, bool is_word = false, std::function<void() > assignment_val_processed = NULL);
+    void handle_logical_expression(std::shared_ptr<Branch> exp_branch, bool should_setup = true);
     void make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func = NULL, std::function<void() > exp_end_func = NULL, bool postpone_pointer = true);
     void make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
     void make_expression_right(std::shared_ptr<Branch> exp);
     bool is_gen_reg_16_bit(std::string reg);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
+    void make_compare_instruction(std::string op, std::string first_value, std::string second_value);
     void make_move_reg_variable(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem = 1);

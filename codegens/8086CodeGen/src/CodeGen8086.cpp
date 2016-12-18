@@ -76,11 +76,12 @@ std::string CodeGen8086::build_unique_label()
     return "_" + label_name;
 }
 
-void CodeGen8086::setup_compare_labels()
+void CodeGen8086::setup_comparing()
 {
     this->cmp_exp_false_label_name = build_unique_label();
     this->cmp_exp_end_label_name = build_unique_label();
     this->cmp_exp_true_label_name = build_unique_label();
+    is_cmp_expression = true;
 }
 
 std::string CodeGen8086::make_unique_label(std::string segment)
@@ -163,8 +164,57 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
     }
 }
 
+void CodeGen8086::handle_logical_expression(std::shared_ptr<Branch> exp_branch, bool should_setup)
+{
+    std::shared_ptr<Branch> left = exp_branch->getFirstChild();
+    std::shared_ptr<Branch> right = exp_branch->getSecondChild();
+
+    if (should_setup)
+        setup_comparing();
+
+
+    if (left->getType() != "E")
+    {
+        make_expression(left);
+        // We must setup comparing as it would not have been don e for this variable.
+        make_compare_instruction(">", "ax", "0");
+        // If we have an logical OR then we must end the compare expression here
+        if (exp_branch->getValue() == "||")
+        {
+            handle_compare_expression();
+        }
+    }
+    else if (compiler->isLogicalOperator(left->getValue()))
+    {
+        handle_logical_expression(left, false);
+    }
+    else
+    {
+        make_expression(left);
+    }
+
+    if (right->getType() != "E")
+    {
+        make_expression(right);
+        make_compare_instruction(">", "ax", "0");
+    }
+    else if (compiler->isLogicalOperator(right->getValue()))
+    {
+        handle_logical_expression(right, false);
+    }
+    else
+    {
+        make_expression(right);
+    }
+
+    handle_compare_expression();
+}
+
 void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func, std::function<void() > exp_end_func, bool postpone_pointer)
 {
+
+    std::shared_ptr<Branch> left = NULL;
+    std::shared_ptr<Branch> right = NULL;
 
     // Only if we are currently handling a pointer should we have to postpone it.
     if (postpone_pointer)
@@ -179,88 +229,74 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
         exp_start_func();
     }
 
-    if (exp->getType() != "E")
+    /* In cases where this happens "a && b" "a" and "b" have no operators of there own
+ so we need to make the compare instruction ourself, we will check if the variable is above zero.*/
+    if (compiler->isLogicalOperator(exp->getValue()))
     {
-        make_expression_left(exp, "ax");
+        handle_logical_expression(exp);
     }
     else
     {
-        std::string exp_val = exp->getValue();
-        if (compiler->isLogicalOperator(exp_val))
+        if (exp->getType() != "E")
         {
-            this->cmp_exp_last_logic_operator = exp_val;
-        }
-        else if (compiler->isCompareOperator(exp_val))
-        {
-            // Setup compare labels
-            if (!this->is_cmp_expression)
-            {
-                setup_compare_labels();
-                is_cmp_expression = true;
-            }
-        }
-
-        std::shared_ptr<Branch> left = exp->getFirstChild();
-        std::shared_ptr<Branch> right = exp->getSecondChild();
-
-        if (left->getType() == "E")
-        {
-            make_expression(left);
-        }
-        else if (right->getType() != "E")
-        {
-            make_expression_left(left, "ax");
-        }
-
-        // Save the AX if we need to but not if we have a logical operator
-        if (
-                !compiler->isLogicalOperator(exp->getValue()) &&
-                left->getType() == "E" &&
-                right->getType() == "E")
-        {
-            do_asm("push ax");
-        }
-
-        /* Check to see if the left and right branches are both logical operators 
-        if this is the case we must handle the compare expression to make expressions such as
-        (5 > 4 && 5 < 3) || (5 == 5 && 4 == 3) possible.*/
-        if (exp->getValue() == "||" &&
-                left->getType() == "E" &&
-                right->getType() == "E" &&
-                compiler->isLogicalOperator(left->getValue()) &&
-                compiler->isLogicalOperator(right->getValue()))
-        {
-            handle_compare_expression();
-            setup_compare_labels();
-            is_cmp_expression = true;
-        }
-
-
-        if (right->getType() == "E")
-        {
-            make_expression(right);
-            if (left->getType() != "E")
-            {
-                make_expression_left(left, "cx");
-            }
+            make_expression_left(exp, "ax");
         }
         else
         {
-            make_expression_right(right);
-        }
+            left = exp->getFirstChild();
+            right = exp->getSecondChild();
 
-        // Restore the AX register if we need to but not if a logical operator is present.
-        if (
-                !compiler->isLogicalOperator(exp->getValue()) &&
-                left->getType() == "E" &&
-                right->getType() == "E")
-        {
+            std::string exp_val = exp->getValue();
+            if (compiler->isLogicalOperator(exp_val))
+            {
+                this->cmp_exp_last_logic_operator = exp_val;
+            }
+            else if (compiler->isCompareOperator(exp_val))
+            {
+                // Setup compare labels
+                if (!this->is_cmp_expression)
+                {
+                    setup_comparing();
+                }
+            }
 
-            do_asm("pop cx");
-        }
-        // Don't make math instructions for logical operators.
-        if (!compiler->isLogicalOperator(exp->getValue()))
-        {
+            if (left->getType() == "E")
+            {
+                make_expression(left);
+            }
+            else if (right->getType() != "E")
+            {
+                make_expression_left(left, "ax");
+            }
+
+            // Save the AX register if we need to
+            if (
+                    left->getType() == "E" &&
+                    right->getType() == "E")
+            {
+                do_asm("push ax");
+            }
+
+            if (right->getType() == "E")
+            {
+                make_expression(right);
+                if (left->getType() != "E")
+                {
+                    make_expression_left(left, "cx");
+                }
+            }
+            else
+            {
+                make_expression_right(right);
+            }
+
+            // Restore the AX register if we need to
+            if (left->getType() == "E" &&
+                    right->getType() == "E")
+            {
+                do_asm("pop cx");
+            }
+
             if (this->do_signed)
             {
                 make_math_instruction(exp->getValue(), "al", "cl");
@@ -269,20 +305,20 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
             {
                 make_math_instruction(exp->getValue(), "ax", "cx");
             }
+
+        }
+
+
+        // Prepone any pointer handling going to restore the previous state.
+        if (postpone_pointer)
+            prepone_pointer_handling();
+
+        // Do we have something we need to notify about ending this expression?
+        if (exp_end_func != NULL)
+        {
+            exp_end_func();
         }
     }
-
-
-    // Prepone any pointer handling going to restore the previous state.
-    if (postpone_pointer)
-        prepone_pointer_handling();
-
-    // Do we have something we need to notify about ending this expression?
-    if (exp_end_func != NULL)
-    {
-        exp_end_func();
-    }
-
 }
 
 void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store)
@@ -543,141 +579,145 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
             op == ">" ||
             op == "<")
     {
-
-        // We must compare
-        do_asm("cmp " + first_reg + ", " + second_reg);
-
-        if (op == "==")
-        {
-            if (is_cmp_logic_operator_nothing_or_and())
-            {
-                do_asm("jne " + this->cmp_exp_false_label_name);
-            }
-            else
-            {
-                // This is a logical else "||"
-                do_asm("je " + this->cmp_exp_true_label_name);
-            }
-        }
-        else if (op == "!=")
-        {
-            if (is_cmp_logic_operator_nothing_or_and())
-            {
-                do_asm("je " + this->cmp_exp_false_label_name);
-            }
-            else
-            {
-                do_asm("jne " + this->cmp_exp_true_label_name);
-            }
-        }
-        else if (op == "<=")
-        {
-            if (is_cmp_logic_operator_nothing_or_and())
-            {
-                if (this->do_signed)
-                {
-                    do_asm("jg " + this->cmp_exp_false_label_name);
-                }
-                else
-                {
-                    do_asm("ja " + this->cmp_exp_false_label_name);
-                }
-
-            }
-            else
-            {
-                if (this->do_signed)
-                {
-                    do_asm("jle " + this->cmp_exp_true_label_name);
-                }
-                else
-                {
-                    do_asm("jbe " + this->cmp_exp_true_label_name);
-                }
-            }
-        }
-        else if (op == ">=")
-        {
-            if (is_cmp_logic_operator_nothing_or_and())
-            {
-                if (this->do_signed)
-                {
-                    do_asm("jl " + this->cmp_exp_false_label_name);
-                }
-                else
-                {
-                    do_asm("jb " + this->cmp_exp_false_label_name);
-                }
-            }
-            else
-            {
-                if (this->do_signed)
-                {
-                    do_asm("jge " + this->cmp_exp_true_label_name);
-                }
-                else
-                {
-                    do_asm("jae " + this->cmp_exp_true_label_name);
-                }
-            }
-        }
-        else if (op == "<")
-        {
-            if (is_cmp_logic_operator_nothing_or_and())
-            {
-                if (this->do_signed)
-                {
-                    do_asm("jge " + this->cmp_exp_false_label_name);
-                }
-                else
-                {
-                    do_asm("jae " + this->cmp_exp_false_label_name);
-                }
-            }
-            else
-            {
-                if (this->do_signed)
-                {
-                    do_asm("jl " + this->cmp_exp_true_label_name);
-                }
-                else
-                {
-                    do_asm("jb " + this->cmp_exp_true_label_name);
-                }
-            }
-        }
-        else if (op == ">")
-        {
-            if (is_cmp_logic_operator_nothing_or_and())
-            {
-                if (this->do_signed)
-                {
-                    do_asm("jle " + this->cmp_exp_false_label_name);
-                }
-                else
-                {
-                    do_asm("jbe " + this->cmp_exp_false_label_name);
-                }
-            }
-            else
-            {
-                if (this->do_signed)
-                {
-                    do_asm("jg " + this->cmp_exp_true_label_name);
-                }
-                else
-                {
-                    do_asm("ja " + this->cmp_exp_true_label_name);
-                }
-            }
-        }
-
-        this->do_signed = false;
+        make_compare_instruction(op, first_reg, second_reg);
     }
     else
     {
         throw CodeGeneratorException("void CodeGen8086::make_math_instruction(std::string op): expecting a valid operator");
     }
+}
+
+void CodeGen8086::make_compare_instruction(std::string op, std::string first_value, std::string second_value)
+{
+    // We must compare
+    do_asm("cmp " + first_value + ", " + second_value);
+
+    if (op == "==")
+    {
+        if (is_cmp_logic_operator_nothing_or_and())
+        {
+            do_asm("jne " + this->cmp_exp_false_label_name);
+        }
+        else
+        {
+            // This is a logical else "||"
+            do_asm("je " + this->cmp_exp_true_label_name);
+        }
+    }
+    else if (op == "!=")
+    {
+        if (is_cmp_logic_operator_nothing_or_and())
+        {
+            do_asm("je " + this->cmp_exp_false_label_name);
+        }
+        else
+        {
+            do_asm("jne " + this->cmp_exp_true_label_name);
+        }
+    }
+    else if (op == "<=")
+    {
+        if (is_cmp_logic_operator_nothing_or_and())
+        {
+            if (this->do_signed)
+            {
+                do_asm("jg " + this->cmp_exp_false_label_name);
+            }
+            else
+            {
+                do_asm("ja " + this->cmp_exp_false_label_name);
+            }
+
+        }
+        else
+        {
+            if (this->do_signed)
+            {
+                do_asm("jle " + this->cmp_exp_true_label_name);
+            }
+            else
+            {
+                do_asm("jbe " + this->cmp_exp_true_label_name);
+            }
+        }
+    }
+    else if (op == ">=")
+    {
+        if (is_cmp_logic_operator_nothing_or_and())
+        {
+            if (this->do_signed)
+            {
+                do_asm("jl " + this->cmp_exp_false_label_name);
+            }
+            else
+            {
+                do_asm("jb " + this->cmp_exp_false_label_name);
+            }
+        }
+        else
+        {
+            if (this->do_signed)
+            {
+                do_asm("jge " + this->cmp_exp_true_label_name);
+            }
+            else
+            {
+                do_asm("jae " + this->cmp_exp_true_label_name);
+            }
+        }
+    }
+    else if (op == "<")
+    {
+        if (is_cmp_logic_operator_nothing_or_and())
+        {
+            if (this->do_signed)
+            {
+                do_asm("jge " + this->cmp_exp_false_label_name);
+            }
+            else
+            {
+                do_asm("jae " + this->cmp_exp_false_label_name);
+            }
+        }
+        else
+        {
+            if (this->do_signed)
+            {
+                do_asm("jl " + this->cmp_exp_true_label_name);
+            }
+            else
+            {
+                do_asm("jb " + this->cmp_exp_true_label_name);
+            }
+        }
+    }
+    else if (op == ">")
+    {
+        if (is_cmp_logic_operator_nothing_or_and())
+        {
+            if (this->do_signed)
+            {
+                do_asm("jle " + this->cmp_exp_false_label_name);
+            }
+            else
+            {
+                do_asm("jbe " + this->cmp_exp_false_label_name);
+            }
+        }
+        else
+        {
+            if (this->do_signed)
+            {
+                do_asm("jg " + this->cmp_exp_true_label_name);
+            }
+            else
+            {
+                do_asm("ja " + this->cmp_exp_true_label_name);
+            }
+        }
+    }
+
+    this->do_signed = false;
 }
 
 void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIdentifierBranch> var_branch)
@@ -1123,7 +1163,15 @@ void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
 
 void CodeGen8086::handle_compare_expression()
 {
-    // Check if this is a compare expression, this is used for expressions such as "a == 5"
+    /* We must first check that this is not a single compare, if a single value is passed with no operator 
+     * then it will evaluate to true if the value is above zero otherwise false.*/
+    if (!this->is_cmp_expression)
+    {
+        setup_comparing();
+        do_asm("cmp ax, 0");
+        do_asm("je " + this->cmp_exp_false_label_name);
+    }
+
 
     /* Do a jmp to the true label here only if the logic operator is nothing or "&&". 
      * This is required as the following expression: 10 == 10 || 13 == 13 && 12 == 12
