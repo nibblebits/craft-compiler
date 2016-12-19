@@ -1026,6 +1026,12 @@ void CodeGen8086::handle_structure(std::shared_ptr<STRUCTBranch> struct_branch)
     this->structures.push_back(struct_branch);
 }
 
+void CodeGen8086::handle_function_definition(std::shared_ptr<FuncDefBranch> func_def_branch)
+{
+    std::shared_ptr<Branch> name_branch = func_def_branch->getNameBranch();
+    do_asm("extern " + name_branch->getValue());
+}
+
 void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
 {
     // Clear previous scope variables from other functions
@@ -1792,6 +1798,11 @@ void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
     {
         std::shared_ptr<FuncBranch> func_branch = std::dynamic_pointer_cast<FuncBranch>(branch);
         handle_function(func_branch);
+    }
+    else if (branch->getType() == "FUNC_DEF")
+    {
+        std::shared_ptr<FuncDefBranch> func_def_branch = std::dynamic_pointer_cast<FuncDefBranch>(branch);
+        handle_function_definition(func_def_branch);
     }
     else if (branch->getType() == "ASM")
     {

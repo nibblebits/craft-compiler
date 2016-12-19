@@ -25,9 +25,8 @@
  */
 
 #include "FuncBranch.h"
-#include "FuncArgumentsBranch.h"
 
-FuncBranch::FuncBranch(Compiler* compiler) : CustomBranch(compiler, "FUNC", "")
+FuncBranch::FuncBranch(Compiler* compiler) : FuncDefBranch(compiler, "FUNC", "")
 {
 }
 
@@ -35,40 +34,11 @@ FuncBranch::~FuncBranch()
 {
 }
 
-void FuncBranch::setReturnTypeBranch(std::shared_ptr<Branch> returnTypeBranch)
-{
-    this->registerBranch("func_return_type_branch", returnTypeBranch);
-}
-
-void FuncBranch::setNameBranch(std::shared_ptr<Branch> nameBranch)
-{
-    this->registerBranch("func_name_branch", nameBranch);
-}
-
-void FuncBranch::setArgumentsBranch(std::shared_ptr<FuncArgumentsBranch> argumentsBranch)
-{
-    this->registerBranch("func_arguments_branch", argumentsBranch);
-}
-
 void FuncBranch::setBodyBranch(std::shared_ptr<Branch> bodyBranch)
 {
     this->registerBranch("func_body_branch", bodyBranch);
 }
 
-std::shared_ptr<Branch> FuncBranch::getReturnTypeBranch()
-{
-    return this->getRegisteredBranchByName("func_return_type_branch");
-}
-
-std::shared_ptr<Branch> FuncBranch::getNameBranch()
-{
-    return this->getRegisteredBranchByName("func_name_branch");
-}
-
-std::shared_ptr<FuncArgumentsBranch> FuncBranch::getArgumentsBranch()
-{
-    return std::dynamic_pointer_cast<FuncArgumentsBranch>(this->getRegisteredBranchByName("func_arguments_branch"));
-}
 
 std::shared_ptr<Branch> FuncBranch::getBodyBranch()
 {
@@ -77,10 +47,9 @@ std::shared_ptr<Branch> FuncBranch::getBodyBranch()
 
 void FuncBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
+    FuncDefBranch::imp_clone(cloned_branch);
+    
     std::shared_ptr<FuncBranch> func_branch_cloned = std::dynamic_pointer_cast<FuncBranch>(cloned_branch);
-    func_branch_cloned->setReturnTypeBranch(getReturnTypeBranch()->clone());
-    func_branch_cloned->setNameBranch(getNameBranch()->clone());
-    func_branch_cloned->setArgumentsBranch(std::dynamic_pointer_cast<FuncArgumentsBranch>(getArgumentsBranch()->clone()));
     func_branch_cloned->setBodyBranch(getBodyBranch()->clone());
 }
 std::shared_ptr<Branch> FuncBranch::create_clone()

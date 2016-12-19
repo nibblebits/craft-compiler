@@ -367,29 +367,40 @@ void Parser::process_function()
         }
     }
 
-    std::shared_ptr<FuncBranch> func_branch = std::shared_ptr<FuncBranch>(new FuncBranch(this->getCompiler()));
-    std::shared_ptr<BODYBranch> body_root = std::shared_ptr<BODYBranch>(new BODYBranch(compiler));
-    this->root_scope = body_root;
+    std::shared_ptr<FuncDefBranch> func_dec_branch = NULL;
 
-    // Process the function body
-    process_body(body_root);
+    peak();
+    if (is_peak_symbol(";"))
+    {
+        // This is a function definition not a declaration.
+        func_dec_branch = std::shared_ptr<FuncDefBranch>(new FuncDefBranch(this->compiler));
+        process_semicolon();
+    }
+    else
+    {
+        // This is a function declaration it has a body, it is declared.
+        func_dec_branch = std::shared_ptr<FuncBranch>(new FuncBranch(this->compiler));
+        std::shared_ptr<FuncBranch> func_branch = std::dynamic_pointer_cast<FuncBranch>(func_dec_branch);
+        std::shared_ptr<BODYBranch> body_root = std::shared_ptr<BODYBranch>(new BODYBranch(compiler));
+        this->root_scope = body_root;
+        // Process the function body
+        process_body(body_root);
+
+        // Pop off the body
+        pop_branch();
+        std::shared_ptr<Branch> body = this->branch;
+        func_branch->setBodyBranch(body);
+    }
+
+    func_dec_branch->setReturnTypeBranch(func_return_type);
+    func_dec_branch->setNameBranch(func_name);
+    func_dec_branch->setArgumentsBranch(func_arguments);
 
     // Finish the local scope for the function arguments.
     finish_local_scope();
 
-    // Pop off the body
-    pop_branch();
-
-    std::shared_ptr<Branch> body = this->branch;
-
-    // Finally create the function branch and merge it all together
-    func_branch->setReturnTypeBranch(func_return_type);
-    func_branch->setNameBranch(func_name);
-    func_branch->setArgumentsBranch(func_arguments);
-    func_branch->setBodyBranch(body);
-
     // Now push it back to the stack
-    push_branch(func_branch);
+    push_branch(func_dec_branch);
 }
 
 void Parser::process_body(std::shared_ptr<BODYBranch> body_root, bool new_scope)

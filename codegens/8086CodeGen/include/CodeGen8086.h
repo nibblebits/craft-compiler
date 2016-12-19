@@ -110,6 +110,7 @@ public:
     void handle_ptr(std::shared_ptr<PTRBranch> ptr_branch);
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_structure(std::shared_ptr<STRUCTBranch> struct_branch);
+    void handle_function_definition(std::shared_ptr<FuncDefBranch> func_def_branch);
     void handle_function(std::shared_ptr<FuncBranch> func_branch);
     void handle_func_args(std::shared_ptr<Branch> arguments);
     void handle_body(std::shared_ptr<Branch> body);

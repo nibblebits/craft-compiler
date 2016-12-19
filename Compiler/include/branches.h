@@ -26,8 +26,9 @@
 #define BRANCHES_H
 
 #include "Token.h"
-#include "FuncBranch.h"
+#include "FuncDefBranch.h"
 #include "FuncArgumentsBranch.h"
+#include "FuncBranch.h"
 #include "VDEFBranch.h"
 #include "AssignBranch.h"
 #include "EBranch.h"

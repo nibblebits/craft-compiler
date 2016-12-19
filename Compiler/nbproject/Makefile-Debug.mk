@@ -54,6 +54,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/FuncArgumentsBranch.o \
 	${OBJECTDIR}/src/FuncBranch.o \
 	${OBJECTDIR}/src/FuncCallBranch.o \
+	${OBJECTDIR}/src/FuncDefBranch.o \
 	${OBJECTDIR}/src/GoblinByteCodeGenerator.o \
 	${OBJECTDIR}/src/GoblinByteCodeLinker.o \
 	${OBJECTDIR}/src/GoblinObject.o \
@@ -205,6 +206,11 @@ ${OBJECTDIR}/src/FuncCallBranch.o: src/FuncCallBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncCallBranch.o src/FuncCallBranch.cpp
+
+${OBJECTDIR}/src/FuncDefBranch.o: src/FuncDefBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncDefBranch.o src/FuncDefBranch.cpp
 
 ${OBJECTDIR}/src/GoblinByteCodeGenerator.o: src/GoblinByteCodeGenerator.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
