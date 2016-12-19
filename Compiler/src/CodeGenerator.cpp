@@ -41,15 +41,8 @@ CodeGenerator::~CodeGenerator()
     delete this->stream;
 }
 
-void CodeGenerator::generate(std::shared_ptr<Tree> tree)
+void CodeGenerator::assemble()
 {
-    // Generate all the global branches, the "generate_global_branch" method should handle their children
-    std::shared_ptr<Branch> root = tree->root;
-    for (std::shared_ptr<Branch> branch : root->getChildren())
-    {
-        generate_global_branch(branch);
-    }
-
     // Assemble it all together
     std::string assembly_str = "";
     for (asm_map_it iterator = this->assembly.begin();
@@ -60,6 +53,16 @@ void CodeGenerator::generate(std::shared_ptr<Tree> tree)
                 + iterator->second + segment.end_segment + "\n";
     }
     assemble(assembly_str);
+}
+
+void CodeGenerator::generate(std::shared_ptr<Tree> tree)
+{
+    // Generate all the global branches, the "generate_global_branch" method should handle their children
+    std::shared_ptr<Branch> root = tree->root;
+    for (std::shared_ptr<Branch> branch : root->getChildren())
+    {
+        generate_global_branch(branch);
+    }
 }
 
 int CodeGenerator::getPointerSize()

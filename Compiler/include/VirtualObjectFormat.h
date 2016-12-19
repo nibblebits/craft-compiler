@@ -16,32 +16,37 @@
  */
 
 /* 
- * File:   GoblinByteCodeLinker.h
+ * File:   VirtualObjectFormat.h
  * Author: Daniel McCarthy
  *
- * Created on 03 July 2016, 01:53
+ * Created on 19 December 2016, 15:41
  */
 
-#ifndef GOBLINBYTECODELINKER_H
-#define GOBLINBYTECODELINKER_H
+#ifndef VIRTUALOBJECTFORMAT_H
+#define VIRTUALOBJECTFORMAT_H
 
-#include <string>
-#include "def.h"
-#include "GoblinObjectLinker.h"
+#include <vector>
+#include <memory>
 
-class EXPORT GoblinByteCodeLinker : public GoblinObjectLinker
-{
+#include "VirtualSegment.h"
+#include "Stream.h"
+
+class VirtualObjectFormat {
 public:
-    GoblinByteCodeLinker(Compiler* compiler);
-    virtual ~GoblinByteCodeLinker();
-
-    virtual void link_merge(GoblinObject* obj1, GoblinObject* obj2, GoblinObject* result_obj);
-    virtual void final_merge(Stream* executable_stream, GoblinObject* final_obj);
-private:
+    VirtualObjectFormat();
+    virtual ~VirtualObjectFormat();
     
-    void link_merge_part(GoblinObject* obj, GoblinObject* result_obj, GoblinObject* prev_obj = NULL);
-
+    std::shared_ptr<VirtualSegment> createSegment(std::string segment_name);
+    std::shared_ptr<VirtualSegment> getSegment(std::string segment_name);   
+    std::vector<std::shared_ptr<VirtualSegment>> getSegments();
+    
+    Stream* getObjectStream();
+    
+    virtual void finalize() = 0;
+private:
+    Stream object_stream;
+    std::vector<std::shared_ptr<VirtualSegment>> segments;
 };
 
-#endif /* GOBLINBYTECODELINKER_H */
+#endif /* VIRTUALOBJECTFORMAT_H */
 

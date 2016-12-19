@@ -28,7 +28,6 @@
 #define EXTERNAL_USE
 
 #include <deque>
-#include "GoblinByteCodeLinker.h"
 #include "CodeGenerator.h"
 #include "branches.h"
 
@@ -160,10 +159,8 @@ public:
 
     void generate_global_branch(std::shared_ptr<Branch> branch);
     void assemble(std::string assembly);
-    std::shared_ptr<Linker> getLinker();
 private:
     Compiler* compiler;
-    std::shared_ptr<Linker> linker;
     std::vector<std::shared_ptr<Branch>> func_arguments;
     std::vector<std::shared_ptr<VDEFBranch>> global_variables;
     std::vector<std::shared_ptr<VDEFBranch>> scope_variables;

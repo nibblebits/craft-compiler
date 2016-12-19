@@ -25,10 +25,10 @@
  */
 
 #include "CodeGen8086.h"
+#include "Assembler8086.h"
 
 CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 CodeGenerator", POINTER_SIZE)
 {
-    this->linker = std::shared_ptr<Linker>(new GoblinByteCodeLinker(compiler));
     this->compiler = compiler;
     this->current_label_index = 0;
     this->is_cmp_expression = false;
@@ -1822,9 +1822,7 @@ void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
 void CodeGen8086::assemble(std::string assembly)
 {
     std::cout << assembly << std::endl;
-}
-
-std::shared_ptr<Linker> CodeGen8086::getLinker()
-{
-    return this->linker;
+    Assembler8086 assembler(getCompiler());
+    assembler.setInput(assembly);
+    assembler.run();
 }

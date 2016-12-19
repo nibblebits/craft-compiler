@@ -16,32 +16,31 @@
  */
 
 /* 
- * File:   GoblinLinker.h
+ * File:   AssemblerException.h
  * Author: Daniel McCarthy
  *
- * Created on 02 July 2016, 03:38
+ * Created on 19 December 2016, 17:07
+ * 
+ * Description: 
  */
 
-#ifndef GOBLINLOBJECTLINKER_H
-#define GOBLINLOBJECTLINKER_H
+#ifndef ASSEMBLEREXCEPTION_H
+#define ASSEMBLEREXCEPTION_H
 
-#include "GoblinObject.h"
-#include "def.h"
-#include "Linker.h"
-class EXPORT GoblinObjectLinker : public Linker
+class AssemblerException : public SourceCodeRelatedException
 {
 public:
-    GoblinObjectLinker(Compiler* compiler);
-    virtual ~GoblinObjectLinker();
 
-    virtual void link_merge(Stream* obj1, Stream* obj2, Stream* result_obj);
-    virtual void final_merge(Stream* executable_stream, Stream* final_obj);
-    
-    virtual void link_merge(GoblinObject* obj1, GoblinObject* obj2, GoblinObject* result_obj) = 0;
-    virtual void final_merge(Stream* executable_stream, GoblinObject* final_obj) = 0;
-private:
+    AssemblerException(std::string message) :
+    SourceCodeRelatedException(message)
+    {
+    }
 
+    AssemblerException(CharPos position, std::string cause) :
+    SourceCodeRelatedException(position, "Assembler error: ", cause)
+    {
+
+    }
 };
-
-#endif /* GOBLINLOBJECTLINKER_H */
+#endif /* ASSEMBLEREXCEPTION_H */
 

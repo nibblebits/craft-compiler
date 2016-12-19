@@ -1,5 +1,2 @@
-uint8 main()
-{
-	uint8 a = 50;
-	return a;
-}
+__asm("test:");
+__asm("mov ax, cx");

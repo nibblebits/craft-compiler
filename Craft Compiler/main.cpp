@@ -37,11 +37,7 @@
 #include "GoblinArgumentParser.h"
 #include "CodeGenerator.h"
 #include "CodeGeneratorException.h"
-#include "GoblinObject.h"
 #include "Linker.h"
-
-// Built in code generators
-#include "GoblinByteCodeGenerator.h"
 
 using namespace std;
 
@@ -72,37 +68,28 @@ TreeImprover* treeImprover;
 std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
 {
     std::shared_ptr<CodeGenerator> codegen = NULL;
-    // Check for built in code generators
-    if (codegen_name == "goblin_bytecode")
+    // Ok the generator is not a built in code generator so look for a library for it
+    void* lib_addr = GoblinLoadLibrary(std::string(std::string(CODEGEN_DIR)
+                                                   + "/" + codegen_name + std::string(CODEGEN_EXT)).c_str());
+
+    if (lib_addr == NULL)
     {
-        // DEPRECATED
-        //        codegen = std::shared_ptr<CodeGenerator>(new GoblinByteCodeGenerator(&compiler));
+        throw Exception("The code generator: " + codegen_name + " could not be found or loaded");
     }
-    else
+
+
+    InitFunc init_func = (InitFunc) GoblinGetAddress(lib_addr, "Init");
+    if (init_func == NULL)
     {
-        // Ok the generator is not a built in code generator so look for a library for it
-        void* lib_addr = GoblinLoadLibrary(std::string(std::string(CODEGEN_DIR)
-                                                       + "/" + codegen_name + std::string(CODEGEN_EXT)).c_str());
+        throw Exception("The code generator: " + codegen_name + " does not have an \"Init\" method.");
+    }
 
-        if (lib_addr == NULL)
-        {
-            throw Exception("The code generator: " + codegen_name + " could not be found or loaded");
-        }
+    // Call the libraries Init method and get their code generator.
+    codegen = std::shared_ptr<CodeGenerator>(init_func(&compiler));
 
-
-        InitFunc init_func = (InitFunc) GoblinGetAddress(lib_addr, "Init");
-        if (init_func == NULL)
-        {
-            throw Exception("The code generator: " + codegen_name + " does not have an \"Init\" method.");
-        }
-
-        // Call the libraries Init method and get their code generator.
-        codegen = std::shared_ptr<CodeGenerator>(init_func(&compiler));
-
-        if (codegen == NULL)
-        {
-            throw Exception("The code generator: " + codegen_name + " returned a NULL pointer when expecting a CodeGenerator object");
-        }
+    if (codegen == NULL)
+    {
+        throw Exception("The code generator: " + codegen_name + " returned a NULL pointer when expecting a CodeGenerator object");
     }
     return codegen;
 }
@@ -219,7 +206,6 @@ int main(int argc, char** argv)
     try
     {
         codegen = getCodeGenerator(codegen_name);
-        linker = codegen->getLinker();
         compiler.setCodeGenerator(codegen);
     }
     catch (Exception ex)
@@ -291,6 +277,7 @@ int main(int argc, char** argv)
     try
     {
         codegen->generate(parser->getTree());
+        codegen->assemble();
         Stream* obj_stream = codegen->getStream();
         size_t stream_size = obj_stream->getSize();
         if (stream_size == 0)
@@ -298,6 +285,7 @@ int main(int argc, char** argv)
             throw CodeGeneratorException("No output was generated");
         }
 
+        /*
         // This is an object file output so there is no need for any linking
         if (object_file_output)
         {
@@ -323,7 +311,7 @@ int main(int argc, char** argv)
                 return ERROR_WITH_OUTPUT_FILE;
             }
         }
-
+*/
     }
     catch (Exception ex)
     {

@@ -41,6 +41,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/ASTAssistant.o \
 	${OBJECTDIR}/src/AddressOfBranch.o \
 	${OBJECTDIR}/src/ArrayIndexBranch.o \
+	${OBJECTDIR}/src/Assembler.o \
 	${OBJECTDIR}/src/AssignBranch.o \
 	${OBJECTDIR}/src/BODYBranch.o \
 	${OBJECTDIR}/src/Branch.o \
@@ -55,10 +56,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/FuncBranch.o \
 	${OBJECTDIR}/src/FuncCallBranch.o \
 	${OBJECTDIR}/src/FuncDefBranch.o \
-	${OBJECTDIR}/src/GoblinByteCodeGenerator.o \
-	${OBJECTDIR}/src/GoblinByteCodeLinker.o \
-	${OBJECTDIR}/src/GoblinObject.o \
-	${OBJECTDIR}/src/GoblinObjectLinker.o \
 	${OBJECTDIR}/src/Helper.o \
 	${OBJECTDIR}/src/IFBranch.o \
 	${OBJECTDIR}/src/Lexer.o \
@@ -81,6 +78,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/TreeImprover.o \
 	${OBJECTDIR}/src/VDEFBranch.o \
 	${OBJECTDIR}/src/VarIdentifierBranch.o \
+	${OBJECTDIR}/src/VirtualObjectFormat.o \
+	${OBJECTDIR}/src/VirtualSegment.o \
 	${OBJECTDIR}/src/common.o
 
 
@@ -137,6 +136,11 @@ ${OBJECTDIR}/src/ArrayIndexBranch.o: src/ArrayIndexBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArrayIndexBranch.o src/ArrayIndexBranch.cpp
+
+${OBJECTDIR}/src/Assembler.o: src/Assembler.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Assembler.o src/Assembler.cpp
 
 ${OBJECTDIR}/src/AssignBranch.o: src/AssignBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -207,26 +211,6 @@ ${OBJECTDIR}/src/FuncDefBranch.o: src/FuncDefBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncDefBranch.o src/FuncDefBranch.cpp
-
-${OBJECTDIR}/src/GoblinByteCodeGenerator.o: src/GoblinByteCodeGenerator.cpp
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinByteCodeGenerator.o src/GoblinByteCodeGenerator.cpp
-
-${OBJECTDIR}/src/GoblinByteCodeLinker.o: src/GoblinByteCodeLinker.cpp
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinByteCodeLinker.o src/GoblinByteCodeLinker.cpp
-
-${OBJECTDIR}/src/GoblinObject.o: src/GoblinObject.cpp
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinObject.o src/GoblinObject.cpp
-
-${OBJECTDIR}/src/GoblinObjectLinker.o: src/GoblinObjectLinker.cpp
-	${MKDIR} -p ${OBJECTDIR}/src
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinObjectLinker.o src/GoblinObjectLinker.cpp
 
 ${OBJECTDIR}/src/Helper.o: src/Helper.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -337,6 +321,16 @@ ${OBJECTDIR}/src/VarIdentifierBranch.o: src/VarIdentifierBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VarIdentifierBranch.o src/VarIdentifierBranch.cpp
+
+${OBJECTDIR}/src/VirtualObjectFormat.o: src/VirtualObjectFormat.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VirtualObjectFormat.o src/VirtualObjectFormat.cpp
+
+${OBJECTDIR}/src/VirtualSegment.o: src/VirtualSegment.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VirtualSegment.o src/VirtualSegment.cpp
 
 ${OBJECTDIR}/src/common.o: src/common.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
