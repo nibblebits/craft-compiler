@@ -1,2 +1,1 @@
-__asm("test:");
-__asm("mov ax, cx");
+__asm("mov ");

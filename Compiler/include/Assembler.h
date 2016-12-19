@@ -31,6 +31,7 @@
 #include <vector>
 #include <string>
 
+#include "Branch.h"
 #include "Token.h"
 #include "RootBranch.h"
 #include "AssemblerException.h"
@@ -50,6 +51,8 @@ protected:
     void lexify();
     virtual std::shared_ptr<Branch> parse() = 0;
     virtual void generate() = 0;
+    virtual void left_exp_handler() = 0;
+    virtual void right_exp_handler() = 0;
     void setCommentSymbol(unsigned char comment_symb);
     void addKeyword(std::string keyword);
     void addInstruction(std::string instruction);
@@ -57,6 +60,7 @@ protected:
 
     void push_branch(std::shared_ptr<Branch> branch);
     void pop_branch();
+    void pop_front_branch();
     void peek();
     void peek(int offset);
     void shift();
@@ -78,6 +82,8 @@ protected:
     bool is_popped_keyword(std::string keyword);
     bool is_popped_instruction(std::string ins);
 
+    void parse_expression(std::shared_ptr<Branch> left_branch=NULL);
+    
     std::shared_ptr<Token> getShiftedToken();
     std::string getShiftedTokenType();
     std::string getShiftedTokenValue();
@@ -124,7 +130,7 @@ private:
     Token* lex_token;
     std::string tokenValue;
     CharPos position;
-
+    
     // Tokens variable will be corrupted after parsing therefore a tokens vector maintaining original result is required.
     std::vector<std::shared_ptr<Token>> tokens_vec;
     std::deque<std::shared_ptr<Token>> tokens;

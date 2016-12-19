@@ -16,45 +16,38 @@
  */
 
 /* 
- * File:   Assembler8086.h
+ * File:   InstructionBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 19 December 2016, 16:44
+ * Created on 19 December 2016, 22:31
  */
 
-#ifndef ASSEMBLER8086_H
-#define ASSEMBLER8086_H
+#ifndef INSTRUCTIONBRANCH_H
+#define INSTRUCTIONBRANCH_H
 
-#include "Assembler.h"
+#include "CustomBranch.h"
 
-class InstructionBranch;
-class Branch;
-
-class Assembler8086 : public Assembler
+class InstructionBranch : public CustomBranch
 {
 public:
-    Assembler8086(Compiler* compiler);
-    virtual ~Assembler8086();
+    InstructionBranch(Compiler* compiler);
+    virtual ~InstructionBranch();
 
-protected:
-    virtual std::shared_ptr<Branch> parse();
-    void exp_handler();
-    virtual void left_exp_handler();
-    virtual void right_exp_handler();
-    virtual void generate();
+    void setInstructionNameBranch(std::shared_ptr<Branch> ins_name_branch);
+    std::shared_ptr<Branch> getInstructionNameBranch();
+
+    void setLeftBranch(std::shared_ptr<Branch> left_branch);
+    void setRightBranch(std::shared_ptr<Branch> right_branch);
+
+    std::shared_ptr<Branch> getLeftBranch();
+    std::shared_ptr<Branch> getRightBranch();
+
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
 
 private:
-    inline std::shared_ptr<InstructionBranch> new_ins_branch();
-    void parse_part();
-    void parse_label();
-    void parse_mov_ins();
-
-    inline bool is_next_label();
-    inline bool is_next_mov_ins();
-
-
 
 };
 
-#endif /* ASSEMBLER8086_H */
+#endif /* INSTRUCTIONBRANCH_H */
 

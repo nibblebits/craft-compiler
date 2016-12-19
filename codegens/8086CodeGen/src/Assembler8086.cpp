@@ -21,13 +21,16 @@
  *
  * Created on 19 December 2016, 16:44
  * 
- * Description: 
+ * Description: The parser and assembler for the 8086 code generator,
+ * note that no checking of input is done here as the assembly is generated from the code generator
+ * so it is expected to be valid.
  */
 
 #include "Assembler8086.h"
 #include "common.h"
 #include "def.h"
 #include "LabelBranch.h"
+#include "InstructionBranch.h"
 
 Assembler8086::Assembler8086(Compiler* compiler) : Assembler(compiler)
 {
@@ -68,7 +71,7 @@ std::shared_ptr<Branch> Assembler8086::parse()
     // Lets get all the branches
     while (hasBranches())
     {
-        pop_branch();
+        pop_front_branch();
         root->addChild(getPoppedBranch());
     }
 
@@ -78,6 +81,26 @@ std::shared_ptr<Branch> Assembler8086::parse()
 
     return root;
 
+}
+
+void Assembler8086::exp_handler()
+{
+    shift();
+}
+
+void Assembler8086::left_exp_handler()
+{
+    exp_handler();
+}
+
+void Assembler8086::right_exp_handler()
+{
+    exp_handler();
+}
+
+std::shared_ptr<InstructionBranch> Assembler8086::new_ins_branch()
+{
+    return std::shared_ptr<InstructionBranch>(new InstructionBranch(getCompiler()));
 }
 
 void Assembler8086::parse_part()
@@ -129,9 +152,38 @@ void Assembler8086::parse_label()
 
 void Assembler8086::parse_mov_ins()
 {
-    // Shift and pop the "mov" instruction we don't need it anymore
+    std::shared_ptr<Branch> name_branch = NULL;
+    std::shared_ptr<Branch> dest_exp = NULL;
+    std::shared_ptr<Branch> source_exp = NULL;
+
+    // Shift and pop the "mov" instruction
     shift_pop();
-    
+    name_branch = getPoppedBranch();
+
+    // Next will be the destination
+    parse_expression();
+    // Pop it off
+    pop_branch();
+    dest_exp = getPoppedBranch();
+
+    // Now we need to shift and pop off the comma ","
+    shift_pop();
+
+    // Finally a final expression which will be the source
+    parse_expression();
+
+    // Pop it off
+    pop_branch();
+    source_exp = getPoppedBranch();
+
+    // Put it all together
+    std::shared_ptr<InstructionBranch> ins_branch = new_ins_branch();
+    ins_branch->setInstructionNameBranch(name_branch);
+    ins_branch->setLeftBranch(dest_exp);
+    ins_branch->setRightBranch(source_exp);
+
+    // Push the finished branch to the stack
+    push_branch(ins_branch);
 }
 
 bool Assembler8086::is_next_label()

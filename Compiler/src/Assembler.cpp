@@ -25,6 +25,7 @@
  */
 
 #include "Assembler.h"
+#include "EBranch.h"
 
 const char operators[] = {'=', '+', '-', '/', '*', '<', '>', '&', '|', '^', '%', '!'};
 const char symbols[] = {'(', ')', ',', '#', '{', '}', '.', '[', ']', ';', ':'};
@@ -286,6 +287,19 @@ void Assembler::pop_branch()
     this->branches.pop_back();
 }
 
+void Assembler::pop_front_branch()
+{
+    if (this->branches.empty())
+    {
+        throw AssemblerException("void Assembler8086::pop_front_branch(): the stack is empty.");
+    }
+
+    this->branch = this->branches.front();
+    this->branch_type = this->branch->getType();
+    this->branch_value = this->branch->getValue();
+    this->branches.pop_front();
+}
+
 void Assembler::peek()
 {
     peek(0);
@@ -293,7 +307,7 @@ void Assembler::peek()
 
 void Assembler::peek(int offset)
 {
-    if (!this->input.empty())
+    if (!this->tokens.empty())
     {
         if (offset == -1)
         {
@@ -301,7 +315,7 @@ void Assembler::peek(int offset)
         }
         else
         {
-            if (offset < this->input.size())
+            if (offset < this->tokens.size())
             {
                 this->peak_token = this->tokens.at(offset);
             }
@@ -322,7 +336,10 @@ void Assembler::peek(int offset)
     return;
 
 _peek_error:
-    throw AssemblerException("void Assembler::peek(): End of file reached.");
+    // We will just null the peek here.
+    this->peak_token = NULL;
+    this->peak_token_type = "";
+    this->peak_token_value = "";
 }
 
 void Assembler::shift()
@@ -464,6 +481,92 @@ bool Assembler::is_popped_instruction(std::string ins)
         return true;
 
     return false;
+}
+
+/* NOTE: BODMAS, order of operations currently does not apply, this should be added in the future. */
+void Assembler::parse_expression(std::shared_ptr<Branch> left_branch)
+{
+    std::shared_ptr<Branch> op = NULL;
+    std::shared_ptr<Branch> right_branch = NULL;
+
+    if (left_branch == NULL)
+    {
+        // Peek futher to see if this is a new expression or not
+        peek();
+        if (is_peek_symbol("("))
+        {
+            // Its a new expression so shift and pop off the left bracket "("
+            shift_pop();
+            parse_expression();
+            pop_branch();
+            left_branch = getPoppedBranch();
+
+            // Ok now shift and pop off the right bracket ")"
+            shift_pop();
+        }
+        else
+        {
+            // Get the left expression
+            this->left_exp_handler();
+            pop_branch();
+            left_branch = getPoppedBranch();
+        }
+    }
+    peek();
+    if (is_peek_type("operator"))
+    {
+        // Shift and pop the operator
+        shift_pop();
+        op = getPoppedBranch();
+
+        // Peek futher to see if this is a new expression or not
+        peek();
+        if (is_peek_symbol("("))
+        {
+            // Its a new expression so shift and pop off the left bracket "("
+            shift_pop();
+            parse_expression();
+            pop_branch();
+            right_branch = getPoppedBranch();
+
+            // Ok now shift and pop off the right bracket ")"
+            shift_pop();
+        }
+        else
+        {
+            // Get the right expression
+            this->right_exp_handler();
+            pop_branch();
+            right_branch = getPoppedBranch();
+        }
+    }
+
+    if (op != NULL)
+    {
+        // This is an expression, create an expression branch
+        std::shared_ptr<EBranch> exp_branch = std::shared_ptr<EBranch>(new EBranch(getCompiler(), op->getValue()));
+        exp_branch->addChild(left_branch);
+        exp_branch->addChild(right_branch);
+
+        // Peek further to see if we are still continuing
+        peek();
+        if (is_peek_type("operator"))
+        {
+            // Ok we have more
+            parse_expression(exp_branch);
+        }
+        else
+        {
+            // No nothing else so push the expression branch
+            push_branch(exp_branch);
+        }
+    }
+    else
+    {
+        // There is no operator here this is not an expression just push the left.
+        push_branch(left_branch);
+    }
+
 }
 
 std::shared_ptr<Token> Assembler::getShiftedToken()
