@@ -1041,6 +1041,9 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     std::shared_ptr<Branch> arguments_branch = func_branch->getArgumentsBranch();
     std::shared_ptr<Branch> body_branch = func_branch->getBodyBranch();
 
+    // Make the function global.
+    do_asm("global " + name_branch->getValue());
+    
     // Make the function label
     make_label(name_branch->getValue());
 
