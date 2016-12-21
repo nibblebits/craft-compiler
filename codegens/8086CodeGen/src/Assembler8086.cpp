@@ -24,6 +24,9 @@
  * Description: The parser and assembler for the 8086 code generator,
  * note that no checking of input is done here as the assembly is generated from the code generator
  * so it is expected to be valid.
+ * 
+ * Please seek here: https://courses.engr.illinois.edu/ece390/resources/opcodes.html#Technical
+ * for opcode information.
  */
 
 #include "Assembler8086.h"
@@ -72,6 +75,11 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addInstruction("lea");
     Assembler::addInstruction("call");
     Assembler::addInstruction("ret");
+
+    this->left = NULL;
+    this->right = NULL;
+    this->segment = NULL;
+    this->sstream = NULL;
 }
 
 Assembler8086::~Assembler8086()
@@ -308,33 +316,183 @@ void Assembler8086::generate()
     }
 }
 
-void Assembler8086::generate_part(std::shared_ptr<Branch> branch, std::shared_ptr<VirtualSegment> segment)
+void Assembler8086::generate_part(std::shared_ptr<Branch> branch)
 {
-    Stream* stream = segment->getStream();
     if (branch->getType() == "INSTRUCTION")
     {
-        generate_instruction(std::dynamic_pointer_cast<InstructionBranch>(branch), segment);
+        generate_instruction(std::dynamic_pointer_cast<InstructionBranch>(branch));
     }
 
 }
 
-void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch, std::shared_ptr<VirtualSegment> segment)
+void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch)
 {
-    std::shared_ptr<Branch> instruction_name_branch = instruction_branch->getInstructionNameBranch();
-    std::string instruction_name = instruction_name_branch->getValue();
-    if (instruction_name == "mov")
+
+    INSTRUCTION_TYPE ins_type = get_instruction_type(instruction_branch);
+
+    switch (ins_type)
     {
-        // This is a move instruction
+    case MOV_REG_TO_REG_W0:
+    case MOV_REG_TO_REG_W1:
+        generate_mov_reg_to_reg(ins_type, instruction_branch);
+        break;
+    case MOV_IMM_TO_REG_W0:
+    case MOV_IMM_TO_REG_W1:
+        generate_mov_imm_to_reg(ins_type, instruction_branch);
+        break;
     }
+
+}
+
+void Assembler8086::generate_mov_reg_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch)
+{
+    left = instruction_branch->getLeftBranch();
+    right = instruction_branch->getRightBranch();
+
+    oo = USE_REG_NO_ADDRESSING_MODE;
+    rrr = get_reg(right->getValue());
+    mmm = get_reg(left->getValue());
+
+
+    sstream->write8(ins_type);
+    sstream->write8(bind_modrm(oo, rrr, mmm));
+
+}
+
+void Assembler8086::generate_mov_imm_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch)
+{
+    left = instruction_branch->getLeftBranch();
+    right = instruction_branch->getRightBranch();
+
+    rrr = get_reg(left->getValue());
+    op = ins_type << 3 | rrr;
+    sstream->write8(op);
+
+    if (ins_type == MOV_IMM_TO_REG_W0)
+    {
+        sstream->write8(std::stoi(right->getValue()));
+    }
+    else
+    {
+        sstream->write16(std::stoi(right->getValue()));
+    }
+}
+
+char Assembler8086::bind_modrm(char oo, char rrr, char mmm)
+{
+    return (oo << 6 | rrr << 3 | mmm);
 }
 
 void Assembler8086::generate_segment(std::shared_ptr<SegmentBranch> branch)
 {
     std::shared_ptr<VirtualObjectFormat> obj_format = Assembler::getObjectFormat();
-    std::shared_ptr<VirtualSegment> segment = obj_format->createSegment(branch->getSegmentNameBranch()->getValue());
+    segment = obj_format->createSegment(branch->getSegmentNameBranch()->getValue());
+    sstream = segment->getStream();
     for (std::shared_ptr<Branch> child : branch->getContentsBranch()->getChildren())
     {
-        generate_part(child, segment);
+        generate_part(child);
     }
 
+}
+
+INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch)
+{
+
+    std::shared_ptr<Branch> instruction_name_branch = instruction_branch->getInstructionNameBranch();
+    std::string instruction_name = instruction_name_branch->getValue();
+    if (instruction_name == "mov")
+    {
+        // This is a move instruction
+        return get_mov_ins_type(instruction_branch);
+    }
+
+    throw AssemblerException("INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch): Invalid assembler instruction");
+}
+
+INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBranch> instruction_branch)
+{
+    this->left = instruction_branch->getLeftBranch();
+    this->right = instruction_branch->getRightBranch();
+
+    if (left->getType() == "register")
+    {
+        if (right->getType() == "register")
+        {
+            // Register to register assignment, 8 bit or 16 bit assignment?
+            if (is_reg_16_bit(left->getValue()))
+            {
+                // 16 bit assignment here
+                return MOV_REG_TO_REG_W1;
+            }
+            else
+            {
+                // Must be an 8 bit assignment.
+                return MOV_REG_TO_REG_W0;
+            }
+        }
+        else if (right->getType() == "number")
+        {
+            // Register to register assignment, 8 bit or 16 bit assignment?
+            if (is_reg_16_bit(left->getValue()))
+            {
+                // 16 bit assignment here
+                return MOV_IMM_TO_REG_W1;
+            }
+            else
+            {
+                // Must be an 8 bit assignment.
+                return MOV_IMM_TO_REG_W0;
+            }
+        }
+    }
+}
+
+char Assembler8086::get_reg(std::string _register)
+{
+    if (_register == "al" || _register == "ax")
+    {
+        return 0;
+    }
+    else if (_register == "cl" || _register == "cx")
+    {
+        return 1;
+    }
+    else if (_register == "dl" || _register == "dx")
+    {
+        return 2;
+    }
+    else if (_register == "bl" || _register == "bx")
+    {
+        return 3;
+    }
+    else if (_register == "ah" || _register == "sp")
+    {
+        return 4;
+    }
+    else if (_register == "ch" || _register == "bp")
+    {
+        return 5;
+    }
+    else if (_register == "dh" || _register == "si")
+    {
+        return 6;
+    }
+    else if (_register == "bh" || _register == "di")
+    {
+        return 7;
+    }
+}
+
+bool Assembler8086::is_reg_16_bit(std::string _register)
+{
+    return (_register == "ax" ||
+            _register == "bx" ||
+            _register == "cx" ||
+            _register == "dx" ||
+            _register == "sp" ||
+            _register == "bp" ||
+            _register == "ss" ||
+            _register == "ds" ||
+            _register == "es" ||
+            _register == "es");
 }

@@ -33,6 +33,30 @@ class SegmentBranch;
 class VirtualSegment;
 class VirtualObjectFormat;
 
+enum
+{
+    W0_BITS_8,
+    W1_BITS_16
+};
+
+enum
+{
+    DISPLACEMENT_IF_MMM_110,
+    DISPLACEMENT_8BIT_FOLLOW,
+    DISPLACEMENT_16BIT_FOLLOW,
+    USE_REG_NO_ADDRESSING_MODE,
+};
+
+enum
+{
+    MOV_REG_TO_REG_W0 = 0x88,
+    MOV_REG_TO_REG_W1 = 0x89,
+    MOV_IMM_TO_REG_W0 = 0x16,
+    MOV_IMM_TO_REG_W1 = 0x17
+};
+
+typedef int INSTRUCTION_TYPE;
+
 class Assembler8086 : public Assembler
 {
 public:
@@ -45,9 +69,18 @@ protected:
     virtual void left_exp_handler();
     virtual void right_exp_handler();
     virtual void generate();
-    void generate_part(std::shared_ptr<Branch> branch, std::shared_ptr<VirtualSegment> segment);
-    void generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch, std::shared_ptr<VirtualSegment> segment);
+    void generate_part(std::shared_ptr<Branch> branch);
+    void generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_mov_reg_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_mov_imm_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
+    char bind_modrm(char oo, char rrr, char mmm);
+    INSTRUCTION_TYPE get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch);
+    INSTRUCTION_TYPE get_mov_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
+
+    inline char get_reg(std::string _register);
+    inline bool is_reg_16_bit(std::string _register);
+
 
 private:
     inline std::shared_ptr<InstructionBranch> new_ins_branch();
@@ -62,6 +95,14 @@ private:
 
     std::shared_ptr<Branch> root;
 
+    std::shared_ptr<VirtualSegment> segment;
+    Stream* sstream;
+    std::shared_ptr<Branch> left;
+    std::shared_ptr<Branch> right;
+    char mmm;
+    char rrr;
+    char oo;
+    char op;
 
 
 };
