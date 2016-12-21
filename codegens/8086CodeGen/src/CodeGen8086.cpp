@@ -27,7 +27,7 @@
 #include "CodeGen8086.h"
 #include "Assembler8086.h"
 
-CodeGen8086::CodeGen8086(Compiler* compiler) : CodeGenerator(compiler, "8086 CodeGenerator", POINTER_SIZE)
+CodeGen8086::CodeGen8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : CodeGenerator(compiler, object_format, "8086 CodeGenerator", POINTER_SIZE)
 {
     this->compiler = compiler;
     this->current_label_index = 0;
@@ -51,11 +51,8 @@ struct formatted_segment CodeGen8086::format_segment(std::string segment_name)
 {
     struct formatted_segment segment;
 
-    // Temp replacement due to the fact I can't change segment locations in the emulator, should change back once no longer emulating.
-    segment.start_segment = segment_name + ":";
+    segment.start_segment = "segment " + segment_name;
     segment.end_segment = "; END SEGMENT";
-    // segment.start_segment = segment_name + " segment";
-    //segment.end_segment = "ends";
     return segment;
 }
 
@@ -1822,7 +1819,7 @@ void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
 void CodeGen8086::assemble(std::string assembly)
 {
     std::cout << assembly << std::endl;
-    Assembler8086 assembler(getCompiler());
+    Assembler8086 assembler(getCompiler(), getObjectFormat());
     assembler.setInput(assembly);
     assembler.run();
 }

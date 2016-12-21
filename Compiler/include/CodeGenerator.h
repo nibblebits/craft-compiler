@@ -32,7 +32,7 @@
 #include "Stream.h"
 #include "Branch.h"
 #include "CodeGeneratorException.h"
-#include "Linker.h"
+#include "VirtualObjectFormat.h"
 #include "CompilerEntity.h"
 #include "structs.h"
 #include "Scope.h"
@@ -49,21 +49,22 @@ typedef std::map<std::string, std::string>::iterator asm_map_it;
 class EXPORT CodeGenerator : public CompilerEntity
 {
 public:
-    CodeGenerator(Compiler* compiler, std::string code_gen_desc, int pointer_size);
+    CodeGenerator(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format, std::string code_gen_desc, int pointer_size);
     virtual ~CodeGenerator();
-    Stream* getStream();
 
     void assemble();
     virtual void generate(std::shared_ptr<Tree> tree);
     virtual void assemble(std::string assembly) = 0;
     int getPointerSize();
+    std::shared_ptr<VirtualObjectFormat> getObjectFormat();
 
 protected:
     void do_asm(std::string asm_ins, std::string segment = "code");
     virtual void generate_global_branch(std::shared_ptr<Branch> branch) = 0;
     virtual struct formatted_segment format_segment(std::string segment_name) = 0;
-    Stream* stream;
 private:
+    std::shared_ptr<VirtualObjectFormat> object_format;
+            
     // Key = segment, value = assembly for segment.
     std::map<std::string, std::string> assembly;
     int pointer_size;

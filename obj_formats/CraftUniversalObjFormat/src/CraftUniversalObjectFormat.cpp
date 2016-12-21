@@ -16,29 +16,37 @@
  */
 
 /* 
- * File:   main.h
+ * File:   CraftUniversalObjectFormat.cpp
  * Author: Daniel McCarthy
  *
- * Created on 14 September 2016, 03:16
+ * Created on 21 December 2016, 13:48
  * 
  * Description: 
  */
 
-#include "Compiler.h"
-#ifndef MAIN_H
-#define MAIN_H
+#include "CraftUniversalObjectFormat.h"
+#include "UOFSegment.h"
 
-#define EXPORT __declspec(dllexport)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    CodeGenerator* EXPORT Init(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format);
-
-#ifdef __cplusplus
+CraftUniversalObjectFormat::CraftUniversalObjectFormat(Compiler* compiler) : VirtualObjectFormat(compiler)
+{
 }
-#endif
 
-#endif
+CraftUniversalObjectFormat::~CraftUniversalObjectFormat()
+{
+}
 
+void CraftUniversalObjectFormat::finalize()
+{
+    for (std::shared_ptr<VirtualSegment> segment : VirtualObjectFormat::getSegments())
+    {
+        while (!segment->getStream()->isEmpty())
+        {
+            this->getObjectStream()->write8(segment->getStream()->read8());
+        }
+    }
+}
+
+std::shared_ptr<VirtualSegment> CraftUniversalObjectFormat::new_segment(std::string segment_name)
+{
+    return std::shared_ptr<UOFSegment>(new UOFSegment(segment_name));
+}

@@ -69,7 +69,7 @@ struct VARIABLE_ADDRESS
 class CodeGen8086 : public CodeGenerator
 {
 public:
-    CodeGen8086(Compiler* compiler);
+    CodeGen8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format);
     virtual ~CodeGen8086();
 
     virtual struct formatted_segment format_segment(std::string segment_name);

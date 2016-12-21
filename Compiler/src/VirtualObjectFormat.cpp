@@ -26,7 +26,7 @@
 
 #include "VirtualObjectFormat.h"
 #include "VirtualSegment.h"
-VirtualObjectFormat::VirtualObjectFormat()
+VirtualObjectFormat::VirtualObjectFormat(Compiler* compiler) : CompilerEntity(compiler)
 {
 }
 
@@ -36,7 +36,7 @@ VirtualObjectFormat::~VirtualObjectFormat()
 
 std::shared_ptr<VirtualSegment> VirtualObjectFormat::createSegment(std::string segment_name)
 {
-    std::shared_ptr<VirtualSegment> segment = std::shared_ptr<VirtualSegment>(new VirtualSegment(segment_name));
+    std::shared_ptr<VirtualSegment> segment = std::shared_ptr<VirtualSegment>(new_segment(segment_name));
     this->segments.push_back(segment);
     return segment;
 }
@@ -60,5 +60,5 @@ std::vector<std::shared_ptr<VirtualSegment>> VirtualObjectFormat::getSegments()
 
 Stream* VirtualObjectFormat::getObjectStream()
 {
-
+    return &this->object_stream;
 }

@@ -16,29 +16,15 @@
  */
 
 /* 
- * File:   main.h
+ * File:   main.cpp
  * Author: Daniel McCarthy
  *
- * Created on 14 September 2016, 03:16
- * 
- * Description: 
+ * Created on 21 December 2016, 13:54
  */
 
-#include "Compiler.h"
-#ifndef MAIN_H
-#define MAIN_H
+#include "main.h"
 
-#define EXPORT __declspec(dllexport)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    CodeGenerator* EXPORT Init(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format);
-
-#ifdef __cplusplus
+VirtualObjectFormat* EXPORT Init(Compiler* compiler)
+{
+    return new CraftUniversalObjectFormat(compiler);
 }
-#endif
-
-#endif
-

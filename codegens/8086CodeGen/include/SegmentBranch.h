@@ -16,29 +16,34 @@
  */
 
 /* 
- * File:   main.h
+ * File:   SegmentBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 14 September 2016, 03:16
- * 
- * Description: 
+ * Created on 21 December 2016, 15:34
  */
 
-#include "Compiler.h"
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef SEGMENTBRANCH_H
+#define SEGMENTBRANCH_H
 
-#define EXPORT __declspec(dllexport)
+#include "CustomBranch.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class SegmentBranch : public CustomBranch
+{
+public:
+    SegmentBranch(Compiler* compiler);
+    virtual ~SegmentBranch();
 
-    CodeGenerator* EXPORT Init(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format);
+    void setSegmentNameBranch(std::shared_ptr<Branch> label_name_branch);
+    std::shared_ptr<Branch> getSegmentNameBranch();
+    void setContentsBranch(std::shared_ptr<Branch> contents_branch);
+    std::shared_ptr<Branch> getContentsBranch();
 
-#ifdef __cplusplus
-}
-#endif
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
 
-#endif
+private:
+
+};
+
+#endif /* SEGMENTBRANCH_H */
 

@@ -30,8 +30,9 @@
 const char operators[] = {'=', '+', '-', '/', '*', '<', '>', '&', '|', '^', '%', '!'};
 const char symbols[] = {'(', ')', ',', '#', '{', '}', '.', '[', ']', ';', ':'};
 
-Assembler::Assembler(Compiler* compiler) : CompilerEntity(compiler)
+Assembler::Assembler(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : CompilerEntity(compiler)
 {
+    this->object_format = object_format;
     setCommentSymbol(';');
 }
 
@@ -49,6 +50,11 @@ void Assembler::run()
     lexify();
     parse();
     generate();
+}
+
+std::shared_ptr<VirtualObjectFormat> Assembler::getObjectFormat()
+{
+    return this->object_format;
 }
 
 void Assembler::lexify()
@@ -87,6 +93,10 @@ void Assembler::lexify()
             else if (isInstruction(tokenValue))
             {
                 lex_token = new Token("instruction", tokenValue, position);
+            }
+            else if (isRegister(tokenValue))
+            {
+                lex_token = new Token("register", tokenValue, position);
             }
             else
             {
@@ -180,6 +190,11 @@ void Assembler::addInstruction(std::string instruction)
     this->instructions.push_back(instruction);
 }
 
+void Assembler::addRegister(std::string _register)
+{
+    this->registers.push_back(_register);
+}
+
 std::vector<std::shared_ptr<Token>> Assembler::getTokens()
 {
     return this->tokens_vec;
@@ -230,7 +245,7 @@ bool Assembler::isSymbol(char op)
 
 bool Assembler::isCharacter(char op)
 {
-    if ((op >= 65 && op <= 90) || (op >= 97 && op <= 122) || op == 95)
+    if ((op >= 65 && op <= 90) || (op >= 97 && op <= 122) || op == 95 || op == '_')
         return true;
     return false;
 }
@@ -266,6 +281,17 @@ bool Assembler::isInstruction(std::string op)
             return true;
     }
 
+    return false;
+}
+
+bool Assembler::isRegister(std::string op)
+{
+    for (std::string c : this->registers)
+    {
+        if (c == op)
+            return true;
+    }
+    
     return false;
 }
 

@@ -38,6 +38,7 @@
 
 
 #define CODEGEN_DIR "./codegens"
+#define OBJ_FORMAT_DIR "./obj_formats"
 
 // If its a CYGWIN compiler then enable _WIN32
 #ifdef __CYGWIN__

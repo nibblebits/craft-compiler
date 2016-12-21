@@ -17,14 +17,13 @@
 
 /* 
  * File:   main.h
- * Author: Daniel McCarthy
+ * Author: dansb
  *
- * Created on 14 September 2016, 03:16
- * 
- * Description: 
+ * Created on 21 December 2016, 13:51
  */
 
 #include "Compiler.h"
+#include "CraftUniversalObjectFormat.h"
 #ifndef MAIN_H
 #define MAIN_H
 
@@ -34,11 +33,9 @@
 extern "C" {
 #endif
 
-    CodeGenerator* EXPORT Init(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format);
+    VirtualObjectFormat* EXPORT Init(Compiler* compiler);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-

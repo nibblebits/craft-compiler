@@ -35,6 +35,7 @@
 #include "Token.h"
 #include "RootBranch.h"
 #include "AssemblerException.h"
+#include "VirtualObjectFormat.h"
 #include "CompilerEntity.h"
 typedef bool (*is_func)();
 typedef bool (*callback_func)(char);
@@ -42,11 +43,12 @@ typedef bool (*callback_func)(char);
 class EXPORT Assembler : public CompilerEntity
 {
 public:
-    Assembler(Compiler* compiler);
+    Assembler(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format);
     virtual ~Assembler();
 
     void setInput(std::string input);
     void run();
+    std::shared_ptr<VirtualObjectFormat> getObjectFormat();
 protected:
     void lexify();
     virtual std::shared_ptr<Branch> parse() = 0;
@@ -56,6 +58,7 @@ protected:
     void setCommentSymbol(unsigned char comment_symb);
     void addKeyword(std::string keyword);
     void addInstruction(std::string instruction);
+    void addRegister(std::string _register);
     std::vector<std::shared_ptr<Token>> getTokens();
 
     void push_branch(std::shared_ptr<Branch> branch);
@@ -109,7 +112,10 @@ private:
     static bool isWhitespace(char op);
     bool isKeyword(std::string op);
     bool isInstruction(std::string op);
+    bool isRegister(std::string op);
 
+    std::shared_ptr<VirtualObjectFormat> object_format;
+    
     std::shared_ptr<Token> token;
     std::string token_type;
     std::string token_value;
@@ -127,6 +133,7 @@ private:
     unsigned char comment_symb;
     std::vector<std::string> keywords;
     std::vector<std::string> instructions;
+    std::vector<std::string> registers;
     Token* lex_token;
     std::string tokenValue;
     CharPos position;
@@ -135,8 +142,6 @@ private:
     std::vector<std::shared_ptr<Token>> tokens_vec;
     std::deque<std::shared_ptr<Token>> tokens;
     std::deque<std::shared_ptr<Branch>> branches;
-
-    std::shared_ptr<RootBranch> root;
 };
 
 #endif /* ASSEMBLER_H */

@@ -26,7 +26,7 @@
 #define VIRTUALSEGMENT_H
 
 #include "Stream.h"
-class VirtualSegment {
+class EXPORT VirtualSegment {
 public:
     VirtualSegment(std::string segment_name);
     virtual ~VirtualSegment();

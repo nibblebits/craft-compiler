@@ -39,7 +39,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Assembler8086.o \
 	${OBJECTDIR}/src/CodeGen8086.o \
 	${OBJECTDIR}/src/InstructionBranch.o \
-	${OBJECTDIR}/src/LabelBranch.o
+	${OBJECTDIR}/src/LabelBranch.o \
+	${OBJECTDIR}/src/SegmentBranch.o
 
 
 # C Compiler Flags
@@ -92,6 +93,11 @@ ${OBJECTDIR}/src/LabelBranch.o: src/LabelBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/LabelBranch.o src/LabelBranch.cpp
+
+${OBJECTDIR}/src/SegmentBranch.o: src/SegmentBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/SegmentBranch.o src/SegmentBranch.cpp
 
 # Subprojects
 .build-subprojects:

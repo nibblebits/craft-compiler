@@ -16,29 +16,21 @@
  */
 
 /* 
- * File:   main.h
+ * File:   UOFSegment.cpp
  * Author: Daniel McCarthy
  *
- * Created on 14 September 2016, 03:16
+ * Created on 21 December 2016, 14:05
  * 
  * Description: 
  */
 
-#include "Compiler.h"
-#ifndef MAIN_H
-#define MAIN_H
+#include "UOFSegment.h"
 
-#define EXPORT __declspec(dllexport)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    CodeGenerator* EXPORT Init(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format);
-
-#ifdef __cplusplus
+UOFSegment::UOFSegment(std::string segment_name) : VirtualSegment(segment_name)
+{
 }
-#endif
 
-#endif
+UOFSegment::~UOFSegment()
+{
+}
 

@@ -41,7 +41,8 @@
 
 using namespace std;
 
-typedef CodeGenerator* (*InitFunc)(Compiler*);
+typedef CodeGenerator* (*CodegenInitFunc)(Compiler*, std::shared_ptr<VirtualObjectFormat> object_format);
+typedef VirtualObjectFormat* (*VirtualObjFormatInitFunc)(Compiler*);
 
 enum
 {
@@ -49,13 +50,14 @@ enum
     ARGUMENT_PARSE_PROBLEM = 2,
     PROBLEM_WITH_ARGUMENT = 3,
     SOURCE_FILE_LOAD_FAILURE = 4,
-    CODEGENERATOR_LOAD_PROBLEM = 5,
-    ERROR_WITH_LEXER = 6,
-    ERROR_WITH_PARSER = 7,
-    ERROR_WITH_SEMANTIC_VALIDATION = 8,
-    ERROR_WITH_TREE_IMPROVER = 9,
-    ERROR_WITH_OUTPUT_FILE = 10,
-    ERROR_WITH_CODEGENERATOR = 11
+    OBJECT_FORMAT_LOAD_PROBLEM = 5,
+    CODEGENERATOR_LOAD_PROBLEM = 6,
+    ERROR_WITH_LEXER = 7,
+    ERROR_WITH_PARSER = 8,
+    ERROR_WITH_SEMANTIC_VALIDATION = 9,
+    ERROR_WITH_TREE_IMPROVER = 10,
+    ERROR_WITH_OUTPUT_FILE = 11,
+    ERROR_WITH_CODEGENERATOR = 12
 } CompilerErrorCode;
 
 Compiler compiler;
@@ -65,10 +67,35 @@ Parser* parser;
 SemanticValidator* semanticValidator;
 TreeImprover* treeImprover;
 
-std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
+std::shared_ptr<VirtualObjectFormat> getObjectFormat(std::string object_format_name)
+{
+    std::shared_ptr<VirtualObjectFormat> virtual_obj_format = NULL;
+    void* lib_addr = GoblinLoadLibrary(std::string(std::string(OBJ_FORMAT_DIR)
+                                                   + "/" + object_format_name + std::string(CODEGEN_EXT)).c_str());
+    if (lib_addr == NULL)
+    {
+        throw Exception("The object format: " + object_format_name + " could not be found or loaded");
+    }
+
+    VirtualObjFormatInitFunc init_func = (VirtualObjFormatInitFunc) GoblinGetAddress(lib_addr, "Init");
+    if (init_func == NULL)
+    {
+        throw Exception("The virtual object format: " + object_format_name + " does not have a valid \"Init\" function");
+    }
+
+    virtual_obj_format = std::shared_ptr<VirtualObjectFormat>(init_func(&compiler));
+
+    if (virtual_obj_format == NULL)
+    {
+        throw Exception("The virtual object format: " + object_format_name + " returned a NULL pointer when expecting a \"VirtualObjectFormat\" object");
+    }
+
+    return virtual_obj_format;
+}
+
+std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name, std::shared_ptr<VirtualObjectFormat> object_format)
 {
     std::shared_ptr<CodeGenerator> codegen = NULL;
-    // Ok the generator is not a built in code generator so look for a library for it
     void* lib_addr = GoblinLoadLibrary(std::string(std::string(CODEGEN_DIR)
                                                    + "/" + codegen_name + std::string(CODEGEN_EXT)).c_str());
 
@@ -78,18 +105,18 @@ std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name)
     }
 
 
-    InitFunc init_func = (InitFunc) GoblinGetAddress(lib_addr, "Init");
+    CodegenInitFunc init_func = (CodegenInitFunc) GoblinGetAddress(lib_addr, "Init");
     if (init_func == NULL)
     {
-        throw Exception("The code generator: " + codegen_name + " does not have an \"Init\" method.");
+        throw Exception("The code generator: " + codegen_name + " does not have a valid \"Init\" function.");
     }
 
     // Call the libraries Init method and get their code generator.
-    codegen = std::shared_ptr<CodeGenerator>(init_func(&compiler));
+    codegen = std::shared_ptr<CodeGenerator>(init_func(&compiler, object_format));
 
     if (codegen == NULL)
     {
-        throw Exception("The code generator: " + codegen_name + " returned a NULL pointer when expecting a CodeGenerator object");
+        throw Exception("The code generator: " + codegen_name + " returned a NULL pointer when expecting a \"CodeGenerator\" object");
     }
     return codegen;
 }
@@ -118,6 +145,7 @@ int main(int argc, char** argv)
     std::string input_file_name;
     std::string output_file_name;
     std::string source_file_data;
+    std::string obj_format_name;
     bool object_file_output = false;
     std::vector<std::string> file_names_to_link;
 
@@ -157,6 +185,16 @@ int main(int argc, char** argv)
             if (arguments.hasArgument("O"))
             {
                 object_file_output = true;
+
+                if (!arguments.hasArgument("format"))
+                {
+                    std::cout << "No object format defined, defaulting to cuof." << std::endl;
+                    obj_format_name = "cuof";
+                }
+                else
+                {
+                    obj_format_name = arguments.getArgumentValue("format");
+                }
             }
 
             if (arguments.hasArgument("L"))
@@ -201,11 +239,22 @@ int main(int argc, char** argv)
         return SOURCE_FILE_LOAD_FAILURE;
     }
 
-    std::shared_ptr<CodeGenerator> codegen;
-    std::shared_ptr<Linker> linker;
+    std::shared_ptr<VirtualObjectFormat> obj_format;
+
     try
     {
-        codegen = getCodeGenerator(codegen_name);
+        obj_format = getObjectFormat(obj_format_name);
+    }
+    catch (Exception ex)
+    {
+        std::cout << "Problem loading object format: " << ex.getMessage() << std::endl;
+        return OBJECT_FORMAT_LOAD_PROBLEM;
+    }
+    
+    std::shared_ptr<CodeGenerator> codegen;
+    try
+    {
+        codegen = getCodeGenerator(codegen_name, obj_format);
         compiler.setCodeGenerator(codegen);
     }
     catch (Exception ex)
@@ -278,13 +327,16 @@ int main(int argc, char** argv)
     {
         codegen->generate(parser->getTree());
         codegen->assemble();
-        Stream* obj_stream = codegen->getStream();
-        size_t stream_size = obj_stream->getSize();
-        if (stream_size == 0)
-        {
-            throw CodeGeneratorException("No output was generated");
-        }
 
+        // Finalize the object
+        std::shared_ptr<VirtualObjectFormat> obj_format = codegen->getObjectFormat();
+        obj_format->finalize();
+
+        // Ok lets write the object file
+        if (object_file_output)
+        {
+            WriteFile(output_file_name, obj_format->getObjectStream());
+        }
         /*
         // This is an object file output so there is no need for any linking
         if (object_file_output)
@@ -311,7 +363,7 @@ int main(int argc, char** argv)
                 return ERROR_WITH_OUTPUT_FILE;
             }
         }
-*/
+         */
     }
     catch (Exception ex)
     {

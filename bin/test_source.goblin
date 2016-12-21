@@ -1,1 +1,1 @@
-__asm("mov ");
+__asm("mov al, al");

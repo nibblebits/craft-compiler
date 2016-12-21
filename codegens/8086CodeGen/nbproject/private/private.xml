@@ -7,9 +7,17 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/src/SegmentBranch.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/src/InstructionBranch.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/src/CodeGen8086.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/include/Assembler8086.h</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/src/Assembler8086.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/src/LabelBranch.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/main.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/main.h</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/include/SegmentBranch.h</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/include/CodeGen8086.h</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/include/LabelBranch.h</file>
         </group>
     </open-files>
 </project-private>

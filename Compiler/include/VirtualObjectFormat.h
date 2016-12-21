@@ -30,19 +30,23 @@
 
 #include "VirtualSegment.h"
 #include "Stream.h"
+#include "CompilerEntity.h"
 
-class VirtualObjectFormat {
+class EXPORT VirtualObjectFormat : public CompilerEntity
+{
 public:
-    VirtualObjectFormat();
+    VirtualObjectFormat(Compiler* compiler);
     virtual ~VirtualObjectFormat();
-    
+
     std::shared_ptr<VirtualSegment> createSegment(std::string segment_name);
-    std::shared_ptr<VirtualSegment> getSegment(std::string segment_name);   
+    std::shared_ptr<VirtualSegment> getSegment(std::string segment_name);
     std::vector<std::shared_ptr<VirtualSegment>> getSegments();
-    
+
     Stream* getObjectStream();
-    
+
     virtual void finalize() = 0;
+protected:
+    virtual std::shared_ptr<VirtualSegment> new_segment(std::string segment_name) = 0;
 private:
     Stream object_stream;
     std::vector<std::shared_ptr<VirtualSegment>> segments;

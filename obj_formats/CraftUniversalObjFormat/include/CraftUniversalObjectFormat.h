@@ -16,29 +16,26 @@
  */
 
 /* 
- * File:   main.h
+ * File:   CraftUniversalObjectFormat.h
  * Author: Daniel McCarthy
  *
- * Created on 14 September 2016, 03:16
- * 
- * Description: 
+ * Created on 21 December 2016, 13:48
  */
 
-#include "Compiler.h"
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef CRAFTUNIVERSALOBJECTFORMAT_H
+#define CRAFTUNIVERSALOBJECTFORMAT_H
 
-#define EXPORT __declspec(dllexport)
+#include "VirtualObjectFormat.h"
+class CraftUniversalObjectFormat : public VirtualObjectFormat 
+{
+public:
+    CraftUniversalObjectFormat(Compiler* compiler);
+    virtual ~CraftUniversalObjectFormat();
+    virtual std::shared_ptr<VirtualSegment> new_segment(std::string segment_name);
+    virtual void finalize();
+private:
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+};
 
-    CodeGenerator* EXPORT Init(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#endif /* CRAFTUNIVERSALOBJECTFORMAT_H */
 

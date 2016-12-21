@@ -23,9 +23,8 @@
  */
 
 #include "main.h"
-#include "Compiler.h"
 #include "CodeGen8086.h"
-CodeGenerator* EXPORT Init(Compiler* compiler)
+CodeGenerator* EXPORT Init(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format)
 {
-    return new CodeGen8086(compiler);
+    return new CodeGen8086(compiler, object_format);
 }

@@ -29,11 +29,14 @@
 
 class InstructionBranch;
 class Branch;
+class SegmentBranch;
+class VirtualSegment;
+class VirtualObjectFormat;
 
 class Assembler8086 : public Assembler
 {
 public:
-    Assembler8086(Compiler* compiler);
+    Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format);
     virtual ~Assembler8086();
 
 protected:
@@ -42,15 +45,22 @@ protected:
     virtual void left_exp_handler();
     virtual void right_exp_handler();
     virtual void generate();
+    void generate_part(std::shared_ptr<Branch> branch, std::shared_ptr<VirtualSegment> segment);
+    void generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch, std::shared_ptr<VirtualSegment> segment);
+    void generate_segment(std::shared_ptr<SegmentBranch> branch);
 
 private:
     inline std::shared_ptr<InstructionBranch> new_ins_branch();
     void parse_part();
+    void parse_segment();
     void parse_label();
-    void parse_mov_ins();
+    void parse_ins();
 
+    inline bool is_next_segment();
     inline bool is_next_label();
-    inline bool is_next_mov_ins();
+    inline bool is_next_instruction();
+
+    std::shared_ptr<Branch> root;
 
 
 

@@ -30,15 +30,15 @@
 #include "CodeGenerator.h"
 #include "branches.h"
 
-CodeGenerator::CodeGenerator(Compiler* compiler, std::string code_gen_desc, int pointer_size) : CompilerEntity(compiler)
+CodeGenerator::CodeGenerator(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format, std::string code_gen_desc, int pointer_size) : CompilerEntity(compiler)
 {
-    this->stream = new Stream();
     this->pointer_size = pointer_size;
+    this->object_format = object_format;
 }
 
 CodeGenerator::~CodeGenerator()
 {
-    delete this->stream;
+
 }
 
 void CodeGenerator::assemble()
@@ -70,6 +70,11 @@ int CodeGenerator::getPointerSize()
     return this->pointer_size;
 }
 
+std::shared_ptr<VirtualObjectFormat> CodeGenerator::getObjectFormat()
+{
+    return this->object_format;
+}
+
 void CodeGenerator::do_asm(std::string asm_ins, std::string segment)
 {
     std::map<std::string, std::string>::const_iterator it = this->assembly.find(segment);
@@ -84,9 +89,4 @@ void CodeGenerator::do_asm(std::string asm_ins, std::string segment)
     asm_str += asm_ins + "\n";
 
     this->assembly[segment] = asm_str;
-}
-
-Stream* CodeGenerator::getStream()
-{
-    return this->stream;
 }
