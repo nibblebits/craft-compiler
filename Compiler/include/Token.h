@@ -28,6 +28,7 @@
 #include <iostream>
 #include "Branch.h"
 #include "CharPos.h"
+
 class Token : public Branch
 {
 public:
@@ -36,6 +37,8 @@ public:
 
     CharPos getPosition();
     int getBranchType();
+    virtual std::shared_ptr<Branch> clone();
+
 private:
     CharPos position;
 };
