@@ -25,6 +25,7 @@
  */
 
 #include "InstructionBranch.h"
+#include "OperandBranch.h"
 
 InstructionBranch::InstructionBranch(Compiler* compiler) : CustomBranch(compiler, "INSTRUCTION", "")
 {
@@ -44,32 +45,32 @@ std::shared_ptr<Branch> InstructionBranch::getInstructionNameBranch()
     return CustomBranch::getRegisteredBranchByName("instruction_name_branch");
 }
 
-void InstructionBranch::setLeftBranch(std::shared_ptr<Branch> left_branch)
+void InstructionBranch::setLeftBranch(std::shared_ptr<OperandBranch> left_branch)
 {
     CustomBranch::registerBranch("left_branch", left_branch);
 }
 
-void InstructionBranch::setRightBranch(std::shared_ptr<Branch> right_branch)
+void InstructionBranch::setRightBranch(std::shared_ptr<OperandBranch> right_branch)
 {
     CustomBranch::registerBranch("right_branch", right_branch);
 }
 
-std::shared_ptr<Branch> InstructionBranch::getLeftBranch()
+std::shared_ptr<OperandBranch> InstructionBranch::getLeftBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("left_branch");
+    return std::dynamic_pointer_cast<OperandBranch>(CustomBranch::getRegisteredBranchByName("left_branch"));
 }
 
-std::shared_ptr<Branch> InstructionBranch::getRightBranch()
+std::shared_ptr<OperandBranch> InstructionBranch::getRightBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("right_branch");
+    return std::dynamic_pointer_cast<OperandBranch>(CustomBranch::getRegisteredBranchByName("right_branch"));
 }
 
 void InstructionBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<InstructionBranch> ins_branch = std::dynamic_pointer_cast<InstructionBranch>(cloned_branch);
     ins_branch->setInstructionNameBranch(getInstructionNameBranch()->clone());
-    ins_branch->setLeftBranch(getLeftBranch()->clone());
-    ins_branch->setRightBranch(getRightBranch()->clone());
+    ins_branch->setLeftBranch(std::dynamic_pointer_cast<OperandBranch>(getLeftBranch()->clone()));
+    ins_branch->setRightBranch(std::dynamic_pointer_cast<OperandBranch>(getRightBranch()->clone()));
 }
 
 std::shared_ptr<Branch> InstructionBranch::create_clone()

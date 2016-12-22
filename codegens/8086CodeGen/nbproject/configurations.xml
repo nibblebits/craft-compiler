@@ -8,6 +8,7 @@
       <itemPath>include/CodeGen8086.h</itemPath>
       <itemPath>include/InstructionBranch.h</itemPath>
       <itemPath>include/LabelBranch.h</itemPath>
+      <itemPath>include/OperandBranch.h</itemPath>
       <itemPath>include/SegmentBranch.h</itemPath>
       <itemPath>main.h</itemPath>
     </logicalFolder>
@@ -22,6 +23,7 @@
       <itemPath>src/CodeGen8086.cpp</itemPath>
       <itemPath>src/InstructionBranch.cpp</itemPath>
       <itemPath>src/LabelBranch.cpp</itemPath>
+      <itemPath>src/OperandBranch.cpp</itemPath>
       <itemPath>src/SegmentBranch.cpp</itemPath>
       <itemPath>main.cpp</itemPath>
     </logicalFolder>
@@ -68,6 +70,8 @@
       </item>
       <item path="include/LabelBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/OperandBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SegmentBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
@@ -81,6 +85,8 @@
       <item path="src/InstructionBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LabelBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/OperandBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/SegmentBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -113,6 +119,8 @@
       </item>
       <item path="include/LabelBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/OperandBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/SegmentBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
@@ -126,6 +134,8 @@
       <item path="src/InstructionBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LabelBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/OperandBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/SegmentBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

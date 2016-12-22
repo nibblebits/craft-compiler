@@ -40,6 +40,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/CodeGen8086.o \
 	${OBJECTDIR}/src/InstructionBranch.o \
 	${OBJECTDIR}/src/LabelBranch.o \
+	${OBJECTDIR}/src/OperandBranch.o \
 	${OBJECTDIR}/src/SegmentBranch.o
 
 
@@ -91,6 +92,11 @@ ${OBJECTDIR}/src/LabelBranch.o: src/LabelBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/LabelBranch.o src/LabelBranch.cpp
+
+${OBJECTDIR}/src/OperandBranch.o: src/OperandBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OperandBranch.o src/OperandBranch.cpp
 
 ${OBJECTDIR}/src/SegmentBranch.o: src/SegmentBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

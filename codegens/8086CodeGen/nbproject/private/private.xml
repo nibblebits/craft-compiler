@@ -18,6 +18,7 @@
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/include/SegmentBranch.h</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/include/CodeGen8086.h</file>
             <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/include/LabelBranch.h</file>
+            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/codegens/8086CodeGen/include/InstructionBranch.h</file>
         </group>
     </open-files>
 </project-private>

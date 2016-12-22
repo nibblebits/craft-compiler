@@ -27,6 +27,7 @@
 
 #include "CustomBranch.h"
 
+class OperandBranch;
 class InstructionBranch : public CustomBranch
 {
 public:
@@ -36,11 +37,11 @@ public:
     void setInstructionNameBranch(std::shared_ptr<Branch> ins_name_branch);
     std::shared_ptr<Branch> getInstructionNameBranch();
 
-    void setLeftBranch(std::shared_ptr<Branch> left_branch);
-    void setRightBranch(std::shared_ptr<Branch> right_branch);
+    void setLeftBranch(std::shared_ptr<OperandBranch> left_branch);
+    void setRightBranch(std::shared_ptr<OperandBranch> right_branch);
 
-    std::shared_ptr<Branch> getLeftBranch();
-    std::shared_ptr<Branch> getRightBranch();
+    std::shared_ptr<OperandBranch> getLeftBranch();
+    std::shared_ptr<OperandBranch> getRightBranch();
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
