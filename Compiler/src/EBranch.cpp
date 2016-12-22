@@ -118,7 +118,7 @@ void EBranch::rebuild()
 void EBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     // Clone all our children
-    for (std::shared_ptr<Branch> child : cloned_branch->getChildren())
+    for (std::shared_ptr<Branch> child : this->getChildren())
     {
         cloned_branch->addChild(child->clone());
     }
