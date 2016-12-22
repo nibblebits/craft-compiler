@@ -408,6 +408,10 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
     case MOV_IMM_TO_MEM_W1:
         generate_mov_imm_to_mem(ins_type, instruction_branch);
         break;
+    case MOV_ACC_TO_MEMOFFS_W0:
+    case MOV_ACC_TO_MEMOFFS_W1:
+        generate_mov_acc_to_mem_offs(ins_type, instruction_branch);
+        break;
     }
 
 }
@@ -468,9 +472,9 @@ void Assembler8086::generate_mov_imm_to_mem(INSTRUCTION_TYPE ins_type, std::shar
     {
         // Ok displacement is required
         // Lets write the offset
-        write_mem16(left->getOffsetBranch());
+        write_addr16(left->getOffsetBranch());
     }
-    
+
     // Write the value
     std::shared_ptr<Branch> imm_branch = right->getImmediateBranch();
     if (ins_type == MOV_IMM_TO_MEM_W0)
@@ -479,8 +483,20 @@ void Assembler8086::generate_mov_imm_to_mem(INSTRUCTION_TYPE ins_type, std::shar
     }
     else
     {
-         sstream->write16(std::stoi(imm_branch->getValue()));
+        sstream->write16(std::stoi(imm_branch->getValue()));
     }
+}
+
+void Assembler8086::generate_mov_acc_to_mem_offs(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch)
+{
+    left = instruction_branch->getLeftBranch();
+    right = instruction_branch->getRightBranch();
+
+    // Write the opcode
+    sstream->write8(ins_type);
+
+    // Next comes the offset
+    write_addr16(left->getOffsetBranch());
 }
 
 char Assembler8086::bind_modrm(char oo, char rrr, char mmm)
@@ -488,7 +504,7 @@ char Assembler8086::bind_modrm(char oo, char rrr, char mmm)
     return (oo << 6 | rrr << 3 | mmm);
 }
 
-void Assembler8086::write_mem8(std::shared_ptr<Branch> branch)
+void Assembler8086::write_addr8(std::shared_ptr<Branch> branch)
 {
     int address;
     if (branch->getType() == "number")
@@ -504,7 +520,7 @@ void Assembler8086::write_mem8(std::shared_ptr<Branch> branch)
     sstream->write8(address);
 }
 
-void Assembler8086::write_mem16(std::shared_ptr<Branch> branch)
+void Assembler8086::write_addr16(std::shared_ptr<Branch> branch)
 {
     int address;
     if (branch->getType() == "number")
@@ -587,7 +603,20 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
         // Memory assignment.
         if (right->isOnlyRegister())
         {
+            right_reg = right->getRegisterBranch();
             // mov mem, reg
+            // Is this the accumulator we are referring to
+            if (is_accumulator_and_not_ah(right_reg->getValue()))
+            {
+                if (is_reg_16_bit(right_reg->getValue()))
+                {
+                    return MOV_ACC_TO_MEMOFFS_W1;
+                }
+                else
+                {
+                    return MOV_ACC_TO_MEMOFFS_W0;
+                }
+            }
         }
         else if (right->isOnlyImmediate())
         {
@@ -602,6 +631,12 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
             }
         }
     }
+}
+
+bool Assembler8086::is_accumulator_and_not_ah(std::string _register)
+{
+    return _register == "al"
+            || _register == "ax";
 }
 
 bool Assembler8086::is_reg(std::string _register)

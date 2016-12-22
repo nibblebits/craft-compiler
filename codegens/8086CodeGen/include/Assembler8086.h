@@ -52,12 +52,15 @@ enum
     MOV_IMM_TO_REG_W0 = 0x16,
     MOV_IMM_TO_REG_W1 = 0x17,
     MOV_IMM_TO_MEM_W0 = 0xc6,
-    MOV_IMM_TO_MEM_W1 = 0xc7
+    MOV_IMM_TO_MEM_W1 = 0xc7,
+    MOV_ACC_TO_MEMOFFS_W0 = 0xa2,
+    MOV_ACC_TO_MEMOFFS_W1 = 0xa3
 };
 
 typedef int INSTRUCTION_TYPE;
 
 class OperandBranch;
+
 class Assembler8086 : public Assembler
 {
 public:
@@ -66,6 +69,7 @@ public:
 
 protected:
     virtual std::shared_ptr<Branch> parse();
+private:
     void exp_handler();
     virtual void left_exp_handler();
     virtual void right_exp_handler();
@@ -75,19 +79,20 @@ protected:
     void generate_mov_reg_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_mov_imm_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_mov_imm_to_mem(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_mov_acc_to_mem_offs(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
     char bind_modrm(char oo, char rrr, char mmm);
-    void write_mem8(std::shared_ptr<Branch> branch);
-    void write_mem16(std::shared_ptr<Branch> branch);
+    void write_addr8(std::shared_ptr<Branch> branch);
+    void write_addr16(std::shared_ptr<Branch> branch);
     INSTRUCTION_TYPE get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch);
     INSTRUCTION_TYPE get_mov_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
 
+    inline bool is_accumulator_and_not_ah(std::string _register);
     inline bool is_reg(std::string _register);
     inline char get_reg(std::string _register);
     inline bool is_reg_16_bit(std::string _register);
 
 
-private:
     inline std::shared_ptr<InstructionBranch> new_ins_branch();
     void parse_part();
     void parse_operand();
@@ -105,7 +110,11 @@ private:
     std::shared_ptr<VirtualSegment> segment;
     Stream* sstream;
     std::shared_ptr<OperandBranch> left;
+    std::shared_ptr<Branch> left_reg;
     std::shared_ptr<OperandBranch> right;
+    std::shared_ptr<Branch> right_reg;
+    
+    
     char mmm;
     char rrr;
     char oo;
