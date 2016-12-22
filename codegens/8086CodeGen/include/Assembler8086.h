@@ -54,7 +54,9 @@ enum
     MOV_IMM_TO_MEM_W0 = 0xc6,
     MOV_IMM_TO_MEM_W1 = 0xc7,
     MOV_ACC_TO_MEMOFFS_W0 = 0xa2,
-    MOV_ACC_TO_MEMOFFS_W1 = 0xa3
+    MOV_ACC_TO_MEMOFFS_W1 = 0xa3,
+    MOV_MEMOFFS_TO_ACC_W0 = 0xa0,
+    MOV_MEMOFFS_TO_ACC_W1 = 0xa1
 };
 
 typedef int INSTRUCTION_TYPE;
@@ -80,6 +82,7 @@ private:
     void generate_mov_imm_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_mov_imm_to_mem(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_mov_acc_to_mem_offs(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_mov_mem_offs_to_acc(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
     char bind_modrm(char oo, char rrr, char mmm);
     void write_addr8(std::shared_ptr<Branch> branch);
@@ -113,8 +116,8 @@ private:
     std::shared_ptr<Branch> left_reg;
     std::shared_ptr<OperandBranch> right;
     std::shared_ptr<Branch> right_reg;
-    
-    
+
+
     char mmm;
     char rrr;
     char oo;

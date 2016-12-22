@@ -412,6 +412,10 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
     case MOV_ACC_TO_MEMOFFS_W1:
         generate_mov_acc_to_mem_offs(ins_type, instruction_branch);
         break;
+    case MOV_MEMOFFS_TO_ACC_W0:
+    case MOV_MEMOFFS_TO_ACC_W1:
+        generate_mov_mem_offs_to_acc(ins_type, instruction_branch);
+        break;
     }
 
 }
@@ -499,6 +503,18 @@ void Assembler8086::generate_mov_acc_to_mem_offs(INSTRUCTION_TYPE ins_type, std:
     write_addr16(left->getOffsetBranch());
 }
 
+void Assembler8086::generate_mov_mem_offs_to_acc(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch)
+{
+    left = instruction_branch->getLeftBranch();
+    right = instruction_branch->getRightBranch();
+
+    // Write the opcode
+    sstream->write8(ins_type);
+
+    // Next comes the offset
+    write_addr16(right->getOffsetBranch());
+}
+
 char Assembler8086::bind_modrm(char oo, char rrr, char mmm)
 {
     return (oo << 6 | rrr << 3 | mmm);
@@ -569,10 +585,11 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
 
     if (left->isOnlyRegister())
     {
+        left_reg = left->getRegisterBranch();
         if (right->isOnlyRegister())
         {
             // Register to register assignment "mov reg, reg", 8 bit or 16 bit assignment?
-            if (is_reg_16_bit(left->getRegisterBranch()->getValue()))
+            if (is_reg_16_bit(left_reg->getValue()))
             {
                 // 16 bit assignment here
                 return MOV_REG_TO_REG_W1;
@@ -586,7 +603,7 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
         else if (right->isOnlyImmediate())
         {
             // Register to register assignment, 8 bit or 16 bit assignment?
-            if (is_reg_16_bit(left->getRegisterBranch()->getValue()))
+            if (is_reg_16_bit(left_reg->getValue()))
             {
                 // 16 bit assignment here
                 return MOV_IMM_TO_REG_W1;
@@ -597,6 +614,21 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
                 return MOV_IMM_TO_REG_W0;
             }
         }
+        else if (right->isAccessingMemory())
+        {
+            // Is this the accumulator we are going to store this into?
+            if (is_accumulator_and_not_ah(left_reg->getValue()))
+            {
+                if (is_reg_16_bit(left_reg->getValue()))
+                {
+                    return MOV_MEMOFFS_TO_ACC_W1;
+                }
+                else
+                {
+                    return MOV_MEMOFFS_TO_ACC_W0;
+                }
+            }
+        }
     }
     else if (left->isAccessingMemory())
     {
@@ -605,7 +637,7 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
         {
             right_reg = right->getRegisterBranch();
             // mov mem, reg
-            // Is this the accumulator we are referring to
+            // Is this the accumulator we are referring to?
             if (is_accumulator_and_not_ah(right_reg->getValue()))
             {
                 if (is_reg_16_bit(right_reg->getValue()))
