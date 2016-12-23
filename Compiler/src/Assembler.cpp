@@ -291,7 +291,7 @@ bool Assembler::isRegister(std::string op)
         if (c == op)
             return true;
     }
-    
+
     return false;
 }
 
@@ -507,6 +507,76 @@ bool Assembler::is_popped_instruction(std::string ins)
         return true;
 
     return false;
+}
+
+std::shared_ptr<Branch> Assembler::sum_expression(std::shared_ptr<Branch> expression_branch)
+{
+    if (expression_branch->getType() != "E")
+    {
+        // Not an expression branch, nothing to do
+        return expression_branch;
+    }
+
+    std::shared_ptr<Branch> new_branch = std::shared_ptr<EBranch>(new EBranch(getCompiler(), "+"));
+    // Clone the expression branch we want a new instance
+    expression_branch = expression_branch->clone();
+    // Add it as a child of our new branch
+    new_branch->addChild(expression_branch);
+
+    CharPos last_char_pos;
+    std::string op;
+
+    // Shorten the expression branch.
+    int sum = 0;
+    std::shared_ptr<EBranch> e_branch = std::dynamic_pointer_cast<EBranch>(expression_branch);
+    e_branch->iterate_expressions([&](std::shared_ptr<EBranch> root_e, std::shared_ptr<Branch> left_branch, std::shared_ptr<Branch> right_branch) -> void
+    {
+        op = root_e->getValue();
+        if (left_branch->getType() == "number"
+                && right_branch->getType() == "number")
+        {
+            std::shared_ptr<Token> r_token = std::dynamic_pointer_cast<Token>(right_branch);
+            last_char_pos = r_token->getPosition();
+
+            sum += getCompiler()->evaluate(std::stoi(left_branch->getValue()), std::stoi(right_branch->getValue()), op);
+            // Ok now remove the branch
+            root_e->removeSelf();
+        }
+        else
+        {
+            std::shared_ptr<Token> target_token;
+            if (left_branch->getType() == "number")
+            {
+                target_token = std::dynamic_pointer_cast<Token>(left_branch);
+            }
+            else
+            {
+                target_token = std::dynamic_pointer_cast<Token>(right_branch);
+            }
+            
+            // It is only save to evaluate "+" and "-" as both branches are not numbers
+            if (op == "+"
+                    || op == "-")
+            {
+                sum = getCompiler()->evaluate(sum, std::stoi(target_token->getValue()), op);
+                target_token->removeSelf();
+                root_e->rebuild();
+            }
+            
+        }
+    });
+
+    // Finally we now need to create a new branch for the sum and add it on
+    std::shared_ptr<Token> summed_branch = std::shared_ptr<Token>(new Token("number", std::to_string(sum), last_char_pos));
+    if (new_branch->getChildren().size() == 0)
+    {
+        // Zero children just return the summed token branch
+        return summed_branch;
+    }
+    
+    // Ok the new branch has a child so lets add the summed branch and return
+    new_branch->addChild(summed_branch);
+    return new_branch;
 }
 
 /* NOTE: BODMAS, order of operations currently does not apply, this should be added in the future. */

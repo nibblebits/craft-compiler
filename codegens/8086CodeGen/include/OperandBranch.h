@@ -41,14 +41,15 @@ public:
     OperandBranch(Compiler* compiler);
     virtual ~OperandBranch();
 
-    void setOffsetBranch(std::shared_ptr<Branch> offset_branch);
-    std::shared_ptr<Branch> getOffsetBranch();
 
     void setRegisterBranch(std::shared_ptr<Branch> register_branch);
     std::shared_ptr<Branch> getRegisterBranch();
 
-    void setImmediateBranch(std::shared_ptr<Branch> imm_branch);
-    std::shared_ptr<Branch> getImmediateBranch();
+    void setNumberBranch(std::shared_ptr<Branch> imm_branch);
+    std::shared_ptr<Branch> getNumberBranch();
+    
+    void setIdentifierBranch(std::shared_ptr<Branch> label_branch);
+    std::shared_ptr<Branch> getIdentifierBranch();
 
     void setMemoryAccess(bool is_memory_access);
     void setDataSize(OPERAND_DATA_SIZE size);
@@ -56,8 +57,8 @@ public:
     OPERAND_DATA_SIZE getDataSize();
     
     bool hasRegisterBranch();
-    bool hasImmediateBranch();
-    bool hasOffsetBranch();
+    bool hasNumberBranch();
+    bool hasIdentifierBranch();
     
     bool isOnlyRegister();
     bool isOnlyImmediate();

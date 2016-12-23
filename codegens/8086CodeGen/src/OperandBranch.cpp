@@ -35,16 +35,6 @@ OperandBranch::~OperandBranch()
 {
 }
 
-void OperandBranch::setOffsetBranch(std::shared_ptr<Branch> offset_branch)
-{
-    CustomBranch::registerBranch("offset_branch", offset_branch);
-}
-
-std::shared_ptr<Branch> OperandBranch::getOffsetBranch()
-{
-    return CustomBranch::getRegisteredBranchByName("offset_branch");
-}
-
 void OperandBranch::setRegisterBranch(std::shared_ptr<Branch> register_branch)
 {
     CustomBranch::registerBranch("register_branch", register_branch);
@@ -55,14 +45,24 @@ std::shared_ptr<Branch> OperandBranch::getRegisterBranch()
     return CustomBranch::getRegisteredBranchByName("register_branch");
 }
 
-void OperandBranch::setImmediateBranch(std::shared_ptr<Branch> imm_branch)
+void OperandBranch::setNumberBranch(std::shared_ptr<Branch> imm_branch)
 {
-    CustomBranch::registerBranch("imm_branch", imm_branch);
+    CustomBranch::registerBranch("number_branch", imm_branch);
 }
 
-std::shared_ptr<Branch> OperandBranch::getImmediateBranch()
+std::shared_ptr<Branch> OperandBranch::getNumberBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("imm_branch");
+    return CustomBranch::getRegisteredBranchByName("number_branch");
+}
+
+void OperandBranch::setIdentifierBranch(std::shared_ptr<Branch> label_branch)
+{
+    CustomBranch::registerBranch("label_branch", label_branch);
+}
+
+std::shared_ptr<Branch> OperandBranch::getIdentifierBranch()
+{
+    return CustomBranch::getRegisteredBranchByName("label_branch");
 }
 
 void OperandBranch::setMemoryAccess(bool is_memory_access)
@@ -80,28 +80,29 @@ bool OperandBranch::hasRegisterBranch()
     return CustomBranch::isBranchRegistered("register_branch");
 }
 
-bool OperandBranch::hasImmediateBranch()
+bool OperandBranch::hasNumberBranch()
 {
-    return CustomBranch::isBranchRegistered("imm_branch");
+    return CustomBranch::isBranchRegistered("number_branch");
 }
 
-bool OperandBranch::hasOffsetBranch()
+bool OperandBranch::hasIdentifierBranch()
 {
-    return CustomBranch::isBranchRegistered("offset_branch");
+    return CustomBranch::isBranchRegistered("label_branch");
 }
 
 bool OperandBranch::isOnlyRegister()
 {
     return hasRegisterBranch()
             && !isAccessingMemory()
-            && !hasOffsetBranch();
+            && !hasNumberBranch()
+            && !hasIdentifierBranch();
 }
 
 bool OperandBranch::isOnlyImmediate()
 {
-    return hasImmediateBranch()
+    return (hasNumberBranch() || hasIdentifierBranch())
             && !isAccessingMemory()
-            && !hasOffsetBranch();
+            && !hasIdentifierBranch();
 }
 
 bool OperandBranch::isAccessingMemory()
@@ -117,7 +118,9 @@ OPERAND_DATA_SIZE OperandBranch::getDataSize()
 void OperandBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<OperandBranch> op_branch = std::dynamic_pointer_cast<OperandBranch>(cloned_branch);
-    op_branch->setOffsetBranch(getOffsetBranch()->clone());
+    op_branch->setRegisterBranch(getRegisterBranch()->clone());
+    op_branch->setNumberBranch(getNumberBranch()->clone());
+    op_branch->setIdentifierBranch(getIdentifierBranch()->clone());
     op_branch->setMemoryAccess(isAccessingMemory());
 }
 

@@ -62,7 +62,8 @@ std::shared_ptr<Branch> CustomBranch::getRegisteredBranchByName(std::string name
 bool CustomBranch::isBranchRegistered(std::string name)
 {
     std::map<std::string, std::shared_ptr < Branch>>::const_iterator it = this->registered_branches.find(name);
-    return it != this->registered_branches.end();
+    return it != this->registered_branches.end()
+            && this->registered_branches[name] != NULL;
 }
 
 void CustomBranch::output_registered_branches()

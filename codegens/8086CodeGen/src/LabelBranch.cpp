@@ -28,6 +28,7 @@
 
 LabelBranch::LabelBranch(Compiler* compiler) : CustomBranch(compiler, "LABEL", "")
 {
+    this->offset = -1;
 }
 
 LabelBranch::~LabelBranch()
@@ -52,6 +53,16 @@ void LabelBranch::setContentsBranch(std::shared_ptr<Branch> contents_branch)
 std::shared_ptr<Branch> LabelBranch::getContentsBranch()
 {
     return CustomBranch::getRegisteredBranchByName("contents_branch");
+}
+
+void LabelBranch::setOffset(int offset)
+{
+    this->offset = offset;
+}
+
+int LabelBranch::getOffset()
+{
+    return this->offset;
 }
 
 void LabelBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)

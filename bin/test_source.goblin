@@ -1,1 +1,2 @@
-__asm("mov byte[320], 65");
+__asm("mov [_data+3], ax");
+__asm("_data:");

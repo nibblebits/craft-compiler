@@ -86,6 +86,7 @@ protected:
     bool is_popped_instruction(std::string ins);
 
     void parse_expression(std::shared_ptr<Branch> left_branch=NULL);
+    std::shared_ptr<Branch> sum_expression(std::shared_ptr<Branch> expression_branch);
     
     std::shared_ptr<Token> getShiftedToken();
     std::string getShiftedTokenType();

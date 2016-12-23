@@ -27,7 +27,7 @@
 
 #include "CustomBranch.h"
 
-class EBranch : public CustomBranch
+class EXPORT EBranch : public CustomBranch
 {
 public:
     EBranch(Compiler* compiler, std::string value);

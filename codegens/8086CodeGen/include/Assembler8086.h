@@ -62,6 +62,7 @@ enum
 typedef int INSTRUCTION_TYPE;
 
 class OperandBranch;
+class LabelBranch;
 
 class Assembler8086 : public Assembler
 {
@@ -71,11 +72,22 @@ public:
 
 protected:
     virtual std::shared_ptr<Branch> parse();
+    virtual void generate();
+
 private:
     void exp_handler();
     virtual void left_exp_handler();
     virtual void right_exp_handler();
-    virtual void generate();
+    void assembler_pass_1();
+    void pass_1_segment(std::shared_ptr<SegmentBranch> segment_branch);
+    void pass_1_part(std::shared_ptr<Branch> branch);
+
+    void get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm);
+    int get_offset_from_oomod(char oo, char mmm);
+    int get_instruction_size(std::shared_ptr<InstructionBranch> ins_branch);
+    void register_segment(std::shared_ptr<SegmentBranch> segment_branch);
+    void switch_to_segment(std::string segment_name);
+    void assembler_pass_2();
     void generate_part(std::shared_ptr<Branch> branch);
     void generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_mov_reg_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
@@ -85,8 +97,11 @@ private:
     void generate_mov_mem_offs_to_acc(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
     char bind_modrm(char oo, char rrr, char mmm);
-    void write_addr8(std::shared_ptr<Branch> branch);
-    void write_addr16(std::shared_ptr<Branch> branch);
+    int get_static_from_branch(std::shared_ptr<OperandBranch> branch);
+    void write_abs_static8(std::shared_ptr<OperandBranch> branch);
+    void write_abs_static16(std::shared_ptr<OperandBranch> branch);
+    std::shared_ptr<LabelBranch> get_label_branch(std::string label_name);
+    int get_label_offset(std::string label_name);
     INSTRUCTION_TYPE get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch);
     INSTRUCTION_TYPE get_mov_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
 
@@ -98,6 +113,11 @@ private:
 
     inline std::shared_ptr<InstructionBranch> new_ins_branch();
     void parse_part();
+    
+    std::shared_ptr<Branch> get_number_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
+    std::shared_ptr<Branch> get_register_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
+    std::shared_ptr<Branch> get_identifier_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
+    void handle_operand_exp(std::shared_ptr<OperandBranch> operand_branch);
     void parse_operand();
     void parse_segment();
     void parse_label();
@@ -111,6 +131,8 @@ private:
     std::shared_ptr<Branch> root;
 
     std::shared_ptr<VirtualSegment> segment;
+    std::shared_ptr<SegmentBranch> segment_branch;
+    std::vector<std::shared_ptr<VirtualSegment>> segments;
     Stream* sstream;
     std::shared_ptr<OperandBranch> left;
     std::shared_ptr<Branch> left_reg;
@@ -122,6 +144,8 @@ private:
     char rrr;
     char oo;
     char op;
+
+    int cur_offset;
 
 
 };

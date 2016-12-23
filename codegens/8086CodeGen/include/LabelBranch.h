@@ -38,11 +38,14 @@ public:
     void setContentsBranch(std::shared_ptr<Branch> contents_branch);
     std::shared_ptr<Branch> getContentsBranch();
     
+    void setOffset(int offset);
+    int getOffset();
+    
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
 
 private:
-
+    int offset;
 };
 
 #endif /* LABELBRANCH_H */
