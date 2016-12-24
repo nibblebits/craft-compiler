@@ -42,64 +42,17 @@
 #include "OperandBranch.h"
 #include "EBranch.h"
 
-
-const char ins_sizes[256] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 3, 3, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 2, 2, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    3, 3, 3, 3, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 3, 3,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0
+/* The instruction map, maps the instruction enum to the correct opcodes. 
+ * as some instructions share the same opcode */
+unsigned char ins_map[] = {
+    0x88, 0x89, 0x16, 0x17, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
+    0x8a, 0x8b
 };
 
-
-const bool has_oo_mmm[256] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 3, 3,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0
+// Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
+unsigned char ins_sizes[] = {
+    2, 2, 2, 3, 6, 6, 3, 3, 3, 3,
+    4, 4
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -604,25 +557,41 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
 {
     left = ins_branch->getLeftBranch();
     right = ins_branch->getRightBranch();
-
-    if (left->getType() == "register")
+    left_reg = left->getRegisterBranch();
+    right_reg = right->getRegisterBranch();
+    if (left->isOnlyRegister())
     {
-        if (right->getType() == "register")
+        if (right->isOnlyRegister())
         {
             *oo = USE_REG_NO_ADDRESSING_MODE;
-            *rrr = get_reg(right->getRegisterBranch()->getValue());
-            *mmm = get_reg(left->getRegisterBranch()->getValue());
+            *rrr = get_reg(right_reg->getValue());
+            *mmm = get_reg(left_reg->getValue());
+        }
+        else if (right->isAccessingMemory())
+        {
+            if (right->hasRegisterBranch())
+            {
+                *rrr = get_reg(left_reg->getValue());
+                *oo = DISPLACEMENT_16BIT_FOLLOW;
+                *mmm = get_mmm(right_reg->getValue());
+            }
+            else
+            {
+                *rrr = get_reg(left_reg->getValue());
+                *oo = DISPLACEMENT_IF_MMM_110;
+                *mmm = 0b110;
+            }
         }
     }
     else if (left->isAccessingMemory())
     {
         if (right->isOnlyImmediate())
         {
+            *rrr = 0;
             *oo = DISPLACEMENT_IF_MMM_110;
             *mmm = 0b110;
         }
     }
-
 }
 
 int Assembler8086::get_offset_from_oomod(char oo, char mmm)
@@ -649,14 +618,8 @@ int Assembler8086::get_offset_from_oomod(char oo, char mmm)
 
 int Assembler8086::get_instruction_size(std::shared_ptr<InstructionBranch> ins_branch)
 {
-    int opcode = get_instruction_type(ins_branch);
-    int size = ins_sizes[opcode];
-    if (has_oo_mmm[opcode])
-    {
-        get_modrm_from_instruction(ins_branch, &oo, &rrr, &mmm);
-        size += get_offset_from_oomod(oo, mmm);
-    }
-
+    int ins_type = get_instruction_type(ins_branch);
+    int size = ins_sizes[ins_type];
     return size;
 }
 
@@ -711,33 +674,38 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
 
     INSTRUCTION_TYPE ins_type = get_instruction_type(instruction_branch);
 
+    int opcode = ins_map[ins_type];
     switch (ins_type)
     {
     case MOV_REG_TO_REG_W0:
     case MOV_REG_TO_REG_W1:
-        generate_mov_reg_to_reg(ins_type, instruction_branch);
+        generate_mov_reg_to_reg(opcode, instruction_branch);
         break;
     case MOV_IMM_TO_REG_W0:
     case MOV_IMM_TO_REG_W1:
-        generate_mov_imm_to_reg(ins_type, instruction_branch);
+        generate_mov_imm_to_reg(opcode, instruction_branch);
         break;
     case MOV_IMM_TO_MEM_W0:
     case MOV_IMM_TO_MEM_W1:
-        generate_mov_imm_to_mem(ins_type, instruction_branch);
+        generate_mov_imm_to_mem(opcode, instruction_branch);
         break;
     case MOV_ACC_TO_MEMOFFS_W0:
     case MOV_ACC_TO_MEMOFFS_W1:
-        generate_mov_acc_to_mem_offs(ins_type, instruction_branch);
+        generate_mov_acc_to_mem_offs(opcode, instruction_branch);
         break;
     case MOV_MEMOFFS_TO_ACC_W0:
     case MOV_MEMOFFS_TO_ACC_W1:
-        generate_mov_mem_offs_to_acc(ins_type, instruction_branch);
+        generate_mov_mem_offs_to_acc(opcode, instruction_branch);
+        break;
+    case MOV_MEM_TO_REG_W0:
+    case MOV_MEM_TO_REG_W1:
+        generate_mov_mem_to_reg(opcode, instruction_branch);
         break;
     }
 
 }
 
-void Assembler8086::generate_mov_reg_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch)
+void Assembler8086::generate_mov_reg_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
 {
     left = instruction_branch->getLeftBranch();
     right = instruction_branch->getRightBranch();
@@ -745,21 +713,21 @@ void Assembler8086::generate_mov_reg_to_reg(INSTRUCTION_TYPE ins_type, std::shar
     // Get the modrm for this instruction
     get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
 
-    sstream->write8(ins_type);
+    sstream->write8(opcode);
     sstream->write8(bind_modrm(oo, rrr, mmm));
 
 }
 
-void Assembler8086::generate_mov_imm_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch)
+void Assembler8086::generate_mov_imm_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
 {
     left = instruction_branch->getLeftBranch();
     right = instruction_branch->getRightBranch();
 
     rrr = get_reg(left->getRegisterBranch()->getValue());
-    op = ins_type << 3 | rrr;
+    op = opcode << 3 | rrr;
     sstream->write8(op);
 
-    if (ins_type == MOV_IMM_TO_REG_W0)
+    if (opcode == ins_map[MOV_IMM_TO_REG_W0])
     {
         write_abs_static8(right);
     }
@@ -769,7 +737,7 @@ void Assembler8086::generate_mov_imm_to_reg(INSTRUCTION_TYPE ins_type, std::shar
     }
 }
 
-void Assembler8086::generate_mov_imm_to_mem(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch)
+void Assembler8086::generate_mov_imm_to_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
 {
     left = instruction_branch->getLeftBranch();
     right = instruction_branch->getRightBranch();
@@ -778,7 +746,7 @@ void Assembler8086::generate_mov_imm_to_mem(INSTRUCTION_TYPE ins_type, std::shar
     get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
 
     // Write the opcode
-    sstream->write8(ins_type);
+    sstream->write8(opcode);
 
     // Write the MOD/RM
     sstream->write8(bind_modrm(oo, 0, mmm));
@@ -793,7 +761,7 @@ void Assembler8086::generate_mov_imm_to_mem(INSTRUCTION_TYPE ins_type, std::shar
     }
 
     // Write the value
-    if (ins_type == MOV_IMM_TO_MEM_W0)
+    if (opcode == MOV_IMM_TO_MEM_W0)
     {
         write_abs_static8(right);
     }
@@ -803,28 +771,43 @@ void Assembler8086::generate_mov_imm_to_mem(INSTRUCTION_TYPE ins_type, std::shar
     }
 }
 
-void Assembler8086::generate_mov_acc_to_mem_offs(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch)
+void Assembler8086::generate_mov_acc_to_mem_offs(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
 {
     left = instruction_branch->getLeftBranch();
     right = instruction_branch->getRightBranch();
 
     // Write the opcode
-    sstream->write8(ins_type);
+    sstream->write8(opcode);
 
     // Next comes the offset
     write_abs_static16(left);
 }
 
-void Assembler8086::generate_mov_mem_offs_to_acc(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch)
+void Assembler8086::generate_mov_mem_offs_to_acc(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
 {
     left = instruction_branch->getLeftBranch();
     right = instruction_branch->getRightBranch();
 
     // Write the opcode
-    sstream->write8(ins_type);
+    sstream->write8(opcode);
 
     // Next comes the offset
-    write_abs_static16(left);
+    write_abs_static16(right);
+}
+
+void Assembler8086::generate_mov_mem_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
+{
+    left = instruction_branch->getLeftBranch();
+    right = instruction_branch->getRightBranch();
+
+    // Get the modrm for this instruction
+    get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
+
+    sstream->write8(opcode);
+    sstream->write8(bind_modrm(oo, rrr, mmm));
+
+    // Now we are expecting the address to move memory from
+    write_abs_static16(right);
 }
 
 char Assembler8086::bind_modrm(char oo, char rrr, char mmm)
@@ -839,7 +822,7 @@ int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch)
     {
         value += std::stoi(branch->getNumberBranch()->getValue());
     }
-    
+
     if (branch->hasIdentifierBranch())
     {
         value += get_label_offset(branch->getIdentifierBranch()->getValue());
@@ -952,6 +935,17 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
                     return MOV_MEMOFFS_TO_ACC_W0;
                 }
             }
+            else
+            {
+                if (is_reg_16_bit(left_reg->getValue()))
+                {
+                    return MOV_MEM_TO_REG_W1;
+                }
+                else
+                {
+                    return MOV_MEM_TO_REG_W0;
+                }
+            }
         }
     }
     else if (left->isAccessingMemory())
@@ -1042,6 +1036,43 @@ char Assembler8086::get_reg(std::string _register)
         return 6;
     }
     else if (_register == "bh" || _register == "di")
+    {
+        return 7;
+    }
+}
+
+char Assembler8086::get_mmm(std::string _register, std::string second_reg)
+{
+
+    if (_register == "bx" && second_reg == "si")
+    {
+        return 0;
+    }
+    else if (_register == "bx" && second_reg == "di")
+    {
+        return 1;
+    }
+    else if (_register == "bp" && second_reg == "si")
+    {
+        return 2;
+    }
+    else if (_register == "bp" && second_reg == "di")
+    {
+        return 3;
+    }
+    else if (_register == "si")
+    {
+        return 4;
+    }
+    else if (_register == "di")
+    {
+        return 5;
+    }
+    else if (_register == "bp")
+    {
+        return 6;
+    }
+    else if (_register == "bx")
     {
         return 7;
     }

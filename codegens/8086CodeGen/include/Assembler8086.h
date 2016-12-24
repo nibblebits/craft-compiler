@@ -47,16 +47,18 @@ enum
 
 enum
 {
-    MOV_REG_TO_REG_W0 = 0x88,
-    MOV_REG_TO_REG_W1 = 0x89,
-    MOV_IMM_TO_REG_W0 = 0x16,
-    MOV_IMM_TO_REG_W1 = 0x17,
-    MOV_IMM_TO_MEM_W0 = 0xc6,
-    MOV_IMM_TO_MEM_W1 = 0xc7,
-    MOV_ACC_TO_MEMOFFS_W0 = 0xa2,
-    MOV_ACC_TO_MEMOFFS_W1 = 0xa3,
-    MOV_MEMOFFS_TO_ACC_W0 = 0xa0,
-    MOV_MEMOFFS_TO_ACC_W1 = 0xa1
+    MOV_REG_TO_REG_W0,
+    MOV_REG_TO_REG_W1,
+    MOV_IMM_TO_REG_W0,
+    MOV_IMM_TO_REG_W1,
+    MOV_IMM_TO_MEM_W0,
+    MOV_IMM_TO_MEM_W1,
+    MOV_ACC_TO_MEMOFFS_W0,
+    MOV_ACC_TO_MEMOFFS_W1,
+    MOV_MEMOFFS_TO_ACC_W0,
+    MOV_MEMOFFS_TO_ACC_W1,
+    MOV_MEM_TO_REG_W0,
+    MOV_MEM_TO_REG_W1
 };
 
 typedef int INSTRUCTION_TYPE;
@@ -90,11 +92,12 @@ private:
     void assembler_pass_2();
     void generate_part(std::shared_ptr<Branch> branch);
     void generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_reg_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_imm_to_reg(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_imm_to_mem(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_acc_to_mem_offs(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_mem_offs_to_acc(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_mov_reg_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_mov_imm_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_mov_imm_to_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_mov_acc_to_mem_offs(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_mov_mem_offs_to_acc(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_mov_mem_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
     char bind_modrm(char oo, char rrr, char mmm);
     int get_static_from_branch(std::shared_ptr<OperandBranch> branch);
@@ -108,12 +111,13 @@ private:
     inline bool is_accumulator_and_not_ah(std::string _register);
     inline bool is_reg(std::string _register);
     inline char get_reg(std::string _register);
+    inline char get_mmm(std::string _register, std::string second_reg="");
     inline bool is_reg_16_bit(std::string _register);
 
 
     inline std::shared_ptr<InstructionBranch> new_ins_branch();
     void parse_part();
-    
+
     std::shared_ptr<Branch> get_number_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
     std::shared_ptr<Branch> get_register_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
     std::shared_ptr<Branch> get_identifier_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
