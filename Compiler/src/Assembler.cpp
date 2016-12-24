@@ -542,7 +542,8 @@ std::shared_ptr<Branch> Assembler::sum_expression(std::shared_ptr<Branch> expres
             // Ok now remove the branch
             root_e->removeSelf();
         }
-        else
+        else if(left_branch->getType() == "number"
+                || right_branch->getType() == "number")
         {
             std::shared_ptr<Token> target_token;
             if (left_branch->getType() == "number")
