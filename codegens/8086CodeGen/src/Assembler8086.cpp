@@ -52,19 +52,19 @@
  * as some instructions share the same opcode */
 unsigned char ins_map[] = {
     0x88, 0x89, 0x16, 0x17, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
-    0x8a, 0x8b, 0x88, 0x89, 0x02, 0x03, 0x00, 0x01
+    0x8a, 0x8b, 0x88, 0x89, 0x02, 0x03, 0x00, 0x01, 0x02, 0x03
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
 unsigned char ins_sizes[] = {
     2, 2, 2, 3, 3, 4, 3, 3, 3, 3,
-    2, 2, 2, 2, 2, 2, 2, 2
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2
 };
 
 // Indicates weather or not an instruction has an oo and mmm
 bool has_oommm[] = {
     1, 1, 0, 0, 1, 1, 0, 0, 0, 0,
-    1, 1, 1, 1, 1, 1, 1, 1
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -648,7 +648,16 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
         }
         else
         {
-            *mmm = get_reg(left_reg->getValue());
+            if (*oo == DISPLACEMENT_IF_MMM_110 ||
+                    *oo == DISPLACEMENT_8BIT_FOLLOW ||
+                    *oo == DISPLACEMENT_16BIT_FOLLOW)
+            {
+                *rrr = get_reg(left_reg->getValue());
+            }
+            else
+            {
+                *mmm = get_reg(left_reg->getValue());
+            }
 
         }
     }
@@ -657,7 +666,16 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
     {
         if (right->isAccessingMemory())
         {
-            *rrr = get_mmm(right_reg->getValue());
+            if (*oo == DISPLACEMENT_IF_MMM_110 ||
+                    *oo == DISPLACEMENT_8BIT_FOLLOW ||
+                    *oo == DISPLACEMENT_16BIT_FOLLOW)
+            {
+                *mmm = get_mmm(right_reg->getValue());
+            }
+            else
+            {
+                *rrr = get_mmm(right_reg->getValue());
+            }
         }
         else
         {
@@ -789,6 +807,10 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
     case ADD_MEM_WITH_REG_W0:
     case ADD_MEM_WITH_REG_W1:
         generate_add_mem_with_reg(opcode, instruction_branch);
+        break;
+    case ADD_REG_WITH_MEM_W0:
+    case ADD_REG_WITH_MEM_W1:
+        generate_add_reg_with_mem(opcode, instruction_branch);
         break;
     }
 
@@ -923,6 +945,16 @@ void Assembler8086::generate_add_mem_with_reg(int opcode, std::shared_ptr<Instru
 
     // Write the offset 
     write_modrm_offset(left);
+}
+
+void Assembler8086::generate_add_reg_with_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
+{
+    sstream->write8(opcode);
+    get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
+    sstream->write8(bind_modrm(oo, rrr, mmm));
+
+    // Write the offset.
+    write_modrm_offset(right);
 }
 
 char Assembler8086::bind_modrm(char oo, char rrr, char mmm)
@@ -1150,6 +1182,17 @@ INSTRUCTION_TYPE Assembler8086::get_add_ins_type(std::shared_ptr<InstructionBran
             else
             {
                 return ADD_REG_WITH_REG_W0;
+            }
+        }
+        else if (right->isAccessingMemory())
+        {
+            if (is_reg_16_bit(left_reg->getValue()))
+            {
+                return ADD_REG_WITH_MEM_W1;
+            }
+            else
+            {
+                return ADD_REG_WITH_MEM_W0;
             }
         }
     }

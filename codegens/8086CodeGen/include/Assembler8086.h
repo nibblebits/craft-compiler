@@ -64,7 +64,9 @@ enum
     ADD_REG_WITH_REG_W0,
     ADD_REG_WITH_REG_W1,
     ADD_MEM_WITH_REG_W0,
-    ADD_MEM_WITH_REG_W1
+    ADD_MEM_WITH_REG_W1,
+    ADD_REG_WITH_MEM_W0,
+    ADD_REG_WITH_MEM_W1
 };
 
 typedef int INSTRUCTION_TYPE;
@@ -107,6 +109,7 @@ private:
     void generate_mov_reg_to_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_add_reg_with_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_add_mem_with_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_add_reg_with_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
 
     char bind_modrm(char oo, char rrr, char mmm);
