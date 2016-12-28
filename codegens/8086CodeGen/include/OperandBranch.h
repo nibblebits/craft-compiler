@@ -62,6 +62,8 @@ public:
     
     bool isOnlyRegister();
     bool isOnlyImmediate();
+    
+    bool hasImmediate();
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();

@@ -105,6 +105,11 @@ bool OperandBranch::isOnlyImmediate()
             && !hasIdentifierBranch();
 }
 
+bool OperandBranch::hasImmediate()
+{
+    return (hasNumberBranch() || hasIdentifierBranch());
+}
+
 bool OperandBranch::isAccessingMemory()
 {
     return this->is_memory_access;
