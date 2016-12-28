@@ -61,7 +61,10 @@ enum
     MOV_MEM_TO_REG_W1,
     MOV_REG_TO_MEM_W0,
     MOV_REG_TO_MEM_W1,
-    ADD_REG_WITH_REG
+    ADD_REG_WITH_REG_W0,
+    ADD_REG_WITH_REG_W1,
+    ADD_MEM_WITH_REG_W0,
+    ADD_MEM_WITH_REG_W1
 };
 
 typedef int INSTRUCTION_TYPE;
@@ -87,7 +90,7 @@ private:
     void pass_1_segment(std::shared_ptr<SegmentBranch> segment_branch);
     void pass_1_part(std::shared_ptr<Branch> branch);
 
-    void get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm, bool oo_default_use_reg_no_addr_mode);
+    void get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm);
     int get_offset_from_oomod(char oo, char mmm);
     int get_instruction_size(std::shared_ptr<InstructionBranch> ins_branch);
     void register_segment(std::shared_ptr<SegmentBranch> segment_branch);
@@ -103,6 +106,7 @@ private:
     void generate_mov_mem_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_mov_reg_to_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_add_reg_with_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_add_mem_with_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
 
     char bind_modrm(char oo, char rrr, char mmm);
