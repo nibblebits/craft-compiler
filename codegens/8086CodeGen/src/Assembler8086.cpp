@@ -52,19 +52,19 @@
  * as some instructions share the same opcode */
 unsigned char ins_map[] = {
     0x88, 0x89, 0x16, 0x17, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
-    0x8a, 0x8b, 0x88, 0x89
+    0x8a, 0x8b, 0x88, 0x89, 0x01
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
 unsigned char ins_sizes[] = {
     2, 2, 2, 3, 3, 4, 3, 3, 3, 3,
-    2, 2, 2, 2
+    2, 2, 2, 2, 2
 };
 
 // Indicates weather or not an instruction has an oo and mmm
 bool has_oommm[] = {
     1, 1, 0, 0, 1, 1, 0, 0, 0, 0,
-    1, 1, 1, 1
+    1, 1, 1, 1, 1
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -770,6 +770,9 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
     case MOV_REG_TO_MEM_W1:
         generate_mov_reg_to_mem(opcode, instruction_branch);
         break;
+    case ADD_REG_WITH_REG:
+        generate_add_reg_with_reg(opcode, instruction_branch);
+        break;
     }
 
 }
@@ -888,6 +891,13 @@ void Assembler8086::generate_mov_reg_to_mem(int opcode, std::shared_ptr<Instruct
     write_modrm_offset(left);
 }
 
+void Assembler8086::generate_add_reg_with_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
+{
+    sstream->write8(opcode);
+    get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm, true);
+    sstream->write8(bind_modrm(oo, rrr, mmm));
+}
+
 char Assembler8086::bind_modrm(char oo, char rrr, char mmm)
 {
     return (oo << 6 | rrr << 3 | mmm);
@@ -978,14 +988,19 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<Instruction
         // This is a move instruction
         return get_mov_ins_type(instruction_branch);
     }
+    else if (instruction_name == "add")
+    {
+        // This is an add instruction
+        return get_add_ins_type(instruction_branch);
+    }
 
     throw AssemblerException("INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch): Invalid assembler instruction");
 }
 
 INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBranch> instruction_branch)
 {
-    this->left = instruction_branch->getLeftBranch();
-    this->right = instruction_branch->getRightBranch();
+    left = instruction_branch->getLeftBranch();
+    right = instruction_branch->getRightBranch();
 
     if (left->isOnlyRegister())
     {
@@ -1089,6 +1104,24 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
             }
         }
     }
+}
+
+INSTRUCTION_TYPE Assembler8086::get_add_ins_type(std::shared_ptr<InstructionBranch> instruction_branch)
+{
+    left = instruction_branch->getLeftBranch();
+    right = instruction_branch->getRightBranch();
+
+    if (left->isOnlyRegister())
+    {
+        left_reg = left->getRegisterBranch();
+        if (right->isOnlyRegister())
+        {
+            right_reg = right->getRegisterBranch();
+            return ADD_REG_WITH_REG;
+        }
+    }
+
+    return -1;
 }
 
 bool Assembler8086::is_accumulator_and_not_ah(std::string _register)

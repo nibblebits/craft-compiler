@@ -60,7 +60,8 @@ enum
     MOV_MEM_TO_REG_W0,
     MOV_MEM_TO_REG_W1,
     MOV_REG_TO_MEM_W0,
-    MOV_REG_TO_MEM_W1
+    MOV_REG_TO_MEM_W1,
+    ADD_REG_WITH_REG
 };
 
 typedef int INSTRUCTION_TYPE;
@@ -101,8 +102,9 @@ private:
     void generate_mov_mem_offs_to_acc(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_mov_mem_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_mov_reg_to_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_add_reg_with_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
-    
+
     char bind_modrm(char oo, char rrr, char mmm);
     int get_static_from_branch(std::shared_ptr<OperandBranch> branch);
     void write_modrm_offset(std::shared_ptr<OperandBranch> branch);
@@ -112,11 +114,11 @@ private:
     int get_label_offset(std::string label_name);
     INSTRUCTION_TYPE get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch);
     INSTRUCTION_TYPE get_mov_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
-
+    INSTRUCTION_TYPE get_add_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
     inline bool is_accumulator_and_not_ah(std::string _register);
     inline bool is_reg(std::string _register);
     inline char get_reg(std::string _register);
-    inline bool is_mmm(std::string  _register, std::string second_reg = "");
+    inline bool is_mmm(std::string _register, std::string second_reg = "");
     inline char get_mmm(std::string _register, std::string second_reg = "");
     inline bool is_reg_16_bit(std::string _register);
 
