@@ -52,7 +52,7 @@
  * as some instructions share the same opcode */
 unsigned char ins_map[] = {
     0x88, 0x89, 0xb1, 0xb8, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
-    0x8a, 0x8b, 0x88, 0x89, 0x02, 0x03, 0x00, 0x01, 0x02, 0x03
+    0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -86,10 +86,12 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_IMM_USE_LEFT | HAS_REG_ON_RIGHT, // mov mem, ax
     USE_W | HAS_REG_ON_LEFT | HAS_IMM_USE_RIGHT, // mov ax, mem
     USE_W | HAS_REG_ON_LEFT | HAS_IMM_USE_RIGHT, // mov ax, mem
-    HAS_OORRRMMM | HAS_REG_ON_LEFT, // mov reg, mem
-    USE_W | HAS_OORRRMMM | HAS_REG_ON_LEFT, // mov reg, mem
-
-
+    HAS_OORRRMMM | HAS_REG_ON_LEFT, // mov reg8, mem
+    USE_W | HAS_OORRRMMM | HAS_REG_ON_LEFT, // mov reg16, mem
+    HAS_OORRRMMM | HAS_REG_ON_RIGHT, // mov mem, reg8
+    USE_W | HAS_OORRRMMM | HAS_REG_ON_RIGHT, // mov mem, reg16
+    HAS_OORRRMMM | HAS_REG_ON_LEFT | HAS_REG_ON_RIGHT, // add reg8, reg8
+    USE_W | HAS_OORRRMMM | HAS_REG_ON_LEFT | HAS_REG_ON_RIGHT, // add reg16, reg16
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -644,7 +646,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
         else if (right->isAccessingMemory()
                 && right->hasImmediate())
         {
-            if (!right->hasRegisterBranch() 
+            if (!right->hasRegisterBranch()
                     && left->isOnlyRegister())
             {
                 *oo = DISPLACEMENT_IF_MMM_110;
