@@ -92,6 +92,8 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OORRRMMM | HAS_REG_ON_RIGHT, // mov mem, reg16
     HAS_OORRRMMM | HAS_REG_ON_LEFT | HAS_REG_ON_RIGHT, // add reg8, reg8
     USE_W | HAS_OORRRMMM | HAS_REG_ON_LEFT | HAS_REG_ON_RIGHT, // add reg16, reg16
+    HAS_OORRRMMM | HAS_REG_ON_RIGHT, // add mem, reg
+    USE_W | HAS_OORRRMMM | HAS_REG_ON_RIGHT // add mem, reg
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
