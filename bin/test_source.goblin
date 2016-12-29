@@ -1,2 +1,1 @@
-__asm("mov [_data+3], ax");
-__asm("_data:");
+__asm("add cl, [bx+50]");
