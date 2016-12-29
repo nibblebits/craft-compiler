@@ -39,6 +39,18 @@ enum
 
 enum
 {
+    USE_W = 0x01,
+    HAS_RRR = 0x02,
+    HAS_OOMMM = 0x04,
+    HAS_OORRRMMM = 0x08,
+    HAS_IMM_USE_LEFT = 0x10,
+    HAS_IMM_USE_RIGHT = 0x20,
+    HAS_REG_ON_LEFT = 0x40,
+    HAS_REG_ON_RIGHT = 0x80
+};
+
+enum
+{
     DISPLACEMENT_IF_MMM_110,
     DISPLACEMENT_8BIT_FOLLOW,
     DISPLACEMENT_16BIT_FOLLOW,
@@ -70,6 +82,7 @@ enum
 };
 
 typedef int INSTRUCTION_TYPE;
+typedef unsigned char INSTRUCTION_INFO;
 
 class OperandBranch;
 class LabelBranch;
@@ -98,6 +111,10 @@ private:
     void register_segment(std::shared_ptr<SegmentBranch> segment_branch);
     void switch_to_segment(std::string segment_name);
     void assembler_pass_2();
+    void handle_rrr(int* opcode, INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
+    void gen_oommm(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> ins_branch);
+    void gen_oorrrmmm(std::shared_ptr<InstructionBranch> ins_branch, unsigned char def_rrr=-1);
+    void gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
     void generate_part(std::shared_ptr<Branch> branch);
     void generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_mov_reg_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
@@ -112,9 +129,10 @@ private:
     void generate_add_reg_with_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
 
-    char bind_modrm(char oo, char rrr, char mmm);
+    inline char bind_modrm(char oo, char rrr, char mmm);
+    inline bool has_oommm(INSTRUCTION_TYPE ins_type);
     int get_static_from_branch(std::shared_ptr<OperandBranch> branch);
-    void write_modrm_offset(std::shared_ptr<OperandBranch> branch);
+    void write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<OperandBranch> branch);
     void write_abs_static8(std::shared_ptr<OperandBranch> branch);
     void write_abs_static16(std::shared_ptr<OperandBranch> branch);
     std::shared_ptr<LabelBranch> get_label_branch(std::string label_name);
@@ -128,6 +146,7 @@ private:
     inline bool is_mmm(std::string _register, std::string second_reg = "");
     inline char get_mmm(std::string _register, std::string second_reg = "");
     inline bool is_reg_16_bit(std::string _register);
+    inline void ins_info_except();
 
 
     inline std::shared_ptr<InstructionBranch> new_ins_branch();
@@ -158,7 +177,7 @@ private:
     std::shared_ptr<OperandBranch> right;
     std::shared_ptr<Branch> right_reg;
 
-
+    INSTRUCTION_TYPE cur_ins_type;
     char mmm;
     char rrr;
     char oo;

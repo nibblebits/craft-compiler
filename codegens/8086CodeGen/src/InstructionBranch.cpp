@@ -65,6 +65,16 @@ std::shared_ptr<OperandBranch> InstructionBranch::getRightBranch()
     return std::dynamic_pointer_cast<OperandBranch>(CustomBranch::getRegisteredBranchByName("right_branch"));
 }
 
+bool InstructionBranch::hasLeftBranch()
+{
+    return CustomBranch::isBranchRegistered("left_branch");
+}
+
+bool InstructionBranch::hasRightBranch()
+{
+   return CustomBranch::isBranchRegistered("right_branch");
+}
+
 void InstructionBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<InstructionBranch> ins_branch = std::dynamic_pointer_cast<InstructionBranch>(cloned_branch);
