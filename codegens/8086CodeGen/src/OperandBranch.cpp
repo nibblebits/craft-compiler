@@ -100,9 +100,8 @@ bool OperandBranch::isOnlyRegister()
 
 bool OperandBranch::isOnlyImmediate()
 {
-    return (hasNumberBranch() || hasIdentifierBranch())
-            && !isAccessingMemory()
-            && !hasIdentifierBranch();
+    return (hasNumberBranch() || hasIdentifierBranch()
+            && !isAccessingMemory());
 }
 
 bool OperandBranch::hasImmediate()

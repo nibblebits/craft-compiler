@@ -26,14 +26,7 @@
 #define OPERANDBRANCH_H
 
 #include "CustomBranch.h"
-
-typedef char OPERAND_DATA_SIZE;
-
-enum
-{
-    OPERAND_DATA_SIZE_BYTE,
-    OPERAND_DATA_SIZE_WORD
-};
+#include "Assembler8086.h"
 
 class OperandBranch : public CustomBranch
 {

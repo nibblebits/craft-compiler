@@ -33,6 +33,13 @@ class SegmentBranch;
 
 enum
 {
+    OPERAND_DATA_SIZE_UNKNOWN,
+    OPERAND_DATA_SIZE_BYTE,
+    OPERAND_DATA_SIZE_WORD
+};
+
+enum
+{
     W0_BITS_8,
     W1_BITS_16
 };
@@ -45,8 +52,43 @@ enum
     HAS_OORRRMMM = 0x08,
     HAS_IMM_USE_LEFT = 0x10,
     HAS_IMM_USE_RIGHT = 0x20,
-    HAS_REG_ON_LEFT = 0x40,
-    HAS_REG_ON_RIGHT = 0x80
+    HAS_REG_USE_LEFT = 0x40,
+    HAS_REG_USE_RIGHT = 0x80
+};
+
+enum
+{
+    REG8,
+    REG16,
+    AL,
+    AX,
+    MEM,
+    IMM8,
+    IMM16,
+    ALONE
+};
+
+enum
+{
+    REG8_REG8 = (REG8 << 8 | REG8),
+    REG16_REG16 = (REG16 << 8 | REG16),
+    REG8_MEM = (REG8 << 8 | MEM),
+    REG16_MEM = (REG16 << 8 | MEM),
+    MEM_REG8 = (MEM << 8 | REG8),
+    MEM_REG16 = (MEM << 8 | REG16),
+    REG8_IMM8 = (REG8 << 8 | IMM8),
+    REG16_IMM16 = (REG16 << 8 | IMM16),
+    MEM_IMM8 = (MEM << 8 | IMM8),
+    MEM_IMM16 = (MEM << 8 | IMM16),
+    MEM_AL = (MEM << 8 | AL),
+    MEM_AX = (MEM << 8 | AX),
+    MEM_ALONE = (MEM << 8 | ALONE),
+    IMM8_ALONE = (IMM8 << 8 | ALONE),
+    IMM16_ALONE = (IMM16 << 8 | ALONE),
+    REG8_ALONE = (REG8 << 8 | ALONE),
+    REG16_ALONE = (REG16 << 8 | ALONE),
+    AL_ALONE = (AL << 8 | ALONE),
+    AX_ALONE = (AX << 8 | ALONE)
 };
 
 enum
@@ -81,8 +123,19 @@ enum
     ADD_REG_WITH_MEM_W1
 };
 
+
 typedef int INSTRUCTION_TYPE;
 typedef unsigned char INSTRUCTION_INFO;
+typedef unsigned short SYNTAX_INFO;
+typedef unsigned short OPERAND_INFO;
+typedef char OPERAND_DATA_SIZE;
+
+struct ins_syntax_def
+{
+    const char* ins_name;
+    INSTRUCTION_TYPE ins_type;
+    SYNTAX_INFO syntax_info;
+};
 
 class OperandBranch;
 class LabelBranch;
@@ -113,7 +166,7 @@ private:
     void assembler_pass_2();
     void handle_rrr(int* opcode, INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
     void gen_oommm(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> ins_branch);
-    void gen_oorrrmmm(std::shared_ptr<InstructionBranch> ins_branch, unsigned char def_rrr=-1);
+    void gen_oorrrmmm(std::shared_ptr<InstructionBranch> ins_branch, unsigned char def_rrr = -1);
     void gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
     void generate_part(std::shared_ptr<Branch> branch);
     void generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch);
@@ -137,6 +190,9 @@ private:
     void write_abs_static16(std::shared_ptr<OperandBranch> branch);
     std::shared_ptr<LabelBranch> get_label_branch(std::string label_name);
     int get_label_offset(std::string label_name);
+    OPERAND_INFO get_operand_info(std::shared_ptr<OperandBranch> op_branch);
+    SYNTAX_INFO get_syntax_info(std::shared_ptr<InstructionBranch> instruction_branch, OPERAND_INFO* left_op = NULL, OPERAND_INFO* right_op = NULL);
+    INSTRUCTION_TYPE get_instruction_type_by_name_and_syntax(std::string instruction_name, SYNTAX_INFO syntax_info);
     INSTRUCTION_TYPE get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch);
     INSTRUCTION_TYPE get_mov_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
     INSTRUCTION_TYPE get_add_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
@@ -156,7 +212,7 @@ private:
     std::shared_ptr<Branch> get_register_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
     std::shared_ptr<Branch> get_identifier_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
     void handle_operand_exp(std::shared_ptr<OperandBranch> operand_branch);
-    void parse_operand();
+    void parse_operand(OPERAND_DATA_SIZE data_size = OPERAND_DATA_SIZE_UNKNOWN);
     void parse_segment();
     void parse_label();
     void parse_ins();

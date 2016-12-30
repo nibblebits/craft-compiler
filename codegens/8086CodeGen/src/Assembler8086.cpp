@@ -76,24 +76,39 @@ unsigned char static_rrr[] = {
  * WHILE AN OOMM IS PRESENT.*/
 
 INSTRUCTION_INFO ins_info[] = {
-    HAS_OORRRMMM | HAS_REG_ON_LEFT | HAS_REG_ON_RIGHT, // mov reg8, reg8
-    USE_W | HAS_REG_ON_LEFT | HAS_REG_ON_RIGHT | HAS_OORRRMMM, // mov reg16, reg16
-    HAS_RRR | HAS_REG_ON_LEFT | HAS_IMM_USE_RIGHT, // mov reg8, imm8
-    USE_W | HAS_RRR | HAS_REG_ON_LEFT | HAS_IMM_USE_RIGHT, // mov reg16, imm16
+    HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // mov reg8, reg8
+    USE_W | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT | HAS_OORRRMMM, // mov reg16, reg16
+    HAS_RRR | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // mov reg8, imm8
+    USE_W | HAS_RRR | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // mov reg16, imm16
     HAS_OOMMM | HAS_IMM_USE_RIGHT, // mov mem, imm8
     USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT, // mov mem, imm16
-    USE_W | HAS_IMM_USE_LEFT | HAS_REG_ON_RIGHT, // mov mem, al
-    USE_W | HAS_IMM_USE_LEFT | HAS_REG_ON_RIGHT, // mov mem, ax
-    USE_W | HAS_REG_ON_LEFT | HAS_IMM_USE_RIGHT, // mov ax, mem
-    USE_W | HAS_REG_ON_LEFT | HAS_IMM_USE_RIGHT, // mov ax, mem
-    HAS_OORRRMMM | HAS_REG_ON_LEFT, // mov reg8, mem
-    USE_W | HAS_OORRRMMM | HAS_REG_ON_LEFT, // mov reg16, mem
-    HAS_OORRRMMM | HAS_REG_ON_RIGHT, // mov mem, reg8
-    USE_W | HAS_OORRRMMM | HAS_REG_ON_RIGHT, // mov mem, reg16
-    HAS_OORRRMMM | HAS_REG_ON_LEFT | HAS_REG_ON_RIGHT, // add reg8, reg8
-    USE_W | HAS_OORRRMMM | HAS_REG_ON_LEFT | HAS_REG_ON_RIGHT, // add reg16, reg16
-    HAS_OORRRMMM | HAS_REG_ON_RIGHT, // add mem, reg
-    USE_W | HAS_OORRRMMM | HAS_REG_ON_RIGHT // add mem, reg
+    USE_W | HAS_IMM_USE_LEFT | HAS_REG_USE_RIGHT, // mov mem, al
+    USE_W | HAS_IMM_USE_LEFT | HAS_REG_USE_RIGHT, // mov mem, ax
+    USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // mov ax, mem
+    USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // mov ax, mem
+    HAS_OORRRMMM | HAS_REG_USE_LEFT, // mov reg8, mem
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT, // mov reg16, mem
+    HAS_OORRRMMM | HAS_REG_USE_RIGHT, // mov mem, reg8
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_RIGHT, // mov mem, reg16
+    HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // add reg8, reg8
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // add reg16, reg16
+    HAS_OORRRMMM | HAS_REG_USE_RIGHT, // add mem, reg
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_RIGHT // add mem, reg
+};
+
+struct ins_syntax_def ins_syntax[] = {
+    "mov", MOV_REG_TO_REG_W0, REG8_REG8,
+    "mov", MOV_REG_TO_REG_W1, REG16_REG16,
+    "mov", MOV_IMM_TO_REG_W0, REG8_IMM8,
+    "mov", MOV_IMM_TO_REG_W1, REG16_IMM16,
+    "mov", MOV_IMM_TO_MEM_W0, MEM_IMM8,
+    "mov", MOV_IMM_TO_MEM_W1, MEM_IMM16,
+    "mov", MOV_ACC_TO_MEMOFFS_W0, MEM_AL,
+    "mov", MOV_ACC_TO_MEMOFFS_W1, MEM_AX,
+    "mov", MOV_REG_TO_MEM_W0, MEM_REG8,
+    "mov", MOV_REG_TO_MEM_W1, MEM_REG16,
+    "mov", MOV_MEM_TO_REG_W0, REG8_MEM,
+    "mov", MOV_MEM_TO_REG_W1, REG16_MEM,
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -342,23 +357,36 @@ void Assembler8086::handle_operand_exp(std::shared_ptr<OperandBranch> operand_br
     operand_branch->setIdentifierBranch(get_identifier_branch_from_exp(r_exp));
 }
 
-void Assembler8086::parse_operand()
+void Assembler8086::parse_operand(OPERAND_DATA_SIZE data_size)
 {
     std::shared_ptr<OperandBranch> operand_branch = std::shared_ptr<OperandBranch>(new OperandBranch(getCompiler()));
     peek();
     if (is_peek_keyword("byte"))
     {
+        if (data_size == OPERAND_DATA_SIZE_WORD)
+        {
+            throw AssemblerException("Error using byte with instruction while register indicates word");
+        }
         // Ok we have byte access here
         shift_pop();
         operand_branch->setDataSize(OPERAND_DATA_SIZE_BYTE);
     }
     else if (is_peek_keyword("word"))
     {
+        if (data_size == OPERAND_DATA_SIZE_BYTE)
+        {
+            throw AssemblerException("Error using word with instruction while register indicates byte");
+        }
         // Ok a word access
         shift_pop();
         operand_branch->setDataSize(OPERAND_DATA_SIZE_WORD);
     }
 
+    if (data_size != OPERAND_DATA_SIZE_UNKNOWN)
+    {
+        operand_branch->setDataSize(data_size);
+    }
+    
     peek();
     if (is_peek_symbol("["))
     {
@@ -475,8 +503,21 @@ void Assembler8086::parse_ins()
             // Now we need to shift and pop off the comma ","
             shift_pop();
 
+            OPERAND_DATA_SIZE def_data_size = OPERAND_DATA_SIZE_UNKNOWN;
+            if (dest_op->hasRegisterBranch())
+            {
+                if (is_reg_16_bit(dest_op->getRegisterBranch()->getValue()))
+                {
+                    def_data_size = OPERAND_DATA_SIZE_WORD;
+                }
+                else
+                {
+                    def_data_size = OPERAND_DATA_SIZE_BYTE;
+                }
+            }
+            
             // Finally a final expression which will be the second operand
-            parse_operand();
+            parse_operand(def_data_size);
 
             // Pop it off
             pop_branch();
@@ -800,11 +841,11 @@ void Assembler8086::assembler_pass_2()
 void Assembler8086::handle_rrr(int* opcode, INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch)
 {
     std::shared_ptr<Branch> selected_reg = NULL;
-    if (info & HAS_REG_ON_LEFT)
+    if (info & HAS_REG_USE_LEFT)
     {
         selected_reg = ins_branch->getLeftBranch()->getRegisterBranch();
     }
-    else if (info & HAS_REG_ON_RIGHT)
+    else if (info & HAS_REG_USE_RIGHT)
     {
         selected_reg = ins_branch->getRightBranch()->getRegisterBranch();
     }
@@ -1151,23 +1192,144 @@ void Assembler8086::generate_segment(std::shared_ptr<SegmentBranch> branch)
     }
 }
 
+OPERAND_INFO Assembler8086::get_operand_info(std::shared_ptr<OperandBranch> op_branch)
+{
+    OPERAND_INFO info = -1;
+    std::shared_ptr<Branch> reg_branch = NULL;
+    if (op_branch->isOnlyRegister())
+    {
+        reg_branch = op_branch->getRegisterBranch();
+        if (is_accumulator_and_not_ah(reg_branch->getValue()))
+        {
+            if (is_reg_16_bit(reg_branch->getValue()))
+            {
+                info = AX;
+            }
+            else
+            {
+                info = AL;
+            }
+        }
+        else
+        {
+            if (is_reg_16_bit(reg_branch->getValue()))
+            {
+                info = REG16;
+            }
+            else
+            {
+                info = REG8;
+            }
+        }
+    }
+    else if (op_branch->isOnlyImmediate())
+    {
+        if (op_branch->hasIdentifierBranch())
+        {
+            info = IMM16;
+        }
+        else
+        {
+            if (op_branch->getDataSize() == OPERAND_DATA_SIZE_WORD)
+            {
+                info = IMM16;
+            }
+            else
+            {
+                info = IMM8;
+            }
+        }
+    }
+    else if(op_branch->isAccessingMemory())
+    {
+        info = MEM;
+    }
+
+    return info;
+}
+
+SYNTAX_INFO Assembler8086::get_syntax_info(std::shared_ptr<InstructionBranch> instruction_branch, OPERAND_INFO* left_op, OPERAND_INFO* right_op)
+{
+    *left_op = ALONE;
+    *right_op = ALONE;
+    if (instruction_branch->hasLeftBranch())
+    {
+        *left_op = get_operand_info(instruction_branch->getLeftBranch());
+    }
+    if (instruction_branch->hasRightBranch())
+    {
+        *right_op = get_operand_info(instruction_branch->getRightBranch());
+    }
+
+    return (*left_op << 8 | *right_op);
+}
+
+INSTRUCTION_TYPE Assembler8086::get_instruction_type_by_name_and_syntax(std::string instruction_name, SYNTAX_INFO syntax_info)
+{
+    int total = sizeof (ins_syntax) / sizeof (struct ins_syntax_def);
+    for (int i = 0; i < total; i++)
+    {
+        struct ins_syntax_def* i_syn = &ins_syntax[i];
+        if (i_syn->ins_name == instruction_name)
+        {
+            if (i_syn->syntax_info == syntax_info)
+            {
+                return i_syn->ins_type;
+            }
+        }
+    }
+
+    return -1;
+}
+
 INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch)
 {
+    INSTRUCTION_TYPE ins_type;
+    OPERAND_INFO left_op;
+    OPERAND_INFO right_op;
 
-    std::shared_ptr<Branch> instruction_name_branch = instruction_branch->getInstructionNameBranch();
-    std::string instruction_name = instruction_name_branch->getValue();
-    if (instruction_name == "mov")
+    std::string instruction_name = instruction_branch->getInstructionNameBranch()->getValue();
+    // We need to build the syntax and then try and pull out the correct result from an array
+    SYNTAX_INFO syntax_info = get_syntax_info(instruction_branch, &left_op, &right_op);
+
+    // Ok lets get the instruction type now that we have the syntax info
+    ins_type = get_instruction_type_by_name_and_syntax(instruction_name, syntax_info);
+    if (ins_type == -1)
     {
-        // This is a move instruction
-        return get_mov_ins_type(instruction_branch);
-    }
-    else if (instruction_name == "add")
-    {
-        // This is an add instruction
-        return get_add_ins_type(instruction_branch);
+        /* We couldn't find an instruction, perhaps the syntax is using AL or AX rather than REG8 and REG16 
+         * and no appropriate instruction exists for it, lets check and if so change to REG8 or REG16 and try again*/
+        if (left_op == AL)
+        {
+            left_op = REG8;
+        }
+        else if (left_op == AX)
+        {
+            left_op = REG16;
+        }
+
+        if (right_op == AL)
+        {
+            right_op = REG8;
+        }
+        else if (right_op == AX)
+        {
+            right_op = REG16;
+        }
+
+        // Rebuild the syntax info
+        syntax_info = (left_op << 8 | right_op);
+
+        // Now try again
+        ins_type = get_instruction_type_by_name_and_syntax(instruction_name, syntax_info);
+        if (ins_type == -1)
+        {
+            // There truly is a problem
+            throw AssemblerException("The instruction: " + instruction_name + " does not exist or is not implemented or you are using an illegal syntax");
+        }
     }
 
-    throw AssemblerException("INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch): Invalid assembler instruction");
+    return ins_type;
+
 }
 
 INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBranch> instruction_branch)
