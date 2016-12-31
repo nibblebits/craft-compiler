@@ -56,6 +56,8 @@ enum
     HAS_REG_USE_RIGHT = 0x80
 };
 
+/* Eight are present, if you need more change the data type for SYNTAX_INFO to integer 
+ * and adjust the code appropriately. */
 enum
 {
     REG8,
@@ -83,6 +85,8 @@ enum
     MEM_AL = (MEM << 8 | AL),
     MEM_AX = (MEM << 8 | AX),
     MEM_ALONE = (MEM << 8 | ALONE),
+    AL_IMM8 = (AL << 8 | IMM8),
+    AX_IMM16 = (AX << 8 | IMM16),
     IMM8_ALONE = (IMM8 << 8 | ALONE),
     IMM16_ALONE = (IMM16 << 8 | ALONE),
     REG8_ALONE = (REG8 << 8 | ALONE),
@@ -120,7 +124,9 @@ enum
     ADD_MEM_WITH_REG_W0,
     ADD_MEM_WITH_REG_W1,
     ADD_REG_WITH_MEM_W0,
-    ADD_REG_WITH_MEM_W1
+    ADD_REG_WITH_MEM_W1,
+    ADD_ACC_WITH_IMM_W0,
+    ADD_ACC_WITH_IMM_W1
 };
 
 
