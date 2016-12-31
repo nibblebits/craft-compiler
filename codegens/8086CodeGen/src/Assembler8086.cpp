@@ -92,8 +92,10 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OORRRMMM | HAS_REG_USE_RIGHT, // mov mem, reg16
     HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // add reg8, reg8
     USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // add reg16, reg16
-    HAS_OORRRMMM | HAS_REG_USE_RIGHT, // add mem, reg
-    USE_W | HAS_OORRRMMM | HAS_REG_USE_RIGHT // add mem, reg
+    HAS_OORRRMMM | HAS_REG_USE_RIGHT, // add mem, reg8
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_RIGHT, // add mem, reg16
+    HAS_OORRRMMM | HAS_REG_USE_LEFT, // add reg8, mem
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT // add reg16, mem
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -109,6 +111,14 @@ struct ins_syntax_def ins_syntax[] = {
     "mov", MOV_REG_TO_MEM_W1, MEM_REG16,
     "mov", MOV_MEM_TO_REG_W0, REG8_MEM,
     "mov", MOV_MEM_TO_REG_W1, REG16_MEM,
+    "mov", MOV_REG_TO_MEM_W0, MEM_REG8,
+    "mov", MOV_REG_TO_MEM_W1, MEM_REG16,
+    "add", ADD_REG_WITH_REG_W0, REG8_REG8,
+    "add", ADD_REG_WITH_REG_W1, REG16_REG16,
+    "add", ADD_MEM_WITH_REG_W0, MEM_REG8,
+    "add", ADD_MEM_WITH_REG_W1, MEM_REG16,
+    "add", ADD_REG_WITH_MEM_W0, REG8_MEM,
+    "add", ADD_REG_WITH_MEM_W1, REG16_MEM
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -386,7 +396,7 @@ void Assembler8086::parse_operand(OPERAND_DATA_SIZE data_size)
     {
         operand_branch->setDataSize(data_size);
     }
-    
+
     peek();
     if (is_peek_symbol("["))
     {
@@ -515,7 +525,7 @@ void Assembler8086::parse_ins()
                     def_data_size = OPERAND_DATA_SIZE_BYTE;
                 }
             }
-            
+
             // Finally a final expression which will be the second operand
             parse_operand(def_data_size);
 
@@ -1240,7 +1250,7 @@ OPERAND_INFO Assembler8086::get_operand_info(std::shared_ptr<OperandBranch> op_b
             }
         }
     }
-    else if(op_branch->isAccessingMemory())
+    else if (op_branch->isAccessingMemory())
     {
         info = MEM;
     }
