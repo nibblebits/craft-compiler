@@ -126,7 +126,9 @@ enum
     ADD_REG_WITH_MEM_W0,
     ADD_REG_WITH_MEM_W1,
     ADD_ACC_WITH_IMM_W0,
-    ADD_ACC_WITH_IMM_W1
+    ADD_ACC_WITH_IMM_W1,
+    ADD_REG_WITH_IMM_W0,
+    ADD_REG_WITH_IMM_W1
 };
 
 
@@ -164,7 +166,7 @@ private:
     void pass_1_segment(std::shared_ptr<SegmentBranch> segment_branch);
     void pass_1_part(std::shared_ptr<Branch> branch);
 
-    void get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm);
+    void get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch,  char* oo, char* rrr, char* mmm);
     int get_offset_from_oomod(char oo, char mmm);
     int get_instruction_size(std::shared_ptr<InstructionBranch> ins_branch);
     void register_segment(std::shared_ptr<SegmentBranch> segment_branch);

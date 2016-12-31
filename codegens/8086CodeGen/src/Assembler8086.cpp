@@ -53,14 +53,14 @@
 unsigned char ins_map[] = {
     0x88, 0x89, 0xb1, 0xb8, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
-    0x04, 0x05
+    0x04, 0x05, 0x80, 0x81
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
 unsigned char ins_sizes[] = {
     2, 2, 2, 3, 3, 4, 3, 3, 3, 3,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 3
+    2, 3, 3, 4
 };
 
 
@@ -68,7 +68,8 @@ unsigned char ins_sizes[] = {
  * if not applicable set to zero. */
 unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -100,6 +101,8 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT, // add reg16, mem
     HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add al, imm8
     USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add ax, imm16
+    HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add reg, imm8
+    USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT // add reg, imm16
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -124,7 +127,9 @@ struct ins_syntax_def ins_syntax[] = {
     "add", ADD_REG_WITH_MEM_W0, REG8_MEM,
     "add", ADD_REG_WITH_MEM_W1, REG16_MEM,
     "add", ADD_ACC_WITH_IMM_W0, AL_IMM8,
-    "add", ADD_ACC_WITH_IMM_W1, AX_IMM16
+    "add", ADD_ACC_WITH_IMM_W1, AX_IMM16,
+    "add", ADD_REG_WITH_IMM_W0, REG8_IMM8,
+    "add", ADD_REG_WITH_IMM_W1, REG16_IMM16
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -653,13 +658,27 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
 
 void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm)
 {
+    INSTRUCTION_TYPE ins_type = get_instruction_type(ins_branch);
+    if (ins_type == -1)
+    {
+        throw AssemblerException("void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm): Problem invalid instruction");
+    }
+    INSTRUCTION_INFO info = ins_info[ins_type];
     unsigned int number;
     left = ins_branch->getLeftBranch();
     right = ins_branch->getRightBranch();
     left_reg = left->getRegisterBranch();
     right_reg = right->getRegisterBranch();
 
-    if (left->isOnlyRegister()
+    *rrr = -1;
+    *mmm = -1;
+    if (info & HAS_OOMMM)
+    {
+        // Only OOMMM available, must be using static RRR
+        *oo = USE_REG_NO_ADDRESSING_MODE;
+        *rrr = static_rrr[ins_type];
+    }
+    else if (left->isOnlyRegister()
             && right->isOnlyRegister())
     {
         *oo = USE_REG_NO_ADDRESSING_MODE;
@@ -667,9 +686,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
     else
     {
         *oo = -1;
-        *mmm = 0;
     }
-    *rrr = 0;
 
     if (*oo == -1)
     {
