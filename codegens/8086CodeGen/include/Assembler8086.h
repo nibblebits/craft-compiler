@@ -62,7 +62,8 @@ enum
     HAS_IMM_USE_RIGHT = 0x20,
     HAS_REG_USE_LEFT = 0x40,
     HAS_REG_USE_RIGHT = 0x80,
-    SHORT_POSSIBLE = 0x100
+    SHORT_POSSIBLE = 0x100,
+    NEAR_POSSIBLE = 0x200
 };
 
 enum
@@ -168,7 +169,8 @@ enum
     DIV_WITH_MEM_W0,
     DIV_WITH_MEM_W1,
 
-    JMP_SHORT
+    JMP_SHORT,
+    JMP_NEAR
 };
 
 struct ins_syntax_def
@@ -215,10 +217,10 @@ private:
 
     inline char bind_modrm(char oo, char rrr, char mmm);
     inline bool has_oommm(INSTRUCTION_TYPE ins_type);
-    int get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
+    int get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_or_near_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
     void write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<OperandBranch> branch);
     void write_abs_static8(std::shared_ptr<OperandBranch> branch, bool short_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
-    void write_abs_static16(std::shared_ptr<OperandBranch> branch);
+    void write_abs_static16(std::shared_ptr<OperandBranch> branch, bool near_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
     std::shared_ptr<LabelBranch> get_label_branch(std::string label_name);
     int get_label_offset(std::string label_name);
     OPERAND_INFO get_operand_info(std::shared_ptr<OperandBranch> op_branch);

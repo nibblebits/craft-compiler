@@ -55,7 +55,7 @@ unsigned char ins_map[] = {
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
-    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb
+    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -64,7 +64,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
-    2, 2, 2, 2, 2, 2, 2
+    2, 2, 2, 2, 2, 2, 2, 3
 };
 
 
@@ -75,7 +75,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
-    4, 4, 6, 6, 6, 6, 0
+    4, 4, 6, 6, 6, 6, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -132,6 +132,7 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_OOMMM, // div mem - byte specified in location is divided by AL
     USE_W | HAS_OOMMM, // div mem - word specified in location is divided by AX
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE, // jmp short imm8
+    USE_W | HAS_IMM_USE_LEFT | NEAR_POSSIBLE // jmp near imm16
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -181,7 +182,8 @@ struct ins_syntax_def ins_syntax[] = {
     "div", DIV_WITH_REG_W1, REG16_ALONE,
     "div", DIV_WITH_MEM_W0, MEML8_ALONE,
     "div", DIV_WITH_MEM_W1, MEML16_ALONE,
-    "jmp", JMP_SHORT, IMM8_ALONE
+    "jmp", JMP_SHORT, IMM8_ALONE,
+    "jmp", JMP_NEAR, IMM16_ALONE
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -1036,7 +1038,14 @@ void Assembler8086::gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBr
 
     if (info & USE_W)
     {
-        write_abs_static16(selected_operand);
+        if (info & NEAR_POSSIBLE)
+        {
+            write_abs_static16(selected_operand, true, ins_branch);
+        }
+        else
+        {
+            write_abs_static16(selected_operand);
+        }
     }
     else
     {
@@ -1117,7 +1126,7 @@ bool Assembler8086::has_oommm(INSTRUCTION_TYPE ins_type)
     return false;
 }
 
-int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_possible, std::shared_ptr<InstructionBranch> ins_branch)
+int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_or_near_possible, std::shared_ptr<InstructionBranch> ins_branch)
 {
     int value = 0;
     if (branch->hasNumberBranch())
@@ -1128,7 +1137,7 @@ int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch,
     if (branch->hasIdentifierBranch())
     {
         int lbl_offset = get_label_offset(branch->getIdentifierBranch()->getValue());
-        if (short_possible)
+        if (short_or_near_possible)
         {
             // Ok its possible to deal with this as a short so lets do that, this is valid with things such as short jumps.  
             int ins_offset = ins_branch->getOffset();
@@ -1169,9 +1178,9 @@ void Assembler8086::write_abs_static8(std::shared_ptr<OperandBranch> branch, boo
     sstream->write8(get_static_from_branch(branch, short_possible, ins_branch));
 }
 
-void Assembler8086::write_abs_static16(std::shared_ptr<OperandBranch> branch)
+void Assembler8086::write_abs_static16(std::shared_ptr<OperandBranch> branch, bool near_possible, std::shared_ptr<InstructionBranch> ins_branch)
 {
-    sstream->write16(get_static_from_branch(branch));
+    sstream->write16(get_static_from_branch(branch, near_possible, ins_branch));
 }
 
 std::shared_ptr<LabelBranch> Assembler8086::get_label_branch(std::string label_name)
@@ -1241,7 +1250,7 @@ OPERAND_INFO Assembler8086::get_operand_info(std::shared_ptr<OperandBranch> op_b
             /* This operand has a label we should set it to a short jump for now
              * Note this will cause problems if label is out of range for the short jump.
              * In the future this must be changed seek here: http://stackoverflow.com/questions/41418521/assembler-passes-issue*/
-            info = IMM8;
+            info = IMM16;
         }
         else
         {
