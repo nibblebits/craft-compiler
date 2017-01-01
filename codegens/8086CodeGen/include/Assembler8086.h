@@ -136,7 +136,9 @@ enum
     SUB_REG_WITH_REG_W0,
     SUB_REG_WITH_REG_W1,
     SUB_MEM_WITH_REG_W0,
-    SUB_MEM_WITH_REG_W1
+    SUB_MEM_WITH_REG_W1,
+    SUB_REG_WITH_MEM_W0,
+    SUB_REG_WITH_MEM_W1
     
             
             

@@ -53,14 +53,16 @@
 unsigned char ins_map[] = {
     0x88, 0x89, 0xb1, 0xb8, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
-    0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29
+    0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
+    0x2a, 0x2b
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
 unsigned char ins_sizes[] = {
     2, 2, 2, 3, 3, 4, 3, 3, 3, 3,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 3, 3, 4, 3, 4, 2, 2, 2, 2
+    2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
+    2, 2
 };
 
 
@@ -69,7 +71,8 @@ unsigned char ins_sizes[] = {
 unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -109,6 +112,8 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // sub reg16, reg16
     HAS_OORRRMMM | HAS_REG_USE_RIGHT, // sub mem, reg8
     USE_W | HAS_OORRRMMM | HAS_REG_USE_RIGHT, // sub mem, reg16
+    HAS_OORRRMMM | HAS_REG_USE_LEFT, // sub reg8, mem
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT // sub reg16, mem
 
 };
 
@@ -142,7 +147,9 @@ struct ins_syntax_def ins_syntax[] = {
     "sub", SUB_REG_WITH_REG_W0, REG8_REG8,
     "sub", SUB_REG_WITH_REG_W1, REG16_REG16,
     "sub", SUB_MEM_WITH_REG_W0, MEM_REG8,
-    "sub", SUB_MEM_WITH_REG_W1, MEM_REG16
+    "sub", SUB_MEM_WITH_REG_W1, MEM_REG16,
+    "sub", SUB_REG_WITH_MEM_W0, REG8_MEM,
+    "sub", SUB_REG_WITH_MEM_W1, REG16_MEM
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
