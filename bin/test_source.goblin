@@ -1,1 +1,3 @@
-__asm("mov cl, [bx]");
+__asm("jmp _data");
+__asm("jmp _data");
+__asm("_data:");
