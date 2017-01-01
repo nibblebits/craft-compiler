@@ -53,14 +53,14 @@
 unsigned char ins_map[] = {
     0x88, 0x89, 0xb1, 0xb8, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
-    0x04, 0x05, 0x80, 0x81
+    0x04, 0x05, 0x80, 0x81, 0x80, 0x81
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
 unsigned char ins_sizes[] = {
     2, 2, 2, 3, 3, 4, 3, 3, 3, 3,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 3, 3, 4
+    2, 3, 3, 4, 3, 4
 };
 
 
@@ -69,7 +69,7 @@ unsigned char ins_sizes[] = {
 unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0
+    0, 0, 0, 0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -102,7 +102,10 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add al, imm8
     USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add ax, imm16
     HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add reg, imm8
-    USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT // add reg, imm16
+    USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add reg, imm16
+    HAS_OOMMM | HAS_IMM_USE_RIGHT, // add mem, imm8
+    USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT // add mem, imm16
+
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -129,7 +132,9 @@ struct ins_syntax_def ins_syntax[] = {
     "add", ADD_ACC_WITH_IMM_W0, AL_IMM8,
     "add", ADD_ACC_WITH_IMM_W1, AX_IMM16,
     "add", ADD_REG_WITH_IMM_W0, REG8_IMM8,
-    "add", ADD_REG_WITH_IMM_W1, REG16_IMM16
+    "add", ADD_REG_WITH_IMM_W1, REG16_IMM16,
+    "add", ADD_MEM_WITH_IMM_W0, MEM_IMM8,
+    "add", ADD_MEM_WITH_IMM_W1, MEM_IMM16
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -674,8 +679,17 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
     *mmm = -1;
     if (info & HAS_OOMMM)
     {
+        if (left->isOnlyRegister() ||
+                right->isOnlyRegister())
+        {
+            *oo = USE_REG_NO_ADDRESSING_MODE;
+        }
+        else
+        {
+            *oo = DISPLACEMENT_IF_MMM_110;
+            *mmm = 0b110;
+        }
         // Only OOMMM available, must be using static RRR
-        *oo = USE_REG_NO_ADDRESSING_MODE;
         *rrr = static_rrr[ins_type];
     }
     else if (left->isOnlyRegister()
@@ -754,6 +768,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
             *mmm = 0b110;
         }
     }
+
     if (left->hasRegisterBranch())
     {
         if (left->isAccessingMemory())
