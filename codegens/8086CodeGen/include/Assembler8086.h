@@ -80,6 +80,7 @@ enum
     MEM_REG16 = (MEM << 8 | REG16),
     REG8_IMM8 = (REG8 << 8 | IMM8),
     REG16_IMM16 = (REG16 << 8 | IMM16),
+    REG16_IMM8 = (REG16 << 8 | IMM8),
     MEM_IMM8 = (MEM << 8 | IMM8),
     MEM_IMM16 = (MEM << 8 | IMM16),
     MEM_AL = (MEM << 8 | AL),
@@ -140,10 +141,9 @@ enum
     SUB_REG_WITH_MEM_W0,
     SUB_REG_WITH_MEM_W1,
     SUB_ACC_WITH_IMM_W0,
-    SUB_ACC_WITH_IMM_W1
-    
-            
-            
+    SUB_ACC_WITH_IMM_W1,
+    SUB_REG_WITH_IMM_W0,
+    SUB_REG_WITH_IMM_W1
 };
 
 
