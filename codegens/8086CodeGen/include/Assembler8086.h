@@ -119,6 +119,7 @@ enum
     MOV_MEM_TO_REG_W1,
     MOV_REG_TO_MEM_W0,
     MOV_REG_TO_MEM_W1,
+    
     ADD_REG_WITH_REG_W0,
     ADD_REG_WITH_REG_W1,
     ADD_MEM_WITH_REG_W0,
@@ -130,7 +131,13 @@ enum
     ADD_REG_WITH_IMM_W0,
     ADD_REG_WITH_IMM_W1,
     ADD_MEM_WITH_IMM_W0,
-    ADD_MEM_WITH_IMM_W1
+    ADD_MEM_WITH_IMM_W1,
+    
+    SUB_REG_WITH_REG_W0,
+    SUB_REG_WITH_REG_W1
+    
+            
+            
 };
 
 
