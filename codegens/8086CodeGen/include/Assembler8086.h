@@ -158,7 +158,12 @@ enum
     MUL_WITH_REG_W0,
     MUL_WITH_REG_W1,
     MUL_WITH_MEM_W0,
-    MUL_WITH_MEM_W1
+    MUL_WITH_MEM_W1,
+    
+    DIV_WITH_REG_W0,
+    DIV_WITH_REG_W1,
+    DIV_WITH_MEM_W0,
+    DIV_WITH_MEM_W1
 };
 
 struct ins_syntax_def

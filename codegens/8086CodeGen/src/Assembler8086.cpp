@@ -55,7 +55,7 @@ unsigned char ins_map[] = {
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
-    0xf6, 0xf7
+    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -64,7 +64,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
-    2, 2
+    2, 2, 2, 2, 2, 2
 };
 
 
@@ -75,7 +75,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
-    4, 4
+    4, 4, 6, 6, 6, 6
 };
 
 /* Describes information relating to an instruction 
@@ -126,8 +126,11 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_OOMMM | HAS_REG_USE_LEFT, // mul reg8
     USE_W | HAS_OOMMM | HAS_REG_USE_LEFT, // mul reg16
     HAS_OOMMM, // mul mem - byte specified in location is multiplied by AL
-    USE_W | HAS_OOMMM // mul mem - word specified in location is multiplied by AX
-
+    USE_W | HAS_OOMMM, // mul mem - word specified in location is multiplied by AX
+    HAS_OOMMM | HAS_REG_USE_LEFT, // div reg8
+    USE_W | HAS_OOMMM | HAS_REG_USE_LEFT, // div reg16
+    HAS_OOMMM, // div mem - byte specified in location is divided by AL
+    USE_W | HAS_OOMMM, // div mem - word specified in location is divided by AX
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -173,6 +176,10 @@ struct ins_syntax_def ins_syntax[] = {
     "mul", MUL_WITH_REG_W1, REG16_ALONE,
     "mul", MUL_WITH_MEM_W0, MEML8_ALONE,
     "mul", MUL_WITH_MEM_W1, MEML16_ALONE,
+    "div", DIV_WITH_REG_W0, REG8_ALONE,
+    "div", DIV_WITH_REG_W1, REG16_ALONE,
+    "div", DIV_WITH_MEM_W0, MEML8_ALONE,
+    "div", DIV_WITH_MEM_W1, MEML16_ALONE
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -222,7 +229,7 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     this->segment = NULL;
     this->sstream = NULL;
     this->cur_offset = 0;
-    
+
     // Placeholder branch so programmer does not need to check if operand is NULL constantly.
     this->zero_operand_branch = std::shared_ptr<OperandBranch>(new OperandBranch(getCompiler()));
 }
@@ -1063,7 +1070,6 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
         gen_imm(info, instruction_branch);
     }
 }
-
 
 char Assembler8086::bind_modrm(char oo, char rrr, char mmm)
 {
