@@ -25,10 +25,10 @@
 #ifndef INSTRUCTIONBRANCH_H
 #define INSTRUCTIONBRANCH_H
 
-#include "CustomBranch.h"
+#include "OffsetableBranch.h"
 
 class OperandBranch;
-class InstructionBranch : public CustomBranch
+class InstructionBranch : public OffsetableBranch
 {
 public:
     InstructionBranch(Compiler* compiler);
@@ -37,6 +37,9 @@ public:
     void setInstructionNameBranch(std::shared_ptr<Branch> ins_name_branch);
     std::shared_ptr<Branch> getInstructionNameBranch();
 
+    void setSize(int size);
+    int getSize();
+    
     void setLeftBranch(std::shared_ptr<OperandBranch> left_branch);
     void setRightBranch(std::shared_ptr<OperandBranch> right_branch);
 
@@ -49,7 +52,7 @@ public:
     virtual std::shared_ptr<Branch> create_clone();
 
 private:
-
+    int size;
 };
 
 #endif /* INSTRUCTIONBRANCH_H */

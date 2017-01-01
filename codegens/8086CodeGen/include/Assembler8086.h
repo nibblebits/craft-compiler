@@ -32,10 +32,12 @@ class Branch;
 class SegmentBranch;
 
 typedef int INSTRUCTION_TYPE;
-typedef unsigned char INSTRUCTION_INFO;
+typedef unsigned short INSTRUCTION_INFO;
 typedef unsigned int SYNTAX_INFO;
 typedef unsigned short OPERAND_INFO;
 typedef char OPERAND_DATA_SIZE;
+
+#define OPERAND_BIT_SIZE sizeof(OPERAND_INFO) * 8
 
 enum
 {
@@ -59,7 +61,8 @@ enum
     HAS_IMM_USE_LEFT = 0x10,
     HAS_IMM_USE_RIGHT = 0x20,
     HAS_REG_USE_LEFT = 0x40,
-    HAS_REG_USE_RIGHT = 0x80
+    HAS_REG_USE_RIGHT = 0x80,
+    SHORT_POSSIBLE = 0x100
 };
 
 enum
@@ -78,30 +81,30 @@ enum
 
 enum
 {
-    REG8_REG8 = (REG8 << sizeof (OPERAND_INFO) | REG8),
-    REG16_REG16 = (REG16 << sizeof (OPERAND_INFO) | REG16),
-    REG8_MEM = (REG8 << sizeof (OPERAND_INFO) | MEM),
-    REG16_MEM = (REG16 << sizeof (OPERAND_INFO) | MEM),
-    MEM_REG8 = (MEM << sizeof (OPERAND_INFO) | REG8),
-    MEM_REG16 = (MEM << sizeof (OPERAND_INFO) | REG16),
-    REG8_IMM8 = (REG8 << sizeof (OPERAND_INFO) | IMM8),
-    REG16_IMM16 = (REG16 << sizeof (OPERAND_INFO) | IMM16),
-    REG16_IMM8 = (REG16 << sizeof (OPERAND_INFO) | IMM8),
-    MEM_IMM8 = (MEM << sizeof (OPERAND_INFO) | IMM8),
-    MEM_IMM16 = (MEM << sizeof (OPERAND_INFO) | IMM16),
-    MEM_AL = (MEM << sizeof (OPERAND_INFO) | AL),
-    MEM_AX = (MEM << sizeof (OPERAND_INFO) | AX),
-    MEM_ALONE = (MEM << sizeof (OPERAND_INFO) | ALONE),
-    MEML8_ALONE = (MEML8 << sizeof (OPERAND_INFO) | ALONE),
-    MEML16_ALONE = (MEML16 << sizeof (OPERAND_INFO) | ALONE),
-    AL_IMM8 = (AL << sizeof (OPERAND_INFO) | IMM8),
-    AX_IMM16 = (AX << sizeof (OPERAND_INFO) | IMM16),
-    IMM8_ALONE = (IMM8 << sizeof (OPERAND_INFO) | ALONE),
-    IMM16_ALONE = (IMM16 << sizeof (OPERAND_INFO) | ALONE),
-    REG8_ALONE = (REG8 << sizeof (OPERAND_INFO) | ALONE),
-    REG16_ALONE = (REG16 << sizeof (OPERAND_INFO) | ALONE),
-    AL_ALONE = (AL << sizeof (OPERAND_INFO) | ALONE),
-    AX_ALONE = (AX << sizeof (OPERAND_INFO) | ALONE)
+    REG8_REG8 = (REG8 << OPERAND_BIT_SIZE | REG8),
+    REG16_REG16 = (REG16 << OPERAND_BIT_SIZE | REG16),
+    REG8_MEM = (REG8 << OPERAND_BIT_SIZE | MEM),
+    REG16_MEM = (REG16 << OPERAND_BIT_SIZE | MEM),
+    MEM_REG8 = (MEM << OPERAND_BIT_SIZE | REG8),
+    MEM_REG16 = (MEM << OPERAND_BIT_SIZE | REG16),
+    REG8_IMM8 = (REG8 << OPERAND_BIT_SIZE | IMM8),
+    REG16_IMM16 = (REG16 << OPERAND_BIT_SIZE | IMM16),
+    REG16_IMM8 = (REG16 << OPERAND_BIT_SIZE | IMM8),
+    MEM_IMM8 = (MEM << OPERAND_BIT_SIZE | IMM8),
+    MEM_IMM16 = (MEM << OPERAND_BIT_SIZE | IMM16),
+    MEM_AL = (MEM << OPERAND_BIT_SIZE | AL),
+    MEM_AX = (MEM << OPERAND_BIT_SIZE | AX),
+    MEM_ALONE = (MEM << OPERAND_BIT_SIZE | ALONE),
+    MEML8_ALONE = (MEML8 << OPERAND_BIT_SIZE | ALONE),
+    MEML16_ALONE = (MEML16 << OPERAND_BIT_SIZE | ALONE),
+    AL_IMM8 = (AL << OPERAND_BIT_SIZE | IMM8),
+    AX_IMM16 = (AX << OPERAND_BIT_SIZE | IMM16),
+    IMM8_ALONE = (IMM8 << OPERAND_BIT_SIZE | ALONE),
+    IMM16_ALONE = (IMM16 << OPERAND_BIT_SIZE | ALONE),
+    REG8_ALONE = (REG8 << OPERAND_BIT_SIZE | ALONE),
+    REG16_ALONE = (REG16 << OPERAND_BIT_SIZE | ALONE),
+    AL_ALONE = (AL << OPERAND_BIT_SIZE | ALONE),
+    AX_ALONE = (AX << OPERAND_BIT_SIZE | ALONE)
 };
 
 enum
@@ -159,11 +162,13 @@ enum
     MUL_WITH_REG_W1,
     MUL_WITH_MEM_W0,
     MUL_WITH_MEM_W1,
-    
+
     DIV_WITH_REG_W0,
     DIV_WITH_REG_W1,
     DIV_WITH_MEM_W0,
-    DIV_WITH_MEM_W1
+    DIV_WITH_MEM_W1,
+
+    JMP_SHORT
 };
 
 struct ins_syntax_def
@@ -210,9 +215,9 @@ private:
 
     inline char bind_modrm(char oo, char rrr, char mmm);
     inline bool has_oommm(INSTRUCTION_TYPE ins_type);
-    int get_static_from_branch(std::shared_ptr<OperandBranch> branch);
+    int get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
     void write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<OperandBranch> branch);
-    void write_abs_static8(std::shared_ptr<OperandBranch> branch);
+    void write_abs_static8(std::shared_ptr<OperandBranch> branch, bool short_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
     void write_abs_static16(std::shared_ptr<OperandBranch> branch);
     std::shared_ptr<LabelBranch> get_label_branch(std::string label_name);
     int get_label_offset(std::string label_name);
@@ -265,7 +270,7 @@ private:
     char oo;
     char op;
     int cur_offset;
-    
+
     std::shared_ptr<OperandBranch> zero_operand_branch;
 
 

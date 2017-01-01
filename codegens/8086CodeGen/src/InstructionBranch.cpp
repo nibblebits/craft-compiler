@@ -27,7 +27,7 @@
 #include "InstructionBranch.h"
 #include "OperandBranch.h"
 
-InstructionBranch::InstructionBranch(Compiler* compiler) : CustomBranch(compiler, "INSTRUCTION", "")
+InstructionBranch::InstructionBranch(Compiler* compiler) : OffsetableBranch(compiler, "INSTRUCTION", "")
 {
 }
 
@@ -43,6 +43,16 @@ void InstructionBranch::setInstructionNameBranch(std::shared_ptr<Branch> ins_nam
 std::shared_ptr<Branch> InstructionBranch::getInstructionNameBranch()
 {
     return CustomBranch::getRegisteredBranchByName("instruction_name_branch");
+}
+
+void InstructionBranch::setSize(int size)
+{
+    this->size = size;
+}
+
+int InstructionBranch::getSize()
+{
+    return this->size;
 }
 
 void InstructionBranch::setLeftBranch(std::shared_ptr<OperandBranch> left_branch)
@@ -72,7 +82,7 @@ bool InstructionBranch::hasLeftBranch()
 
 bool InstructionBranch::hasRightBranch()
 {
-   return CustomBranch::isBranchRegistered("right_branch");
+    return CustomBranch::isBranchRegistered("right_branch");
 }
 
 void InstructionBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)

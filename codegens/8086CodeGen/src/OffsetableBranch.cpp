@@ -16,32 +16,41 @@
  */
 
 /* 
- * File:   LabelBranch.h
+ * File:   OffsetableBranch.cpp
  * Author: Daniel McCarthy
  *
- * Created on 19 December 2016, 18:34
+ * Created on 01 January 2017, 21:32
+ * 
+ * Description: 
  */
-
-#ifndef LABELBRANCH_H
-#define LABELBRANCH_H
 
 #include "OffsetableBranch.h"
 
-class LabelBranch : public OffsetableBranch
+OffsetableBranch::OffsetableBranch(Compiler* compiler, std::string type, std::string value) : CustomBranch(compiler, type, value)
 {
-public:
-    LabelBranch(Compiler* compiler);
-    virtual ~LabelBranch();
+}
 
-    void setLabelNameBranch(std::shared_ptr<Branch> label_name_branch);
-    std::shared_ptr<Branch> getLabelNameBranch();
-    void setContentsBranch(std::shared_ptr<Branch> contents_branch);
-    std::shared_ptr<Branch> getContentsBranch();
-    
-    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
-    virtual std::shared_ptr<Branch> create_clone();
+OffsetableBranch::~OffsetableBranch()
+{
+}
 
-};
+void OffsetableBranch::setOffset(int offset)
+{
+    this->offset = offset;
+}
 
-#endif /* LABELBRANCH_H */
+int OffsetableBranch::getOffset()
+{
+    return this->offset;
+}
 
+void OffsetableBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+{
+    std::shared_ptr<OffsetableBranch> cloned_offsetable_branch = std::dynamic_pointer_cast<OffsetableBranch>(cloned_branch);
+    cloned_offsetable_branch->setOffset(getOffset());
+}
+
+std::shared_ptr<Branch> OffsetableBranch::create_clone()
+{
+    return std::shared_ptr<OffsetableBranch>(new OffsetableBranch(getCompiler(), getType(), getValue()));
+}

@@ -16,32 +16,32 @@
  */
 
 /* 
- * File:   LabelBranch.h
+ * File:   OffsetableBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 19 December 2016, 18:34
+ * Created on 01 January 2017, 21:32
  */
 
-#ifndef LABELBRANCH_H
-#define LABELBRANCH_H
+#ifndef OFFSETABLEBRANCH_H
+#define OFFSETABLEBRANCH_H
 
-#include "OffsetableBranch.h"
-
-class LabelBranch : public OffsetableBranch
+#include "CustomBranch.h"
+class OffsetableBranch : public CustomBranch
 {
 public:
-    LabelBranch(Compiler* compiler);
-    virtual ~LabelBranch();
+    OffsetableBranch(Compiler* compiler, std::string type, std::string value);
+    virtual ~OffsetableBranch();
 
-    void setLabelNameBranch(std::shared_ptr<Branch> label_name_branch);
-    std::shared_ptr<Branch> getLabelNameBranch();
-    void setContentsBranch(std::shared_ptr<Branch> contents_branch);
-    std::shared_ptr<Branch> getContentsBranch();
-    
+    void setOffset(int offset);
+    int getOffset();
+
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
 
+
+private:
+    int offset;
 };
 
-#endif /* LABELBRANCH_H */
+#endif /* OFFSETABLEBRANCH_H */
 

@@ -55,7 +55,7 @@ unsigned char ins_map[] = {
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
-    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7
+    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -64,7 +64,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
-    2, 2, 2, 2, 2, 2
+    2, 2, 2, 2, 2, 2, 2
 };
 
 
@@ -75,7 +75,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
-    4, 4, 6, 6, 6, 6
+    4, 4, 6, 6, 6, 6, 0
 };
 
 /* Describes information relating to an instruction 
@@ -131,6 +131,7 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OOMMM | HAS_REG_USE_LEFT, // div reg16
     HAS_OOMMM, // div mem - byte specified in location is divided by AL
     USE_W | HAS_OOMMM, // div mem - word specified in location is divided by AX
+    HAS_IMM_USE_LEFT | SHORT_POSSIBLE, // jmp short imm8
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -179,7 +180,8 @@ struct ins_syntax_def ins_syntax[] = {
     "div", DIV_WITH_REG_W0, REG8_ALONE,
     "div", DIV_WITH_REG_W1, REG16_ALONE,
     "div", DIV_WITH_MEM_W0, MEML8_ALONE,
-    "div", DIV_WITH_MEM_W1, MEML16_ALONE
+    "div", DIV_WITH_MEM_W1, MEML16_ALONE,
+    "jmp", JMP_SHORT, IMM8_ALONE
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -222,6 +224,7 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addInstruction("int");
     Assembler::addInstruction("lea");
     Assembler::addInstruction("call");
+    Assembler::addInstruction("jmp");
     Assembler::addInstruction("ret");
 
     this->left = NULL;
@@ -232,6 +235,7 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
 
     // Placeholder branch so programmer does not need to check if operand is NULL constantly.
     this->zero_operand_branch = std::shared_ptr<OperandBranch>(new OperandBranch(getCompiler()));
+
 }
 
 Assembler8086::~Assembler8086()
@@ -693,10 +697,19 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
         // This is a label, therefore we need to give it, its position.
         std::shared_ptr<LabelBranch> label_branch = std::dynamic_pointer_cast<LabelBranch>(branch);
         label_branch->setOffset(this->cur_offset);
+        // Now we need to pass through the children
+        for (std::shared_ptr<Branch> child : label_branch->getContentsBranch()->getChildren())
+        {
+            pass_1_part(child);
+        }
     }
     else if (branch->getType() == "INSTRUCTION")
     {
-        this->cur_offset += get_instruction_size(std::dynamic_pointer_cast<InstructionBranch>(branch));
+        std::shared_ptr<InstructionBranch> ins_branch = std::dynamic_pointer_cast<InstructionBranch>(branch);
+        ins_branch->setOffset(this->cur_offset);
+        int size = get_instruction_size(std::dynamic_pointer_cast<InstructionBranch>(branch));
+        ins_branch->setSize(size);
+        this->cur_offset += size;
     }
     else if (branch->getType() == "keyword")
     {
@@ -1027,16 +1040,32 @@ void Assembler8086::gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBr
     }
     else
     {
-        write_abs_static8(selected_operand);
+        if (info & SHORT_POSSIBLE)
+        {
+            write_abs_static8(selected_operand, true, ins_branch);
+        }
+        else
+        {
+            write_abs_static8(selected_operand);
+        }
     }
 }
 
 void Assembler8086::generate_part(std::shared_ptr<Branch> branch)
 {
-    if (branch->getType() == "INSTRUCTION")
+    if (branch->getType() == "LABEL")
+    {
+        std::shared_ptr<LabelBranch> label_branch = std::dynamic_pointer_cast<LabelBranch>(branch);
+        for (std::shared_ptr<Branch> child : label_branch->getContentsBranch()->getChildren())
+        {
+            generate_part(child);
+        }
+    }
+    else if (branch->getType() == "INSTRUCTION")
     {
         generate_instruction(std::dynamic_pointer_cast<InstructionBranch>(branch));
     }
+
 
 }
 
@@ -1046,7 +1075,7 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
     cur_ins_type = ins_type;
 
     int opcode = ins_map[ins_type];
-    unsigned char info = ins_info[ins_type];
+    INSTRUCTION_INFO info = ins_info[ins_type];
 
     if (info & HAS_RRR)
     {
@@ -1088,7 +1117,7 @@ bool Assembler8086::has_oommm(INSTRUCTION_TYPE ins_type)
     return false;
 }
 
-int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch)
+int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_possible, std::shared_ptr<InstructionBranch> ins_branch)
 {
     int value = 0;
     if (branch->hasNumberBranch())
@@ -1098,7 +1127,19 @@ int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch)
 
     if (branch->hasIdentifierBranch())
     {
-        value += get_label_offset(branch->getIdentifierBranch()->getValue());
+        int lbl_offset = get_label_offset(branch->getIdentifierBranch()->getValue());
+        if (short_possible)
+        {
+            // Ok its possible to deal with this as a short so lets do that, this is valid with things such as short jumps.  
+            int ins_offset = ins_branch->getOffset();
+            int ins_size = ins_branch->getSize();
+            int abs = lbl_offset - ins_offset - ins_size;
+            value += abs;
+        }
+        else
+        {
+            value += lbl_offset;
+        }
     }
 
     return value;
@@ -1123,9 +1164,9 @@ void Assembler8086::write_modrm_offset(unsigned char oo, unsigned char mmm, std:
     }
 }
 
-void Assembler8086::write_abs_static8(std::shared_ptr<OperandBranch> branch)
+void Assembler8086::write_abs_static8(std::shared_ptr<OperandBranch> branch, bool short_possible, std::shared_ptr<InstructionBranch> ins_branch)
 {
-    sstream->write8(get_static_from_branch(branch));
+    sstream->write8(get_static_from_branch(branch, short_possible, ins_branch));
 }
 
 void Assembler8086::write_abs_static16(std::shared_ptr<OperandBranch> branch)
@@ -1197,7 +1238,10 @@ OPERAND_INFO Assembler8086::get_operand_info(std::shared_ptr<OperandBranch> op_b
     {
         if (op_branch->hasIdentifierBranch())
         {
-            info = IMM16;
+            /* This operand has a label we should set it to a short jump for now
+             * Note this will cause problems if label is out of range for the short jump.
+             * In the future this must be changed seek here: http://stackoverflow.com/questions/41418521/assembler-passes-issue*/
+            info = IMM8;
         }
         else
         {
@@ -1244,7 +1288,7 @@ SYNTAX_INFO Assembler8086::get_syntax_info(std::shared_ptr<InstructionBranch> in
         *right_op = get_operand_info(instruction_branch->getRightBranch());
     }
 
-    return (*left_op << sizeof (OPERAND_INFO) | *right_op);
+    return (*left_op << OPERAND_BIT_SIZE | *right_op);
 }
 
 INSTRUCTION_TYPE Assembler8086::get_instruction_type_by_name_and_syntax(std::string instruction_name, SYNTAX_INFO syntax_info)
@@ -1300,7 +1344,7 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<Instruction
         }
 
         // Rebuild the syntax info
-        syntax_info = (left_op << 8 | right_op);
+        syntax_info = (left_op << OPERAND_BIT_SIZE | right_op);
 
         // Now try again
         ins_type = get_instruction_type_by_name_and_syntax(instruction_name, syntax_info);
