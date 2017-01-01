@@ -31,6 +31,12 @@ class InstructionBranch;
 class Branch;
 class SegmentBranch;
 
+typedef int INSTRUCTION_TYPE;
+typedef unsigned char INSTRUCTION_INFO;
+typedef unsigned int SYNTAX_INFO;
+typedef unsigned short OPERAND_INFO;
+typedef char OPERAND_DATA_SIZE;
+
 enum
 {
     OPERAND_DATA_SIZE_UNKNOWN,
@@ -56,8 +62,6 @@ enum
     HAS_REG_USE_RIGHT = 0x80
 };
 
-/* Eight are present, if you need more change the data type for SYNTAX_INFO to integer 
- * and adjust the code appropriately. */
 enum
 {
     REG8,
@@ -65,6 +69,8 @@ enum
     AL,
     AX,
     MEM,
+    MEML8,
+    MEML16,
     IMM8,
     IMM16,
     ALONE
@@ -72,28 +78,30 @@ enum
 
 enum
 {
-    REG8_REG8 = (REG8 << 8 | REG8),
-    REG16_REG16 = (REG16 << 8 | REG16),
-    REG8_MEM = (REG8 << 8 | MEM),
-    REG16_MEM = (REG16 << 8 | MEM),
-    MEM_REG8 = (MEM << 8 | REG8),
-    MEM_REG16 = (MEM << 8 | REG16),
-    REG8_IMM8 = (REG8 << 8 | IMM8),
-    REG16_IMM16 = (REG16 << 8 | IMM16),
-    REG16_IMM8 = (REG16 << 8 | IMM8),
-    MEM_IMM8 = (MEM << 8 | IMM8),
-    MEM_IMM16 = (MEM << 8 | IMM16),
-    MEM_AL = (MEM << 8 | AL),
-    MEM_AX = (MEM << 8 | AX),
-    MEM_ALONE = (MEM << 8 | ALONE),
-    AL_IMM8 = (AL << 8 | IMM8),
-    AX_IMM16 = (AX << 8 | IMM16),
-    IMM8_ALONE = (IMM8 << 8 | ALONE),
-    IMM16_ALONE = (IMM16 << 8 | ALONE),
-    REG8_ALONE = (REG8 << 8 | ALONE),
-    REG16_ALONE = (REG16 << 8 | ALONE),
-    AL_ALONE = (AL << 8 | ALONE),
-    AX_ALONE = (AX << 8 | ALONE)
+    REG8_REG8 = (REG8 << sizeof (OPERAND_INFO) | REG8),
+    REG16_REG16 = (REG16 << sizeof (OPERAND_INFO) | REG16),
+    REG8_MEM = (REG8 << sizeof (OPERAND_INFO) | MEM),
+    REG16_MEM = (REG16 << sizeof (OPERAND_INFO) | MEM),
+    MEM_REG8 = (MEM << sizeof (OPERAND_INFO) | REG8),
+    MEM_REG16 = (MEM << sizeof (OPERAND_INFO) | REG16),
+    REG8_IMM8 = (REG8 << sizeof (OPERAND_INFO) | IMM8),
+    REG16_IMM16 = (REG16 << sizeof (OPERAND_INFO) | IMM16),
+    REG16_IMM8 = (REG16 << sizeof (OPERAND_INFO) | IMM8),
+    MEM_IMM8 = (MEM << sizeof (OPERAND_INFO) | IMM8),
+    MEM_IMM16 = (MEM << sizeof (OPERAND_INFO) | IMM16),
+    MEM_AL = (MEM << sizeof (OPERAND_INFO) | AL),
+    MEM_AX = (MEM << sizeof (OPERAND_INFO) | AX),
+    MEM_ALONE = (MEM << sizeof (OPERAND_INFO) | ALONE),
+    MEML8_ALONE = (MEML8 << sizeof (OPERAND_INFO) | ALONE),
+    MEML16_ALONE = (MEML16 << sizeof (OPERAND_INFO) | ALONE),
+    AL_IMM8 = (AL << sizeof (OPERAND_INFO) | IMM8),
+    AX_IMM16 = (AX << sizeof (OPERAND_INFO) | IMM16),
+    IMM8_ALONE = (IMM8 << sizeof (OPERAND_INFO) | ALONE),
+    IMM16_ALONE = (IMM16 << sizeof (OPERAND_INFO) | ALONE),
+    REG8_ALONE = (REG8 << sizeof (OPERAND_INFO) | ALONE),
+    REG16_ALONE = (REG16 << sizeof (OPERAND_INFO) | ALONE),
+    AL_ALONE = (AL << sizeof (OPERAND_INFO) | ALONE),
+    AX_ALONE = (AX << sizeof (OPERAND_INFO) | ALONE)
 };
 
 enum
@@ -120,7 +128,7 @@ enum
     MOV_MEM_TO_REG_W1,
     MOV_REG_TO_MEM_W0,
     MOV_REG_TO_MEM_W1,
-    
+
     ADD_REG_WITH_REG_W0,
     ADD_REG_WITH_REG_W1,
     ADD_MEM_WITH_REG_W0,
@@ -133,7 +141,7 @@ enum
     ADD_REG_WITH_IMM_W1,
     ADD_MEM_WITH_IMM_W0,
     ADD_MEM_WITH_IMM_W1,
-    
+
     SUB_REG_WITH_REG_W0,
     SUB_REG_WITH_REG_W1,
     SUB_MEM_WITH_REG_W0,
@@ -146,17 +154,12 @@ enum
     SUB_REG_WITH_IMM_W1,
     SUB_MEM_WITH_IMM_W0,
     SUB_MEM_WITH_IMM_W1,
-    
+
     MUL_WITH_REG_W0,
-    MUL_WITH_REG_W1
+    MUL_WITH_REG_W1,
+    MUL_WITH_MEM_W0,
+    MUL_WITH_MEM_W1
 };
-
-
-typedef int INSTRUCTION_TYPE;
-typedef unsigned char INSTRUCTION_INFO;
-typedef unsigned short SYNTAX_INFO;
-typedef unsigned short OPERAND_INFO;
-typedef char OPERAND_DATA_SIZE;
 
 struct ins_syntax_def
 {
@@ -186,7 +189,7 @@ private:
     void pass_1_segment(std::shared_ptr<SegmentBranch> segment_branch);
     void pass_1_part(std::shared_ptr<Branch> branch);
 
-    void get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch,  char* oo, char* rrr, char* mmm);
+    void get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm);
     int get_offset_from_oomod(char oo, char mmm);
     int get_instruction_size(std::shared_ptr<InstructionBranch> ins_branch);
     void register_segment(std::shared_ptr<SegmentBranch> segment_branch);
