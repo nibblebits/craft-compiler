@@ -54,7 +54,7 @@ unsigned char ins_map[] = {
     0x88, 0x89, 0xb1, 0xb8, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
-    0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81
+    0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -62,7 +62,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 3, 3, 4, 3, 3, 3, 3,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
-    2, 2, 2, 3, 2, 3, 2, 3
+    2, 2, 2, 3, 2, 3, 2, 3, 2, 2
 };
 
 
@@ -72,7 +72,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0x05, 0x05, 0x05, 0x05
+    0, 0, 0, 0, 5, 5, 5, 5, 4, 4
 };
 
 /* Describes information relating to an instruction 
@@ -119,7 +119,9 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // sub reg8, imm8
     USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // sub reg16, imm16
     HAS_OOMMM | HAS_IMM_USE_RIGHT, // sub mem, imm8
-    USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT // sub mem, imm16
+    USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT, // sub mem, imm16
+    HAS_OOMMM | HAS_REG_USE_LEFT, // mul reg8
+    USE_W | HAS_OOMMM | HAS_REG_USE_LEFT, // mul reg16
 
 };
 
@@ -161,7 +163,9 @@ struct ins_syntax_def ins_syntax[] = {
     "sub", SUB_REG_WITH_IMM_W0, REG8_IMM8,
     "sub", SUB_REG_WITH_IMM_W1, REG16_IMM16,
     "sub", SUB_MEM_WITH_IMM_W0, MEM_IMM8,
-    "sub", SUB_MEM_WITH_IMM_W1, MEM_IMM16
+    "sub", SUB_MEM_WITH_IMM_W1, MEM_IMM16,
+    "mul", MUL_WITH_REG_W0, REG8_ALONE,
+    "mul", MUL_WITH_REG_W1, REG16_ALONE
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -697,17 +701,33 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
     }
     INSTRUCTION_INFO info = ins_info[ins_type];
     unsigned int number;
-    left = ins_branch->getLeftBranch();
-    right = ins_branch->getRightBranch();
-    left_reg = left->getRegisterBranch();
-    right_reg = right->getRegisterBranch();
+    left = NULL;
+    right = NULL;
+    
+    if (ins_branch->hasLeftBranch())
+    {
+        left = ins_branch->getLeftBranch();
+        if (left->hasRegisterBranch())
+        {
+            left_reg = left->getRegisterBranch();
+        }
+    }
+    
+    if (ins_branch->hasRightBranch())
+    {
+        right = ins_branch->getLeftBranch();
+        if (right->hasRegisterBranch())
+        {
+            right_reg = right->getRegisterBranch();
+        }
+    }
 
     *rrr = -1;
     *mmm = -1;
     if (info & HAS_OOMMM)
     {
-        if (left->isOnlyRegister() ||
-                right->isOnlyRegister())
+        if ((left != NULL && left->isOnlyRegister()) ||
+                (right != NULL && right->isOnlyRegister()))
         {
             *oo = USE_REG_NO_ADDRESSING_MODE;
         }
@@ -719,8 +739,8 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
         // Only OOMMM available, must be using static RRR
         *rrr = static_rrr[ins_type];
     }
-    else if (left->isOnlyRegister()
-            && right->isOnlyRegister())
+    else if (left != NULL && left->isOnlyRegister()
+            && right != NULL && right->isOnlyRegister())
     {
         *oo = USE_REG_NO_ADDRESSING_MODE;
     }
@@ -731,7 +751,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
 
     if (*oo == -1)
     {
-        if (left->isAccessingMemory()
+        if (left != NULL && left->isAccessingMemory()
                 && left->hasImmediate())
         {
             if (!left->hasRegisterBranch() &&
@@ -760,7 +780,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
                 }
             }
         }
-        else if (right->isAccessingMemory()
+        else if (right != NULL && right->isAccessingMemory()
                 && right->hasImmediate())
         {
             if (!right->hasRegisterBranch()
@@ -796,7 +816,8 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
         }
     }
 
-    if (left->hasRegisterBranch())
+    if (left != NULL && 
+            left->hasRegisterBranch())
     {
         if (left->isAccessingMemory())
         {
@@ -818,7 +839,8 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
         }
     }
 
-    if (right->hasRegisterBranch())
+    if (right != NULL && 
+            right->hasRegisterBranch())
     {
         if (right->isAccessingMemory())
         {
