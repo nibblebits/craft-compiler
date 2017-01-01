@@ -134,7 +134,9 @@ enum
     ADD_MEM_WITH_IMM_W1,
     
     SUB_REG_WITH_REG_W0,
-    SUB_REG_WITH_REG_W1
+    SUB_REG_WITH_REG_W1,
+    SUB_MEM_WITH_REG_W0,
+    SUB_MEM_WITH_REG_W1
     
             
             

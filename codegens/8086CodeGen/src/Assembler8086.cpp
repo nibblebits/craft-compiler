@@ -53,14 +53,14 @@
 unsigned char ins_map[] = {
     0x88, 0x89, 0xb1, 0xb8, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
-    0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29
+    0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
 unsigned char ins_sizes[] = {
     2, 2, 2, 3, 3, 4, 3, 3, 3, 3,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 3, 3, 4, 3, 4, 2, 2
+    2, 3, 3, 4, 3, 4, 2, 2, 2, 2
 };
 
 
@@ -69,7 +69,7 @@ unsigned char ins_sizes[] = {
 unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -80,7 +80,7 @@ unsigned char static_rrr[] = {
 
 INSTRUCTION_INFO ins_info[] = {
     HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // mov reg8, reg8
-    USE_W  | HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // mov reg16, reg16
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // mov reg16, reg16
     HAS_RRR | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // mov reg8, imm8
     USE_W | HAS_RRR | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // mov reg16, imm16
     HAS_OOMMM | HAS_IMM_USE_RIGHT, // mov mem, imm8
@@ -106,7 +106,9 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_OOMMM | HAS_IMM_USE_RIGHT, // add mem, imm8
     USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT, // add mem, imm16
     HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // sub reg8, reg8
-    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT // sub reg16, reg16
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // sub reg16, reg16
+    HAS_OORRRMMM | HAS_REG_USE_RIGHT, // sub mem, reg8
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_RIGHT, // sub mem, reg16
 
 };
 
@@ -138,7 +140,9 @@ struct ins_syntax_def ins_syntax[] = {
     "add", ADD_MEM_WITH_IMM_W0, MEM_IMM8,
     "add", ADD_MEM_WITH_IMM_W1, MEM_IMM16,
     "sub", SUB_REG_WITH_REG_W0, REG8_REG8,
-    "sub", SUB_REG_WITH_REG_W1, REG16_REG16
+    "sub", SUB_REG_WITH_REG_W1, REG16_REG16,
+    "sub", SUB_MEM_WITH_REG_W0, MEM_REG8,
+    "sub", SUB_MEM_WITH_REG_W1, MEM_REG16
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
