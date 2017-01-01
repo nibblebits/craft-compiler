@@ -201,16 +201,6 @@ private:
     void gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
     void generate_part(std::shared_ptr<Branch> branch);
     void generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_reg_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_imm_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_imm_to_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_acc_to_mem_offs(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_mem_offs_to_acc(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_mem_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_mov_reg_to_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_add_reg_with_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_add_mem_with_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
-    void generate_add_reg_with_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
 
     inline char bind_modrm(char oo, char rrr, char mmm);
@@ -269,8 +259,9 @@ private:
     char rrr;
     char oo;
     char op;
-
     int cur_offset;
+    
+    std::shared_ptr<OperandBranch> zero_operand_branch;
 
 
 };

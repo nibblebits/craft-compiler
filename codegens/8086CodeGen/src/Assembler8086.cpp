@@ -222,6 +222,9 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     this->segment = NULL;
     this->sstream = NULL;
     this->cur_offset = 0;
+    
+    // Placeholder branch so programmer does not need to check if operand is NULL constantly.
+    this->zero_operand_branch = std::shared_ptr<OperandBranch>(new OperandBranch(getCompiler()));
 }
 
 Assembler8086::~Assembler8086()
@@ -708,8 +711,8 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
     }
     INSTRUCTION_INFO info = ins_info[ins_type];
     unsigned int number;
-    left = NULL;
-    right = NULL;
+    left = zero_operand_branch;
+    right = zero_operand_branch;
 
     if (ins_branch->hasLeftBranch())
     {
@@ -722,7 +725,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
 
     if (ins_branch->hasRightBranch())
     {
-        right = ins_branch->getLeftBranch();
+        right = ins_branch->getRightBranch();
         if (right->hasRegisterBranch())
         {
             right_reg = right->getRegisterBranch();
@@ -733,8 +736,8 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
     *mmm = -1;
     if (info & HAS_OOMMM)
     {
-        if ((left != NULL && left->isOnlyRegister()) ||
-                (right != NULL && right->isOnlyRegister()))
+        if ((!right->isAccessingMemory() && left->isOnlyRegister()) ||
+                (!left->isAccessingMemory() && right->isOnlyRegister()))
         {
             *oo = USE_REG_NO_ADDRESSING_MODE;
         }
@@ -746,8 +749,8 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
         // Only OOMMM available, must be using static RRR
         *rrr = static_rrr[ins_type];
     }
-    else if (left != NULL && left->isOnlyRegister()
-            && right != NULL && right->isOnlyRegister())
+    else if (left->isOnlyRegister()
+            && right->isOnlyRegister())
     {
         *oo = USE_REG_NO_ADDRESSING_MODE;
     }
@@ -758,7 +761,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
 
     if (*oo == -1)
     {
-        if (left != NULL && left->isAccessingMemory()
+        if (left->isAccessingMemory()
                 && left->hasImmediate())
         {
             if (!left->hasRegisterBranch() &&
@@ -787,7 +790,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
                 }
             }
         }
-        else if (right != NULL && right->isAccessingMemory()
+        else if (right->isAccessingMemory()
                 && right->hasImmediate())
         {
             if (!right->hasRegisterBranch()
@@ -823,8 +826,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
         }
     }
 
-    if (left != NULL &&
-            left->hasRegisterBranch())
+    if (left->hasRegisterBranch())
     {
         if (left->isAccessingMemory())
         {
@@ -846,8 +848,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
         }
     }
 
-    if (right != NULL &&
-            right->hasRegisterBranch())
+    if (right->hasRegisterBranch())
     {
         if (right->isAccessingMemory())
         {
@@ -1063,146 +1064,6 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
     }
 }
 
-void Assembler8086::generate_mov_reg_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
-{
-    left = instruction_branch->getLeftBranch();
-    right = instruction_branch->getRightBranch();
-
-    // Get the modrm for this instruction
-    get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
-
-    sstream->write8(opcode);
-    sstream->write8(bind_modrm(oo, rrr, mmm));
-
-}
-
-void Assembler8086::generate_mov_imm_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
-{
-    left = instruction_branch->getLeftBranch();
-    right = instruction_branch->getRightBranch();
-
-    rrr = get_reg(left->getRegisterBranch()->getValue());
-    op = opcode << 3 | rrr;
-    sstream->write8(op);
-
-    if (opcode == ins_map[MOV_IMM_TO_REG_W0])
-    {
-        write_abs_static8(right);
-    }
-    else
-    {
-        write_abs_static16(right);
-    }
-}
-
-void Assembler8086::generate_mov_imm_to_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
-{
-    left = instruction_branch->getLeftBranch();
-    right = instruction_branch->getRightBranch();
-
-    // Get the modrm for this instruction
-    get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
-
-    // Write the opcode
-    sstream->write8(opcode);
-
-    // Write the MOD/RM
-    sstream->write8(bind_modrm(oo, 0, mmm));
-
-    // Write the offset 
-    write_modrm_offset(oo, mmm, left);
-
-    // Write the value
-    if (opcode == ins_map[MOV_IMM_TO_MEM_W0])
-    {
-        write_abs_static8(right);
-    }
-    else
-    {
-        write_abs_static16(right);
-    }
-}
-
-void Assembler8086::generate_mov_acc_to_mem_offs(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
-{
-    left = instruction_branch->getLeftBranch();
-    right = instruction_branch->getRightBranch();
-
-    // Write the opcode
-    sstream->write8(opcode);
-
-    // Next comes the offset
-    write_abs_static16(left);
-}
-
-void Assembler8086::generate_mov_mem_offs_to_acc(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
-{
-    left = instruction_branch->getLeftBranch();
-    right = instruction_branch->getRightBranch();
-
-    // Write the opcode
-    sstream->write8(opcode);
-
-    // Next comes the offset
-    write_abs_static16(right);
-}
-
-void Assembler8086::generate_mov_mem_to_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
-{
-    left = instruction_branch->getLeftBranch();
-    right = instruction_branch->getRightBranch();
-
-    // Get the modrm for this instruction
-    get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
-
-    sstream->write8(opcode);
-    sstream->write8(bind_modrm(oo, rrr, mmm));
-
-    // Now we are expecting the address to move memory from
-    write_abs_static16(right);
-}
-
-void Assembler8086::generate_mov_reg_to_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
-{
-    left = instruction_branch->getLeftBranch();
-    right = instruction_branch->getRightBranch();
-
-    // Get the modrm for this instruction
-    get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
-
-    sstream->write8(opcode);
-    sstream->write8(bind_modrm(oo, rrr, mmm));
-
-    // Write the offset 
-    write_modrm_offset(oo, mmm, left);
-}
-
-void Assembler8086::generate_add_reg_with_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
-{
-    sstream->write8(opcode);
-    get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
-    sstream->write8(bind_modrm(oo, rrr, mmm));
-}
-
-void Assembler8086::generate_add_mem_with_reg(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
-{
-    sstream->write8(opcode);
-    get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
-    sstream->write8(bind_modrm(oo, rrr, mmm));
-
-    // Write the offset 
-    write_modrm_offset(oo, mmm, left);
-}
-
-void Assembler8086::generate_add_reg_with_mem(int opcode, std::shared_ptr<InstructionBranch> instruction_branch)
-{
-    sstream->write8(opcode);
-    get_modrm_from_instruction(instruction_branch, &oo, &rrr, &mmm);
-    sstream->write8(bind_modrm(oo, rrr, mmm));
-
-    // Write the offset.
-    write_modrm_offset(oo, mmm, right);
-}
 
 char Assembler8086::bind_modrm(char oo, char rrr, char mmm)
 {
