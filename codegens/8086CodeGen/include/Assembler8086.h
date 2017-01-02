@@ -35,8 +35,8 @@ typedef int INSTRUCTION_TYPE;
 typedef unsigned short INSTRUCTION_INFO;
 typedef unsigned int SYNTAX_INFO;
 typedef unsigned short OPERAND_INFO;
+typedef char CONDITION_CODE;
 typedef char OPERAND_DATA_SIZE;
-
 #define OPERAND_BIT_SIZE sizeof(OPERAND_INFO) * 8
 
 enum
@@ -52,6 +52,28 @@ enum
     W1_BITS_16
 };
 
+// Condition codes
+
+enum
+{
+    OVERFLOW,
+    NOT_OVERFLOW,
+    CARRY_BELOW_NOT_ABOVE_NOR_EQUAL,
+    NOT_CARRY_ABOVE_OR_EQUAL_NOT_BELOW,
+    EQUAL_ZERO,
+    NOT_EQUAL_NOT_ZERO,
+    BELOW_OR_EQUAL_NOT_ABOVE,
+    ABOVE_NOT_BELOW_NOR_EQUAL,
+    SIGN_NEGATIVE,
+    NOT_SIGN,
+    PARITY_PARITY_EVEN,
+    NOT_PARITY_PARITY_ODD,
+    LESS_NOT_GREATER_NOR_EQUAL,
+    GREATER_OR_EQUAL_NOT_LESS,
+    LESS_OR_EQUAL_NOT_GREATER,
+    GREATER_NOT_LESS_NOR_EQUAL
+};
+
 enum
 {
     USE_W = 0x01,
@@ -63,7 +85,9 @@ enum
     HAS_REG_USE_LEFT = 0x40,
     HAS_REG_USE_RIGHT = 0x80,
     SHORT_POSSIBLE = 0x100,
-    NEAR_POSSIBLE = 0x200
+    NEAR_POSSIBLE = 0x200,
+    USE_CONDITION_CODE_IN_FIRST_BYTE = 0x400,
+    USE_CONDITION_CODE_IN_SECOND_BYTE = 0x800
 };
 
 enum
@@ -171,8 +195,10 @@ enum
 
     JMP_SHORT,
     JMP_NEAR,
-    
-    CALL_NEAR
+
+    CALL_NEAR,
+
+    JE_SHORT
 };
 
 struct ins_syntax_def
@@ -180,6 +206,12 @@ struct ins_syntax_def
     const char* ins_name;
     INSTRUCTION_TYPE ins_type;
     SYNTAX_INFO syntax_info;
+};
+
+struct condition_code_instruction
+{
+    const char* ins_name;
+    CONDITION_CODE code;
 };
 
 class OperandBranch;
@@ -210,6 +242,7 @@ private:
     void switch_to_segment(std::string segment_name);
     void assembler_pass_2();
     void handle_rrr(int* opcode, INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
+    void handle_cond_fb(int* opcode, std::shared_ptr<InstructionBranch> ins_branch);
     void gen_oommm(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> ins_branch);
     void gen_oorrrmmm(std::shared_ptr<InstructionBranch> ins_branch, unsigned char def_rrr = -1);
     void gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
@@ -219,6 +252,7 @@ private:
 
     inline char bind_modrm(char oo, char rrr, char mmm);
     inline bool has_oommm(INSTRUCTION_TYPE ins_type);
+    CONDITION_CODE get_condition_code_for_instruction(std::string instruction_name);
     int get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_or_near_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
     void write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<OperandBranch> branch);
     void write_abs_static8(std::shared_ptr<OperandBranch> branch, bool short_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);

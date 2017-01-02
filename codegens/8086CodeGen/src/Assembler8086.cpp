@@ -50,7 +50,7 @@ unsigned char ins_map[] = {
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
-    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8
+    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -59,7 +59,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 3, 3
+    2, 2, 2, 2, 2, 2, 2, 3, 3, 2
 };
 
 
@@ -70,7 +70,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
-    4, 4, 6, 6, 6, 6, 0, 0, 0
+    4, 4, 6, 6, 6, 6, 0, 0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -128,7 +128,8 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OOMMM, // div mem - word specified in location is divided by AX
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE, // jmp short imm8
     USE_W | HAS_IMM_USE_LEFT | NEAR_POSSIBLE, // jmp near imm16
-    USE_W | HAS_IMM_USE_LEFT | NEAR_POSSIBLE // call near imm16
+    USE_W | HAS_IMM_USE_LEFT | NEAR_POSSIBLE, // call near imm16
+    HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE_IN_FIRST_BYTE, // je short imm8
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -180,7 +181,12 @@ struct ins_syntax_def ins_syntax[] = {
     "div", DIV_WITH_MEM_W1, MEML16_ALONE,
     "jmp", JMP_SHORT, IMM8_ALONE,
     "jmp", JMP_NEAR, IMM16_ALONE,
-    "call", CALL_NEAR, IMM16_ALONE
+    "call", CALL_NEAR, IMM16_ALONE,
+    "je", JE_SHORT, IMM8_ALONE
+};
+
+struct condition_code_instruction cond_ins_code[] = {
+    "je", EQUAL_ZERO
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -224,6 +230,8 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addInstruction("lea");
     Assembler::addInstruction("call");
     Assembler::addInstruction("jmp");
+    Assembler::addInstruction("je");
+    Assembler::addInstruction("jne");
     Assembler::addInstruction("ret");
 
     this->left = NULL;
@@ -981,6 +989,13 @@ void Assembler8086::handle_rrr(int* opcode, INSTRUCTION_INFO info, std::shared_p
     *opcode |= get_reg(selected_reg->getValue());
 }
 
+void Assembler8086::handle_cond_fb(int* opcode, std::shared_ptr<InstructionBranch> ins_branch)
+{
+    CONDITION_CODE cond_code = get_condition_code_for_instruction(ins_branch->getInstructionNameBranch()->getValue());
+    // We must now apply it to the opcode
+    *opcode |= cond_code;
+}
+
 void Assembler8086::gen_oommm(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> ins_branch)
 {
     // What is the static RRR here?
@@ -1087,6 +1102,10 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
     {
         handle_rrr(&opcode, info, instruction_branch);
     }
+    else if (info & USE_CONDITION_CODE_IN_FIRST_BYTE)
+    {
+        handle_cond_fb(&opcode, instruction_branch);
+    }
 
     // Write the opcode
     sstream->write8(opcode);
@@ -1121,6 +1140,20 @@ bool Assembler8086::has_oommm(INSTRUCTION_TYPE ins_type)
     }
 
     return false;
+}
+
+CONDITION_CODE Assembler8086::get_condition_code_for_instruction(std::string instruction_name)
+{
+    int size = sizeof (cond_ins_code) / sizeof (struct condition_code_instruction);
+    for (int i = 0; i < size; i++)
+    {
+        if (cond_ins_code[i].ins_name == instruction_name)
+        {
+            return cond_ins_code[i].code;
+        }
+    }
+
+    return -1;
 }
 
 int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_or_near_possible, std::shared_ptr<InstructionBranch> ins_branch)
@@ -1247,7 +1280,7 @@ OPERAND_INFO Assembler8086::get_operand_info(std::shared_ptr<OperandBranch> op_b
             /* This operand has a label we should set it to a near jump for now
              * Note this will cause problems if label is out of range for the near jump.
              * In the future this must be changed to pick the appropriate jump type seek here: http://stackoverflow.com/questions/41418521/assembler-passes-issue*/
-            info = IMM16;
+            info = IMM8;
         }
         else
         {
