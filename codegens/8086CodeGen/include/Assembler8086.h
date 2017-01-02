@@ -86,8 +86,7 @@ enum
     HAS_REG_USE_RIGHT = 0x80,
     SHORT_POSSIBLE = 0x100,
     NEAR_POSSIBLE = 0x200,
-    USE_CONDITION_CODE_IN_FIRST_BYTE = 0x400,
-    USE_CONDITION_CODE_IN_SECOND_BYTE = 0x800
+    USE_CONDITION_CODE = 0x400,
 };
 
 enum
@@ -199,7 +198,6 @@ enum
     CALL_NEAR,
 
     JE_SHORT,
-    JE_NEAR,
 };
 
 struct ins_syntax_def
@@ -243,7 +241,7 @@ private:
     void switch_to_segment(std::string segment_name);
     void assembler_pass_2();
     void handle_rrr(int* opcode, INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
-    void handle_cond_fb(int* opcode, std::shared_ptr<InstructionBranch> ins_branch);
+    void handle_condition_code(int* opcode, std::shared_ptr<InstructionBranch> ins_branch);
     void gen_oommm(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> ins_branch);
     void gen_oorrrmmm(std::shared_ptr<InstructionBranch> ins_branch, unsigned char def_rrr = -1);
     void gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);

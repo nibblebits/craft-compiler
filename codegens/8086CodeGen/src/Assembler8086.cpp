@@ -50,8 +50,7 @@ unsigned char ins_map[] = {
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
-    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70,
-    0x0f
+    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -61,7 +60,6 @@ unsigned char ins_sizes[] = {
     2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
-    4
 };
 
 
@@ -73,7 +71,6 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
     4, 4, 6, 6, 6, 6, 0, 0, 0, 0,
-    0
 };
 
 /* Describes information relating to an instruction 
@@ -132,8 +129,7 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE, // jmp short imm8
     USE_W | HAS_IMM_USE_LEFT | NEAR_POSSIBLE, // jmp near imm16
     USE_W | HAS_IMM_USE_LEFT | NEAR_POSSIBLE, // call near imm16
-    HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE_IN_FIRST_BYTE, // je short imm8
-    USE_W | HAS_IMM_USE_LEFT | NEAR_POSSIBLE | USE_CONDITION_CODE_IN_SECOND_BYTE, // je near imm16
+    HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // je short imm8
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -187,8 +183,10 @@ struct ins_syntax_def ins_syntax[] = {
     "jmp", JMP_NEAR, IMM16_ALONE,
     "call", CALL_NEAR, IMM16_ALONE,
     "je", JE_SHORT, IMM8_ALONE,
-    "je", JE_NEAR, IMM16_ALONE
 };
+
+/* Certain instructions have condition codes that specify a particular event.
+ * This array holds instruction names and the particular event associated with them */
 
 struct condition_code_instruction cond_ins_code[] = {
     "je", EQUAL_ZERO
@@ -994,7 +992,7 @@ void Assembler8086::handle_rrr(int* opcode, INSTRUCTION_INFO info, std::shared_p
     *opcode |= get_reg(selected_reg->getValue());
 }
 
-void Assembler8086::handle_cond_fb(int* opcode, std::shared_ptr<InstructionBranch> ins_branch)
+void Assembler8086::handle_condition_code(int* opcode, std::shared_ptr<InstructionBranch> ins_branch)
 {
     CONDITION_CODE cond_code = get_condition_code_for_instruction(ins_branch->getInstructionNameBranch()->getValue());
     // We must now apply it to the opcode
@@ -1108,9 +1106,9 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
     {
         handle_rrr(&opcode, info, instruction_branch);
     }
-    else if (info & USE_CONDITION_CODE_IN_FIRST_BYTE)
+    else if (info & USE_CONDITION_CODE)
     {
-        handle_cond_fb(&opcode, instruction_branch);
+        handle_condition_code(&opcode, instruction_branch);
     }
 
     // Write the opcode
@@ -1122,11 +1120,6 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
     else if (info & HAS_OORRRMMM)
     {
         gen_oorrrmmm(instruction_branch);
-    }
-    else if(info & USE_CONDITION_CODE_IN_SECOND_BYTE)
-    {
-        // Generate the condition code for the second byte
-        sstream->write8(0x80 | get_condition_code_for_instruction(ins_name));
     }
 
     if (info & HAS_IMM_USE_LEFT ||
