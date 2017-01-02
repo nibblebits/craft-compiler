@@ -50,7 +50,7 @@ unsigned char ins_map[] = {
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
-    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9
+    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -59,7 +59,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 3
+    2, 2, 2, 2, 2, 2, 2, 3, 3
 };
 
 
@@ -70,7 +70,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
-    4, 4, 6, 6, 6, 6, 0, 0
+    4, 4, 6, 6, 6, 6, 0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -127,7 +127,8 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_OOMMM, // div mem - byte specified in location is divided by AL
     USE_W | HAS_OOMMM, // div mem - word specified in location is divided by AX
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE, // jmp short imm8
-    USE_W | HAS_IMM_USE_LEFT | NEAR_POSSIBLE // jmp near imm16
+    USE_W | HAS_IMM_USE_LEFT | NEAR_POSSIBLE, // jmp near imm16
+    USE_W | HAS_IMM_USE_LEFT | NEAR_POSSIBLE // call near imm16
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -178,7 +179,8 @@ struct ins_syntax_def ins_syntax[] = {
     "div", DIV_WITH_MEM_W0, MEML8_ALONE,
     "div", DIV_WITH_MEM_W1, MEML16_ALONE,
     "jmp", JMP_SHORT, IMM8_ALONE,
-    "jmp", JMP_NEAR, IMM16_ALONE
+    "jmp", JMP_NEAR, IMM16_ALONE,
+    "call", CALL_NEAR, IMM16_ALONE
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)

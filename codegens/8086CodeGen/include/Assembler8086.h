@@ -170,7 +170,9 @@ enum
     DIV_WITH_MEM_W1,
 
     JMP_SHORT,
-    JMP_NEAR
+    JMP_NEAR,
+    
+    CALL_NEAR
 };
 
 struct ins_syntax_def
