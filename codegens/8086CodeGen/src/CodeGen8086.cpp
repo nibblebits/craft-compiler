@@ -39,6 +39,8 @@ CodeGen8086::CodeGen8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat
     this->pointer_selected_variable = NULL;
     this->pointer_selected_var_iden = NULL;
     this->last_found_var_access_variable = NULL;
+    this->cur_func = NULL;
+    this->cur_func_scope_size = 0;
 
 
 }
@@ -1050,9 +1052,9 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     // Handle the arguments
     handle_func_args(arguments_branch);
 
-    // First we need to calculate the entire scope size, its important
-    calculate_scope_size(std::dynamic_pointer_cast<ScopeBranch>(body_branch));
-
+    this->cur_func = func_branch;
+    this->cur_func_scope_size = func_branch->getBodyBranch()->getScopeSize();
+    
     // Handle the body
     handle_body(body_branch);
 
@@ -1099,7 +1101,7 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
     }
     else if (branch->getType() == "RETURN")
     {
-        handle_scope_return(branch);
+        handle_func_return(branch);
     }
     else if (branch->getType() == "V_DEF" ||
             branch->getType() == "STRUCT_DEF")
@@ -1150,7 +1152,7 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
 
 }
 
-void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
+void CodeGen8086::handle_func_return(std::shared_ptr<Branch> branch)
 {
     if (branch->hasChildren())
     {
@@ -1160,8 +1162,8 @@ void CodeGen8086::handle_scope_return(std::shared_ptr<Branch> branch)
         make_expression(return_child);
     }
 
-    reset_scope_size();
-
+    do_asm("sub sp, " + std::to_string(this->cur_func_scope_size));
+    
     // Pop from the stack back to the BP(Base Pointer) now we are leaving this function
     do_asm("pop bp");
     do_asm("ret");
