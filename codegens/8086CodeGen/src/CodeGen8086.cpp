@@ -41,8 +41,6 @@ CodeGen8086::CodeGen8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat
     this->last_found_var_access_variable = NULL;
     this->cur_func = NULL;
     this->cur_func_scope_size = 0;
-
-
 }
 
 CodeGen8086::~CodeGen8086()
@@ -296,14 +294,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
                 do_asm("pop cx");
             }
 
-            if (this->do_signed)
-            {
-                make_math_instruction(exp->getValue(), "al", "cl");
-            }
-            else
-            {
-                make_math_instruction(exp->getValue(), "ax", "cx");
-            }
+            make_math_instruction(exp->getValue(), "ax", "cx");
 
         }
 
@@ -486,7 +477,15 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
         {
             first_reg = second_reg;
         }
-        do_asm("mul " + first_reg);
+
+        if (do_signed)
+        {
+            do_asm("imul " + first_reg);
+        }
+        else
+        {
+            do_asm("mul " + first_reg);
+        }
     }
     else if (op == "/")
     {
@@ -497,7 +496,14 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
         {
             first_reg = second_reg;
         }
-        do_asm("div " + first_reg);
+        if (do_signed)
+        {
+            do_asm("idiv " + first_reg);
+        }
+        else
+        {
+            do_asm("div " + first_reg);
+        }
         if (is_gen_reg_16_bit(first_reg))
         {
             // This is a 16 bit division so the DX register will contain the remainder, lets move it into the AX register
@@ -584,6 +590,8 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
     {
         throw CodeGeneratorException("void CodeGen8086::make_math_instruction(std::string op): expecting a valid operator");
     }
+
+    this->do_signed = false;
 }
 
 void CodeGen8086::make_compare_instruction(std::string op, std::string first_value, std::string second_value)
@@ -725,6 +733,7 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
     std::string pos = make_var_access(var_branch);
     if (vdef_branch->isSigned())
     {
+        //  This variable is signed so mark it as so, so that signed appropriates will be used with operators.
         this->do_signed = true;
     }
 
@@ -1042,19 +1051,21 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
 
     // Make the function global.
     do_asm("global " + name_branch->getValue());
-    
+
     // Make the function label
     make_label(name_branch->getValue());
 
+    this->cur_func = func_branch;
+    this->cur_func_scope_size = func_branch->getBodyBranch()->getScopeSize();
+
     do_asm("push bp");
+    // Generate some ASM to reserve space on the stack for this scope
+    do_asm("sub sp, " + std::to_string(this->cur_func_scope_size));
     do_asm("mov bp, sp");
 
     // Handle the arguments
     handle_func_args(arguments_branch);
 
-    this->cur_func = func_branch;
-    this->cur_func_scope_size = func_branch->getBodyBranch()->getScopeSize();
-    
     // Handle the body
     handle_body(body_branch);
 
@@ -1162,8 +1173,9 @@ void CodeGen8086::handle_func_return(std::shared_ptr<Branch> branch)
         make_expression(return_child);
     }
 
-    do_asm("sub sp, " + std::to_string(this->cur_func_scope_size));
-    
+    // Restore the stack pointer
+    do_asm("add sp, " + std::to_string(this->cur_func_scope_size));
+
     // Pop from the stack back to the BP(Base Pointer) now we are leaving this function
     do_asm("pop bp");
     do_asm("ret");
