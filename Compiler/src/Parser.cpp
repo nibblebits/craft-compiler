@@ -30,6 +30,30 @@
 #include "branches.h"
 #include "common.h"
 
+
+/* The order of operations for operators and their priorities 
+ * Seek here: http://www.difranco.net/compsci/C_Operator_Precedence_Table.htm
+ * The same order of operations to C will be used.*/
+
+struct order_of_operation o_of_operation[] = {
+    "<<", 0,
+    ">>", 0,
+    "<", 1,
+    ">", 1,
+    "<=", 1,
+    ">=", 1,
+    "==", 2,
+    "!=", 2,
+    "&", 3,
+    "^", 4,
+    "|", 5,
+    "+", 6,
+    "-", 6,
+    "*", 7,
+    "/", 7,
+    "%", 7,
+};
+
 Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
 {
     this->tree = std::shared_ptr<Tree>(new Tree());
@@ -74,20 +98,20 @@ void Parser::process_top()
 {
     this->root_scope = this->root_branch;
     start_local_scope(this->root_branch);
-    peak();
-    if (is_peak_type("keyword"))
+    peek();
+    if (is_peek_type("keyword"))
     {
-        std::string keyword_value = this->peak_token_value;
+        std::string keyword_value = this->peek_token_value;
         // Is it a structure definition or declaration?
         if (keyword_value == "struct")
         {
-            // Peak further to see if their is an identifier
-            peak(1);
-            if (is_peak_type("identifier"))
+            // peek further to see if their is an identifier
+            peek(1);
+            if (is_peek_type("identifier"))
             {
-                // Peak further again to see if their is yet another identifier
-                peak(2);
-                if (is_peak_type("identifier"))
+                // peek further again to see if their is yet another identifier
+                peek(2);
+                if (is_peek_type("identifier"))
                 {
                     // This is a structure variable declaration so process it
                     process_structure_declaration();
@@ -107,18 +131,18 @@ void Parser::process_top()
         }
         else
         {
-            peak(1);
-            if (is_peak_type("identifier"))
+            peek(1);
+            if (is_peek_type("identifier"))
             {
                 // Check to see if this is a function or a variable declaration
-                peak(2);
-                if (is_peak_symbol("[") || is_peak_operator("=") || is_peak_symbol(";"))
+                peek(2);
+                if (is_peek_symbol("[") || is_peek_operator("=") || is_peek_symbol(";"))
                 {
                     process_variable_declaration();
                     process_semicolon();
 
                 }
-                else if (is_peak_symbol("("))
+                else if (is_peek_symbol("("))
                 {
                     // It is looking like a function call.
                     process_function();
@@ -128,14 +152,14 @@ void Parser::process_top()
                     error_unexpected_token();
                 }
             }
-            else if (is_peak_operator("*"))
+            else if (is_peek_operator("*"))
             {
                 process_variable_declaration();
                 process_semicolon();
             }
         }
     }
-    else if (is_peak_symbol("#"))
+    else if (is_peek_symbol("#"))
     {
         // Its a macro so process it
         process_macro();
@@ -335,8 +359,8 @@ void Parser::process_function()
     while (true)
     {
         /* If the next token is a keyword then process a variable declaration*/
-        peak();
-        if (is_peak_type("keyword"))
+        peek();
+        if (is_peek_type("keyword"))
         {
             process_variable_declaration();
 
@@ -347,13 +371,13 @@ void Parser::process_function()
         else
         {
             /* Its not a keyword so check for a right bracket or a comma*/
-            if (is_peak_symbol(")"))
+            if (is_peek_symbol(")"))
             {
                 // Looks like we are done here so shift and pop the bracket from the stack then break
                 shift_pop();
                 break;
             }
-            else if (is_peak_symbol(","))
+            else if (is_peek_symbol(","))
             {
                 // shift and pop the comma from the stack
                 shift_pop();
@@ -369,8 +393,8 @@ void Parser::process_function()
 
     std::shared_ptr<FuncDefBranch> func_dec_branch = NULL;
 
-    peak();
-    if (is_peak_symbol(";"))
+    peek();
+    if (is_peek_symbol(";"))
     {
         // This is a function definition not a declaration.
         func_dec_branch = std::shared_ptr<FuncDefBranch>(new FuncDefBranch(this->compiler));
@@ -426,8 +450,8 @@ void Parser::process_body(std::shared_ptr<BODYBranch> body_root, bool new_scope)
     while (true)
     {
         // Check to see if we are at the end of the body
-        peak();
-        if (is_peak_symbol("}"))
+        peek();
+        if (is_peek_symbol("}"))
         {
             // Shift and pop the right bracket
             shift_pop();
@@ -461,37 +485,37 @@ void Parser::process_body(std::shared_ptr<BODYBranch> body_root, bool new_scope)
 
 void Parser::process_stmt()
 {
-    peak();
-    if (is_peak_type("keyword"))
+    peek();
+    if (is_peek_type("keyword"))
     {
         // Check to see if this is an "if" statement
-        if (is_peak_value("if"))
+        if (is_peek_value("if"))
         {
             // Process the "if" statement
             process_if_stmt();
         }
-        else if (is_peak_value("__asm"))
+        else if (is_peek_value("__asm"))
         {
             process_inline_asm();
             process_semicolon();
         }
-        else if (is_peak_value("struct"))
+        else if (is_peek_value("struct"))
         {
             // Its a structure variable declaration
             process_structure_declaration();
             process_semicolon();
         }
-        else if (is_peak_value("while"))
+        else if (is_peek_value("while"))
         {
             // This is a "while" statement so process it
             process_while_stmt();
         }
-        else if (is_peak_value("for"))
+        else if (is_peek_value("for"))
         {
             // This is a "for" statement so process it
             process_for_stmt();
         }
-        else if (is_peak_value("return"))
+        else if (is_peek_value("return"))
         {
             // This is a "return" statement so process it
             process_return_stmt();
@@ -504,10 +528,10 @@ void Parser::process_stmt()
             process_semicolon();
         }
     }
-    else if (is_peak_type("identifier"))
+    else if (is_peek_type("identifier"))
     {
-        peak(1);
-        if (is_peak_symbol("("))
+        peek(1);
+        if (is_peek_symbol("("))
         {
             // A left bracket was found so it must be a function call
             process_function_call();
@@ -520,7 +544,7 @@ void Parser::process_stmt()
             process_semicolon();
         }
     }
-    else if (is_peak_operator("*"))
+    else if (is_peek_operator("*"))
     {
         // This is probably a pointer assignment so lets process the pointer
         process_expression();
@@ -560,8 +584,8 @@ void Parser::process_variable_declaration()
     var_keyword_branch = this->branch;
 
     // Lets see if we are defining a pointer
-    peak();
-    if (is_peak_operator("*"))
+    peek();
+    if (is_peek_operator("*"))
     {
         // Shift and pop the pointer operator
         shift_pop();
@@ -575,9 +599,9 @@ void Parser::process_variable_declaration()
 
     identifier_branch = this->branch;
 
-    peak();
+    peek();
     // Check if this is just a variable declaration or that we are also setting it to a value    
-    if (is_peak_operator("="))
+    if (is_peek_operator("="))
     {
         // Their is an equal sign so we are setting it to something
         // Shift and pop that "=" sign we do not need it anymore
@@ -611,11 +635,11 @@ void Parser::process_ptr()
 
     std::shared_ptr<PTRBranch> ptr_branch = std::shared_ptr<PTRBranch>(new PTRBranch(compiler));
 
-    peak();
-    if (is_peak_symbol("("))
+    peek();
+    if (is_peek_symbol("("))
     {
         // Process the expression
-        process_expression(true);
+        process_expression();
         pop_branch();
     }
     else
@@ -634,11 +658,7 @@ void Parser::process_ptr()
 void Parser::process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op)
 {
     // Check for a valid assignment, e.g =, +=, -=
-    if (op->getValue() != "=" &&
-            op->getValue() != "+=" &&
-            op->getValue() != "-=" &&
-            op->getValue() != "*=" &&
-            op->getValue() != "/=")
+    if (!is_assignment_operator(op->getValue()))
     {
         error("expecting one of the following operators for assignments: =,+=,-=,*=,/= but " + this->branch_value + " was provided.");
     }
@@ -655,8 +675,8 @@ void Parser::process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Br
 void Parser::process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struct_def)
 {
     std::shared_ptr<VarIdentifierBranch> var_identifier_branch = std::shared_ptr<VarIdentifierBranch>(new VarIdentifierBranch(compiler));
-    peak();
-    if (is_peak_type("identifier"))
+    peek();
+    if (is_peek_type("identifier"))
     {
         shift_pop();
         var_identifier_branch->setVariableNameBranch(this->branch);
@@ -666,9 +686,9 @@ void Parser::process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struc
         error_expecting("identifier", this->token_type);
     }
 
-    // Peak ahead further to check if their is array access
-    peak();
-    if (is_peak_symbol("["))
+    // peek ahead further to check if their is array access
+    peek();
+    if (is_peek_symbol("["))
     {
         // We have array access process it
         process_array_indexes();
@@ -676,9 +696,9 @@ void Parser::process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struc
         var_identifier_branch->setRootArrayIndexBranch(this->branch);
     }
 
-    // Peak further to see if there is any structure access
-    peak();
-    if (is_peak_symbol("."))
+    // peek further to see if there is any structure access
+    peek();
+    if (is_peek_symbol("."))
     {
         process_structure_access();
         pop_branch();
@@ -693,10 +713,10 @@ void Parser::process_structure_access()
     std::shared_ptr<STRUCTAccessBranch> struct_access_root = NULL;
 
     // Check to see if this structure access is valid
-    peak();
-    if (!is_peak_symbol("."))
+    peek();
+    if (!is_peek_symbol("."))
     {
-        error_expecting(".", this->peak_token_value);
+        error_expecting(".", this->peek_token_value);
     }
 
     // Shift and pop off the "."
@@ -711,12 +731,46 @@ void Parser::process_structure_access()
     push_branch(struct_access_root);
 }
 
-void Parser::process_expression(bool strict_mode)
+void Parser::process_expression()
 {
-    process_expression_part(strict_mode);
-    peak();
+    std::shared_ptr<Branch> last = NULL;
+    std::shared_ptr<Branch> tmp = NULL;
+    do
+    {
+        // Process the expression part, e.g "5 + 5"
+        process_expression_part(last);
+        // Pop off the result
+        pop_branch();
+        last = this->branch;
+
+        // Peek ahead to see if order of operations applies
+        peek();
+        if (is_peek_type("operator"))
+        {
+            ORDER_OF_OPERATIONS_PRIORITY priority = get_order_of_operations_priority(last->getValue(), this->peek_token_value);
+            if (priority == ORDER_OF_OPERATIONS_RIGHT_GREATER)
+            {
+                // Ok order of operations applies here so we need to process it and replace the right branch of the last expression part
+                process_expression_part(last->getSecondChild()->clone());
+                // Pop off the result
+                pop_branch();
+                tmp = this->branch;
+                // Replace the branch with the new branch
+                last->getSecondChild()->replaceSelf(tmp);
+            }
+        }
+
+        // Peek ahead to see if we are done or not
+        peek();
+    }
+    while (is_peek_type("operator") && !compiler->isLogicalOperator(this->peek_token_value));
+
+    std::shared_ptr<Branch> exp_root = last;
+    push_branch(exp_root);
+
+    peek();
     // Do we have a logical operator if so then we have more to do
-    if (compiler->isLogicalOperator(this->peak_token_value))
+    if (compiler->isLogicalOperator(this->peek_token_value))
     {
         // Ok we do shift and pop it off
         shift_pop();
@@ -727,7 +781,7 @@ void Parser::process_expression(bool strict_mode)
         std::shared_ptr<Branch> left = this->branch;
 
         // Now process the new expression
-        process_expression(strict_mode);
+        process_expression();
 
         // Pop it off
         pop_branch();
@@ -742,174 +796,92 @@ void Parser::process_expression(bool strict_mode)
 
 }
 
-void Parser::process_expression_part(bool strict_mode)
+void Parser::process_expression_part(std::shared_ptr<Branch> left)
 {
     std::shared_ptr<Branch> exp_root = NULL;
-    std::shared_ptr<Branch> left = NULL;
     std::shared_ptr<Branch> op = NULL;
     std::shared_ptr<Branch> right = NULL;
 
-    while (true)
+    // Do we need to process a left operand?
+    if (left == NULL)
     {
-        if (left != NULL && op != NULL && op->getValue() == "=")
+        // Process the left operand
+        left = process_expression_operand();
+    }
+
+    // Do we have an operator?
+    peek();
+    if (is_peek_type("operator"))
+    {
+        // Yes we do so pop it off
+        shift_pop();
+        op = this->branch;
+
+        // Process the right operand
+        right = process_expression_operand();
+    }
+
+    if (left != NULL && op != NULL && right != NULL)
+    {
+        if (is_assignment_operator(op->getValue()))
         {
-            // Ok this is an assignment expression
-            // It is important to process the expression for the right branch otherwise we will only end up with one attribute on the stack
-            process_expression();
-            pop_branch();
-            right = this->branch;
+            // This is an assignment so lets work with it a bit differently
             process_assignment(left, right, op);
             pop_branch();
-            left = this->branch;
-            op = NULL;
-            right = NULL;
-
-        }
-        else if (left != NULL && op != NULL && right != NULL)
-        {
-            if (op->getValue() != "*" && op->getValue() != "/")
-            {
-                // Check to see if BODMAS applies
-                peak();
-                if (is_peak_operator("*")
-                        || is_peak_operator("/"))
-                {
-                    std::shared_ptr<Branch> l = right;
-
-                    // Shift and pop the operator
-                    shift_pop();
-                    std::shared_ptr<Branch> o = this->branch;
-                    // Shift and pop the right
-                    shift_pop();
-                    std::shared_ptr<Branch> r = this->branch;
-
-                    exp_root = std::shared_ptr<EBranch>(new EBranch(this->compiler, o->getValue()));
-                    exp_root->addChild(l);
-                    exp_root->addChild(r);
-                    right = exp_root;
-                }
-            }
-
-            exp_root = std::shared_ptr<EBranch>(new EBranch(this->compiler, op->getValue()));
-            exp_root->addChild(left);
-            exp_root->addChild(right);
-
-            // Set the left to exp_root, and the op and right to NULL ready for future expressions
-            left = exp_root;
-            op = NULL;
-            right = NULL;
+            exp_root = this->branch;
         }
         else
         {
-            peak();
-            // If the next token is one of the following then set either the left or right branches, which ever one of them is free
-            if (is_peak_type("number") ||
-                    is_peak_type("identifier") ||
-                    is_peak_type("string")
-                    )
-            {
-                handle_left_or_right(&left, &right);
-            }
-            else if (is_peak_type("operator"))
-            {
-                if (is_peak_operator("=") && strict_mode)
-                {
-                    // Strict mode is active assignments are not allowed while strict mode is active and we must break!
-                    break;
-                }
-
-                if (left == NULL || op != NULL)
-                {
-                    handle_left_or_right(&left, &right);
-                    continue;
-                }
-
-                // Logical operators should cause us to break out of this loop so it can be handled in the process_expression method.
-                if (compiler->isLogicalOperator(this->peak_token_value))
-                {
-                    break;
-                }
-
-                shift_pop();
-                op = this->branch;
-
-                // Check to see if compare expressions order of operations applies.
-                if (compiler->isCompareOperator(op->getValue()))
-                {
-                    // Process the further expression
-                    process_expression_part(strict_mode);
-                    // Pop off the result
-                    pop_branch();
-                    // Put it on the right branch
-                    right = this->branch;
-                }
-            }
-            else if (is_peak_symbol("("))
-            {
-                // Pop the left bracket we don't need it anymore
-                shift_pop();
-
-                // Recall this method to handle the expression
-                process_expression(strict_mode);
-
-                // Pop off the result
-                pop_branch();
-
-                // Set either the left or right branch to the result
-                if (left == NULL)
-                {
-                    left = this->branch;
-                }
-                else if (right == NULL)
-                {
-                    right = this->branch;
-                }
-
-                shift_pop();
-                // Is the next symbol a right bracket?
-                if (!is_peak_symbol(")"))
-                {
-                    error("expecting right bracket to end expression");
-                }
-            }
-            else
-            {
-                break;
-            }
+            // Ok all left op and right are present so lets create an expression root branch
+            exp_root = std::shared_ptr<EBranch>(new EBranch(getCompiler(), op->getValue()));
+            exp_root->addChild(left);
+            exp_root->addChild(right);
         }
     }
-
-    // The expression was never complete so it must be just a number
-    if (exp_root == NULL)
+    else
     {
-        // Check for an error with the expression
-        if (left == NULL)
-        {
-
-            error("invalid expression");
-        }
+        // Ok only left available, set it as the expression root
         exp_root = left;
     }
 
-    // Ok finally lets push the expression root to the stack
     push_branch(exp_root);
 }
 
 std::shared_ptr<Branch> Parser::process_expression_operand()
 {
-    peak();
+    peek();
     std::shared_ptr<Branch> b = NULL;
-    if (is_peak_type("number"))
+    if (is_peek_symbol("("))
+    {
+        // Looks like we have a bracket here, lets deal with it
+        shift_pop();
+        // Brackets mean expressions, process the expression
+        process_expression();
+        // Pop off the expression
+        pop_branch();
+        b = this->branch;
+
+        // expressions that start with a bracket must end with an ending bracket
+        peek();
+        if (!is_peek_symbol(")"))
+        {
+            error_expecting(")", this->peek_token_value);
+        }
+
+        // Pop off the right bracket as we don't need it anymore
+        shift_pop();
+    }
+    else if (is_peek_type("number"))
     {
         // Shift and pop the number
         shift_pop();
         b = this->branch;
     }
-    else if (is_peak_type("identifier"))
+    else if (is_peek_type("identifier"))
     {
-        peak(1);
+        peek(1);
         // Their is a left bracket so this must be a function call
-        if (is_peak_symbol("("))
+        if (is_peek_symbol("("))
         {
             process_function_call();
             // Pop the result from the stack
@@ -925,7 +897,7 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
             b = this->branch;
         }
     }
-    else if (is_peak_operator("&"))
+    else if (is_peek_operator("&"))
     {
         // We are getting the address of a declaration here
         // Shift and pop the "&" symbol we do not need it anymore
@@ -939,20 +911,30 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         address_of_branch->setVariableBranch(this->branch);
         b = address_of_branch;
     }
-    else if (is_peak_operator("*"))
+    else if (is_peek_operator("*"))
     {
         process_ptr();
         pop_branch();
         b = this->branch;
     }
-    else if (is_peak_operator("!"))
+    else if (is_peek_operator("!"))
     {
         // This is a logical NOT statement.
         process_logical_not();
         pop_branch();
         b = this->branch;
     }
-    else if (is_peak_type("string"))
+    else if (is_peek_operator("-"))
+    {
+        // This is a negative number, pop off the negative operator
+        shift_pop();
+        // Shift and pop the number
+        shift_pop();
+        b = this->branch;
+        // Make it negative
+        b->setValue("-" + b->getValue());
+    }
+    else if (is_peek_type("string"))
     {
         // We have a string shift and pop the string 
 
@@ -997,15 +979,15 @@ void Parser::process_function_call()
     // So far so good now we need to get the function call parameters
     while (true)
     {
-        peak();
-        if (is_peak_symbol(")"))
+        peek();
+        if (is_peek_symbol(")"))
         {
             // Right curly was found so we are done
             // Pop it off then break
             shift_pop();
             break;
         }
-        else if (is_peak_symbol(","))
+        else if (is_peek_symbol(","))
         {
             // Their is a comma so just pop it off
             shift_pop();
@@ -1072,15 +1054,15 @@ void Parser::process_if_stmt()
     if_stmt->setBodyBranch(if_body);
 
     // Check for an else statement
-    peak();
-    if (is_peak_keyword("else"))
+    peek();
+    if (is_peek_keyword("else"))
     {
         // Shift and pop the else keyword we do not need it anymore
         shift_pop();
 
-        // Peak to see if its an else if statement
-        peak();
-        if (is_peak_keyword("if"))
+        // peek to see if its an else if statement
+        peek();
+        if (is_peek_keyword("if"))
         {
             // No need to shift and pop the "if" keyword as the "process_if_stmt()" method requires it present
             process_if_stmt();
@@ -1118,9 +1100,9 @@ void Parser::process_return_stmt()
     }
 
     std::shared_ptr<Branch> exp = NULL;
-    // Peak ahead do we have a semicolon? if so we are done otherwise their is an expression that is being returned
-    peak();
-    if (!is_peak_symbol(";"))
+    // peek ahead do we have a semicolon? if so we are done otherwise their is an expression that is being returned
+    peek();
+    if (!is_peek_symbol(";"))
     {
         // We do not have a semicolon so their is an expression to parse
         process_expression();
@@ -1205,8 +1187,8 @@ void Parser::process_structure_declaration()
     std::shared_ptr<Branch> struct_name_branch = this->branch;
 
     // Lets check to see if this is a pointer declaration
-    peak();
-    if (is_peak_operator("*"))
+    peek();
+    if (is_peek_operator("*"))
     {
         // Shift and pop the operator from the stack as we do not need it anymore
         shift_pop();
@@ -1220,17 +1202,17 @@ void Parser::process_structure_declaration()
     std::shared_ptr<Branch> identifier_branch = this->branch;
 
     std::shared_ptr<Branch> var_value_branch = NULL;
-    // Peak ahead to see if their is an = sign it may be a structure declaration
-    peak();
-    if (is_peak_operator("="))
+    // peek ahead to see if their is an = sign it may be a structure declaration
+    peek();
+    if (is_peek_operator("="))
     {
         // Ok their is an equal sign so we must be assigning this declaration
         // Shift and pop the equal sign we no longer need it
         shift_pop();
 
-        // Peak further to check if we have an identifier
-        peak();
-        if (is_peak_type("identifier"))
+        // peek further to check if we have an identifier
+        peek();
+        if (is_peek_type("identifier"))
         {
             // Shift and pop the identifier from the stack
             shift_pop();
@@ -1239,7 +1221,7 @@ void Parser::process_structure_declaration()
         else
         {
 
-            error_expecting("identifier", this->peak_token_value);
+            error_expecting("identifier", this->peek_token_value);
         }
     }
 
@@ -1324,13 +1306,13 @@ void Parser::process_for_stmt()
 
     /* Now we are either expecting a variable declaration, assignment or both.
      * We also allow just a semicolon if the programmer does not wish to define or set anything*/
-    peak();
+    peek();
 
     // Start the "for_stmt" local scope.
     start_local_scope(for_stmt);
-    if (is_peak_type("keyword") || is_peak_type("identifier"))
+    if (is_peek_type("keyword") || is_peek_type("identifier"))
     {
-        if (is_peak_type("keyword"))
+        if (is_peek_type("keyword"))
         {
             // Ok their is a variable declaration here
             // Process the variable declaration
@@ -1355,8 +1337,8 @@ void Parser::process_for_stmt()
     process_semicolon();
 
     // Process the condition if any.
-    peak();
-    if (!is_peak_symbol(";"))
+    peek();
+    if (!is_peek_symbol(";"))
     {
         // Now process the condition
         process_expression();
@@ -1369,8 +1351,8 @@ void Parser::process_for_stmt()
     process_semicolon();
 
     // Process the loop part of the "for" statement, if any
-    peak();
-    if (!is_peak_symbol(")"))
+    peek();
+    if (!is_peek_symbol(")"))
     {
         // Process the assignment by calling the "process_expression" method.
         process_expression();
@@ -1434,8 +1416,8 @@ void Parser::process_array_indexes()
     std::shared_ptr<ArrayIndexBranch> array_index_branch = std::shared_ptr<ArrayIndexBranch>(new ArrayIndexBranch(compiler));
     array_index_branch->setValueBranch(expression);
     // Check to see if the next token is a left bracket if it is we are not done
-    peak();
-    if (is_peak_symbol("["))
+    peek();
+    if (is_peek_symbol("["))
     {
         // Yes there are more indexes to go so recall ourself
 
@@ -1482,11 +1464,11 @@ void Parser::process_logical_not()
     }
 
     std::shared_ptr<LogicalNotBranch> logical_not_branch = std::shared_ptr<LogicalNotBranch>(new LogicalNotBranch(this->compiler));
-    peak();
-    if (is_peak_symbol("("))
+    peek();
+    if (is_peek_symbol("("))
     {
         // Process the expression
-        process_expression(true);
+        process_expression();
         pop_branch();
     }
     else
@@ -1554,38 +1536,38 @@ void Parser::shift()
     }
 }
 
-void Parser::peak(int offset)
+void Parser::peek(int offset)
 {
     if (!this->input.empty())
     {
         if (offset == -1)
         {
-            this->peak_token = this->input.front();
+            this->peek_token = this->input.front();
         }
         else
         {
             if (offset < this->input.size())
             {
-                this->peak_token = this->input.at(offset);
+                this->peek_token = this->input.at(offset);
             }
             else
             {
-                goto _peak_error;
+                goto _peek_error;
             }
         }
-        this->peak_token_type = this->peak_token->getType();
-        this->peak_token_value = this->peak_token->getValue();
+        this->peek_token_type = this->peek_token->getType();
+        this->peek_token_value = this->peek_token->getValue();
     }
     else
     {
 
-        goto _peak_error;
+        goto _peek_error;
     }
 
     return;
 
-_peak_error:
-    error("peak failed, no more input with unfinished parse, check your source file.", false);
+_peek_error:
+    error("peek failed, no more input with unfinished parse, check your source file.", false);
     throw ParserException("End of file reached.");
 
 }
@@ -1619,6 +1601,10 @@ void Parser::setRootAndScopes(std::shared_ptr<Branch> branch)
 
 void Parser::push_branch(std::shared_ptr<Branch> branch)
 {
+    if (branch == NULL)
+    {
+        throw Exception("void Parser::push_branch(std::shared_ptr<Branch> branch): branch may not be NULL");
+    }
     // Before pushing we must assign the root branch and the scopes to the branch
     setRootAndScopes(branch);
     this->branches.push_back(branch);
@@ -1693,18 +1679,18 @@ bool Parser::is_branch_identifier(std::string identifier)
     return is_branch_type("identifier") && is_branch_value(identifier);
 }
 
-bool Parser::is_peak_symbol(std::string symbol)
+bool Parser::is_peek_symbol(std::string symbol)
 {
 
-    return is_peak_type("symbol") && is_peak_value(symbol);
+    return is_peek_type("symbol") && is_peek_value(symbol);
 }
 
-bool Parser::is_peak_symbol(std::string symbol, int peak)
+bool Parser::is_peek_symbol(std::string symbol, int peek)
 {
-    if (peak < this->input.size())
+    if (peek < this->input.size())
     {
-        std::shared_ptr<Token> peak_token = this->input.at(peak);
-        if (peak_token->getType() == "symbol" && peak_token->getValue() == symbol)
+        std::shared_ptr<Token> peek_token = this->input.at(peek);
+        if (peek_token->getType() == "symbol" && peek_token->getValue() == symbol)
         {
             return true;
         }
@@ -1712,24 +1698,24 @@ bool Parser::is_peak_symbol(std::string symbol, int peak)
     else
     {
 
-        error("bool Parser::is_peak_type(std::string type, int peak): peak offset is breaching bounds.");
+        error("bool Parser::is_peek_type(std::string type, int peek): peek offset is breaching bounds.");
     }
 
     return false;
 }
 
-bool Parser::is_peak_type(std::string type)
+bool Parser::is_peek_type(std::string type)
 {
 
-    return this->peak_token_type == type;
+    return this->peek_token_type == type;
 }
 
-bool Parser::is_peak_type(std::string type, int peak)
+bool Parser::is_peek_type(std::string type, int peek)
 {
-    if (peak < this->input.size())
+    if (peek < this->input.size())
     {
-        std::shared_ptr<Token> peak_token = this->input.at(peak);
-        if (peak_token->getType() == type)
+        std::shared_ptr<Token> peek_token = this->input.at(peek);
+        if (peek_token->getType() == type)
         {
             return true;
         }
@@ -1737,37 +1723,37 @@ bool Parser::is_peak_type(std::string type, int peak)
     else
     {
 
-        error("bool Parser::is_peak_type(std::string type, int peak): peak offset is breaching bounds.");
+        error("bool Parser::is_peek_type(std::string type, int peek): peek offset is breaching bounds.");
     }
 
     return false;
 }
 
-bool Parser::is_peak_value(std::string value)
+bool Parser::is_peek_value(std::string value)
 {
 
-    return this->peak_token_value == value;
+    return this->peek_token_value == value;
 }
 
-bool Parser::is_peak_keyword(std::string keyword)
+bool Parser::is_peek_keyword(std::string keyword)
 {
 
-    return is_peak_type("keyword") && is_peak_value(keyword);
+    return is_peek_type("keyword") && is_peek_value(keyword);
 }
 
-bool Parser::is_peak_operator(std::string op)
+bool Parser::is_peek_operator(std::string op)
 {
 
-    return is_peak_type("operator") && is_peak_value(op);
+    return is_peek_type("operator") && is_peek_value(op);
 }
 
-bool Parser::is_peak_operator(std::string op, int peak)
+bool Parser::is_peek_operator(std::string op, int peek)
 {
-    if (peak < this->input.size())
+    if (peek < this->input.size())
     {
-        std::shared_ptr<Token> peak_token = this->input.at(peak);
-        if (peak_token->getType() == "operator" &&
-                peak_token->getValue() == op)
+        std::shared_ptr<Token> peek_token = this->input.at(peek);
+        if (peek_token->getType() == "operator" &&
+                peek_token->getValue() == op)
         {
             return true;
         }
@@ -1775,16 +1761,50 @@ bool Parser::is_peak_operator(std::string op, int peak)
     else
     {
 
-        error("bool Parser::is_peak_operator(std::string op, int peak): peak offset is breaching bounds.");
+        error("bool Parser::is_peek_operator(std::string op, int peek): peek offset is breaching bounds.");
     }
 
     return false;
 }
 
-bool Parser::is_peak_identifier(std::string identifier)
+bool Parser::is_peek_identifier(std::string identifier)
 {
+    return is_peek_type("identifier") && is_peek_value(identifier);
+}
 
-    return is_peak_type("identifier") && is_peak_value(identifier);
+bool Parser::is_assignment_operator(std::string op)
+{
+    return op == "=" ||
+            op == "+=" ||
+            op == "-=" ||
+            op == "*=" ||
+            op == "/=";
+}
+
+int Parser::get_order_of_operations_priority_for_operator(std::string op)
+{
+    int size = sizeof (o_of_operation) / sizeof (struct order_of_operation);
+    for (int i = 0; i < size; i++)
+    {
+        if (o_of_operation[i].op == op)
+            return o_of_operation[i].priority;
+    }
+
+    // Operator not found in list so use priority zero
+    return 0;
+}
+
+ORDER_OF_OPERATIONS_PRIORITY Parser::get_order_of_operations_priority(std::string lop, std::string rop)
+{
+    int l_priority = get_order_of_operations_priority_for_operator(lop);
+    int r_priority = get_order_of_operations_priority_for_operator(rop);
+
+    if (l_priority == r_priority)
+        return ORDER_OF_OPERATIONS_PRIORITIES_EQUAL;
+    else if (l_priority > r_priority)
+        return ORDER_OF_OPERATIONS_LEFT_GREATER;
+    else
+        return ORDER_OF_OPERATIONS_RIGHT_GREATER;
 }
 
 std::shared_ptr<STRUCTBranch> Parser::getDeclaredStructure(std::string struct_name)

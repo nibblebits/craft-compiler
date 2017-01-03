@@ -337,21 +337,21 @@ void Assembler::peek(int offset)
     {
         if (offset == -1)
         {
-            this->peak_token = this->tokens.front();
+            this->peek_token = this->tokens.front();
         }
         else
         {
             if (offset < this->tokens.size())
             {
-                this->peak_token = this->tokens.at(offset);
+                this->peek_token = this->tokens.at(offset);
             }
             else
             {
                 goto _peek_error;
             }
         }
-        this->peak_token_type = this->peak_token->getType();
-        this->peak_token_value = this->peak_token->getValue();
+        this->peek_token_type = this->peek_token->getType();
+        this->peek_token_value = this->peek_token->getValue();
     }
     else
     {
@@ -363,9 +363,9 @@ void Assembler::peek(int offset)
 
 _peek_error:
     // We will just null the peek here.
-    this->peak_token = NULL;
-    this->peak_token_type = "";
-    this->peak_token_value = "";
+    this->peek_token = NULL;
+    this->peek_token_type = "";
+    this->peek_token_value = "";
 }
 
 void Assembler::shift()
@@ -391,7 +391,7 @@ void Assembler::shift_pop()
 
 bool Assembler::is_peek_type(std::string type)
 {
-    if (getPeakTokenType() == type)
+    if (getpeekTokenType() == type)
         return true;
 
     return false;
@@ -399,7 +399,7 @@ bool Assembler::is_peek_type(std::string type)
 
 bool Assembler::is_peek_value(std::string value)
 {
-    if (getPeakTokenValue() == value)
+    if (getpeekTokenValue() == value)
         return true;
     return false;
 }
@@ -681,19 +681,19 @@ std::string Assembler::getShiftedTokenValue()
     return this->token_value;
 }
 
-std::shared_ptr<Token> Assembler::getPeakToken()
+std::shared_ptr<Token> Assembler::getpeekToken()
 {
-    return this->peak_token;
+    return this->peek_token;
 }
 
-std::string Assembler::getPeakTokenType()
+std::string Assembler::getpeekTokenType()
 {
-    return this->peak_token_type;
+    return this->peek_token_type;
 }
 
-std::string Assembler::getPeakTokenValue()
+std::string Assembler::getpeekTokenValue()
 {
-    return this->peak_token_value;
+    return this->peek_token_value;
 }
 
 std::shared_ptr<Branch> Assembler::getPoppedBranch()

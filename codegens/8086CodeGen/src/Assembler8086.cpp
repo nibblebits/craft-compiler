@@ -316,7 +316,7 @@ void Assembler8086::parse_part()
     else
     {
         peek();
-        throw AssemblerException("void Assembler8086::parse_part():  unexpected token \"" + getPeakTokenValue() + "\" this instruction or syntax may not be implemented.");
+        throw AssemblerException("void Assembler8086::parse_part():  unexpected token \"" + getpeekTokenValue() + "\" this instruction or syntax may not be implemented.");
     }
 
 }

@@ -293,7 +293,7 @@ int main(int argc, char** argv)
         parser->setInput(lexer->getTokens());
         parser->buildTree();
     }
-    catch (ParserException ex)
+    catch (Exception ex)
     {
         std::cout << "Error parsing: " << ex.getMessage() << std::endl;
         handle_parser_errors_and_warnings();

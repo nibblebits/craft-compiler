@@ -92,9 +92,9 @@ protected:
     std::string getShiftedTokenType();
     std::string getShiftedTokenValue();
 
-    std::shared_ptr<Token> getPeakToken();
-    std::string getPeakTokenType();
-    std::string getPeakTokenValue();
+    std::shared_ptr<Token> getpeekToken();
+    std::string getpeekTokenType();
+    std::string getpeekTokenValue();
 
     std::shared_ptr<Branch> getPoppedBranch();
     std::string getPoppedBranchType();
@@ -121,9 +121,9 @@ private:
     std::string token_type;
     std::string token_value;
 
-    std::shared_ptr<Token> peak_token;
-    std::string peak_token_type;
-    std::string peak_token_value;
+    std::shared_ptr<Token> peek_token;
+    std::string peek_token_type;
+    std::string peek_token_value;
 
     std::shared_ptr<Branch> branch;
     std::string branch_type;

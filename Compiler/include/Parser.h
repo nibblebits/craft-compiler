@@ -43,6 +43,20 @@
 #define PARSER_RULE_COMPATIBLE_NO_BRANCH 1
 #define PARSER_RULE_INCOMPATIBLE 2
 
+enum
+{
+    ORDER_OF_OPERATIONS_PRIORITIES_EQUAL,
+    ORDER_OF_OPERATIONS_LEFT_GREATER,
+    ORDER_OF_OPERATIONS_RIGHT_GREATER
+};
+
+typedef unsigned char ORDER_OF_OPERATIONS_PRIORITY;
+
+struct order_of_operation
+{
+    const char* op;
+    int priority;
+};
 
 class CompilerEntity;
 class BODYBranch;
@@ -72,8 +86,8 @@ private:
     void process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op);
     void process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struct_def=NULL);
     void process_structure_access();
-    void process_expression(bool strict_mode = false);
-    void process_expression_part(bool strict_mode);
+    void process_expression();
+    void process_expression_part(std::shared_ptr<Branch> left=NULL);
     std::shared_ptr<Branch> process_expression_operand();
     std::shared_ptr<Branch> process_expression_operator();
     void process_function_call();
@@ -93,7 +107,7 @@ private:
     void error_unexpected_token();
     void error_expecting(std::string expecting, std::string given);
     void shift();
-    void peak(int offset = -1);
+    void peek(int offset = -1);
     void pop_branch();
     void setRootAndScopes(std::shared_ptr<Branch> branch);
     void push_branch(std::shared_ptr<Branch> branch);
@@ -109,17 +123,19 @@ private:
     inline bool is_branch_keyword(std::string keyword);
     inline bool is_branch_operator(std::string op);
     inline bool is_branch_identifier(std::string identifier);
-    inline bool is_peak_stack_type(std::string type);
-    inline bool is_peak_symbol(std::string symbol);
-    inline bool is_peak_symbol(std::string symbol, int peak);
-    inline bool is_peak_type(std::string type);
-    inline bool is_peak_type(std::string type, int peak);
-    inline bool is_peak_value(std::string value);
-    inline bool is_peak_keyword(std::string keyword);
-    inline bool is_peak_operator(std::string op);
-    inline bool is_peak_operator(std::string op, int peak);
-    inline bool is_peak_identifier(std::string identifier);
-
+    inline bool is_peek_stack_type(std::string type);
+    inline bool is_peek_symbol(std::string symbol);
+    inline bool is_peek_symbol(std::string symbol, int peek);
+    inline bool is_peek_type(std::string type);
+    inline bool is_peek_type(std::string type, int peek);
+    inline bool is_peek_value(std::string value);
+    inline bool is_peek_keyword(std::string keyword);
+    inline bool is_peek_operator(std::string op);
+    inline bool is_peek_operator(std::string op, int peek);
+    inline bool is_peek_identifier(std::string identifier);
+    inline bool is_assignment_operator(std::string op);
+    int get_order_of_operations_priority_for_operator(std::string op);
+    ORDER_OF_OPERATIONS_PRIORITY get_order_of_operations_priority(std::string lop, std::string rop);
     std::shared_ptr<STRUCTBranch> getDeclaredStructure(std::string struct_name);
     
     std::shared_ptr<Logger> logger;
@@ -129,9 +145,9 @@ private:
     std::string token_type;
     std::string token_value;
 
-    std::shared_ptr<Token> peak_token;
-    std::string peak_token_type;
-    std::string peak_token_value;
+    std::shared_ptr<Token> peek_token;
+    std::string peek_token_type;
+    std::string peek_token_value;
 
     std::shared_ptr<Branch> branch;
     std::string branch_type;

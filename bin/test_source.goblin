@@ -1,3 +1,5 @@
-__asm("jmp _data");
-__asm("jmp _data");
-__asm("_data:");
+uint8 main()
+{
+	uint16 a = -5;
+	uint16 n = a;
+}
