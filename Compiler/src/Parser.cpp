@@ -412,7 +412,7 @@ void Parser::process_function()
 
         // Pop off the body
         pop_branch();
-        std::shared_ptr<Branch> body = this->branch;
+        std::shared_ptr<BODYBranch> body = std::dynamic_pointer_cast<BODYBranch>(this->branch);
         func_branch->setBodyBranch(body);
     }
 

@@ -27,14 +27,15 @@
 
 #include "FuncDefBranch.h"
 
+class BODYBranch;
 class EXPORT FuncBranch : public FuncDefBranch
 {
 public:
     FuncBranch(Compiler* compiler);
     virtual ~FuncBranch();
    
-    void setBodyBranch(std::shared_ptr<Branch> bodyBranch);
-    std::shared_ptr<Branch> getBodyBranch();
+    void setBodyBranch(std::shared_ptr<BODYBranch> bodyBranch);
+    std::shared_ptr<BODYBranch> getBodyBranch();
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
