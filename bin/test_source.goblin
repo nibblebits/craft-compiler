@@ -1,5 +1,8 @@
-uint8 main()
+uint16 main()
 {
-	uint16 a = -5;
-	uint16 n = a;
+	for (uint8 i = 0; i < 50; i = i + -4)
+	{
+		uint8 a = 50;
+		
+	}
 }

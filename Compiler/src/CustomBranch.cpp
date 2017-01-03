@@ -95,9 +95,14 @@ void CustomBranch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<B
 }
 
 // Scopes must not be cloned.
+
 std::shared_ptr<Branch> CustomBranch::clone()
 {
     std::shared_ptr<Branch> cloned_branch = create_clone();
     imp_clone(cloned_branch);
+
+    cloned_branch->setLocalScope(getLocalScope());
+    cloned_branch->setRootScope(getRootScope());
+    cloned_branch->setRoot(getRoot());
     return cloned_branch;
 }

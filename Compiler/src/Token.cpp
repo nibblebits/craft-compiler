@@ -49,5 +49,8 @@ int Token::getBranchType()
 std::shared_ptr<Branch> Token::clone()
 {
     std::shared_ptr<Token> token_clone = std::shared_ptr<Token>(new Token(getType(), getValue(), getPosition()));
+    token_clone->setLocalScope(getLocalScope());
+    token_clone->setRootScope(getRootScope());
+    token_clone->setRoot(getRoot());
     return token_clone;
 }

@@ -25,6 +25,7 @@
  */
 
 #include "common.h"
+#include "ScopeBranch.h"
 
 using namespace std;
 
@@ -48,7 +49,15 @@ void EXPORT debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs)
         std::cout << "\t";
     }
 
-    std::cout << branch->getType() << ":" << branch->getValue() << " -> " << branch->getChildren().size() << std::endl;
+    if (branch->getLocalScope() != NULL)
+    {
+        std::cout << branch->getType() << ":" << branch->getValue() << " -> " << branch->getChildren().size() << " -> " << branch->getLocalScope()->getType() << std::endl;
+    }
+    else
+    {
+        std::cout << branch->getType() << ":" << branch->getValue() << " -> " << branch->getChildren().size() << " -> " << "NO SCOPE" << std::endl;
+    }
+
 
     for (std::shared_ptr<Branch> child : branch->getChildren())
         debug_output_branch(child, no_tabs + 1);
