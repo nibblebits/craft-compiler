@@ -178,6 +178,8 @@ void TreeImprover::improve_body(std::shared_ptr<BODYBranch> body_branch)
     });
 }
 
+
+// NOTE: THIS EXPRESSION IS DANGEROUS WHEN USING SIGNED OR NEGATIVE NUMBERS, A FIX IS NEEDED.
 void TreeImprover::improve_expression(std::shared_ptr<EBranch> expression_branch)
 {
     /*  We need to try and lower the expression branches to the lowest point we can
@@ -305,7 +307,10 @@ void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch)
 
 void TreeImprover::improve_for(std::shared_ptr<FORBranch> for_branch)
 {
-
+    improve_branch(for_branch->getInitBranch());
+    improve_branch(for_branch->getCondBranch());
+    improve_branch(for_branch->getLoopBranch());
+    improve_body(for_branch->getBodyBranch());
 }
 
 void TreeImprover::improve_ptr(std::shared_ptr<PTRBranch> ptr_branch)

@@ -59,6 +59,22 @@ void Branch::addChild(std::shared_ptr<Branch> branch)
 
     // Lets let this child know who its parent is
     branch->setParent(this->getptr());
+
+    // Setup local scopes if they are not already set for this child
+    if (branch->getLocalScope() == NULL)
+    {
+        branch->setLocalScope(getLocalScope());
+    }
+
+    if (branch->getRootScope() == NULL)
+    {
+        branch->setLocalScope(getLocalScope());
+    }
+
+    if (branch->getRoot() != NULL)
+    {
+        branch->setRoot(getRoot());
+    }
     this->children.push_back(branch);
 }
 
@@ -71,7 +87,11 @@ void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch>
         {
             this->children[i] = new_branch;
             new_branch->setParent(this->getptr());
+            new_branch->setLocalScope(child->getLocalScope());
+            new_branch->setRootScope(child->getRootScope());
+            new_branch->setRoot(child->getRoot());
             child->setReplaced(new_branch);
+            child->setParent(NULL);
         }
     }
 }
@@ -89,6 +109,7 @@ void Branch::removeChild(std::shared_ptr<Branch> child)
         if (c == child)
         {
             child->setRemoved(true);
+            child->setParent(NULL);
             this->children.erase(this->children.begin() + i);
         }
     }
@@ -341,5 +362,9 @@ std::shared_ptr<Branch> Branch::clone()
     {
         cloned_branch->addChild(child->clone());
     }
+
+    cloned_branch->setLocalScope(getLocalScope());
+    cloned_branch->setRootScope(getRootScope());
+    cloned_branch->setRoot(getRoot());
     return cloned_branch;
 }

@@ -122,7 +122,34 @@ int FORBranch::getScopeSize(bool include_subscopes, std::function<bool(std::shar
 
 std::shared_ptr<VDEFBranch> FORBranch::getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope, bool no_follow)
 {
+    // Check the body scope
+    std::shared_ptr<BODYBranch> body_branch = getBodyBranch();
+    std::shared_ptr<VDEFBranch> vdef_branch = body_branch->getVariableDefinitionBranch(var_iden, false, no_follow);
+    if (vdef_branch != NULL)
+    {
+        // Variable definition found in body scope
+        return vdef_branch;
+    }
 
+    // Check the init scope
+    std::shared_ptr<Branch> init_branch = getInitBranch();
+    if (init_branch->getBranchType() == BRANCH_TYPE_VDEF)
+    {
+        std::shared_ptr<VDEFBranch> vdef_init_branch = std::dynamic_pointer_cast<VDEFBranch>(init_branch);
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = vdef_init_branch->getVariableIdentifierBranch();
+        if (var_iden_branch->getVariableNameBranch()->getValue() == var_iden->getVariableNameBranch()->getValue())
+        {
+            // Found !
+            return vdef_init_branch;
+        }
+    }
+
+
+    // Nothing was found look up our local scope
+    if (lookup_scope && hasParent())
+    {
+        return getLocalScope()->getVariableDefinitionBranch(var_iden, lookup_scope, no_follow);
+    }
 }
 
 std::shared_ptr<VDEFBranch> FORBranch::getVariableDefinitionBranch(std::string var_name, bool lookup_scope)
