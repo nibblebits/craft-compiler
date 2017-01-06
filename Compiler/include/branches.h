@@ -50,6 +50,8 @@
 #include "ScopeBranch.h"
 #include "RootBranch.h"
 #include "LogicalNotBranch.h"
+#include "BreakBranch.h"
+#include "WhileBranch.h"
 
 #endif /* BRANCHES_H */
 

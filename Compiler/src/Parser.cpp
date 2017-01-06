@@ -521,6 +521,12 @@ void Parser::process_stmt()
             process_return_stmt();
             process_semicolon();
         }
+        else if(is_peek_value("break"))
+        {
+            // This is a "break" statement so process it
+            process_break();
+            process_semicolon();
+        }
         else
         {
             // This is a variable declaration so process it
@@ -1268,12 +1274,12 @@ void Parser::process_while_stmt()
     process_body();
     // Pop off the body result
     pop_branch();
-    std::shared_ptr<Branch> body = this->branch;
+    std::shared_ptr<BODYBranch> body = std::dynamic_pointer_cast<BODYBranch>(this->branch);
 
     // Time to put it all together
-    std::shared_ptr<Branch> while_stmt = std::shared_ptr<Branch>(new Branch("WHILE", ""));
-    while_stmt->addChild(exp);
-    while_stmt->addChild(body);
+    std::shared_ptr<WhileBranch> while_stmt = std::shared_ptr<WhileBranch>(new WhileBranch(getCompiler()));
+    while_stmt->setExpressionBranch(exp);
+    while_stmt->setBodyBranch(body);
 
     // Finally push the while statement to the tree
     push_branch(while_stmt);
@@ -1480,6 +1486,18 @@ void Parser::process_logical_not()
 
     logical_not_branch->setSubjectBranch(this->branch);
     push_branch(logical_not_branch);
+}
+
+void Parser::process_break()
+{
+    shift_pop();
+    if (!is_branch_keyword("break"))
+    {
+        error_expecting("break", this->branch_value);
+    }
+    
+    std::shared_ptr<BreakBranch> break_branch = std::shared_ptr<BreakBranch>(new BreakBranch(getCompiler()));
+    push_branch(break_branch);
 }
 
 void Parser::error(std::string message, bool token)

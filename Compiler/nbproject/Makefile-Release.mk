@@ -45,6 +45,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/AssignBranch.o \
 	${OBJECTDIR}/src/BODYBranch.o \
 	${OBJECTDIR}/src/Branch.o \
+	${OBJECTDIR}/src/BreakBranch.o \
 	${OBJECTDIR}/src/CodeGenerator.o \
 	${OBJECTDIR}/src/Compiler.o \
 	${OBJECTDIR}/src/CompilerEntity.o \
@@ -80,6 +81,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/VarIdentifierBranch.o \
 	${OBJECTDIR}/src/VirtualObjectFormat.o \
 	${OBJECTDIR}/src/VirtualSegment.o \
+	${OBJECTDIR}/src/WhileBranch.o \
 	${OBJECTDIR}/src/common.o
 
 
@@ -156,6 +158,11 @@ ${OBJECTDIR}/src/Branch.o: src/Branch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Branch.o src/Branch.cpp
+
+${OBJECTDIR}/src/BreakBranch.o: src/BreakBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BreakBranch.o src/BreakBranch.cpp
 
 ${OBJECTDIR}/src/CodeGenerator.o: src/CodeGenerator.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
@@ -331,6 +338,11 @@ ${OBJECTDIR}/src/VirtualSegment.o: src/VirtualSegment.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VirtualSegment.o src/VirtualSegment.cpp
+
+${OBJECTDIR}/src/WhileBranch.o: src/WhileBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/WhileBranch.o src/WhileBranch.cpp
 
 ${OBJECTDIR}/src/common.o: src/common.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

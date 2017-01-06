@@ -101,6 +101,7 @@ private:
     void process_semicolon();
     void process_identifier();
     void process_logical_not();
+    void process_break();
 
     void error(std::string message, bool token = true);
     void warn(std::string message, bool token = true);

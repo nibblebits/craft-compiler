@@ -15,6 +15,7 @@
       <itemPath>include/AssignBranch.h</itemPath>
       <itemPath>include/BODYBranch.h</itemPath>
       <itemPath>include/Branch.h</itemPath>
+      <itemPath>include/BreakBranch.h</itemPath>
       <itemPath>include/CharPos.h</itemPath>
       <itemPath>include/CodeGenerator.h</itemPath>
       <itemPath>include/CodeGeneratorException.h</itemPath>
@@ -59,6 +60,7 @@
       <itemPath>include/VarIdentifierBranch.h</itemPath>
       <itemPath>include/VirtualObjectFormat.h</itemPath>
       <itemPath>include/VirtualSegment.h</itemPath>
+      <itemPath>include/WhileBranch.h</itemPath>
       <itemPath>include/branches.h</itemPath>
       <itemPath>include/common.h</itemPath>
       <itemPath>include/def.h</itemPath>
@@ -81,6 +83,7 @@
       <itemPath>src/AssignBranch.cpp</itemPath>
       <itemPath>src/BODYBranch.cpp</itemPath>
       <itemPath>src/Branch.cpp</itemPath>
+      <itemPath>src/BreakBranch.cpp</itemPath>
       <itemPath>src/CodeGenerator.cpp</itemPath>
       <itemPath>src/Compiler.cpp</itemPath>
       <itemPath>src/CompilerEntity.cpp</itemPath>
@@ -116,6 +119,7 @@
       <itemPath>src/VarIdentifierBranch.cpp</itemPath>
       <itemPath>src/VirtualObjectFormat.cpp</itemPath>
       <itemPath>src/VirtualSegment.cpp</itemPath>
+      <itemPath>src/WhileBranch.cpp</itemPath>
       <itemPath>src/common.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -180,6 +184,8 @@
       </item>
       <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/BreakBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/CharPos.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/CodeGenerator.h" ex="false" tool="3" flavor2="0">
@@ -274,6 +280,8 @@
       </item>
       <item path="include/VirtualSegment.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/WhileBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/branches.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/common.h" ex="false" tool="3" flavor2="0">
@@ -301,6 +309,8 @@
       <item path="src/BODYBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/BreakBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CodeGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -371,6 +381,8 @@
       <item path="src/VirtualObjectFormat.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VirtualSegment.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/WhileBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/common.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -417,6 +429,8 @@
       </item>
       <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/BreakBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/CharPos.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/CodeGenerator.h" ex="false" tool="3" flavor2="0">
@@ -511,6 +525,8 @@
       </item>
       <item path="include/VirtualSegment.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/WhileBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/branches.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/common.h" ex="false" tool="3" flavor2="0">
@@ -538,6 +554,8 @@
       <item path="src/BODYBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/BreakBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CodeGenerator.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -608,6 +626,8 @@
       <item path="src/VirtualObjectFormat.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/VirtualSegment.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/WhileBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/common.cpp" ex="false" tool="1" flavor2="0">
       </item>
