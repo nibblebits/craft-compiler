@@ -1,8 +1,6 @@
 uint16 main()
 {
-	for (uint8 i = 0; i < 50; i = i + -4)
-	{
-		uint8 a = 50;
-		
-	}
+	uint8* ptr = 0;
+	*ptr[5] = 10;
+	return b;
 }
