@@ -81,6 +81,32 @@ void CodeGen8086::setup_comparing()
     is_cmp_expression = true;
 }
 
+void CodeGen8086::new_breakable_label()
+{
+    // Save what is currently there if any
+    if (this->breakable_label != "")
+    {
+        this->breakable_label_stack.push_back(this->breakable_label);
+    }
+
+    // Ok safe to overwrite
+    this->breakable_label = build_unique_label();
+}
+
+void CodeGen8086::end_breakable_label()
+{
+    // Time to restore previous end label
+    if (!this->breakable_label_stack.empty())
+    {
+        this->breakable_label = this->breakable_label_stack.back();
+        this->breakable_label_stack.pop_back();
+    }
+    else
+    {
+        this->breakable_label = "";
+    }
+}
+
 std::string CodeGen8086::make_unique_label(std::string segment)
 {
     std::string label_name = build_unique_label();
@@ -1129,6 +1155,16 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
         std::shared_ptr<FORBranch> for_branch = std::dynamic_pointer_cast<FORBranch>(branch);
         handle_for_stmt(for_branch);
     }
+    else if (branch->getType() == "BREAK")
+    {
+        std::shared_ptr<BreakBranch> break_branch = std::dynamic_pointer_cast<BreakBranch>(branch);
+        handle_break(break_branch);
+    }
+    else if (branch->getType() == "WHILE")
+    {
+        std::shared_ptr<WhileBranch> while_branch = std::dynamic_pointer_cast<WhileBranch>(branch);
+        handle_while_stmt(while_branch);
+    }
 }
 
 void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
@@ -1245,6 +1281,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
     std::shared_ptr<Branch> exp_branch = branch->getExpressionBranch();
     std::shared_ptr<BODYBranch> body_branch = branch->getBodyBranch();
 
+
     // Process the expression of the "IF" statement
     make_expression(exp_branch);
 
@@ -1289,6 +1326,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
         // Handle the else's body
         handle_body(else_body_branch);
     }
+
 }
 
 void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
@@ -1301,6 +1339,9 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     std::string true_label = build_unique_label();
     std::string false_label = build_unique_label();
     std::string loop_label = build_unique_label();
+
+    // Setup the new breakable label so that break statements can break out of this for loop.
+    new_breakable_label();
 
     // Calculate the scope size for the "for" loop
     calculate_scope_size(std::dynamic_pointer_cast<ScopeBranch>(branch));
@@ -1336,8 +1377,67 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     // This is where we will jump if its false, the body will never be run.
     make_exact_label(false_label);
 
+    // Lets write the breakable label
+    make_exact_label(breakable_label);
+
+    // We are done with the breakable label.
+    end_breakable_label();
+
     reset_scope_size();
 
+}
+
+void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
+{
+    std::shared_ptr<Branch> exp_branch = branch->getExpressionBranch();
+    std::shared_ptr<BODYBranch> body_branch = branch->getBodyBranch();
+
+    // We need to create a new breakable label as you can break from "WHILE" statements
+    new_breakable_label();
+
+    std::string exp_label = build_unique_label();
+    std::string true_label = build_unique_label();
+    std::string false_label = build_unique_label();
+
+    make_exact_label(exp_label);
+
+    // Process the expression of the "WHILE" statement
+    make_expression(exp_branch);
+
+    // Handle the compare expression
+    handle_compare_expression();
+
+    // AX now contains true or false 
+
+    do_asm("cmp ax, 0");
+    do_asm("je " + false_label);
+
+    calculate_scope_size(body_branch);
+
+    // This is where we will jump if its true
+    make_exact_label(true_label);
+
+    // Handle the "WHILE" statements body.
+    handle_body(body_branch);
+
+    reset_scope_size();
+    
+    // The program will jump back to the expression label in order to see if it still applies
+    do_asm("jmp " + exp_label);
+
+    // This is where we will jump if its false, the body will never be run.
+    make_exact_label(false_label);
+
+    // Lets make the label for where we end up if we break
+    make_exact_label(this->breakable_label);
+
+    end_breakable_label();
+}
+
+void CodeGen8086::handle_break(std::shared_ptr<BreakBranch> branch)
+{
+    // Looks like we are breaking out of this
+    do_asm("jmp " + this->breakable_label);
 }
 
 void CodeGen8086::handle_array_index(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)

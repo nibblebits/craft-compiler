@@ -80,7 +80,8 @@ public:
     inline std::string make_unique_label(std::string segment = "code");
     inline std::string build_unique_label();
     void setup_comparing();
-
+    void new_breakable_label();
+    void end_breakable_label();
 
     std::string make_string(std::shared_ptr<Branch> string_branch);
     void make_inline_asm(std::shared_ptr<ASMBranch> asm_branch);
@@ -122,6 +123,8 @@ public:
     void handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> branch);
     void handle_if_stmt(std::shared_ptr<IFBranch> branch);
     void handle_for_stmt(std::shared_ptr<FORBranch> branch);
+    void handle_while_stmt(std::shared_ptr<WhileBranch> branch);
+    void handle_break(std::shared_ptr<BreakBranch> branch);
     void handle_array_index(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size);
 
     inline bool has_postponed_pointer_handling();
@@ -172,6 +175,9 @@ private:
     std::string cmp_exp_false_label_name;
     std::string cmp_exp_end_label_name;
     std::string cmp_exp_last_logic_operator;
+    std::string breakable_label;
+    
+    std::deque<std::string> breakable_label_stack;
 
     bool is_cmp_expression;
     bool do_signed;
