@@ -101,6 +101,12 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     }
 
     std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
+    if (vdef_branch == NULL)
+    {
+        throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > unpredictable_func, POSITION_OPTIONS options): "
+                "could not find appropriate \"VDEFBranch\" for variable identifier with name: \"" + getVariableNameBranch()->getValue() + "\"");
+    }
+    
     int pos = 0;
     if (hasRootArrayIndexBranch())
     {

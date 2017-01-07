@@ -353,6 +353,9 @@ void Parser::process_function()
     }
 
     std::shared_ptr<FuncArgumentsBranch> func_arguments = std::shared_ptr<FuncArgumentsBranch>(new FuncArgumentsBranch(getCompiler()));
+    // Set the root and scopes for the function arguments since we are about to overwrite the scope with the function argument scope
+    setRootAndScopes(func_arguments);
+    
     this->root_scope = func_arguments;
     start_local_scope(func_arguments);
     // Process all the function parameters
@@ -410,10 +413,11 @@ void Parser::process_function()
         // Process the function body
         process_body(body_root);
 
-        // Pop off the body
+        // Pop off the body its no longer needed as we are already aware of
         pop_branch();
-        std::shared_ptr<BODYBranch> body = std::dynamic_pointer_cast<BODYBranch>(this->branch);
-        func_branch->setBodyBranch(body);
+        
+        func_branch->setBodyBranch(body_root);
+
     }
 
     func_dec_branch->setReturnTypeBranch(func_return_type);
@@ -441,6 +445,9 @@ void Parser::process_body(std::shared_ptr<BODYBranch> body_root, bool new_scope)
     {
         body_root = std::shared_ptr<BODYBranch>(new BODYBranch(compiler));
     }
+
+    // We need to set the scopes for this body manually since we are about to lose our scope
+    setRootAndScopes(body_root);
 
     if (new_scope)
     {
@@ -478,7 +485,7 @@ void Parser::process_body(std::shared_ptr<BODYBranch> body_root, bool new_scope)
         body_root->setLocalScope(this->current_local_scope);
     }
     // Push the body root onto the branch stack
-    push_branch(body_root);
+    push_branch(body_root, false);
 }
 
 // All possible body statements
@@ -521,7 +528,7 @@ void Parser::process_stmt()
             process_return_stmt();
             process_semicolon();
         }
-        else if(is_peek_value("break"))
+        else if (is_peek_value("break"))
         {
             // This is a "break" statement so process it
             process_break();
@@ -1495,7 +1502,7 @@ void Parser::process_break()
     {
         error_expecting("break", this->branch_value);
     }
-    
+
     std::shared_ptr<BreakBranch> break_branch = std::shared_ptr<BreakBranch>(new BreakBranch(getCompiler()));
     push_branch(break_branch);
 }
@@ -1617,14 +1624,17 @@ void Parser::setRootAndScopes(std::shared_ptr<Branch> branch)
         branch->setRootScope(this->root_scope);
 }
 
-void Parser::push_branch(std::shared_ptr<Branch> branch)
+void Parser::push_branch(std::shared_ptr<Branch> branch, bool apply_scopes_to_branch)
 {
     if (branch == NULL)
     {
         throw Exception("void Parser::push_branch(std::shared_ptr<Branch> branch): branch may not be NULL");
     }
-    // Before pushing we must assign the root branch and the scopes to the branch
-    setRootAndScopes(branch);
+    if (apply_scopes_to_branch)
+    {
+        // Before pushing we must assign the root branch and the scopes to the branch
+        setRootAndScopes(branch);
+    }
     this->branches.push_back(branch);
 }
 

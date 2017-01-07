@@ -68,7 +68,7 @@ void Branch::addChild(std::shared_ptr<Branch> branch)
 
     if (branch->getRootScope() == NULL)
     {
-        branch->setLocalScope(getLocalScope());
+        branch->setRootScope(getRootScope());
     }
 
     if (branch->getRoot() != NULL)

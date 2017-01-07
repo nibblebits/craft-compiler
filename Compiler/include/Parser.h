@@ -111,7 +111,7 @@ private:
     void peek(int offset = -1);
     void pop_branch();
     void setRootAndScopes(std::shared_ptr<Branch> branch);
-    void push_branch(std::shared_ptr<Branch> branch);
+    void push_branch(std::shared_ptr<Branch> branch, bool apply_scopes_to_branch=true);
     void shift_pop();
 
     void start_local_scope(std::shared_ptr<ScopeBranch> local_scope);
