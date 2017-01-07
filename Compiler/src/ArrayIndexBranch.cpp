@@ -68,7 +68,7 @@ bool ArrayIndexBranch::areAllStatic()
         }
         return true;
     });
-    
+
     return are_all_static;
 }
 
@@ -119,7 +119,10 @@ void ArrayIndexBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<ArrayIndexBranch> array_index_cloned_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(cloned_branch);
     array_index_cloned_branch->setValueBranch(getValueBranch()->clone());
-    array_index_cloned_branch->setNextArrayIndexBranch(std::dynamic_pointer_cast<ArrayIndexBranch>(getNextArrayIndexBranch()->clone()));
+    if (hasNextArrayIndexBranch())
+    {
+        array_index_cloned_branch->setNextArrayIndexBranch(std::dynamic_pointer_cast<ArrayIndexBranch>(getNextArrayIndexBranch()->clone()));
+    }
 }
 
 std::shared_ptr<Branch> ArrayIndexBranch::create_clone()

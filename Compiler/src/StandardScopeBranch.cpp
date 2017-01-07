@@ -56,7 +56,6 @@ int StandardScopeBranch::getScopeSize(bool include_subscopes, std::function<bool
         {
             std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(child);
             size += vdef_branch->getSize();
-
         }
         else if (include_subscopes)
         {

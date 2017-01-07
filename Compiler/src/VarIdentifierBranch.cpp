@@ -85,7 +85,7 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<A
     {
         pos = getPositionRelZeroIgnoreCurrentScope(unpredictable_func, options);
     }
-    
+
     // Now add on the position up to our variable, giving us an absolute address relative to zero.
     pos += vdef_branch->getPositionRelZero(options);
     return pos;
@@ -105,7 +105,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     if (hasRootArrayIndexBranch())
     {
         bool had_static_array = false;
-        int size = vdef_branch->getDataTypeSize(options & (POSITION_OPTIONS) POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
+        int size = vdef_branch->getDataTypeSize(options & POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
         int offset = size;
         getRootArrayIndexBranch()->iterate_array_indexes([&](std::shared_ptr<ArrayIndexBranch> array_index_branch) -> bool
         {
@@ -129,7 +129,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     }
 
     // Ok lets get the next variable identifier(if any) and only if we are not ignoring structures
-    if (!(options & (POSITION_OPTIONS) POSITION_OPTION_IGNORE_STRUCTURE_ACCESS) && hasStructureAccessBranch())
+    if (!(options & POSITION_OPTION_IGNORE_STRUCTURE_ACCESS) && hasStructureAccessBranch())
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
         pos += struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(unpredictable_func, options);
@@ -167,6 +167,11 @@ void VarIdentifierBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
     if (hasStructureAccessBranch())
     {
         var_iden_branch_clone->setStructureAccessBranch(getStructureAccessBranch()->clone());
+    }
+
+    if (hasRootArrayIndexBranch())
+    {
+        var_iden_branch_clone->setRootArrayIndexBranch(getRootArrayIndexBranch()->clone());
     }
 }
 
