@@ -69,7 +69,7 @@ std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch(boo
     return Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), true, no_follow);
 }
 
-int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > unpredictable_func, bool loc_start_with_varsize)
+int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > unpredictable_func, POSITION_OPTIONS options)
 {
     std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
     if (unpredictable_func == NULL)
@@ -79,20 +79,19 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<A
                         "as it is impossible to know at compile time");
     }
 
-    // Get the position as if we are not in a scope and ignore structure access if we are a pointer
-    int pos = getPositionRelZeroIgnoreCurrentScope(unpredictable_func, vdef_branch->isPointer(), loc_start_with_varsize);
-    // Variables who are not alone should not start with the var size when calculating the absolute address. But only if they are not pointers
-    if (!vdef_branch->isPointer() && 
-            !isVariableAlone())
+    int pos = 0;
+    // We want to stop at the root var so structures and array access should be ignored.
+    if (!(options & POSITION_OPTION_STOP_AT_ROOT_VAR))
     {
-        loc_start_with_varsize = false;
+        pos = getPositionRelZeroIgnoreCurrentScope(unpredictable_func, options);
     }
+    
     // Now add on the position up to our variable, giving us an absolute address relative to zero.
-    pos += vdef_branch->getPositionRelZero(loc_start_with_varsize);
+    pos += vdef_branch->getPositionRelZero(options);
     return pos;
 }
 
-int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > unpredictable_func, bool ignore_structure_access, bool loc_start_with_varsize)
+int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > unpredictable_func, POSITION_OPTIONS options)
 {
     if (unpredictable_func == NULL)
     {
@@ -106,7 +105,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     if (hasRootArrayIndexBranch())
     {
         bool had_static_array = false;
-        int size = vdef_branch->getDataTypeSize();
+        int size = vdef_branch->getDataTypeSize(options & (POSITION_OPTIONS) POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
         int offset = size;
         getRootArrayIndexBranch()->iterate_array_indexes([&](std::shared_ptr<ArrayIndexBranch> array_index_branch) -> bool
         {
@@ -130,11 +129,11 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     }
 
     // Ok lets get the next variable identifier(if any) and only if we are not ignoring structures
-    if (!ignore_structure_access && hasStructureAccessBranch())
+    if (!(options & (POSITION_OPTIONS) POSITION_OPTION_IGNORE_STRUCTURE_ACCESS) && hasStructureAccessBranch())
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
-        pos += struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(unpredictable_func, false, loc_start_with_varsize);
-        pos += struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope(loc_start_with_varsize);
+        pos += struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(unpredictable_func, options);
+        pos += struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope(options);
     }
     return pos;
 }

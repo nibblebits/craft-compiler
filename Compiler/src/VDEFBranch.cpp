@@ -102,7 +102,7 @@ VARIABLE_TYPE VDEFBranch::getVariableType()
     return this->var_type;
 }
 
-int VDEFBranch::getPositionRelScope(bool loc_start_with_varsize)
+int VDEFBranch::getPositionRelScope(POSITION_OPTIONS options)
 {
     std::shared_ptr<ScopeBranch> scope_branch = getLocalScope();
 
@@ -118,7 +118,7 @@ int VDEFBranch::getPositionRelScope(bool loc_start_with_varsize)
     std::function<bool(std::shared_ptr<Branch> branch) > before_proc = NULL;
     std::function<bool(std::shared_ptr<Branch> branch) > after_proc = NULL;
 
-    if (loc_start_with_varsize)
+    if (options & POSITION_OPTION_START_WITH_VARSIZE)
     {
         after_proc = kill_proc;
     }
@@ -132,7 +132,7 @@ int VDEFBranch::getPositionRelScope(bool loc_start_with_varsize)
     return pos;
 }
 
-int VDEFBranch::getPositionRelZero(bool loc_start_with_varsize)
+int VDEFBranch::getPositionRelZero(POSITION_OPTIONS options)
 {
     std::shared_ptr<ScopeBranch> root_scope = getRootScope();
     std::shared_ptr<ScopeBranch> local_scope = getLocalScope();
@@ -148,7 +148,7 @@ int VDEFBranch::getPositionRelZero(bool loc_start_with_varsize)
     std::function<bool(std::shared_ptr<Branch> branch) > before_proc = NULL;
     std::function<bool(std::shared_ptr<Branch> branch) > after_proc = NULL;
 
-    if (loc_start_with_varsize)
+    if (options & POSITION_OPTION_START_WITH_VARSIZE)
     {
         after_proc = kill_proc;
     }
@@ -176,7 +176,7 @@ int VDEFBranch::getPositionRelZero(bool loc_start_with_varsize)
         if (target_branch->getType() == "STRUCT_DEF")
         {
             // In certain situations we need to ensure that the size is not included, such as where we are getting the location of a variable in a structure
-            if (loc_start_with_varsize)
+            if (options & POSITION_OPTION_START_WITH_VARSIZE)
                 before_proc = kill_proc;
         }
         scope_branch = target_branch->getLocalScope();

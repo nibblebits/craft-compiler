@@ -48,8 +48,8 @@ public:
     VARIABLE_TYPE getVariableType();
 
     bool hasValueExpBranch();
-    int getPositionRelScope(bool loc_start_with_varsize = false);
-    int getPositionRelZero(bool loc_start_with_varsize = false);
+    int getPositionRelScope(POSITION_OPTIONS options=0);
+    int getPositionRelZero(POSITION_OPTIONS options=0);
 
     bool isPointer();
     bool isSigned();

@@ -76,6 +76,16 @@ enum
 };
 
 
+// Options for getting variable offsets
+enum
+{
+    POSITION_OPTION_START_WITH_VARSIZE = 0x01,
+    POSITION_OPTION_IGNORE_STRUCTURE_ACCESS = 0x02,
+    POSITION_OPTION_TREAT_AS_IF_NOT_POINTER = 0x04,
+    POSITION_OPTION_STOP_AT_ROOT_VAR = 0x08
+};
+
+typedef unsigned int POSITION_OPTIONS;
 
 
 #endif /* DEF_H */
