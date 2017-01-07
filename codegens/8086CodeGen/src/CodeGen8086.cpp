@@ -243,7 +243,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
     if (postpone_pointer)
     {
         // Postpone any pointer handling going on as its unrelated.
-        postpone_pointer_handling();
+      //  postpone_pointer_handling();
     }
 
     // Do we have something we need to notify about starting this expression?
@@ -326,8 +326,8 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
 
 
         // Prepone any pointer handling going to restore the previous state.
-        if (postpone_pointer)
-            prepone_pointer_handling();
+       // if (postpone_pointer)
+        //    prepone_pointer_handling();
 
         // Do we have something we need to notify about ending this expression?
         if (exp_end_func != NULL)
@@ -1011,7 +1011,7 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
             {
                 handle_array_index(array_index_branch, elem_size);
                 do_asm("add bx, di");
-            });
+            }, POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
 
             do_asm("add bx, " + std::to_string(pos));
         }
@@ -1421,7 +1421,7 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
     handle_body(body_branch);
 
     reset_scope_size();
-    
+
     // The program will jump back to the expression label in order to see if it still applies
     do_asm("jmp " + exp_label);
 
@@ -1755,7 +1755,14 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Va
         {
             address.segment = "bp";
             address.op = "-";
-            address.offset = var_branch->getPositionRelZero(unpredictable_func, true);
+            POSITION_OPTIONS options = POSITION_OPTION_START_WITH_VARSIZE;
+            if (this->is_handling_pointer)
+            {
+                // Root only allows us to prevent *ptr[1] giving address of ptr + 1
+                options |= POSITION_OPTION_STOP_AT_ROOT_VAR;
+            }
+
+            address.offset = var_branch->getPositionRelZero(unpredictable_func, options);
         }
         break;
     }
