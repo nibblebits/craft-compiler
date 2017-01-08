@@ -26,6 +26,7 @@
 #define BRANCHES_H
 
 #include "Token.h"
+#include "Branch.h"
 #include "FuncDefBranch.h"
 #include "FuncArgumentsBranch.h"
 #include "FuncBranch.h"
@@ -52,6 +53,7 @@
 #include "LogicalNotBranch.h"
 #include "BreakBranch.h"
 #include "WhileBranch.h"
+#include "MacroIfDefBranch.h"
 
 #endif /* BRANCHES_H */
 

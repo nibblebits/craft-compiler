@@ -38,9 +38,11 @@
       <itemPath>include/LinkerException.h</itemPath>
       <itemPath>include/Logger.h</itemPath>
       <itemPath>include/LogicalNotBranch.h</itemPath>
+      <itemPath>include/MacroIfDefBranch.h</itemPath>
       <itemPath>include/PTRBranch.h</itemPath>
       <itemPath>include/Parser.h</itemPath>
       <itemPath>include/ParserException.h</itemPath>
+      <itemPath>include/Preprocessor.h</itemPath>
       <itemPath>include/RootBranch.h</itemPath>
       <itemPath>include/STRUCTAccessBranch.h</itemPath>
       <itemPath>include/STRUCTBranch.h</itemPath>
@@ -101,8 +103,10 @@
       <itemPath>src/Linker.cpp</itemPath>
       <itemPath>src/Logger.cpp</itemPath>
       <itemPath>src/LogicalNotBranch.cpp</itemPath>
+      <itemPath>src/MacroIfDefBranch.cpp</itemPath>
       <itemPath>src/PTRBranch.cpp</itemPath>
       <itemPath>src/Parser.cpp</itemPath>
+      <itemPath>src/Preprocessor.cpp</itemPath>
       <itemPath>src/RootBranch.cpp</itemPath>
       <itemPath>src/STRUCTAccessBranch.cpp</itemPath>
       <itemPath>src/STRUCTBranch.cpp</itemPath>
@@ -230,11 +234,15 @@
       </item>
       <item path="include/LogicalNotBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/MacroIfDefBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Preprocessor.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/RootBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -346,9 +354,13 @@
       </item>
       <item path="src/LogicalNotBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/MacroIfDefBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/PTRBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Preprocessor.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RootBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -475,11 +487,15 @@
       </item>
       <item path="include/LogicalNotBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/MacroIfDefBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ParserException.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/Preprocessor.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/RootBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -591,9 +607,13 @@
       </item>
       <item path="src/LogicalNotBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/MacroIfDefBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/PTRBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Parser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Preprocessor.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/RootBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

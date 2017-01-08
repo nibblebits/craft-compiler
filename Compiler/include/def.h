@@ -87,6 +87,5 @@ enum
 
 typedef unsigned int POSITION_OPTIONS;
 
-
 #endif /* DEF_H */
 

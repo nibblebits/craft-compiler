@@ -45,7 +45,7 @@ Branch::~Branch()
 
 }
 
-void Branch::addChild(std::shared_ptr<Branch> branch)
+void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of)
 {
     if (branch == NULL)
     {
@@ -59,6 +59,9 @@ void Branch::addChild(std::shared_ptr<Branch> branch)
 
     // Lets let this child know who its parent is
     branch->setParent(this->getptr());
+
+    // Set removed flag to false incase this is a previously used branch
+    branch->setRemoved(false);
 
     // Setup local scopes if they are not already set for this child
     if (branch->getLocalScope() == NULL)
@@ -75,7 +78,16 @@ void Branch::addChild(std::shared_ptr<Branch> branch)
     {
         branch->setRoot(getRoot());
     }
-    this->children.push_back(branch);
+
+    if (child_to_place_ahead_of != NULL)
+    {
+        // We need to place this new child directly ahead of another one
+        this->children.insert(this->children.begin()+getChildPosition(child_to_place_ahead_of), branch);
+    }
+    else
+    {
+        this->children.push_back(branch);
+    }
 }
 
 void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)
@@ -101,6 +113,34 @@ void Branch::replaceSelf(std::shared_ptr<Branch> replacee_branch)
     getParent()->replaceChild(this->getptr(), replacee_branch);
 }
 
+void Branch::replaceWithChildren()
+{
+    if (!hasParent())
+    {
+        throw Exception("void Branch::replaceWithChildren(): you must have a parent to replace yourself with your children");
+    }
+
+    // Only some branches are legal for this
+    std::shared_ptr<Branch> parent = getParent();
+    std::string type = parent->getType();
+    if (type != "root" && type != "BODY")
+    {
+        throw Exception("void Branch::replaceWithChildren(): parent type is not legal for this operation, only root branch and BODY branch are legal.");
+    }
+
+    // Loop through and add the children
+    for (std::shared_ptr<Branch> child : getChildren())
+    {
+        // Remove the our child as children cannot have multiple parents
+        child->removeSelf();
+        // Add the child to our parent
+        parent->addChild(child, this->getptr());
+    }
+
+    // Finally remove ourself
+    removeSelf();
+}
+
 void Branch::removeChild(std::shared_ptr<Branch> child)
 {
     for (int i = 0; i < this->children.size(); i++)
@@ -110,6 +150,9 @@ void Branch::removeChild(std::shared_ptr<Branch> child)
         {
             child->setRemoved(true);
             child->setParent(NULL);
+            child->setLocalScope(NULL);
+            child->setRootScope(NULL);
+            child->setRoot(NULL);
             this->children.erase(this->children.begin() + i);
         }
     }
@@ -330,6 +373,19 @@ bool Branch::wasReplaced()
 bool Branch::isRemoved()
 {
     return this->is_removed;
+}
+
+int Branch::getChildPosition(std::shared_ptr<Branch> child)
+{
+    int pos = 0;
+    for (std::shared_ptr<Branch> c : getChildren())
+    {
+        if (c == child)
+            return pos;
+        pos++;
+    }
+    
+    return pos;
 }
 
 std::shared_ptr<Branch> Branch::getReplaceeBranch()

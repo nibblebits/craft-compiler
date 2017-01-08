@@ -244,6 +244,10 @@ void TreeImprover::improve_expression(std::shared_ptr<EBranch> expression_branch
                         new_branch = root_e->getReplaceeBranch();
                     }
                 }
+                
+                // Improve the left and right expression operand branches
+                improve_branch(left_branch);
+                improve_branch(right_branch);
             };
 
     expression_branch->iterate_expressions(func);

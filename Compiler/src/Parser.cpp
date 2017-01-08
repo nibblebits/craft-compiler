@@ -62,6 +62,7 @@ Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
     this->root_branch = NULL;
     this->root_scope = NULL;
     this->current_local_scope = NULL;
+    this->current_function = NULL;
     this->compiler = compiler;
 }
 
@@ -181,51 +182,11 @@ void Parser::process_macro()
         error_expecting("#", this->branch_value);
     }
 
-    // Check that the next token is an identifier all macros will start with them
-    shift_pop();
-    if (!is_branch_type("identifier"))
+    peek();
+    if (is_peek_keyword("ifdef"))
     {
-        error_expecting("identifier", this->branch_value);
-    }
-
-    if (is_branch_value("include"))
-    {
-        // This is a macro include we will be required to include a file.
-        // Get the filename
-        shift_pop();
-        if (!is_branch_type("string"))
-        {
-            error_expecting("string", this->token_value);
-        }
-
-        std::string filename = this->branch->getValue();
-        process_semicolon();
-
-        /*
-         *  We are now ready to load that file include, we will create a new parser to parse it 
-         * then merge the result with our main tree */
-
-        try
-        {
-            // Load the file
-            std::string input = LoadFile(filename);
-            // Perform lexical analysis on the input file
-            Lexer lexer(this->getCompiler());
-            lexer.setInput(input);
-            lexer.tokenize();
-
-            // Parse the token stream
-            Parser sub_parser(this->getCompiler());
-            sub_parser.setInput(lexer.getTokens());
-            sub_parser.buildTree();
-
-            // Finally merge the result with this tree
-            merge(sub_parser.getTree()->root);
-        }
-        catch (Exception ex)
-        {
-            error("failed to load file: " + filename + " with include");
-        }
+        // We have a macro ifdef lets process it
+        process_macro_ifdef();
     }
     else
     {
@@ -355,7 +316,7 @@ void Parser::process_function()
     std::shared_ptr<FuncArgumentsBranch> func_arguments = std::shared_ptr<FuncArgumentsBranch>(new FuncArgumentsBranch(getCompiler()));
     // Set the root and scopes for the function arguments since we are about to overwrite the scope with the function argument scope
     setRootAndScopes(func_arguments);
-    
+
     this->root_scope = func_arguments;
     start_local_scope(func_arguments);
     // Process all the function parameters
@@ -409,13 +370,14 @@ void Parser::process_function()
         func_dec_branch = std::shared_ptr<FuncBranch>(new FuncBranch(this->compiler));
         std::shared_ptr<FuncBranch> func_branch = std::dynamic_pointer_cast<FuncBranch>(func_dec_branch);
         std::shared_ptr<BODYBranch> body_root = std::shared_ptr<BODYBranch>(new BODYBranch(compiler));
+        this->current_function = func_branch;
         this->root_scope = body_root;
         // Process the function body
         process_body(body_root);
+        this->current_function = NULL;
 
         // Pop off the body its no longer needed as we are already aware of
         pop_branch();
-        
         func_branch->setBodyBranch(body_root);
 
     }
@@ -468,8 +430,16 @@ void Parser::process_body(std::shared_ptr<BODYBranch> body_root, bool new_scope)
         }
         else
         {
-            // Nope so process the statement
-            process_stmt();
+            if (this->current_function == NULL)
+            {
+                // We are in the global scope so process the top
+                process_top();
+            }
+            else
+            {
+                // We are in a function so process the statement
+                process_stmt();
+            }
 
             // Pop off the result and store it in the body_root
             pop_branch();
@@ -1505,6 +1475,40 @@ void Parser::process_break()
 
     std::shared_ptr<BreakBranch> break_branch = std::shared_ptr<BreakBranch>(new BreakBranch(getCompiler()));
     push_branch(break_branch);
+}
+
+void Parser::process_macro_ifdef()
+{
+    shift_pop();
+    if (!is_branch_keyword("ifdef"))
+    {
+        error_expecting("ifdef", this->branch_value);
+    }
+
+    // Lets get the requirement
+    shift_pop();
+    if (!is_branch_type("identifier"))
+    {
+        error_expecting("identifier", this->branch_type);
+    }
+
+    std::shared_ptr<Branch> requirement_branch = this->branch;
+
+    // Ok lets get the body, we don't want to create a new scope as macros are interpreted not compiled.
+    process_body(NULL, false);
+    pop_branch();
+
+    std::shared_ptr<BODYBranch> body_branch = std::dynamic_pointer_cast<BODYBranch>(this->branch);
+
+    // Ok lets put it all together
+
+    std::shared_ptr<MacroIfDefBranch> macro_if_def_branch = std::shared_ptr<MacroIfDefBranch>(new MacroIfDefBranch(getCompiler()));
+    macro_if_def_branch->setRequirementBranch(requirement_branch);
+    macro_if_def_branch->setBodyBranch(body_branch);
+
+    // Ok we are done push it to the stack
+    push_branch(macro_if_def_branch);
+
 }
 
 void Parser::error(std::string message, bool token)

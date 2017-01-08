@@ -63,8 +63,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Linker.o \
 	${OBJECTDIR}/src/Logger.o \
 	${OBJECTDIR}/src/LogicalNotBranch.o \
+	${OBJECTDIR}/src/MacroIfDefBranch.o \
 	${OBJECTDIR}/src/PTRBranch.o \
 	${OBJECTDIR}/src/Parser.o \
+	${OBJECTDIR}/src/Preprocessor.o \
 	${OBJECTDIR}/src/RootBranch.o \
 	${OBJECTDIR}/src/STRUCTAccessBranch.o \
 	${OBJECTDIR}/src/STRUCTBranch.o \
@@ -249,6 +251,11 @@ ${OBJECTDIR}/src/LogicalNotBranch.o: src/LogicalNotBranch.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/LogicalNotBranch.o src/LogicalNotBranch.cpp
 
+${OBJECTDIR}/src/MacroIfDefBranch.o: src/MacroIfDefBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroIfDefBranch.o src/MacroIfDefBranch.cpp
+
 ${OBJECTDIR}/src/PTRBranch.o: src/PTRBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
@@ -258,6 +265,11 @@ ${OBJECTDIR}/src/Parser.o: src/Parser.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Parser.o src/Parser.cpp
+
+${OBJECTDIR}/src/Preprocessor.o: src/Preprocessor.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Preprocessor.o src/Preprocessor.cpp
 
 ${OBJECTDIR}/src/RootBranch.o: src/RootBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

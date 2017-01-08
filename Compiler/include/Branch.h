@@ -42,11 +42,12 @@ public:
     Branch(std::string type, std::string value);
     virtual ~Branch();
 
-    void addChild(std::shared_ptr<Branch> branch);
+    void addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of=NULL);
     virtual void replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch);
     void replaceSelf(std::shared_ptr<Branch> replacee_branch);
     virtual void removeChild(std::shared_ptr<Branch> child);
     void removeSelf();
+    void replaceWithChildren();
     void setRemoved(bool is_removed);
     void setReplaced(std::shared_ptr<Branch> replacee_branch);
     void iterate_children(std::function<void(std::shared_ptr<Branch> child_branch) > iterate_func);
@@ -86,6 +87,7 @@ public:
     virtual void rebuild();
     virtual std::shared_ptr<Branch> clone();
 private:
+    int getChildPosition(std::shared_ptr<Branch> child);
     std::string type;
     std::string value;
     std::vector<std::shared_ptr<Branch>> children;

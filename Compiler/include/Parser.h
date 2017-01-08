@@ -62,7 +62,7 @@ class CompilerEntity;
 class BODYBranch;
 class STRUCTDEFBranch;
 class VDEFBranch;
-
+class FuncBranch;
 class EXPORT Parser : public CompilerEntity
 {
 public:
@@ -103,6 +103,9 @@ private:
     void process_logical_not();
     void process_break();
 
+    // Macro processing
+    void process_macro_ifdef();
+    
     void error(std::string message, bool token = true);
     void warn(std::string message, bool token = true);
     void error_unexpected_token();
@@ -159,6 +162,7 @@ private:
     std::shared_ptr<RootBranch> root_branch;
     std::shared_ptr<ScopeBranch> current_local_scope;
     std::shared_ptr<ScopeBranch> root_scope;
+    std::shared_ptr<FuncBranch> current_function;
 
     Compiler* compiler;
     std::shared_ptr<Tree> tree;

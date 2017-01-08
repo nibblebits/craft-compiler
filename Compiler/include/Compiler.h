@@ -29,6 +29,7 @@
 #include <string>
 #include "Lexer.h"
 #include "Parser.h"
+#include "preprocessor.h"
 #include "SemanticValidator.h"
 #include "TreeImprover.h"
 #include "ASTAssistant.h"
@@ -51,6 +52,7 @@ public:
     void setLinker(std::shared_ptr<Linker> linker);
     Lexer* getLexer();
     Parser* getParser();
+    Preprocessor* getPreprocessor();
     SemanticValidator* getSemanticValidator();
     TreeImprover* getTreeImprover();
     ASTAssistant* getASTAssistant();
@@ -77,6 +79,7 @@ private:
      * I plan to change this soon */
     Lexer* lexer;
     Parser* parser;
+    Preprocessor* preprocessor;
     SemanticValidator* semanticValidator;
     TreeImprover* treeImprover;
     ASTAssistant* astAssistant;

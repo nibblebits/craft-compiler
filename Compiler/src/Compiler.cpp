@@ -35,6 +35,7 @@ Compiler::Compiler()
 {
     this->lexer = new Lexer(this);
     this->parser = new Parser(this);
+    this->preprocessor = new Preprocessor(this);
     this->semanticValidator = new SemanticValidator(this);
     this->astAssistant = new ASTAssistant(this);
     this->treeImprover = new TreeImprover(this);
@@ -70,6 +71,11 @@ Lexer* Compiler::getLexer()
 Parser* Compiler::getParser()
 {
     return this->parser;
+}
+
+Preprocessor* Compiler::getPreprocessor()
+{
+    return this->preprocessor;
 }
 
 SemanticValidator* Compiler::getSemanticValidator()
@@ -305,15 +311,15 @@ long Compiler::evaluate(long n1, long n2, std::string op)
         return n1 / n2;
     else if (op == "%")
         return n1 % n2;
-    else if(op == "^")
+    else if (op == "^")
         return n1 ^ n2;
-    else if(op == "|")
+    else if (op == "|")
         return n1 | n2;
-    else if(op == "&")
+    else if (op == "&")
         return n1 & n2;
-    else if(op == ">>")
+    else if (op == ">>")
         return n1 >> n2;
-    else if(op == "<<")
+    else if (op == "<<")
         return n1 << n2;
 
 

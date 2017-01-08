@@ -38,6 +38,7 @@
 #include "CodeGenerator.h"
 #include "CodeGeneratorException.h"
 #include "Linker.h"
+#include "Preprocessor.h"
 
 using namespace std;
 
@@ -57,7 +58,8 @@ enum
     ERROR_WITH_SEMANTIC_VALIDATION = 9,
     ERROR_WITH_TREE_IMPROVER = 10,
     ERROR_WITH_OUTPUT_FILE = 11,
-    ERROR_WITH_CODEGENERATOR = 12
+    ERROR_WITH_CODEGENERATOR = 12,
+    ERROR_WITH_PREPROCESSOR = 13,
 } CompilerErrorCode;
 
 Compiler compiler;
@@ -66,6 +68,7 @@ Lexer* lexer;
 Parser* parser;
 SemanticValidator* semanticValidator;
 TreeImprover* treeImprover;
+Preprocessor* preprocessor;
 
 std::shared_ptr<VirtualObjectFormat> getObjectFormat(std::string object_format_name)
 {
@@ -250,7 +253,7 @@ int main(int argc, char** argv)
         std::cout << "Problem loading object format: " << ex.getMessage() << std::endl;
         return OBJECT_FORMAT_LOAD_PROBLEM;
     }
-    
+
     std::shared_ptr<CodeGenerator> codegen;
     try
     {
@@ -265,6 +268,7 @@ int main(int argc, char** argv)
 
     lexer = compiler.getLexer();
     parser = compiler.getParser();
+    preprocessor = compiler.getPreprocessor();
     semanticValidator = compiler.getSemanticValidator();
     treeImprover = compiler.getTreeImprover();
 
@@ -302,6 +306,17 @@ int main(int argc, char** argv)
 
     // Handle parsing warnings and errors
     handle_parser_errors_and_warnings();
+
+    try
+    {
+        preprocessor->setTree(parser->getTree());
+        preprocessor->process();
+    }
+    catch (Exception ex)
+    {
+        std::cout << "Error with preprocessor: " << ex.getMessage() << std::endl;
+        return ERROR_WITH_PREPROCESSOR;
+    }
 
     // Ensure the input is semantically correct
     try

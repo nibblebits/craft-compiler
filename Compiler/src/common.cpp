@@ -49,9 +49,12 @@ void EXPORT debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs)
         std::cout << "\t";
     }
 
-    if (branch->getLocalScope() != NULL)
+    std::shared_ptr<Branch> local_scope = branch->getLocalScope();
+    if (local_scope != NULL)
     {
-        std::cout << branch->getType() << ":" << branch->getValue() << " -> " << branch->getChildren().size() << " -> " << branch->getLocalScope()->getType() << std::endl;
+        std::shared_ptr<Branch> local_scope_parent = local_scope->getParent();
+        std::cout << branch->getType() << ":" << branch->getValue() << " -> " << branch->getChildren().size() << " -> " 
+                << branch->getLocalScope()->getType() << " sp: " << ((local_scope_parent != NULL) ? local_scope_parent->getType() : " NO SCOPE PARENT") << std::endl;
     }
     else
     {
