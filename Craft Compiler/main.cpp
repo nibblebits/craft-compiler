@@ -338,6 +338,7 @@ int main(int argc, char** argv)
 #ifdef DEBUG_MODE
     debug_output_branch(parser->getTree()->root);
 #endif 
+
     try
     {
         codegen->generate(parser->getTree());

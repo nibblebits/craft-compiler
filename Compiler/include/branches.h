@@ -54,6 +54,7 @@
 #include "BreakBranch.h"
 #include "WhileBranch.h"
 #include "MacroIfDefBranch.h"
+#include "MacroDefineBranch.h"
 
 #endif /* BRANCHES_H */
 

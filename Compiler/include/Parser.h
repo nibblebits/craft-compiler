@@ -52,6 +52,13 @@ enum
 
 typedef unsigned char ORDER_OF_OPERATIONS_PRIORITY;
 
+enum
+{
+    PARSER_EXPRESSION_USE_IDENTIFIER_INSTEAD_OF_VAR_IDENTIFIER = 0x01
+};
+
+typedef unsigned char PARSER_EXPRESSION_OPTIONS;
+
 struct order_of_operation
 {
     const char* op;
@@ -86,9 +93,9 @@ private:
     void process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op);
     void process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struct_def=NULL);
     void process_structure_access();
-    void process_expression();
-    void process_expression_part(std::shared_ptr<Branch> left=NULL);
-    std::shared_ptr<Branch> process_expression_operand();
+    void process_expression(PARSER_EXPRESSION_OPTIONS options=0);
+    void process_expression_part(std::shared_ptr<Branch> left=NULL, PARSER_EXPRESSION_OPTIONS=0);
+    std::shared_ptr<Branch> process_expression_operand(PARSER_EXPRESSION_OPTIONS options=0);
     std::shared_ptr<Branch> process_expression_operator();
     void process_function_call();
     void process_if_stmt();
@@ -105,6 +112,7 @@ private:
 
     // Macro processing
     void process_macro_ifdef();
+    void process_macro_define();
     
     void error(std::string message, bool token = true);
     void warn(std::string message, bool token = true);

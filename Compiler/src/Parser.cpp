@@ -188,6 +188,11 @@ void Parser::process_macro()
         // We have a macro ifdef lets process it
         process_macro_ifdef();
     }
+    else if (is_peek_keyword("define"))
+    {
+        // We have a macro define lets process it
+        process_macro_define();
+    }
     else
     {
         error("invalid macro.");
@@ -714,14 +719,14 @@ void Parser::process_structure_access()
     push_branch(struct_access_root);
 }
 
-void Parser::process_expression()
+void Parser::process_expression(PARSER_EXPRESSION_OPTIONS options)
 {
     std::shared_ptr<Branch> last = NULL;
     std::shared_ptr<Branch> tmp = NULL;
     do
     {
         // Process the expression part, e.g "5 + 5"
-        process_expression_part(last);
+        process_expression_part(last, options);
         // Pop off the result
         pop_branch();
         last = this->branch;
@@ -734,7 +739,7 @@ void Parser::process_expression()
             if (priority == ORDER_OF_OPERATIONS_RIGHT_GREATER)
             {
                 // Ok order of operations applies here so we need to process it and replace the right branch of the last expression part
-                process_expression_part(last->getSecondChild()->clone());
+                process_expression_part(last->getSecondChild()->clone(), options);
                 // Pop off the result
                 pop_branch();
                 tmp = this->branch;
@@ -764,7 +769,7 @@ void Parser::process_expression()
         std::shared_ptr<Branch> left = this->branch;
 
         // Now process the new expression
-        process_expression();
+        process_expression(options);
 
         // Pop it off
         pop_branch();
@@ -779,7 +784,7 @@ void Parser::process_expression()
 
 }
 
-void Parser::process_expression_part(std::shared_ptr<Branch> left)
+void Parser::process_expression_part(std::shared_ptr<Branch> left, PARSER_EXPRESSION_OPTIONS options)
 {
     std::shared_ptr<Branch> exp_root = NULL;
     std::shared_ptr<Branch> op = NULL;
@@ -789,7 +794,7 @@ void Parser::process_expression_part(std::shared_ptr<Branch> left)
     if (left == NULL)
     {
         // Process the left operand
-        left = process_expression_operand();
+        left = process_expression_operand(options);
     }
 
     // Do we have an operator?
@@ -801,7 +806,7 @@ void Parser::process_expression_part(std::shared_ptr<Branch> left)
         op = this->branch;
 
         // Process the right operand
-        right = process_expression_operand();
+        right = process_expression_operand(options);
     }
 
     if (left != NULL && op != NULL && right != NULL)
@@ -830,7 +835,7 @@ void Parser::process_expression_part(std::shared_ptr<Branch> left)
     push_branch(exp_root);
 }
 
-std::shared_ptr<Branch> Parser::process_expression_operand()
+std::shared_ptr<Branch> Parser::process_expression_operand(PARSER_EXPRESSION_OPTIONS options)
 {
     peek();
     std::shared_ptr<Branch> b = NULL;
@@ -839,7 +844,7 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         // Looks like we have a bracket here, lets deal with it
         shift_pop();
         // Brackets mean expressions, process the expression
-        process_expression();
+        process_expression(options);
         // Pop off the expression
         pop_branch();
         b = this->branch;
@@ -873,11 +878,21 @@ std::shared_ptr<Branch> Parser::process_expression_operand()
         }
         else
         {
-            // Process the variable access
-            process_variable_access();
-            // Pop off the result
-            pop_branch();
-            b = this->branch;
+            if (options & PARSER_EXPRESSION_USE_IDENTIFIER_INSTEAD_OF_VAR_IDENTIFIER)
+            {
+                // Options tell us to just treat this as an identifier, not variable access
+                process_identifier();
+                pop_branch();
+                b = this->branch;
+            }
+            else
+            {
+                // Process the variable access
+                process_variable_access();
+                // Pop off the result
+                pop_branch();
+                b = this->branch;
+            }
         }
     }
     else if (is_peek_operator("&"))
@@ -1430,12 +1445,15 @@ void Parser::process_semicolon()
 
 void Parser::process_identifier()
 {
-    shift_pop();
-    if (!is_branch_type("identifier"))
+    peek();
+    if (!is_peek_type("identifier"))
     {
 
         error("expecting an identifier, however token: \"" + this->token_value + "\" was provided");
     }
+
+    // Shift the identifier to the stack
+    shift();
 }
 
 void Parser::process_logical_not()
@@ -1508,6 +1526,38 @@ void Parser::process_macro_ifdef()
 
     // Ok we are done push it to the stack
     push_branch(macro_if_def_branch);
+
+}
+
+void Parser::process_macro_define()
+{
+    shift_pop();
+    if (!is_branch_keyword("define"))
+    {
+        error_expecting("define", this->branch_value);
+    }
+
+    // Process the definition name
+    process_identifier();
+    pop_branch();
+    std::shared_ptr<Branch> def_name = this->branch;
+
+    std::shared_ptr<MacroDefineBranch> macro_define_branch = std::shared_ptr<MacroDefineBranch>(new MacroDefineBranch(getCompiler()));
+    macro_define_branch->setDefinitionNameBranch(def_name);
+
+    peek();
+    // Do we have a value for this definition?
+    if (is_peek_type("identifier") || is_peek_type("number"))
+    {
+        // Process the definition value expression
+        process_expression(PARSER_EXPRESSION_USE_IDENTIFIER_INSTEAD_OF_VAR_IDENTIFIER);
+        pop_branch();
+        std::shared_ptr<Branch> value_exp = this->branch;
+        macro_define_branch->setDefinitionValueBranch(value_exp);
+    }
+
+    // Ok finally lets push this to the stack
+    push_branch(macro_define_branch);
 
 }
 

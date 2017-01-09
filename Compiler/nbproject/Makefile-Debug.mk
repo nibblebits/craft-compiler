@@ -63,6 +63,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Linker.o \
 	${OBJECTDIR}/src/Logger.o \
 	${OBJECTDIR}/src/LogicalNotBranch.o \
+	${OBJECTDIR}/src/MacroDefineBranch.o \
 	${OBJECTDIR}/src/MacroIfDefBranch.o \
 	${OBJECTDIR}/src/PTRBranch.o \
 	${OBJECTDIR}/src/Parser.o \
@@ -254,6 +255,11 @@ ${OBJECTDIR}/src/LogicalNotBranch.o: src/LogicalNotBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/LogicalNotBranch.o src/LogicalNotBranch.cpp
+
+${OBJECTDIR}/src/MacroDefineBranch.o: src/MacroDefineBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -I. -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroDefineBranch.o src/MacroDefineBranch.cpp
 
 ${OBJECTDIR}/src/MacroIfDefBranch.o: src/MacroIfDefBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
