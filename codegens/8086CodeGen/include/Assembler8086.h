@@ -201,7 +201,8 @@ enum
     JNE_SHORT,
     JG_SHORT,
     JA_SHORT,
-    JLE_SHORT
+    JLE_SHORT,
+    JBE_SHORT
 };
 
 struct ins_syntax_def
