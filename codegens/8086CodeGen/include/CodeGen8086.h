@@ -82,6 +82,9 @@ public:
     void setup_comparing();
     void new_breakable_label();
     void end_breakable_label();
+    
+    void new_continue_label(std::string label_name);
+    void end_continue_label();
 
     std::string make_string(std::shared_ptr<Branch> string_branch);
     void make_inline_asm(std::shared_ptr<ASMBranch> asm_branch);
@@ -125,6 +128,7 @@ public:
     void handle_for_stmt(std::shared_ptr<FORBranch> branch);
     void handle_while_stmt(std::shared_ptr<WhileBranch> branch);
     void handle_break(std::shared_ptr<BreakBranch> branch);
+    void handle_continue(std::shared_ptr<ContinueBranch> branch);
     void handle_array_index(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size);
 
     inline bool has_postponed_pointer_handling();
@@ -176,9 +180,11 @@ private:
     std::string cmp_exp_end_label_name;
     std::string cmp_exp_last_logic_operator;
     std::string breakable_label;
+    std::string continue_label;
     
     std::deque<std::string> breakable_label_stack;
-
+    std::deque<std::string> continue_label_stack;
+    
     bool is_cmp_expression;
     bool do_signed;
     bool is_handling_pointer;

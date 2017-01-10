@@ -41,6 +41,9 @@ CodeGen8086::CodeGen8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat
     this->last_found_var_access_variable = NULL;
     this->cur_func = NULL;
     this->cur_func_scope_size = 0;
+    this->breakable_label = "";
+    this->continue_label = "";
+
 }
 
 CodeGen8086::~CodeGen8086()
@@ -104,6 +107,32 @@ void CodeGen8086::end_breakable_label()
     else
     {
         this->breakable_label = "";
+    }
+}
+
+void CodeGen8086::new_continue_label(std::string label_name)
+{
+    // Save what is currently there if any
+    if (this->continue_label != "")
+    {
+        this->continue_label_stack.push_back(this->continue_label);
+    }
+
+    // Ok safe to overwrite
+    this->continue_label = label_name;
+}
+
+void CodeGen8086::end_continue_label()
+{
+    // Time to restore previous end label
+    if (!this->continue_label_stack.empty())
+    {
+        this->continue_label = this->continue_label_stack.back();
+        this->continue_label_stack.pop_back();
+    }
+    else
+    {
+        this->continue_label = "";
     }
 }
 
@@ -243,7 +272,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
     if (postpone_pointer)
     {
         // Postpone any pointer handling going on as its unrelated.
-      //  postpone_pointer_handling();
+        //  postpone_pointer_handling();
     }
 
     // Do we have something we need to notify about starting this expression?
@@ -326,7 +355,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
 
 
         // Prepone any pointer handling going to restore the previous state.
-       // if (postpone_pointer)
+        // if (postpone_pointer)
         //    prepone_pointer_handling();
 
         // Do we have something we need to notify about ending this expression?
@@ -1160,6 +1189,11 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
         std::shared_ptr<BreakBranch> break_branch = std::dynamic_pointer_cast<BreakBranch>(branch);
         handle_break(break_branch);
     }
+    else if (branch->getType() == "CONTINUE")
+    {
+        std::shared_ptr<ContinueBranch> continue_branch = std::dynamic_pointer_cast<ContinueBranch>(branch);
+        handle_continue(continue_branch);
+    }
     else if (branch->getType() == "WHILE")
     {
         std::shared_ptr<WhileBranch> while_branch = std::dynamic_pointer_cast<WhileBranch>(branch);
@@ -1339,9 +1373,14 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     std::string true_label = build_unique_label();
     std::string false_label = build_unique_label();
     std::string loop_label = build_unique_label();
+    // The part of the loop that may modify a variable
+    std::string loop_part_label = build_unique_label();
 
     // Setup the new breakable label so that break statements can break out of this for loop.
     new_breakable_label();
+
+    // Set the new continue label to be the loop label, so that if the programmer uses continue it will jump to the loop label.
+    new_continue_label(loop_part_label);
 
     // Calculate the scope size for the "for" loop
     calculate_scope_size(std::dynamic_pointer_cast<ScopeBranch>(branch));
@@ -1369,6 +1408,9 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     // Handle the "FOR" statements body.
     handle_body(body_branch);
 
+    // Make the label where the actual loop logic is preformed this is where the variable will be modified
+    make_exact_label(loop_part_label);
+
     // Now handle the loop
     handle_stmt(loop_branch);
 
@@ -1383,6 +1425,9 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     // We are done with the breakable label.
     end_breakable_label();
 
+    // We are done with the continue label.
+    end_continue_label();
+
     reset_scope_size();
 
 }
@@ -1394,11 +1439,13 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
 
     // We need to create a new breakable label as you can break from "WHILE" statements
     new_breakable_label();
-
     std::string exp_label = build_unique_label();
     std::string true_label = build_unique_label();
     std::string false_label = build_unique_label();
 
+    // We need to setup expression labels for the continue label.
+    new_continue_label(exp_label);
+    
     make_exact_label(exp_label);
 
     // Process the expression of the "WHILE" statement
@@ -1432,12 +1479,20 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
     make_exact_label(this->breakable_label);
 
     end_breakable_label();
+    
+    end_continue_label();
 }
 
 void CodeGen8086::handle_break(std::shared_ptr<BreakBranch> branch)
 {
     // Looks like we are breaking out of this
     do_asm("jmp " + this->breakable_label);
+}
+
+void CodeGen8086::handle_continue(std::shared_ptr<ContinueBranch> branch)
+{
+    // We need to continue
+    do_asm("jmp " + this->continue_label);
 }
 
 void CodeGen8086::handle_array_index(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
