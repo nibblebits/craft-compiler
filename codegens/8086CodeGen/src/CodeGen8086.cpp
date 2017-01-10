@@ -136,6 +136,31 @@ void CodeGen8086::end_continue_label()
     }
 }
 
+void CodeGen8086::new_scope(std::shared_ptr<StandardScopeBranch> scope_branch)
+{
+    // Backup the current scope if any
+    if (this->current_scope != NULL)
+    {
+        this->current_scopes.push_back(this->current_scope);
+    }
+
+    // Now its safe to overwrite it
+    this->current_scope = scope_branch;
+}
+
+void CodeGen8086::end_scope()
+{
+    if (!this->current_scopes.empty())
+    {
+        this->current_scope = this->current_scopes.back();
+        this->current_scopes.pop_back();
+    }
+    else
+    {
+        this->current_scope = NULL;
+    }
+}
+
 std::string CodeGen8086::make_unique_label(std::string segment)
 {
     std::string label_name = build_unique_label();
@@ -994,7 +1019,7 @@ void CodeGen8086::calculate_scope_size(std::shared_ptr<ScopeBranch> scope_branch
     // Generate some ASM to reserve space on the stack for this scope
     do_asm("sub sp, " + std::to_string(this->scope_size));
 
-    current_scopes.push_back(this->scope_size);
+    current_scopes_sizes.push_back(this->scope_size);
 
 }
 
@@ -1002,15 +1027,15 @@ void CodeGen8086::reset_scope_size()
 {
     // Add the stack pointer by the scope size so the memory is recycled.
     do_asm("add sp, " + std::to_string(this->scope_size));
-    current_scopes.pop_back();
+    current_scopes_sizes.pop_back();
 
-    if (current_scopes.empty())
+    if (current_scopes_sizes.empty())
     {
         this->scope_size = 0;
     }
     else
     {
-        this->scope_size = current_scopes.back();
+        this->scope_size = current_scopes_sizes.back();
     }
 }
 
@@ -1102,7 +1127,7 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
 
     std::shared_ptr<Branch> name_branch = func_branch->getNameBranch();
     std::shared_ptr<Branch> arguments_branch = func_branch->getArgumentsBranch();
-    std::shared_ptr<Branch> body_branch = func_branch->getBodyBranch();
+    std::shared_ptr<BODYBranch> body_branch = func_branch->getBodyBranch();
 
     // Make the function global.
     do_asm("global " + name_branch->getValue());
@@ -1111,7 +1136,7 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     make_label(name_branch->getValue());
 
     this->cur_func = func_branch;
-    this->cur_func_scope_size = func_branch->getBodyBranch()->getScopeSize();
+    this->cur_func_scope_size = body_branch->getScopeSize();
 
     do_asm("push bp");
     // Generate some ASM to reserve space on the stack for this scope
@@ -1141,11 +1166,13 @@ void CodeGen8086::handle_func_args(std::shared_ptr<Branch> arguments)
 
 void CodeGen8086::handle_body(std::shared_ptr<Branch> body)
 {
+    new_scope(std::dynamic_pointer_cast<StandardScopeBranch>(body));
     // Now we can handle every statement
     for (std::shared_ptr<Branch> stmt : body->getChildren())
     {
         handle_stmt(stmt);
     }
+    end_scope();
 }
 
 void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
@@ -1244,7 +1271,7 @@ void CodeGen8086::handle_func_return(std::shared_ptr<Branch> branch)
     }
 
     // Restore the stack pointer
-    do_asm("add sp, " + std::to_string(this->cur_func_scope_size));
+    do_asm("add sp, " + std::to_string(this->current_scope->getScopeSize(GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES)));
 
     // Pop from the stack back to the BP(Base Pointer) now we are leaving this function
     do_asm("pop bp");
@@ -1445,7 +1472,7 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
 
     // We need to setup expression labels for the continue label.
     new_continue_label(exp_label);
-    
+
     make_exact_label(exp_label);
 
     // Process the expression of the "WHILE" statement
@@ -1479,7 +1506,7 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
     make_exact_label(this->breakable_label);
 
     end_breakable_label();
-    
+
     end_continue_label();
 }
 

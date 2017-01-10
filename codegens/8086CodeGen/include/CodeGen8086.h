@@ -67,6 +67,7 @@ struct VARIABLE_ADDRESS
 };
 
 class FuncBranch;
+class ScopeBranch;
 class CodeGen8086 : public CodeGenerator
 {
 public:
@@ -85,7 +86,10 @@ public:
     
     void new_continue_label(std::string label_name);
     void end_continue_label();
-
+    
+    void new_scope(std::shared_ptr<StandardScopeBranch> scope_branch);
+    void end_scope();
+    
     std::string make_string(std::shared_ptr<Branch> string_branch);
     void make_inline_asm(std::shared_ptr<ASMBranch> asm_branch);
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
@@ -198,11 +202,14 @@ private:
     std::deque<HANDLING_POINTER> current_pointers_to_handle;
 
     /* Holds current scopes, this is used so nesting of scopes is compatible. */
-    std::deque<int> current_scopes;
+    std::deque<int> current_scopes_sizes;
 
     // Holds the current function being generated
     std::shared_ptr<FuncBranch> cur_func;
     int cur_func_scope_size;
+    
+    std::shared_ptr<StandardScopeBranch> current_scope;
+    std::deque<std::shared_ptr<StandardScopeBranch>> current_scopes;
     
     int current_label_index;
     int scope_size;
