@@ -76,7 +76,7 @@ std::shared_ptr<BODYBranch> FORBranch::getBodyBranch()
     return std::dynamic_pointer_cast<BODYBranch>(CustomBranch::getRegisteredBranchByName("body_branch"));
 }
 
-int FORBranch::getScopeSize(bool include_subscopes, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end, bool *should_stop)
+int FORBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end, bool *should_stop)
 {
     int size = 0;
     std::shared_ptr<Branch> init_branch = getInitBranch();
@@ -115,7 +115,7 @@ int FORBranch::getScopeSize(bool include_subscopes, std::function<bool(std::shar
 
 
     std::shared_ptr<BODYBranch> body_branch = getBodyBranch();
-    size += body_branch->getScopeSize(include_subscopes, child_proc_start, child_proc_end, should_stop);
+    size += body_branch->getScopeSize(options, child_proc_start, child_proc_end, should_stop);
 
     return size;
 }

@@ -75,6 +75,8 @@ public:
     std::shared_ptr<RootBranch> getRoot();
     std::shared_ptr<ScopeBranch> getRootScope();
     std::shared_ptr<ScopeBranch> getLocalScope();
+    bool hasLocalScope();
+    bool hasRootScope();
 
     std::shared_ptr<Branch> getptr();
 

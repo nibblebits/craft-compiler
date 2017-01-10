@@ -509,6 +509,13 @@ void Parser::process_stmt()
             process_break();
             process_semicolon();
         }
+        else if(is_peek_value("continue"))
+        {
+            // This is a "continue" statement so process it
+            process_continue();
+            process_semicolon();
+            
+        }
         else
         {
             // This is a variable declaration so process it
@@ -1495,6 +1502,18 @@ void Parser::process_break()
     push_branch(break_branch);
 }
 
+void Parser::process_continue()
+{
+    shift_pop();
+    if (!is_branch_keyword("continue"))
+    {
+        error_expecting("continue", this->branch_value);
+    }
+    
+    std::shared_ptr<ContinueBranch> continue_branch = std::shared_ptr<ContinueBranch>(new ContinueBranch(getCompiler()));
+    push_branch(continue_branch);
+}
+
 void Parser::process_macro_ifdef()
 {
     shift_pop();
@@ -1547,7 +1566,7 @@ void Parser::process_macro_define()
 
     peek();
     // Do we have a value for this definition?
-    if (is_peek_type("identifier") || is_peek_type("number"))
+    if (is_peek_type("identifier") || is_peek_type("number") || is_peek_type("string"))
     {
         // Process the definition value expression
         process_expression(PARSER_EXPRESSION_USE_IDENTIFIER_INSTEAD_OF_VAR_IDENTIFIER);

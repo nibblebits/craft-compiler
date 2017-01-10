@@ -109,6 +109,7 @@ private:
     void process_identifier();
     void process_logical_not();
     void process_break();
+    void process_continue();
 
     // Macro processing
     void process_macro_ifdef();

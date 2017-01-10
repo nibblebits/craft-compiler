@@ -45,7 +45,7 @@ public:
     std::shared_ptr<Branch> getLoopBranch();
     std::shared_ptr<BODYBranch> getBodyBranch();
 
-    virtual int getScopeSize(bool include_subscopes = false, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start = NULL, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end = NULL, bool *should_stop = NULL);
+    virtual int getScopeSize(GET_SCOPE_SIZE_OPTIONS options=0, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start = NULL, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end = NULL, bool *should_stop = NULL);
     virtual std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope = true, bool no_follow=false);
     virtual std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(std::string var_name, bool lookup_scope = true);
 

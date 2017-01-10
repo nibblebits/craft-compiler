@@ -49,6 +49,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/CodeGenerator.o \
 	${OBJECTDIR}/src/Compiler.o \
 	${OBJECTDIR}/src/CompilerEntity.o \
+	${OBJECTDIR}/src/ContinueBranch.o \
 	${OBJECTDIR}/src/CustomBranch.o \
 	${OBJECTDIR}/src/EBranch.o \
 	${OBJECTDIR}/src/ELSEBranch.o \
@@ -181,6 +182,11 @@ ${OBJECTDIR}/src/CompilerEntity.o: src/CompilerEntity.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CompilerEntity.o src/CompilerEntity.cpp
+
+${OBJECTDIR}/src/ContinueBranch.o: src/ContinueBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ContinueBranch.o src/ContinueBranch.cpp
 
 ${OBJECTDIR}/src/CustomBranch.o: src/CustomBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

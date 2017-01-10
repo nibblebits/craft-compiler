@@ -35,7 +35,7 @@ StandardScopeBranch::~StandardScopeBranch()
 {
 }
 
-int StandardScopeBranch::getScopeSize(bool include_subscopes, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end, bool *should_stop)
+int StandardScopeBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end, bool *should_stop)
 {
     int size = 0;
     for (std::shared_ptr<Branch> child : this->getChildren())
@@ -57,16 +57,19 @@ int StandardScopeBranch::getScopeSize(bool include_subscopes, std::function<bool
             std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(child);
             size += vdef_branch->getSize();
         }
-        else if (include_subscopes)
+        else
         {
-            std::string child_type = child->getType();
-            if (child_type == "FOR")
+            if (options & GET_SCOPE_SIZE_INCLUDE_SUBSCOPES)
             {
-                std::shared_ptr<FORBranch> for_branch = std::dynamic_pointer_cast<FORBranch>(child);
-                size += for_branch->getScopeSize(include_subscopes, child_proc_start, child_proc_end, should_stop);
-                if (*should_stop)
+                std::string child_type = child->getType();
+                if (child_type == "FOR")
                 {
-                    break;
+                    std::shared_ptr<FORBranch> for_branch = std::dynamic_pointer_cast<FORBranch>(child);
+                    size += for_branch->getScopeSize(options, child_proc_start, child_proc_end, should_stop);
+                    if (*should_stop)
+                    {
+                        break;
+                    }
                 }
             }
         }
@@ -81,6 +84,15 @@ int StandardScopeBranch::getScopeSize(bool include_subscopes, std::function<bool
                 }
                 break;
             }
+        }
+    }
+
+    // Shall we include the parent scopes size?
+    if (options & GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES)
+    {
+        if (hasLocalScope())
+        {
+            size += getLocalScope()->getScopeSize(options, child_proc_start, child_proc_end, should_stop);
         }
     }
     return size;

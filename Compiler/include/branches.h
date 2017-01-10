@@ -52,6 +52,7 @@
 #include "RootBranch.h"
 #include "LogicalNotBranch.h"
 #include "BreakBranch.h"
+#include "ContinueBranch.h"
 #include "WhileBranch.h"
 #include "MacroIfDefBranch.h"
 #include "MacroDefineBranch.h"

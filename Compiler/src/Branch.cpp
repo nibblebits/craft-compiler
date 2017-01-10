@@ -64,12 +64,12 @@ void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> ch
     branch->setRemoved(false);
 
     // Setup local scopes if they are not already set for this child
-    if (branch->getLocalScope() == NULL)
+    if (!branch->hasLocalScope())
     {
         branch->setLocalScope(getLocalScope());
     }
 
-    if (branch->getRootScope() == NULL)
+    if (!branch->hasRootScope())
     {
         branch->setRootScope(getRootScope());
     }
@@ -82,7 +82,7 @@ void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> ch
     if (child_to_place_ahead_of != NULL)
     {
         // We need to place this new child directly ahead of another one
-        this->children.insert(this->children.begin()+getChildPosition(child_to_place_ahead_of), branch);
+        this->children.insert(this->children.begin() + getChildPosition(child_to_place_ahead_of), branch);
     }
     else
     {
@@ -355,6 +355,16 @@ std::shared_ptr<ScopeBranch> Branch::getLocalScope()
     return this->local_scope;
 }
 
+bool Branch::hasLocalScope()
+{
+    return getLocalScope() != NULL;
+}
+
+bool Branch::hasRootScope()
+{
+    return getRootScope() != NULL;
+}
+
 std::shared_ptr<RootBranch> Branch::getRoot()
 {
     return this->root_branch;
@@ -384,7 +394,7 @@ int Branch::getChildPosition(std::shared_ptr<Branch> child)
             return pos;
         pos++;
     }
-    
+
     return pos;
 }
 

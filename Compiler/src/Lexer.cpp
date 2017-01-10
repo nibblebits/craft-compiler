@@ -29,7 +29,7 @@
 const char operators[] = {'=', '+', '-', '/', '*', '<', '>', '&', '|', '^', '%', '!'};
 const char symbols[] = {'(', ')', ',', '#', '{', '}', '.', '[', ']', ';'};
 const std::string general_keywords[] = {
-    "if", "for", "do", "while", "next", "continue", "break", "switch", "__asm", "string", "else", "return", "ifdef", "define"
+    "if", "for", "do", "while", "next", "continue", "break", "continue", "switch", "__asm", "string", "else", "return", "ifdef", "define"
 };
 
 const std::string data_type_keywords[] = {

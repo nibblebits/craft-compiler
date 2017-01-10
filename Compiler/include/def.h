@@ -87,5 +87,14 @@ enum
 
 typedef unsigned int POSITION_OPTIONS;
 
+enum
+{
+    GET_SCOPE_SIZE_INCLUDE_SUBSCOPES = 0x01,
+    GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES = 0x02
+};
+
+typedef unsigned int GET_SCOPE_SIZE_OPTIONS;
+
+
 #endif /* DEF_H */
 

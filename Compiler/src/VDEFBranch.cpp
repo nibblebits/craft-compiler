@@ -128,7 +128,7 @@ int VDEFBranch::getPositionRelScope(POSITION_OPTIONS options)
     }
 
     // Get the size of all variables in this variables scope up to this variable.
-    int pos = scope_branch->getScopeSize(false, before_proc, after_proc);
+    int pos = scope_branch->getScopeSize(0, before_proc, after_proc);
     return pos;
 }
 
@@ -158,7 +158,7 @@ int VDEFBranch::getPositionRelZero(POSITION_OPTIONS options)
     }
 
     // Get the size of all variables in this variables scope up to this variable.
-    int pos = local_scope->getScopeSize(false, before_proc, after_proc);
+    int pos = local_scope->getScopeSize(0, before_proc, after_proc);
 
     // Now get the size of all variables above up to the scope after them
     std::shared_ptr<ScopeBranch> scope_branch = local_scope;
@@ -180,7 +180,7 @@ int VDEFBranch::getPositionRelZero(POSITION_OPTIONS options)
                 before_proc = kill_proc;
         }
         scope_branch = target_branch->getLocalScope();
-        pos += scope_branch->getScopeSize(false, before_proc, after_proc);
+        pos += scope_branch->getScopeSize(0, before_proc, after_proc);
     }
     return pos;
 
