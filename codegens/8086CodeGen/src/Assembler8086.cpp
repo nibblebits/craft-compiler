@@ -51,7 +51,7 @@ unsigned char ins_map[] = {
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
     0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70,
-    0x70, 0x70
+    0x70, 0x70, 0x70, 0x70
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -61,7 +61,7 @@ unsigned char ins_sizes[] = {
     2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
-    2, 2
+    2, 2, 2, 2
 };
 
 
@@ -73,7 +73,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
     4, 4, 6, 6, 6, 6, 0, 0, 0, 0,
-    0, 0
+    0, 0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -135,6 +135,8 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // je short imm8
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jne short imm8
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jg short imm8
+    HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // ja short imm8
+    HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jle short imm8
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -189,7 +191,9 @@ struct ins_syntax_def ins_syntax[] = {
     "call", CALL_NEAR, IMM16_ALONE,
     "je", JE_SHORT, IMM8_ALONE,
     "jne", JNE_SHORT, IMM8_ALONE,
-    "jg", JG_SHORT, IMM8_ALONE
+    "jg", JG_SHORT, IMM8_ALONE,
+    "ja", JA_SHORT, IMM8_ALONE,
+    "jle", JLE_SHORT, IMM8_ALONE
 };
 
 /* Certain instructions have condition codes that specify a particular event.
@@ -198,7 +202,9 @@ struct ins_syntax_def ins_syntax[] = {
 struct condition_code_instruction cond_ins_code[] = {
     "je", EQUAL_ZERO,
     "jne", NOT_EQUAL_NOT_ZERO,
-    "jg", GREATER_NOT_LESS_NOR_EQUAL
+    "jg", GREATER_NOT_LESS_NOR_EQUAL,
+    "ja", ABOVE_NOT_BELOW_NOR_EQUAL,
+    "jle", LESS_OR_EQUAL_NOT_GREATER
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -245,6 +251,8 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addInstruction("je");
     Assembler::addInstruction("jne");
     Assembler::addInstruction("jg");
+    Assembler::addInstruction("ja");
+    Assembler::addInstruction("jle");
     Assembler::addInstruction("ret");
 
     this->left = NULL;
