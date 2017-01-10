@@ -198,6 +198,7 @@ enum
     CALL_NEAR,
 
     JE_SHORT,
+    JNE_SHORT
 };
 
 struct ins_syntax_def
