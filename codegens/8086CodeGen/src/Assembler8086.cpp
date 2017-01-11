@@ -52,7 +52,8 @@ unsigned char ins_map[] = {
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
     0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70,
-    0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70
+    0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x50,
+    0x58
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -62,7 +63,8 @@ unsigned char ins_sizes[] = {
     2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
+    1
 };
 
 
@@ -74,7 +76,8 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
     4, 4, 6, 6, 6, 6, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0
 };
 
 /* Describes information relating to an instruction 
@@ -143,6 +146,8 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jb short imm8
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jge short imm8
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jae short imm8
+    USE_W | HAS_RRR | HAS_REG_USE_LEFT, // push reg16
+    USE_W | HAS_RRR | HAS_REG_USE_LEFT, // pop reg16
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -204,7 +209,9 @@ struct ins_syntax_def ins_syntax[] = {
     "jl", JL_SHORT, IMM8_ALONE,
     "jb", JB_SHORT, IMM8_ALONE,
     "jge", JL_SHORT, IMM8_ALONE,
-    "jae", JB_SHORT, IMM8_ALONE
+    "jae", JB_SHORT, IMM8_ALONE,
+    "push", PUSH_REG16, REG16_ALONE,
+    "pop", POP_REG16, REG16_ALONE
 };
 
 /* Certain instructions have condition codes that specify a particular event.
@@ -275,6 +282,8 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addInstruction("jge");
     Assembler::addInstruction("jae");
     Assembler::addInstruction("ret");
+    Assembler::addInstruction("push");
+    Assembler::addInstruction("pop");
 
     this->left = NULL;
     this->right = NULL;
@@ -483,9 +492,21 @@ void Assembler8086::handle_operand_exp(std::shared_ptr<OperandBranch> operand_br
     // Now lets cut down the expression a bit and sum up the numbers
     std::shared_ptr<Branch> r_exp = sum_expression(getPoppedBranch());
 
-    operand_branch->setNumberBranch(get_number_branch_from_exp(r_exp));
-    operand_branch->setRegisterBranch(get_register_branch_from_exp(r_exp));
-    operand_branch->setIdentifierBranch(get_identifier_branch_from_exp(r_exp));
+    std::shared_ptr<Branch> number_branch = get_number_branch_from_exp(r_exp);
+    std::shared_ptr<Branch> register_branch = get_register_branch_from_exp(r_exp);
+    std::shared_ptr<Branch> identifier_branch = get_identifier_branch_from_exp(r_exp);
+
+    // We clone because the framework does not allow the child to have two parents.
+    if (number_branch != NULL)
+        number_branch = number_branch->clone();
+    if (register_branch != NULL)
+        register_branch = register_branch->clone();
+    if (identifier_branch != NULL)
+        identifier_branch = identifier_branch->clone();
+
+    operand_branch->setNumberBranch(number_branch);
+    operand_branch->setRegisterBranch(register_branch);
+    operand_branch->setIdentifierBranch(identifier_branch);
 }
 
 void Assembler8086::parse_operand(OPERAND_DATA_SIZE data_size)
@@ -662,8 +683,6 @@ void Assembler8086::parse_ins()
     ins_branch->setLeftBranch(dest_op);
     ins_branch->setRightBranch(source_op);
 
-    debug_output_branch(ins_branch);
-
     // Push the finished branch to the stack
     push_branch(ins_branch);
 }
@@ -673,18 +692,18 @@ void Assembler8086::parse_global()
     // Shift and pop the global keyword
     shift_pop();
     std::shared_ptr<GlobalBranch> global_branch = std::shared_ptr<GlobalBranch>(new GlobalBranch(getCompiler()));
-    
+
     // Shift and pop the label name branch
     peek();
     if (!is_peek_type("identifier"))
     {
         throw Exception("void Assembler8086::parse_global(): expecting an identifier but none was provided.");
     }
-    
-    // Shfit and pop off the identifier
+
+    // Shift and pop off the identifier
     shift_pop();
     global_branch->setLabelNameBranch(getPoppedBranch());
-    
+
     // Push the global branch to the stack
     push_branch(global_branch);
 }

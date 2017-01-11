@@ -209,7 +209,9 @@ enum
     JGE_SHORT,
     JAE_SHORT,
     
+    PUSH_REG16,
     
+    POP_REG16
 };
 
 struct ins_syntax_def
