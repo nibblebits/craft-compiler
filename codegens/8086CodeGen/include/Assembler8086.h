@@ -76,6 +76,7 @@ enum
 
 enum
 {
+    NO_PROPERTIES = 0x00,
     USE_W = 0x01,
     HAS_RRR = 0x02,
     HAS_OOMMM = 0x04,
@@ -128,7 +129,8 @@ enum
     REG8_ALONE = (REG8 << OPERAND_BIT_SIZE | ALONE),
     REG16_ALONE = (REG16 << OPERAND_BIT_SIZE | ALONE),
     AL_ALONE = (AL << OPERAND_BIT_SIZE | ALONE),
-    AX_ALONE = (AX << OPERAND_BIT_SIZE | ALONE)
+    AX_ALONE = (AX << OPERAND_BIT_SIZE | ALONE),
+    ALONE_ALONE = (ALONE << OPERAND_BIT_SIZE | ALONE)
 };
 
 enum
@@ -211,7 +213,9 @@ enum
     
     PUSH_REG16,
     
-    POP_REG16
+    POP_REG16,
+    
+    RET
 };
 
 struct ins_syntax_def

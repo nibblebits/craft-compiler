@@ -53,7 +53,7 @@ unsigned char ins_map[] = {
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
     0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70,
     0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x50,
-    0x58
+    0x58, 0xc3
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -64,7 +64,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
-    1
+    1, 1
 };
 
 
@@ -77,7 +77,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
     4, 4, 6, 6, 6, 6, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0
+    0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -148,6 +148,7 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jae short imm8
     USE_W | HAS_RRR | HAS_REG_USE_LEFT, // push reg16
     USE_W | HAS_RRR | HAS_REG_USE_LEFT, // pop reg16
+    NO_PROPERTIES, // ret
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -211,7 +212,8 @@ struct ins_syntax_def ins_syntax[] = {
     "jge", JL_SHORT, IMM8_ALONE,
     "jae", JB_SHORT, IMM8_ALONE,
     "push", PUSH_REG16, REG16_ALONE,
-    "pop", POP_REG16, REG16_ALONE
+    "pop", POP_REG16, REG16_ALONE,
+    "ret", RET, ALONE_ALONE
 };
 
 /* Certain instructions have condition codes that specify a particular event.
