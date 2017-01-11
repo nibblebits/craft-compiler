@@ -44,3 +44,17 @@ Stream* VirtualSegment::getStream()
 {
     return &this->stream;
 }
+
+void VirtualSegment::register_fixup(int offset, FIXUP_LENGTH length)
+{
+    // Fixups are resolved during link time, we should register them right now
+    struct FIXUP fixup;
+    fixup.offset = offset;
+    fixup.length = length;
+    this->fixups.push_back(fixup);
+}
+
+std::vector<FIXUP> VirtualSegment::getFixups()
+{
+    return this->fixups;
+}

@@ -7,16 +7,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/Compiler/src/Lexer.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/Compiler/src/Parser.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/Compiler/include/EBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/Compiler/include/branches.h</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/Compiler/include/WhileBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/Compiler/src/BreakBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/Compiler/include/Parser.h</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/Compiler/include/BreakBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/Compiler/src/WhileBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/GoblinCompilerV1.0/Compiler/include/VDEFBranch.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/Assembler.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/Branch.cpp</file>
         </group>
     </open-files>
 </project-private>

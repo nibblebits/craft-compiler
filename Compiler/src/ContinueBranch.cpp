@@ -1,5 +1,5 @@
 /*
-    Goblin compiler v1.0 - The standard compiler for the Goblin language.
+    Craft compiler v0.1.0 - The standard compiler for the Craft programming language.
     Copyright (C) 2016  Daniel McCarthy
 
     This program is free software: you can redistribute it and/or modify

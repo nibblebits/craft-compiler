@@ -16,30 +16,40 @@
  */
 
 /* 
- * File:   BreakBranch.cpp
+ * File:   OMFObjectFormat.cpp
  * Author: Daniel McCarthy
  *
- * Created on 06 January 2017, 05:00
+ * Created on 11 January 2017, 22:10
  * 
  * Description: 
  */
 
-#include "BreakBranch.h"
+#include "OMFObjectFormat.h"
 
-BreakBranch::BreakBranch(Compiler* compiler) : CustomBranch(compiler, "BREAK", "")
+OMFObjectFormat::OMFObjectFormat(Compiler* compiler) : VirtualObjectFormat(compiler)
 {
 }
 
-BreakBranch::~BreakBranch()
+OMFObjectFormat::~OMFObjectFormat()
 {
 }
 
-void BreakBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
+std::shared_ptr<VirtualSegment> OMFObjectFormat::new_segment(std::string segment_name)
 {
-
+    // We are not doing anything special so lets just return the standard virtual segment
+    return std::shared_ptr<VirtualSegment>(new VirtualSegment(segment_name));
 }
 
-std::shared_ptr<Branch> BreakBranch::create_clone()
+void OMFObjectFormat::finalize()
 {
-    return std::shared_ptr<Branch>(new BreakBranch(getCompiler()));
+    // Create THEADR
+    //write_theadr();
+    // Just writes information to explain to a viewer who made the object file. In our case Craft Compiler.
+    //write_about_comment();
+    
+    // We need to create LNAMES for the segment
+    for (std::shared_ptr<VirtualSegment> segment : getSegments())
+    {
+        
+    }
 }

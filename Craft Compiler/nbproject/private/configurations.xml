@@ -26,7 +26,6 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "C:\Users\dansb\Desktop\GoblinCompilerV1.0\test_source.goblin" -output test_source.goblino -codegen goblin_bytecode</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino -codegen goblin_bytecode</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino -codegen CodeGen8086</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino</runcommandpicklistitem>
@@ -36,9 +35,10 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino -codegen 8086CodeGen -O -format couf</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino -codegen 8086CodeGen -O -format "couf"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino -codegen 8086CodeGen -O -format "cuof"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino -codegen 8086CodeGen -O -format "omf"</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino -codegen 8086CodeGen -O -format "cuof"</runcommand>
-        <rundir>C:\Users\dansb\Desktop\GoblinCompilerV1.0\bin</rundir>
+        <runcommand>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino -codegen 8086CodeGen -O -format "omf"</runcommand>
+        <rundir>C:\Users\dansb\Desktop\CraftCompilerV0.1.0\bin</rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>
         <remove-instrumentation>0</remove-instrumentation>

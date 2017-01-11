@@ -1,5 +1,5 @@
 /*
-    Craft Compiler v0.1.0 - The standard compiler for the Craft programming language.
+    Craft compiler v0.1.0 - The standard compiler for the Craft programming language.
     Copyright (C) 2016  Daniel McCarthy
 
     This program is free software: you can redistribute it and/or modify
@@ -16,38 +16,28 @@
  */
 
 /* 
- * File:   VirtualSegment.h
+ * File:   main.h
  * Author: Daniel McCarthy
  *
- * Created on 19 December 2016, 15:48
+ * Created on 11 January 2017, 22:06
+ * 
+ * Description: 
  */
 
-#ifndef VIRTUALSEGMENT_H
-#define VIRTUALSEGMENT_H
+#ifndef MAIN_H
+#define MAIN_H
 
-#include <vector>
-#include "Stream.h"
-#include "def.h"
-struct FIXUP
-{
-    int offset;
-    FIXUP_LENGTH length;
-};
-class EXPORT VirtualSegment {
-public:
-    VirtualSegment(std::string segment_name);
-    virtual ~VirtualSegment();
-    std::string getName();
-    Stream* getStream();
-    
-    void register_fixup(int offset, FIXUP_LENGTH length);
-    std::vector<FIXUP> getFixups();
-    
-private:
-    std::vector<FIXUP> fixups;
-    std::string segment_name;
-    Stream stream;
-};
+#include "Compiler.h"
 
-#endif /* VIRTUALSEGMENT_H */
+#define EXPORT __declspec(dllexport)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    VirtualObjectFormat* EXPORT Init(Compiler* compiler);
+
+#ifdef __cplusplus
+}
+#endif
+#endif

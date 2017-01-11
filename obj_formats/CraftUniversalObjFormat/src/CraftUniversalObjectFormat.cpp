@@ -37,13 +37,7 @@ CraftUniversalObjectFormat::~CraftUniversalObjectFormat()
 
 void CraftUniversalObjectFormat::finalize()
 {
-    for (std::shared_ptr<VirtualSegment> segment : VirtualObjectFormat::getSegments())
-    {
-        while (!segment->getStream()->isEmpty())
-        {
-            this->getObjectStream()->write8(segment->getStream()->read8());
-        }
-    }
+    throw Exception("void CraftUniversalObjectFormat::finalize(): The craft universal object format is currently unimplemented");
 }
 
 std::shared_ptr<VirtualSegment> CraftUniversalObjectFormat::new_segment(std::string segment_name)

@@ -768,8 +768,6 @@ void Assembler8086::assembler_pass_1()
     {
         if (branch->getType() == "SEGMENT")
         {
-            // Reset the current offset ready for the next segment
-            this->cur_offset = 0;
             pass_1_segment(std::dynamic_pointer_cast<SegmentBranch>(branch));
         }
         else
@@ -781,9 +779,10 @@ void Assembler8086::assembler_pass_1()
 
 void Assembler8086::pass_1_segment(std::shared_ptr<SegmentBranch> segment_branch)
 {
+    // Reset the current offset ready for the next segment
+    this->cur_offset = 0;
     // Register the segment
     register_segment(segment_branch);
-
     // Now we need to pass through the children
     for (std::shared_ptr<Branch> child : segment_branch->getContentsBranch()->getChildren())
     {
@@ -1142,6 +1141,8 @@ void Assembler8086::gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBr
         selected_operand = ins_branch->getRightBranch();
     }
 
+    // Get current address we are on
+    int cur_address = sstream->getSize() + 1;
     if (info & USE_W)
     {
         if (info & NEAR_POSSIBLE)
@@ -1151,6 +1152,12 @@ void Assembler8086::gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBr
         else
         {
             write_abs_static16(selected_operand);
+        }
+
+        if (selected_operand->hasIdentifierBranch())
+        {
+            // This operand is pointing to a label so lets make a fixup
+            segment->register_fixup(cur_address, FIXUP_16BIT);
         }
     }
     else
@@ -1376,7 +1383,7 @@ OPERAND_INFO Assembler8086::get_operand_info(std::shared_ptr<OperandBranch> op_b
             /* This operand has a label we should set it to a near jump for now
              * Note this will cause problems if label is out of range for the near jump.
              * In the future this must be changed to pick the appropriate jump type seek here: http://stackoverflow.com/questions/41418521/assembler-passes-issue*/
-            info = IMM8;
+            info = IMM16;
         }
         else
         {

@@ -1,6 +1,4 @@
-uint16 main()
+uint8 main()
 {
-	uint8* ptr = 0;
-	*ptr[5] = 10;
-	return b;
+	return 0;
 }

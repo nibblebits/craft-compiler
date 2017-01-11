@@ -95,6 +95,16 @@ enum
 
 typedef unsigned int GET_SCOPE_SIZE_OPTIONS;
 
+enum
+{
+    FIXUP_8BIT,
+    FIXUP_16BIT,
+    FIXUP_32BIT,
+    FIXUP_64_BIT
+};
+
+typedef unsigned int FIXUP_LENGTH;
+
 
 #endif /* DEF_H */
 
