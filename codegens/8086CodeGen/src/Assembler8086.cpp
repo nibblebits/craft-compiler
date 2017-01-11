@@ -51,7 +51,7 @@ unsigned char ins_map[] = {
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
     0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70,
-    0x70, 0x70, 0x70, 0x70, 0x70, 0x70
+    0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -61,7 +61,7 @@ unsigned char ins_sizes[] = {
     2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
-    2, 2, 2, 2, 2, 2
+    2, 2, 2, 2, 2, 2, 2, 2, 2
 };
 
 
@@ -73,7 +73,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
     4, 4, 6, 6, 6, 6, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -139,6 +139,9 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jle short imm8
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jbe short imm8
     HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jl short imm8
+    HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jb short imm8
+    HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jge short imm8
+    HAS_IMM_USE_LEFT | SHORT_POSSIBLE | USE_CONDITION_CODE, // jae short imm8
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -197,7 +200,10 @@ struct ins_syntax_def ins_syntax[] = {
     "ja", JA_SHORT, IMM8_ALONE,
     "jle", JLE_SHORT, IMM8_ALONE,
     "jbe", JBE_SHORT, IMM8_ALONE,
-    "jl", JL_SHORT, IMM8_ALONE
+    "jl", JL_SHORT, IMM8_ALONE,
+    "jb", JB_SHORT, IMM8_ALONE,
+    "jge", JL_SHORT, IMM8_ALONE,
+    "jae", JB_SHORT, IMM8_ALONE
 };
 
 /* Certain instructions have condition codes that specify a particular event.
@@ -210,7 +216,10 @@ struct condition_code_instruction cond_ins_code[] = {
     "ja", ABOVE_NOT_BELOW_NOR_EQUAL,
     "jle", LESS_OR_EQUAL_NOT_GREATER,
     "jbe", BELOW_OR_EQUAL_NOT_ABOVE,
-    "jl", LESS_NOT_GREATER_NOR_EQUAL
+    "jl", LESS_NOT_GREATER_NOR_EQUAL,
+    "jb", CARRY_BELOW_NOT_ABOVE_NOR_EQUAL,
+    "jge", GREATER_OR_EQUAL_NOT_LESS,
+    "jae", NOT_CARRY_ABOVE_OR_EQUAL_NOT_BELOW
 };
 
 Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat> object_format) : Assembler(compiler, object_format)
@@ -261,6 +270,9 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addInstruction("jle");
     Assembler::addInstruction("jbe");
     Assembler::addInstruction("jl");
+    Assembler::addInstruction("jb");
+    Assembler::addInstruction("jge");
+    Assembler::addInstruction("jae");
     Assembler::addInstruction("ret");
 
     this->left = NULL;
