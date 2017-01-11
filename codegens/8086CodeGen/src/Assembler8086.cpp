@@ -42,6 +42,7 @@
 #include "SegmentBranch.h"
 #include "OperandBranch.h"
 #include "EBranch.h"
+#include "GlobalBranch.h"
 
 /* The instruction map, maps the instruction enum to the correct opcodes. 
  * as some instructions share the same opcode */
@@ -350,6 +351,10 @@ void Assembler8086::parse_part()
     else if (is_next_instruction())
     {
         parse_ins();
+    }
+    else if (is_next_global())
+    {
+        parse_global();
     }
     else
     {
@@ -663,6 +668,27 @@ void Assembler8086::parse_ins()
     push_branch(ins_branch);
 }
 
+void Assembler8086::parse_global()
+{
+    // Shift and pop the global keyword
+    shift_pop();
+    std::shared_ptr<GlobalBranch> global_branch = std::shared_ptr<GlobalBranch>(new GlobalBranch(getCompiler()));
+    
+    // Shift and pop the label name branch
+    peek();
+    if (!is_peek_type("identifier"))
+    {
+        throw Exception("void Assembler8086::parse_global(): expecting an identifier but none was provided.");
+    }
+    
+    // Shfit and pop off the identifier
+    shift_pop();
+    global_branch->setLabelNameBranch(getPoppedBranch());
+    
+    // Push the global branch to the stack
+    push_branch(global_branch);
+}
+
 bool Assembler8086::is_next_valid_operand()
 {
     return (is_peek_type("identifier")
@@ -699,6 +725,12 @@ bool Assembler8086::is_next_instruction()
 {
     peek();
     return is_peek_type("instruction");
+}
+
+bool Assembler8086::is_next_global()
+{
+    peek();
+    return is_peek_keyword("global");
 }
 
 void Assembler8086::generate()
@@ -759,7 +791,7 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
         ins_branch->setSize(size);
         this->cur_offset += size;
     }
-    else if (branch->getType() == "keyword")
+    else if (branch->getType() == "GLOBAL")
     {
 
     }

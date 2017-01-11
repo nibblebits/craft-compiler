@@ -197,6 +197,7 @@ enum
 
     CALL_NEAR,
 
+    // Only the jump instructions that the code generator uses are present
     JE_SHORT,
     JNE_SHORT,
     JG_SHORT,
@@ -206,7 +207,9 @@ enum
     JL_SHORT,
     JB_SHORT,
     JGE_SHORT,
-    JAE_SHORT
+    JAE_SHORT,
+    
+    
 };
 
 struct ins_syntax_def
@@ -293,11 +296,13 @@ private:
     void parse_segment();
     void parse_label();
     void parse_ins();
-
+    void parse_global();
+    
     inline bool is_next_valid_operand();
     inline bool is_next_segment();
     inline bool is_next_label();
     inline bool is_next_instruction();
+    inline bool is_next_global();
 
     std::shared_ptr<Branch> root;
 
