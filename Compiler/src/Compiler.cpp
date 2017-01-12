@@ -48,6 +48,11 @@ Compiler::~Compiler()
 
 }
 
+void Compiler::setArgument(std::string name, std::string value)
+{
+    this->arguments[name] = value;
+}
+
 void Compiler::setCodeGenerator(std::shared_ptr<CodeGenerator> codegen)
 {
     if (this->codeGenerator != NULL)
@@ -101,6 +106,11 @@ std::shared_ptr<CodeGenerator> Compiler::getCodeGenerator()
 std::shared_ptr<Linker> Compiler::getLinker()
 {
     return this->linker;
+}
+
+std::string Compiler::getArgumentValue(std::string name)
+{
+    return this->arguments[name];
 }
 
 std::shared_ptr<VDEFBranch> Compiler::getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name)

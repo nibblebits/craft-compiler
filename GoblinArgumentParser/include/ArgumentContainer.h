@@ -29,11 +29,13 @@
 #include "Argument.h"
 class __declspec(dllexport) ArgumentContainer {
 public:
+    ArgumentContainer();
     ArgumentContainer(std::vector<Argument> arguments);
     virtual ~ArgumentContainer();
     Argument* findArgument(std::string name);
     std::string getArgumentValue(std::string name);
     bool hasArgument(std::string name);
+    std::vector<Argument> getArguments();
 private:
     std::vector<Argument> arguments;
 

@@ -23,7 +23,8 @@
  */
 
 #include "main.h"
+#include "OMFObjectFormat.h"
 VirtualObjectFormat* EXPORT Init(Compiler* compiler)
 {
-    
+    return new OMFObjectFormat(compiler);
 }

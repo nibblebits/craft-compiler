@@ -27,6 +27,7 @@
 
 #include <memory>
 #include <string>
+#include <map>
 #include "Lexer.h"
 #include "Parser.h"
 #include "preprocessor.h"
@@ -48,6 +49,7 @@ public:
     Compiler();
     virtual ~Compiler();
 
+    void setArgument(std::string name, std::string value);
     void setCodeGenerator(std::shared_ptr<CodeGenerator> codegen);
     void setLinker(std::shared_ptr<Linker> linker);
     Lexer* getLexer();
@@ -58,6 +60,7 @@ public:
     ASTAssistant* getASTAssistant();
     std::shared_ptr<CodeGenerator> getCodeGenerator();
     std::shared_ptr<Linker> getLinker();
+    std::string getArgumentValue(std::string name);
 
     std::shared_ptr<VDEFBranch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
     int getSizeOfVarDef(std::shared_ptr<VDEFBranch> vdef_branch);
@@ -83,7 +86,8 @@ private:
     SemanticValidator* semanticValidator;
     TreeImprover* treeImprover;
     ASTAssistant* astAssistant;
-
+    
+    std::map<std::string, std::string> arguments;
     int pointer_size;
 
     // The code generator must be shared as we are not the sole owner of it and it would be unsafe to not have this as a shared pointer.

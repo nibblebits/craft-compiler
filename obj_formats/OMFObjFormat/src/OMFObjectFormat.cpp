@@ -25,6 +25,7 @@
  */
 
 #include "OMFObjectFormat.h"
+#include "Compiler.h"
 
 OMFObjectFormat::OMFObjectFormat(Compiler* compiler) : VirtualObjectFormat(compiler)
 {
@@ -42,8 +43,10 @@ std::shared_ptr<VirtualSegment> OMFObjectFormat::new_segment(std::string segment
 
 void OMFObjectFormat::finalize()
 {
-    // Create THEADR
-    //write_theadr();
+    // Lets create a Magic OMF handle using the MagicOMF library that was written for this library
+    struct MagicOMFHandle* handle = MagicOMFCreateHandle();
+    // Create the THEADR, this should be the input filename
+    MagicOMFAddTHEADR(handle, getCompiler()->getArgumentValue("input").c_str());
     // Just writes information to explain to a viewer who made the object file. In our case Craft Compiler.
     //write_about_comment();
     
@@ -52,4 +55,14 @@ void OMFObjectFormat::finalize()
     {
         
     }
+    
+    // Let us build the buffer
+    MagicOMFGenerateBuffer(handle);
+    
+    // We now have the OMF object in the handles buffer
+    for (int i = 0; i < handle->buf_size; i++)
+    {
+        getObjectStream()->write8(handle->buf[i]);
+    }
+    
 }

@@ -53,13 +53,15 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=../../bin/Compiler.dll
+LDLIBSOPTIONS=../../bin/Compiler.dll ../../bin/MagicOMF.dll
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../bin/obj_formats/omf.${CND_DLIB_EXT}
 
 ../../bin/obj_formats/omf.${CND_DLIB_EXT}: ../../bin/Compiler.dll
+
+../../bin/obj_formats/omf.${CND_DLIB_EXT}: ../../bin/MagicOMF.dll
 
 ../../bin/obj_formats/omf.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ../../bin/obj_formats
@@ -68,12 +70,12 @@ LDLIBSOPTIONS=../../bin/Compiler.dll
 ${OBJECTDIR}/src/OMFObjectFormat.o: src/OMFObjectFormat.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OMFObjectFormat.o src/OMFObjectFormat.cpp
+	$(COMPILE.cc) -g -Iinclude -I../../Compiler/include -I../../libs/MagicOMF/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OMFObjectFormat.o src/OMFObjectFormat.cpp
 
 ${OBJECTDIR}/src/main.o: src/main.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.cpp
+	$(COMPILE.cc) -g -Iinclude -I../../Compiler/include -I../../libs/MagicOMF/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.cpp
 
 # Subprojects
 .build-subprojects:
@@ -81,7 +83,7 @@ ${OBJECTDIR}/src/main.o: src/main.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} -r ../../bin/obj_formats/Compiler.dll
+	${RM} -r ../../bin/obj_formats/MagicOMF.dll ../../bin/obj_formats/Compiler.dll
 	${RM} ../../bin/obj_formats/omf.${CND_DLIB_EXT}
 
 # Subprojects

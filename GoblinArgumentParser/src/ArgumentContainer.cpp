@@ -27,7 +27,12 @@
 #include "ArgumentContainer.h"
 #include "Argument.h"
 
-ArgumentContainer::ArgumentContainer(std::vector<Argument> arguments) 
+ArgumentContainer::ArgumentContainer()
+{
+
+}
+
+ArgumentContainer::ArgumentContainer(std::vector<Argument> arguments)
 {
     this->arguments = arguments;
 }
@@ -36,7 +41,8 @@ ArgumentContainer::~ArgumentContainer()
 {
 }
 
-Argument* ArgumentContainer::findArgument(std::string name) {
+Argument* ArgumentContainer::findArgument(std::string name)
+{
     for (int i = 0; i < this->arguments.size(); i++)
     {
         if (arguments[i].name == name)
@@ -53,14 +59,22 @@ std::string ArgumentContainer::getArgumentValue(std::string name)
         if (arg.name == name)
             return arg.value;
     }
-    
+
     return "";
 }
-bool ArgumentContainer::hasArgument(std::string name) {
-    for (Argument arg : this->arguments) {
+
+bool ArgumentContainer::hasArgument(std::string name)
+{
+    for (Argument arg : this->arguments)
+    {
         if (arg.name == name)
             return true;
     }
-    
+
     return false;
+}
+
+std::vector<Argument> ArgumentContainer::getArguments()
+{
+    return this->arguments;
 }

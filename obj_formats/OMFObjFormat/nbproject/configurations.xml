@@ -43,12 +43,14 @@
           <incDir>
             <pElem>include</pElem>
             <pElem>../../Compiler/include</pElem>
+            <pElem>../../libs/MagicOMF/include</pElem>
           </incDir>
         </ccTool>
         <linkerTool>
           <output>../../bin/obj_formats/omf.${CND_DLIB_EXT}</output>
           <linkerLibItems>
             <linkerLibFileItem>../../bin/Compiler.dll</linkerLibFileItem>
+            <linkerLibFileItem>../../bin/MagicOMF.dll</linkerLibFileItem>
           </linkerLibItems>
         </linkerTool>
       </compileType>

@@ -24,6 +24,7 @@
 
 #ifndef OMFOBJECTFORMAT_H
 #define OMFOBJECTFORMAT_H
+#include "MagicOMF.h"
 #include "VirtualObjectFormat.h"
 class OMFObjectFormat : public VirtualObjectFormat {
 public:

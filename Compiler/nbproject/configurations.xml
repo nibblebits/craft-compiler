@@ -158,16 +158,11 @@
           <standard>11</standard>
           <incDir>
             <pElem>include</pElem>
-            <pElem>.</pElem>
           </incDir>
           <commandLine>-shared</commandLine>
         </ccTool>
         <linkerTool>
           <output>../bin/Compiler.${CND_DLIB_EXT}</output>
-          <linkerLibItems>
-            <linkerLibFileItem>../bin/GoblinArgumentParser.dll</linkerLibFileItem>
-            <linkerLibFileItem>../bin/GoblinLibraryLoader.dll</linkerLibFileItem>
-          </linkerLibItems>
         </linkerTool>
       </compileType>
       <item path="include/ASMArgBranch.h" ex="false" tool="3" flavor2="0">

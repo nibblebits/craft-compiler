@@ -150,6 +150,7 @@ int main(int argc, char** argv)
     std::string source_file_data;
     std::string obj_format_name;
     bool object_file_output = false;
+    ArgumentContainer arguments;
     std::vector<std::string> file_names_to_link;
 
     std::cout << COMPILER_FULLNAME << std::endl;
@@ -162,7 +163,7 @@ int main(int argc, char** argv)
     {
         try
         {
-            ArgumentContainer arguments = GoblinArgumentParser_GetArguments(argc, argv);
+            arguments = GoblinArgumentParser_GetArguments(argc, argv);
             if (!arguments.hasArgument("input"))
             {
                 std::cout << "You must provide an input file, use -input filename" << std::endl;
@@ -228,6 +229,12 @@ int main(int argc, char** argv)
             std::cout << "Error parsing arguments: " + ex.getMessage() << std::endl;
             return ARGUMENT_PARSE_PROBLEM;
         }
+    }
+
+    // Let the compiler know the arguments that were passed to us.
+    for(Argument argument : arguments.getArguments())
+    {
+        compiler.setArgument(argument.name, argument.value);
     }
 
     std::cout << "Compiling: " << input_file_name << " to " << output_file_name
