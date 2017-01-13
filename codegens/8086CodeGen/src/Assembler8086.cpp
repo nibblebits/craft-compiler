@@ -563,10 +563,10 @@ void Assembler8086::parse_operand(OPERAND_DATA_SIZE data_size)
 
 void Assembler8086::parse_segment()
 {
-    // Shift and pop the segment name we don't need it anymore
+    // Shift and pop the "segment" keyword
     shift_pop();
 
-    // Next up is the segment name, we need this
+    // Next up is the segment name
     shift_pop();
     std::shared_ptr<Branch> segment_name_branch = Assembler::getPoppedBranch();
 
@@ -716,7 +716,8 @@ bool Assembler8086::is_next_valid_operand()
             || is_peek_type("number")
             || is_peek_type("register")
             || is_peek_symbol("[")
-            || is_peek_type("keyword"));
+            || (is_peek_type("keyword") && (is_peek_value("byte") || is_peek_value("word")))
+            );
 }
 
 bool Assembler8086::is_next_segment()
