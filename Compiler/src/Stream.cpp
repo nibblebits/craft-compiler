@@ -30,6 +30,7 @@
 
 #include "Stream.h"
 #include <string.h>
+
 Stream::Stream()
 {
     setPosition(0);
@@ -90,26 +91,28 @@ void Stream::write32(uint32_t i)
     write16(s2);
 }
 
-void Stream::writeStr(std::string str, size_t fill_to)
+void Stream::writeStr(std::string str, bool write_null_terminator, size_t fill_to)
 {
-    writeStr(str.c_str(), fill_to);
+    writeStr(str.c_str(), write_null_terminator, fill_to);
 }
 
 /* Should probably try to write this better when I am a bit
  more awake. A bit sleepy at the moment*/
-void Stream::writeStr(const char* str, size_t fill_to)
+void Stream::writeStr(const char* str, bool write_null_terminator, size_t fill_to)
 {
     int i = 0;
-    do
+    while(str[i] != 0)
     {
         write8(str[i]);
         i++;
     }
-    while (str[i] != 0);
 
-    write8(0);
-    i++;
-
+    if (write_null_terminator)
+    {
+        write8(0);
+        i++;
+    }
+    
     if (fill_to != -1 && fill_to - i > 0)
     {
         // We need to fill it to a maximum point
@@ -188,7 +191,7 @@ int Stream::getPosition()
 
 char* Stream::getBuf()
 {
-    return (char*)vector.data();
+    return (char*) vector.data();
 }
 
 char* Stream::toNewBuf()

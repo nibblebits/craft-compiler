@@ -43,8 +43,8 @@ public:
     void write8(uint8_t c);
     void write16(uint16_t s);
     void write32(uint32_t i);
-    void writeStr(std::string str, size_t fill_to = -1);
-    void writeStr(const char* str, size_t fill_to = -1);
+    void writeStr(std::string str, bool write_null_terminator = true, size_t fill_to = -1);
+    void writeStr(const char* str, bool write_null_terminator = true, size_t fill_to = -1);
 
     uint8_t read8();
     uint16_t read16();
