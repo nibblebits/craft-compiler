@@ -47,22 +47,49 @@ void OMFObjectFormat::finalize()
     struct MagicOMFHandle* handle = MagicOMFCreateHandle();
     // Create the THEADR, this should be the input filename
     MagicOMFAddTHEADR(handle, getCompiler()->getArgumentValue("input").c_str());
-    // Just writes information to explain to a viewer who made the object file. In our case Craft Compiler.
-    //write_about_comment();
-    
-    // We need to create LNAMES for the segment
+    // Lets write some information to explain to a viewer who made the object file. In our case Craft Compiler.
+    MagicOMFAddCOMENT(handle,
+                      COMENT_NO_PURGE,
+                      COMENT_CLASS_TRANSLATOR,
+                      COMPILER_FULLNAME
+                      );
+
+
+
+    // We need to create LNAMES for the segments
+    struct RECORD* record = MagicOMFNewLNAMESRecord(handle);
     for (std::shared_ptr<VirtualSegment> segment : getSegments())
     {
-        
+        MagicOMFAddLNAME(record, segment->getName().c_str());
+    }
+
+    MagicOMFFinishLNAMES(record);
+
+    // We now need to create SEGDEF_16 records for the segments
+    for (std::shared_ptr<VirtualSegment> segment : getSegments())
+    {
+        struct Attributes attributes;
+        attributes.A = SEG_ATTR_ALIGNMENT_RELOC_BYTE_ALIGNED;
+        attributes.C = SEG_ATTR_COMBINATION_PUBLIC_2;
+        attributes.B = 0;
+        attributes.P = SEG_ATTR_P_USE16;
+        MagicOMFAddSEGDEF16(handle, segment->getName().c_str(), attributes, segment->getStream()->getSize());
+    }
+    
+    // Now we need to create the LEDATA records
+    for (std::shared_ptr<VirtualSegment> segment : getSegments())
+    {
+        Stream* stream = segment->getStream();
+        MagicOMFAddLEDATA16(handle, segment->getName().c_str(), 0, stream->getSize(), stream->getBuf());
     }
     
     // Let us build the buffer
     MagicOMFGenerateBuffer(handle);
-    
+
     // We now have the OMF object in the handles buffer
     for (int i = 0; i < handle->buf_size; i++)
     {
         getObjectStream()->write8(handle->buf[i]);
     }
-    
+
 }

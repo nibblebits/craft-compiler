@@ -26,7 +26,7 @@
 #define OMFOBJECTFORMAT_H
 #include "MagicOMF.h"
 #include "VirtualObjectFormat.h"
-class OMFObjectFormat : public VirtualObjectFormat {
+class EXPORT OMFObjectFormat : public VirtualObjectFormat {
 public:
     OMFObjectFormat(Compiler* compiler);
     virtual ~OMFObjectFormat();
