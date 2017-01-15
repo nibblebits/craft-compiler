@@ -90,13 +90,15 @@ std::string EXPORT LoadFile(std::string filename)
 
 void EXPORT WriteFile(std::string filename, Stream* stream)
 {
+    // Reset the position
+    stream->setPosition(0);
     std::ofstream ofs;
     ofs.open(filename, ios::binary);
     if (!ofs.is_open())
     {
         throw Exception("Failed to open: " + filename + " for writing");
     }
-    while (!stream->isEmpty())
+    while (stream->hasInput())
     {
         ofs << stream->read8();
     }

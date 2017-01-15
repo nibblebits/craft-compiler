@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <cstring>
 #include <fstream>
-#include "Stack.h"
+#include <vector>
 #include "Exception.h"
 #include "def.h"
 
@@ -45,24 +45,23 @@ public:
     void write32(uint32_t i);
     void writeStr(std::string str, size_t fill_to = -1);
     void writeStr(const char* str, size_t fill_to = -1);
-    void erase(int start, int end);
-    
-    void setEraseMode(bool erase_mode);
+
     uint8_t read8();
     uint16_t read16();
     uint32_t read32();
     std::string readStr();
     size_t getSize();
     bool isEmpty();
+    bool hasInput();
     void empty();
     int getPosition();
-    void startLoggingOffset();
-    void stopLoggingOffset();
-    bool isLoggingOffset();
-    int getLoggedOffset();
+
+    char* getBuf();
+    char* toNewBuf();
+
 private:
-    Stack<uint8_t> stack;
-    int offset;
+    std::vector<uint8_t> vector;
+    int pos;
 };
 
 #endif /* STREAM_H */

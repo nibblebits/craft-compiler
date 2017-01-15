@@ -29,11 +29,10 @@
  */
 
 #include "Stream.h"
-
+#include <string.h>
 Stream::Stream()
 {
     setPosition(0);
-    this->offset = -1;
 }
 
 Stream::~Stream()
@@ -62,16 +61,17 @@ void Stream::loadFrom_ifstream(std::ifstream* stream)
 
 void Stream::setPosition(size_t position)
 {
-    this->stack.setSP(position);
+    pos = position;
 }
 
 void Stream::write8(uint8_t c)
 {
-    this->stack.push(c);
-    if (this->isLoggingOffset())
+    if (this->vector.size() < 0)
     {
-        this->offset++;
+        throw Exception("uint8_t Stream::write8(): out of bounds");
     }
+    vector.insert(vector.begin() + pos, c);
+    pos++;
 }
 
 void Stream::write16(uint16_t s)
@@ -120,19 +120,14 @@ void Stream::writeStr(const char* str, size_t fill_to)
     }
 }
 
-void Stream::erase(int start, int end)
-{
-    this->stack.erase(start, end);
-}
-
- void Stream::setEraseMode(bool erase_mode)
- {
-     this->stack.setEraseMode(erase_mode);
- }
- 
 uint8_t Stream::read8()
 {
-    uint8_t c = this->stack.pop_first();
+    if (this->vector.size() <= pos)
+    {
+        throw Exception("uint8_t Stream::read8(): out of bounds");
+    }
+    uint8_t c = this->vector.at(pos);
+    pos++;
     return c;
 }
 
@@ -158,56 +153,48 @@ std::string Stream::readStr()
 {
     std::string str = "";
     uint8_t c;
-    while((c = read8()) != 0)
+    while ((c = read8()) != 0)
     {
         str += c;
     }
-    
+
     return str;
 }
 
 size_t Stream::getSize()
 {
-    return this->stack.size();
+    return vector.size();
 }
 
 bool Stream::isEmpty()
 {
-    return this->getSize() == 0;
+    return vector.empty();
+}
+
+bool Stream::hasInput()
+{
+    return pos < vector.size();
 }
 
 void Stream::empty()
 {
-    this->stack.empty();
+    vector.erase(this->vector.begin(), this->vector.end());
 }
 
 int Stream::getPosition()
 {
-    return this->stack.getSP();
+    return pos;
 }
 
-/* Some helper methods for people using the stream class, it helps with offsetting */
-void Stream::startLoggingOffset()
+char* Stream::getBuf()
 {
-    this->offset = 0;
+    return (char*)vector.data();
 }
 
-void Stream::stopLoggingOffset()
+char* Stream::toNewBuf()
 {
-    this->offset = -1;
-}
-
-bool Stream::isLoggingOffset()
-{
-    return this->offset != -1;
-}
-
-int Stream::getLoggedOffset()
-{
-    if (!isLoggingOffset())
-    {
-        throw Exception("Stream::getLoggedOffset(): Offset logging has not been started");
-    }
-
-    return this->offset;
+    int size = getSize();
+    char* data = new char[size];
+    memcpy(data, getBuf(), size);
+    return data;
 }

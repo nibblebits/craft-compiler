@@ -26,6 +26,7 @@
 #define VIRTUALSEGMENT_H
 
 #include <vector>
+#include <string>
 #include "Stream.h"
 #include "def.h"
 struct FIXUP

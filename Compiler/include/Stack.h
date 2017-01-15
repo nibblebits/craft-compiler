@@ -36,12 +36,10 @@ class Stack
 public:
     void push(T elem);
     T pop();
-    void erase(int start, int end);
     void reverse();
     T top();
     T first();
     T pop_first();
-    void setEraseMode(bool erase_mode);
     void setSP(int pos);
     bool isEmpty();
     void empty();
@@ -50,20 +48,17 @@ public:
     T getByIndex(int index);
     Stack<T> copy(int start, int end);
     std::vector<T> getElementsAsVector();
+    void check_safe();
 private:
     std::vector<T> elements;
     int sp = 0;
-    bool erase_mode = false;
 
 };
 
 template <class T>
 void Stack<T>::push(T elem)
 {
-    if (erase_mode)
-    {
-        elements.erase(elements.begin() + sp);
-    }
+    check_safe();
     elements.insert(elements.begin() + sp, elem);
     sp++;
 }
@@ -71,18 +66,13 @@ void Stack<T>::push(T elem)
 template <class T>
 T Stack<T>::pop()
 {
+    check_safe();
     T element = top();
     sp--;
+    if (elements.size() >= sp)
+        throw std::logic_error("Stack<T>::pop(): Cannot pop from here");
     elements.erase(elements.begin() + sp);
     return element;
-}
-
-template <class T>
-void Stack<T>::erase(int start, int end)
-{
-    int size = end - start;
-    sp -= size;
-    elements.erase(elements.begin() + start, elements.begin() + start + end);
 }
 
 template <class T>
@@ -131,12 +121,6 @@ T Stack<T>::pop_first()
     T element = first();
     elements.erase(elements.begin());
     return element;
-}
-
-template <class T>
-void Stack<T>::setEraseMode(bool erase_mode)
-{
-    this->erase_mode = erase_mode;
 }
 
 template <class T>
@@ -194,6 +178,15 @@ template <class T>
 std::vector<T> Stack<T>::getElementsAsVector()
 {
     return this->elements;
+}
+
+template <class T>
+void Stack<T>::check_safe()
+{
+    if (this->elements.empty())
+    {
+        throw std::logic_error("the stack is empty!");
+    }
 }
 
 #endif /* STACK_H */
