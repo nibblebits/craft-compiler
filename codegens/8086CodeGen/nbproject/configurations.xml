@@ -6,12 +6,14 @@
                    projectFiles="true">
       <itemPath>include/Assembler8086.h</itemPath>
       <itemPath>include/CodeGen8086.h</itemPath>
+      <itemPath>include/DataBranch.h</itemPath>
       <itemPath>include/GlobalBranch.h</itemPath>
       <itemPath>include/InstructionBranch.h</itemPath>
       <itemPath>include/LabelBranch.h</itemPath>
       <itemPath>include/OffsetableBranch.h</itemPath>
       <itemPath>include/OperandBranch.h</itemPath>
       <itemPath>include/SegmentBranch.h</itemPath>
+      <itemPath>include/definitions.h</itemPath>
       <itemPath>main.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -23,6 +25,7 @@
                    projectFiles="true">
       <itemPath>src/Assembler8086.cpp</itemPath>
       <itemPath>src/CodeGen8086.cpp</itemPath>
+      <itemPath>src/DataBranch.cpp</itemPath>
       <itemPath>src/GlobalBranch.cpp</itemPath>
       <itemPath>src/InstructionBranch.cpp</itemPath>
       <itemPath>src/LabelBranch.cpp</itemPath>
@@ -70,6 +73,8 @@
       </item>
       <item path="include/CodeGen8086.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/DataBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/GlobalBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/InstructionBranch.h" ex="false" tool="3" flavor2="0">
@@ -82,6 +87,8 @@
       </item>
       <item path="include/SegmentBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/definitions.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="main.h" ex="false" tool="3" flavor2="0">
@@ -89,6 +96,8 @@
       <item path="src/Assembler8086.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CodeGen8086.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/DataBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/GlobalBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -127,6 +136,8 @@
       </item>
       <item path="include/CodeGen8086.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/DataBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/GlobalBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/InstructionBranch.h" ex="false" tool="3" flavor2="0">
@@ -139,6 +150,8 @@
       </item>
       <item path="include/SegmentBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/definitions.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="main.h" ex="false" tool="3" flavor2="0">
@@ -146,6 +159,8 @@
       <item path="src/Assembler8086.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CodeGen8086.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/DataBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/GlobalBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

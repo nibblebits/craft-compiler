@@ -43,6 +43,7 @@
 #include "OperandBranch.h"
 #include "EBranch.h"
 #include "GlobalBranch.h"
+#include "DataBranch.h"
 
 /* The instruction map, maps the instruction enum to the correct opcodes. 
  * as some instructions share the same opcode */
@@ -239,6 +240,8 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addKeyword("global");
     Assembler::addKeyword("byte");
     Assembler::addKeyword("word");
+    Assembler::addKeyword("db");
+    Assembler::addKeyword("dw");
 
     Assembler::addRegister("ax");
     Assembler::addRegister("ah");
@@ -366,6 +369,10 @@ void Assembler8086::parse_part()
     else if (is_next_global())
     {
         parse_global();
+    }
+    else if (is_next_data())
+    {
+        parse_data();
     }
     else
     {
@@ -589,6 +596,7 @@ void Assembler8086::parse_segment()
         pop_branch();
         // Add the branch to the segment contents branch
         contents_branch->addChild(getPoppedBranch());
+
     }
 
     push_branch(segment_root);
@@ -710,6 +718,58 @@ void Assembler8086::parse_global()
     push_branch(global_branch);
 }
 
+void Assembler8086::parse_data(DATA_BRANCH_TYPE data_branch_type)
+{
+    std::shared_ptr<DataBranch> data_branch = std::shared_ptr<DataBranch>(new DataBranch(getCompiler()));
+
+    // Has a custom data type been specified? If so then we do not need to look for "db" or "dw"
+    if (data_branch_type == -1)
+    {
+        // Shift and pop the data keyword
+        shift_pop();
+        std::string data_keyword_value = getPoppedBranchValue();
+        if (data_keyword_value == "db")
+        {
+            data_branch_type = DATA_BRANCH_TYPE_DATA_BYTE;
+        }
+        else
+        {
+            data_branch_type = DATA_BRANCH_TYPE_DATA_WORD;
+        }
+    }
+
+    data_branch->setDataBranchType(data_branch_type);
+
+    peek();
+    if (is_peek_type("number") || is_peek_type("string"))
+    {
+        shift_pop();
+        data_branch->setData(getPoppedBranch());
+    }
+    else
+    {
+        throw Exception("void Assembler8086::parse_data(): unexpected token type: "
+                        + Assembler::getpeekTokenType() + " of value \""
+                        + Assembler::getpeekTokenValue() + "\" + expecting either a \"number\" or \"string\" type.");
+    }
+
+    // Is there more data coming up?
+    peek();
+    if (is_peek_symbol(","))
+    {
+        //  Yes we have a comma shift it off and recall this method
+        shift_pop();
+        parse_data(data_branch_type);
+        // Pop off the DATA branch
+        pop_branch();
+        // Add it to our data branch
+        data_branch->setNextDataBranch(std::dynamic_pointer_cast<DataBranch>(getPoppedBranch()));
+    }
+
+    // Push the result
+    push_branch(data_branch);
+}
+
 bool Assembler8086::is_next_valid_operand()
 {
     return (is_peek_type("identifier")
@@ -753,6 +813,12 @@ bool Assembler8086::is_next_global()
 {
     peek();
     return is_peek_keyword("global");
+}
+
+bool Assembler8086::is_next_data()
+{
+    peek();
+    return is_peek_keyword("db") || is_peek_keyword("dw");
 }
 
 void Assembler8086::generate()
@@ -816,10 +882,51 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
     {
 
     }
+    else if (branch->getType() == "DATA")
+    {
+
+        std::shared_ptr<DataBranch> data_branch = std::dynamic_pointer_cast<DataBranch>(branch);
+        do
+        {
+            data_branch->setOffset(this->cur_offset);
+            // We need to get the size of the data branches data
+            int size = 0;
+            std::shared_ptr<Branch> d_branch = data_branch->getData();
+            DATA_BRANCH_TYPE data_branch_type = data_branch->getDataBranchType();
+            if (d_branch->getType() == "string")
+            {
+                size = d_branch->getValue().length();
+                if (data_branch_type == DATA_BRANCH_TYPE_DATA_WORD)
+                {
+                    // Maybe this exception is more appropriate somewhere else?
+                    throw Exception("void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch): wide strings are not supported by this assembler.");
+                }
+            }
+            else
+            {
+                // Ok this must be a number, so just set the size based on weather its a byte or a word
+                size = (data_branch_type == DATA_BRANCH_TYPE_DATA_BYTE ? 1 : 2);
+            }
+
+            // We have successfully calculated the size lets adjust the offset
+            this->cur_offset += size;
+            
+            // Do we have nested data branches?
+            if (data_branch->hasNextDataBranch())
+            {
+                data_branch = data_branch->getNextDataBranch();
+            }
+            else
+            {
+                break;
+            }
+        }
+        while (true);
+    }
     else
     {
         throw AssemblerException("void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch): "
-                                 "expecting label, instruction or keyword but a \"" + branch->getType() + "\" was provided");
+                                 "unsupported branch type of type \"" + branch->getType() + "\" was provided");
     }
 }
 
@@ -1188,6 +1295,10 @@ void Assembler8086::generate_part(std::shared_ptr<Branch> branch)
     {
         generate_instruction(std::dynamic_pointer_cast<InstructionBranch>(branch));
     }
+    else if (branch->getType() == "DATA")
+    {
+        generate_data(std::dynamic_pointer_cast<DataBranch>(branch));
+    }
 
 
 }
@@ -1225,6 +1336,35 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
             info & HAS_IMM_USE_RIGHT)
     {
         gen_imm(info, instruction_branch);
+    }
+}
+
+void Assembler8086::generate_data(std::shared_ptr<DataBranch> data_branch)
+{
+    std::shared_ptr<Branch> d_branch = data_branch->getData();
+    if (data_branch->getDataBranchType() == DATA_BRANCH_TYPE_DATA_BYTE)
+    {
+        if (d_branch->getType() == "string")
+        {
+            // This data is a string so write it and do not write the NULL terminator.
+            this->sstream->writeStr(d_branch->getValue(), false);
+        }
+        else
+        {
+            // This data is a byte so write it.
+            this->sstream->write8(std::stoi(d_branch->getValue()));
+        }
+    }
+    else
+    {
+        // This data is a word so write it.
+        this->sstream->write16(std::stoi(d_branch->getValue()));
+    }
+   
+    // Do we have nested data to generate?
+    if (data_branch->hasNextDataBranch())
+    {
+        generate_part(data_branch->getNextDataBranch());
     }
 }
 

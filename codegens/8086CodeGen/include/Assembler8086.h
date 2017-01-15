@@ -25,11 +25,15 @@
 #ifndef ASSEMBLER8086_H
 #define ASSEMBLER8086_H
 
+#include "definitions.h"
 #include "Assembler.h"
 
 class InstructionBranch;
 class Branch;
 class SegmentBranch;
+class OperandBranch;
+class LabelBranch;
+class DataBranch;
 
 typedef int INSTRUCTION_TYPE;
 typedef unsigned short INSTRUCTION_INFO;
@@ -231,9 +235,6 @@ struct condition_code_instruction
     CONDITION_CODE code;
 };
 
-class OperandBranch;
-class LabelBranch;
-
 class Assembler8086 : public Assembler
 {
 public:
@@ -265,6 +266,7 @@ private:
     void gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
     void generate_part(std::shared_ptr<Branch> branch);
     void generate_instruction(std::shared_ptr<InstructionBranch> instruction_branch);
+    void generate_data(std::shared_ptr<DataBranch> data_branch);
     void generate_segment(std::shared_ptr<SegmentBranch> branch);
 
     inline char bind_modrm(char oo, char rrr, char mmm);
@@ -303,12 +305,14 @@ private:
     void parse_label();
     void parse_ins();
     void parse_global();
+    void parse_data(DATA_BRANCH_TYPE data_branch_type = -1);
     
     inline bool is_next_valid_operand();
     inline bool is_next_segment();
     inline bool is_next_label();
     inline bool is_next_instruction();
     inline bool is_next_global();
+    inline bool is_next_data();
 
     std::shared_ptr<Branch> root;
 

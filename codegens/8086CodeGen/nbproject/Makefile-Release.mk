@@ -38,6 +38,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/Assembler8086.o \
 	${OBJECTDIR}/src/CodeGen8086.o \
+	${OBJECTDIR}/src/DataBranch.o \
 	${OBJECTDIR}/src/GlobalBranch.o \
 	${OBJECTDIR}/src/InstructionBranch.o \
 	${OBJECTDIR}/src/LabelBranch.o \
@@ -84,6 +85,11 @@ ${OBJECTDIR}/src/CodeGen8086.o: src/CodeGen8086.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CodeGen8086.o src/CodeGen8086.cpp
+
+${OBJECTDIR}/src/DataBranch.o: src/DataBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/DataBranch.o src/DataBranch.cpp
 
 ${OBJECTDIR}/src/GlobalBranch.o: src/GlobalBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
