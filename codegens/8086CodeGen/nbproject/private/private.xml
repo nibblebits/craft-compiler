@@ -9,8 +9,17 @@
         <group>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/src/Assembler8086.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/src/CodeGen8086.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/include/Assembler8086.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/include/DataBranch.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/src/OffsetableBranch.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/src/DataBranch.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/main.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/include/GlobalBranch.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/include/definitions.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/include/CodeGen8086.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/include/LabelBranch.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/include/Assembler8086.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/src/LabelBranch.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/codegens/8086CodeGen/src/GlobalBranch.cpp</file>
         </group>
     </open-files>
 </project-private>

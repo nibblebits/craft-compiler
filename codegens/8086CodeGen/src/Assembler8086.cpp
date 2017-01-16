@@ -825,8 +825,6 @@ void Assembler8086::generate()
 {
     assembler_pass_1();
     assembler_pass_2();
-
-    std::cout << this->cur_offset << std::endl;
 }
 
 void Assembler8086::assembler_pass_1()
@@ -910,7 +908,7 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
 
             // We have successfully calculated the size lets adjust the offset
             this->cur_offset += size;
-            
+
             // Do we have nested data branches?
             if (data_branch->hasNextDataBranch())
             {
@@ -1139,6 +1137,7 @@ void Assembler8086::register_segment(std::shared_ptr<SegmentBranch> segment_bran
     std::shared_ptr<VirtualObjectFormat> obj_format = Assembler::getObjectFormat();
     std::shared_ptr<VirtualSegment> segment = obj_format->createSegment(segment_branch->getSegmentNameBranch()->getValue());
     this->segments.push_back(segment);
+    this->segment_branches.push_back(segment_branch);
 }
 
 void Assembler8086::switch_to_segment(std::string segment_name)
@@ -1265,7 +1264,7 @@ void Assembler8086::gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBr
         if (selected_operand->hasIdentifierBranch())
         {
             // This operand is pointing to a label so lets make a fixup
-            segment->register_fixup(cur_address, FIXUP_16BIT);
+            segment->register_fixup(cur_address, FIXUPPBIT);
         }
     }
     else
@@ -1360,7 +1359,7 @@ void Assembler8086::generate_data(std::shared_ptr<DataBranch> data_branch)
         // This data is a word so write it.
         this->sstream->write16(std::stoi(d_branch->getValue()));
     }
-   
+
     // Do we have nested data to generate?
     if (data_branch->hasNextDataBranch())
     {
@@ -1458,13 +1457,16 @@ void Assembler8086::write_abs_static16(std::shared_ptr<OperandBranch> branch, bo
 
 std::shared_ptr<LabelBranch> Assembler8086::get_label_branch(std::string label_name)
 {
-    for (std::shared_ptr<Branch> child : segment_branch->getContentsBranch()->getChildren())
+    for (std::shared_ptr<SegmentBranch> i_segment : segment_branches)
     {
-        if (child->getType() == "LABEL")
+        for (std::shared_ptr<Branch> child : i_segment->getContentsBranch()->getChildren())
         {
-            std::shared_ptr<LabelBranch> lbl_branch = std::dynamic_pointer_cast<LabelBranch>(child);
-            if (lbl_branch->getLabelNameBranch()->getValue() == label_name)
-                return lbl_branch;
+            if (child->getType() == "LABEL")
+            {
+                std::shared_ptr<LabelBranch> lbl_branch = std::dynamic_pointer_cast<LabelBranch>(child);
+                if (lbl_branch->getLabelNameBranch()->getValue() == label_name)
+                    return lbl_branch;
+            }
         }
     }
 

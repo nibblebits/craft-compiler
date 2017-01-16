@@ -214,11 +214,11 @@ enum
     JB_SHORT,
     JGE_SHORT,
     JAE_SHORT,
-    
+
     PUSH_REG16,
-    
+
     POP_REG16,
-    
+
     RET
 };
 
@@ -306,7 +306,7 @@ private:
     void parse_ins();
     void parse_global();
     void parse_data(DATA_BRANCH_TYPE data_branch_type = -1);
-    
+
     inline bool is_next_valid_operand();
     inline bool is_next_segment();
     inline bool is_next_label();
@@ -317,8 +317,11 @@ private:
     std::shared_ptr<Branch> root;
 
     std::shared_ptr<VirtualSegment> segment;
-    std::shared_ptr<SegmentBranch> segment_branch;
     std::vector<std::shared_ptr<VirtualSegment>> segments;
+
+    std::shared_ptr<SegmentBranch> segment_branch;
+    std::vector<std::shared_ptr<SegmentBranch>> segment_branches;
+    
     Stream* sstream;
     std::shared_ptr<OperandBranch> left;
     std::shared_ptr<Branch> left_reg;
