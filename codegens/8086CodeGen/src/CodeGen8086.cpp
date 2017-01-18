@@ -1053,6 +1053,12 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
     // Memory address in question is stored in AX but we need it in BX so it can be accessed later.
     do_asm("mov bx, ax");
 
+    int depth = ptr_branch->getPointerDepth();
+    for (int i = 0; i < depth-1; i++)
+    {
+        do_asm("mov bx, [bx]");
+    }
+    
     /* If the pointer has structure access or array access then we must calculate it as if no variables exist on the scope 
      * then append the offset to the BX register. */
 
