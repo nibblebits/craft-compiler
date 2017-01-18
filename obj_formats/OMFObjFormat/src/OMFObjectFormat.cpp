@@ -110,6 +110,9 @@ void OMFObjectFormat::finalize()
         }
     }
 
+    // Finally we need to generate the MODEND record to signify the end of this object file
+    MagicOMFAddMODEND16(handle);
+    
     // Let us build the buffer
     MagicOMFGenerateBuffer(handle);
 
