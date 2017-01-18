@@ -27,10 +27,11 @@
 
 #include "definitions.h"
 #include "OffsetableBranch.h"
+
 class DataBranch : public OffsetableBranch
 {
 public:
-    DataBranch(Compiler* compiler);
+    DataBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch);
     virtual ~DataBranch();
 
     void setDataBranchType(DATA_BRANCH_TYPE type);

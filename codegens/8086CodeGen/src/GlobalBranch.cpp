@@ -26,7 +26,7 @@
 
 #include "GlobalBranch.h"
 
-GlobalBranch::GlobalBranch(Compiler* compiler) : CustomBranch(compiler, "GLOBAL", "")
+GlobalBranch::GlobalBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch) : ChildOfSegment(compiler, segment_branch, "GLOBAL", "")
 {
 }
 
@@ -52,5 +52,5 @@ void GlobalBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 
 std::shared_ptr<Branch> GlobalBranch::create_clone()
 {
-    return std::shared_ptr<Branch>(new GlobalBranch(getCompiler()));
+    return std::shared_ptr<Branch>(new GlobalBranch(getCompiler(), getSegmentBranch()));
 }

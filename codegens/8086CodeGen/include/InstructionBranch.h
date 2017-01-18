@@ -31,7 +31,7 @@ class OperandBranch;
 class InstructionBranch : public OffsetableBranch
 {
 public:
-    InstructionBranch(Compiler* compiler);
+    InstructionBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch);
     virtual ~InstructionBranch();
 
     void setInstructionNameBranch(std::shared_ptr<Branch> ins_name_branch);

@@ -26,7 +26,7 @@
 
 #include "DataBranch.h"
 
-DataBranch::DataBranch(Compiler* compiler) : OffsetableBranch(compiler, "DATA", "")
+DataBranch::DataBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch) : OffsetableBranch(compiler, segment_branch, "DATA", "")
 {
     this->type = -1;
 }
@@ -80,5 +80,5 @@ void DataBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 
 std::shared_ptr<Branch> DataBranch::create_clone()
 {
-    return std::shared_ptr<Branch>(new DataBranch(getCompiler()));
+    return std::shared_ptr<Branch>(new DataBranch(getCompiler(), getSegmentBranch()));
 }

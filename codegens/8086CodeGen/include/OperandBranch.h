@@ -25,13 +25,13 @@
 #ifndef OPERANDBRANCH_H
 #define OPERANDBRANCH_H
 
-#include "CustomBranch.h"
+#include "ChildOfSegment.h"
 #include "Assembler8086.h"
 
-class OperandBranch : public CustomBranch
+class OperandBranch : public ChildOfSegment
 {
 public:
-    OperandBranch(Compiler* compiler);
+    OperandBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch);
     virtual ~OperandBranch();
 
 

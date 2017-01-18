@@ -297,7 +297,7 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     this->cur_offset = 0;
 
     // Placeholder branch so programmer does not need to check if operand is NULL constantly.
-    this->zero_operand_branch = std::shared_ptr<OperandBranch>(new OperandBranch(getCompiler()));
+    this->zero_operand_branch = std::shared_ptr<OperandBranch>(new OperandBranch(getCompiler(), NULL));
 
 }
 
@@ -349,7 +349,7 @@ void Assembler8086::right_exp_handler()
 
 std::shared_ptr<InstructionBranch> Assembler8086::new_ins_branch()
 {
-    return std::shared_ptr<InstructionBranch>(new InstructionBranch(getCompiler()));
+    return std::shared_ptr<InstructionBranch>(new InstructionBranch(getCompiler(), this->segment_branch));
 }
 
 void Assembler8086::parse_part()
@@ -520,7 +520,7 @@ void Assembler8086::handle_operand_exp(std::shared_ptr<OperandBranch> operand_br
 
 void Assembler8086::parse_operand(OPERAND_DATA_SIZE data_size)
 {
-    std::shared_ptr<OperandBranch> operand_branch = std::shared_ptr<OperandBranch>(new OperandBranch(getCompiler()));
+    std::shared_ptr<OperandBranch> operand_branch = std::shared_ptr<OperandBranch>(new OperandBranch(getCompiler(), this->segment_branch));
     peek();
     if (is_peek_keyword("byte"))
     {
@@ -584,6 +584,9 @@ void Assembler8086::parse_segment()
     std::shared_ptr<Branch> contents_branch = std::shared_ptr<Branch>(new Branch("CONTENTS", ""));
     segment_root->setContentsBranch(contents_branch);
 
+    // Lets save the register branch in memory for later use throughout the parsing.
+    this->segment_branch = segment_root;
+
     while (hasTokens())
     {
         if (is_next_segment())
@@ -612,7 +615,7 @@ void Assembler8086::parse_label()
     shift_pop();
 
     // Create the label branch
-    std::shared_ptr<LabelBranch> label_branch = std::shared_ptr<LabelBranch>(new LabelBranch(getCompiler()));
+    std::shared_ptr<LabelBranch> label_branch = std::shared_ptr<LabelBranch>(new LabelBranch(getCompiler(), this->segment_branch));
     label_branch->setLabelNameBranch(label_name_branch);
 
     // Create the label contents branch and add it to the label branch
@@ -688,7 +691,7 @@ void Assembler8086::parse_ins()
     }
 
     // Put it all together
-    std::shared_ptr<InstructionBranch> ins_branch = std::shared_ptr<InstructionBranch>(new InstructionBranch(getCompiler()));
+    std::shared_ptr<InstructionBranch> ins_branch = std::shared_ptr<InstructionBranch>(new InstructionBranch(getCompiler(), this->segment_branch));
     ins_branch->setInstructionNameBranch(name_branch);
     ins_branch->setLeftBranch(dest_op);
     ins_branch->setRightBranch(source_op);
@@ -701,7 +704,7 @@ void Assembler8086::parse_global()
 {
     // Shift and pop the global keyword
     shift_pop();
-    std::shared_ptr<GlobalBranch> global_branch = std::shared_ptr<GlobalBranch>(new GlobalBranch(getCompiler()));
+    std::shared_ptr<GlobalBranch> global_branch = std::shared_ptr<GlobalBranch>(new GlobalBranch(getCompiler(), this->segment_branch));
 
     // Shift and pop the label name branch
     peek();
@@ -720,7 +723,7 @@ void Assembler8086::parse_global()
 
 void Assembler8086::parse_data(DATA_BRANCH_TYPE data_branch_type)
 {
-    std::shared_ptr<DataBranch> data_branch = std::shared_ptr<DataBranch>(new DataBranch(getCompiler()));
+    std::shared_ptr<DataBranch> data_branch = std::shared_ptr<DataBranch>(new DataBranch(getCompiler(), this->segment_branch));
 
     // Has a custom data type been specified? If so then we do not need to look for "db" or "dw"
     if (data_branch_type == -1)
@@ -1239,6 +1242,11 @@ void Assembler8086::gen_oorrrmmm(std::shared_ptr<InstructionBranch> ins_branch, 
 void Assembler8086::gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch)
 {
     std::shared_ptr<OperandBranch> selected_operand = NULL;
+
+    // Get current address we are on
+    int cur_address = sstream->getPosition();
+    FIXUP_LENGTH length;
+
     if (info & HAS_IMM_USE_LEFT)
     {
         selected_operand = ins_branch->getLeftBranch();
@@ -1248,8 +1256,6 @@ void Assembler8086::gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBr
         selected_operand = ins_branch->getRightBranch();
     }
 
-    // Get current address we are on
-    int cur_address = sstream->getSize() + 1;
     if (info & USE_W)
     {
         if (info & NEAR_POSSIBLE)
@@ -1260,12 +1266,7 @@ void Assembler8086::gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBr
         {
             write_abs_static16(selected_operand);
         }
-
-        if (selected_operand->hasIdentifierBranch())
-        {
-            // This operand is pointing to a label so lets make a fixup
-            segment->register_fixup(cur_address, FIXUPPBIT);
-        }
+        length = FIXUP_16BIT;
     }
     else
     {
@@ -1277,7 +1278,11 @@ void Assembler8086::gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBr
         {
             write_abs_static8(selected_operand);
         }
+        length = FIXUP_8BIT;
     }
+
+    // Register a fixup if we need to
+    register_fixup_if_required(cur_address, length, selected_operand);
 }
 
 void Assembler8086::generate_part(std::shared_ptr<Branch> branch)
@@ -1426,33 +1431,67 @@ int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch,
     return value;
 }
 
+std::shared_ptr<VirtualSegment> Assembler8086::get_virtual_segment_for_label(std::string label_name)
+{
+    std::shared_ptr<LabelBranch> label_branch = get_label_branch(label_name);
+    std::string segment_name = label_branch->getSegmentBranch()->getSegmentNameBranch()->getValue();
+    return getObjectFormat()->getSegment(segment_name);
+}
+
+void Assembler8086::register_fixup_if_required(int offset, FIXUP_LENGTH length, std::shared_ptr<OperandBranch> branch)
+{
+    if (!branch->hasIdentifierBranch())
+    {
+        // Ok no identifier branch so nothing to do just return
+        return;
+    }
+
+    // Ok lets register this fixup
+    segment->register_fixup(get_virtual_segment_for_label(branch->getIdentifierBranch()->getValue()), offset, length);
+}
+
 void Assembler8086::write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<OperandBranch> branch)
 {
+    // Fixups are also registered in this method so that the linker may replace the offset at a later date.
+
+    // Get current address we are on
+    int cur_address = sstream->getPosition();
+    FIXUP_LENGTH length;
     switch (oo)
     {
     case DISPLACEMENT_IF_MMM_110:
         if (mmm == 0b110)
         {
             write_abs_static16(branch);
+            length = FIXUP_16BIT;
         }
         break;
     case DISPLACEMENT_8BIT_FOLLOW:
         write_abs_static8(branch);
+        length = FIXUP_8BIT;
         break;
     case DISPLACEMENT_16BIT_FOLLOW:
         write_abs_static16(branch);
+        length = FIXUP_16BIT;
         break;
     }
+
+    // Register a fixup if we need to
+    register_fixup_if_required(cur_address, length, branch);
 }
 
-void Assembler8086::write_abs_static8(std::shared_ptr<OperandBranch> branch, bool short_possible, std::shared_ptr<InstructionBranch> ins_branch)
+unsigned char Assembler8086::write_abs_static8(std::shared_ptr<OperandBranch> branch, bool short_possible, std::shared_ptr<InstructionBranch> ins_branch)
 {
-    sstream->write8(get_static_from_branch(branch, short_possible, ins_branch));
+    unsigned char s = get_static_from_branch(branch, short_possible, ins_branch);
+    sstream->write8(s);
+    return s;
 }
 
-void Assembler8086::write_abs_static16(std::shared_ptr<OperandBranch> branch, bool near_possible, std::shared_ptr<InstructionBranch> ins_branch)
+unsigned short Assembler8086::write_abs_static16(std::shared_ptr<OperandBranch> branch, bool near_possible, std::shared_ptr<InstructionBranch> ins_branch)
 {
-    sstream->write16(get_static_from_branch(branch, near_possible, ins_branch));
+    unsigned short s = get_static_from_branch(branch, near_possible, ins_branch);
+    sstream->write16(s);
+    return s;
 }
 
 std::shared_ptr<LabelBranch> Assembler8086::get_label_branch(std::string label_name)

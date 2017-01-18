@@ -26,7 +26,7 @@
 
 #include "LabelBranch.h"
 
-LabelBranch::LabelBranch(Compiler* compiler) : OffsetableBranch(compiler, "LABEL", "")
+LabelBranch::LabelBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch) : OffsetableBranch(compiler, segment_branch, "LABEL", "")
 {
 
 }
@@ -63,5 +63,5 @@ void LabelBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 
 std::shared_ptr<Branch> LabelBranch::create_clone()
 {
-    return std::shared_ptr<Branch>(new LabelBranch(getCompiler()));
+    return std::shared_ptr<Branch>(new LabelBranch(getCompiler(), getSegmentBranch()));
 }

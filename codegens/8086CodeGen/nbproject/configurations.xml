@@ -5,6 +5,7 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>include/Assembler8086.h</itemPath>
+      <itemPath>include/ChildOfSegment.h</itemPath>
       <itemPath>include/CodeGen8086.h</itemPath>
       <itemPath>include/DataBranch.h</itemPath>
       <itemPath>include/GlobalBranch.h</itemPath>
@@ -24,6 +25,7 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>src/Assembler8086.cpp</itemPath>
+      <itemPath>src/ChildOfSegment.cpp</itemPath>
       <itemPath>src/CodeGen8086.cpp</itemPath>
       <itemPath>src/DataBranch.cpp</itemPath>
       <itemPath>src/GlobalBranch.cpp</itemPath>
@@ -71,6 +73,8 @@
       </compileType>
       <item path="include/Assembler8086.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/ChildOfSegment.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/CodeGen8086.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/DataBranch.h" ex="false" tool="3" flavor2="0">
@@ -94,6 +98,8 @@
       <item path="main.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/Assembler8086.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ChildOfSegment.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CodeGen8086.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -134,6 +140,8 @@
       </compileType>
       <item path="include/Assembler8086.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/ChildOfSegment.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/CodeGen8086.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/DataBranch.h" ex="false" tool="3" flavor2="0">
@@ -157,6 +165,8 @@
       <item path="main.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="src/Assembler8086.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/ChildOfSegment.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CodeGen8086.cpp" ex="false" tool="1" flavor2="0">
       </item>

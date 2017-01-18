@@ -26,7 +26,7 @@
 
 #include "OffsetableBranch.h"
 
-OffsetableBranch::OffsetableBranch(Compiler* compiler, std::string type, std::string value) : CustomBranch(compiler, type, value)
+OffsetableBranch::OffsetableBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch, std::string type, std::string value) : ChildOfSegment(compiler, segment_branch, type, value)
 {
 }
 
@@ -46,11 +46,12 @@ int OffsetableBranch::getOffset()
 
 void OffsetableBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
+    ChildOfSegment::imp_clone(cloned_branch);
     std::shared_ptr<OffsetableBranch> cloned_offsetable_branch = std::dynamic_pointer_cast<OffsetableBranch>(cloned_branch);
     cloned_offsetable_branch->setOffset(getOffset());
 }
 
 std::shared_ptr<Branch> OffsetableBranch::create_clone()
 {
-    return std::shared_ptr<OffsetableBranch>(new OffsetableBranch(getCompiler(), getType(), getValue()));
+    return std::shared_ptr<OffsetableBranch>(new OffsetableBranch(getCompiler(), getSegmentBranch(), getType(), getValue()));
 }

@@ -26,7 +26,7 @@
 
 #include "OperandBranch.h"
 
-OperandBranch::OperandBranch(Compiler* compiler) : CustomBranch(compiler, "OPERAND", "")
+OperandBranch::OperandBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch) : ChildOfSegment(compiler, segment_branch, "OPERAND", "")
 {
     this->is_memory_access = false;
 }
@@ -130,5 +130,5 @@ void OperandBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 
 std::shared_ptr<Branch> OperandBranch::create_clone()
 {
-    return std::shared_ptr<Branch>(new OperandBranch(getCompiler()));
+    return std::shared_ptr<Branch>(new OperandBranch(getCompiler(), getSegmentBranch()));
 }

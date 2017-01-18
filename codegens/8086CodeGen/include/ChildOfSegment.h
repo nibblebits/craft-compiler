@@ -1,5 +1,5 @@
 /*
-    Craft Compiler v0.1.0 - The standard compiler for the Craft programming language.
+    Craft compiler v0.1.0 - The standard compiler for the Craft programming language.
     Copyright (C) 2016  Daniel McCarthy
 
     This program is free software: you can redistribute it and/or modify
@@ -16,32 +16,32 @@
  */
 
 /* 
- * File:   OffsetableBranch.h
+ * File:   ChildOfSegment.h
  * Author: Daniel McCarthy
  *
- * Created on 01 January 2017, 21:32
+ * Created on 18 January 2017, 01:34
  */
 
-#ifndef OFFSETABLEBRANCH_H
-#define OFFSETABLEBRANCH_H
+#ifndef CHILDOFSEGMENT_H
+#define CHILDOFSEGMENT_H
 
-#include "ChildOfSegment.h"
-class OffsetableBranch : public ChildOfSegment
+#include "CustomBranch.h"
+#include "SegmentBranch.h"
+class ChildOfSegment : public CustomBranch
 {
 public:
-    OffsetableBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch, std::string type, std::string value);
-    virtual ~OffsetableBranch();
-
-    void setOffset(int offset);
-    int getOffset();
-
+    ChildOfSegment(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch, std::string type, std::string value);
+    virtual ~ChildOfSegment();
+    
+    std::shared_ptr<SegmentBranch> getSegmentBranch();
+    
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
-    virtual std::shared_ptr<Branch> create_clone();
+    virtual std::shared_ptr<Branch> create_clone() = 0;
 
 
 private:
-    int offset;
+    std::shared_ptr<SegmentBranch> segment_branch;
 };
 
-#endif /* OFFSETABLEBRANCH_H */
+#endif /* CHILDOFSEGMENT_H */
 

@@ -25,11 +25,11 @@
 #ifndef GLOBALBRANCH_H
 #define GLOBALBRANCH_H
 
-#include "CustomBranch.h"
-class GlobalBranch : public CustomBranch
+#include "ChildOfSegment.h"
+class GlobalBranch : public ChildOfSegment
 {
 public:
-    GlobalBranch(Compiler* compiler);
+    GlobalBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch);
     virtual ~GlobalBranch();
 
     void setLabelNameBranch(std::shared_ptr<Branch> branch);

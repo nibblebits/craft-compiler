@@ -26,11 +26,10 @@
 #define LABELBRANCH_H
 
 #include "OffsetableBranch.h"
-
 class LabelBranch : public OffsetableBranch
 {
 public:
-    LabelBranch(Compiler* compiler);
+    LabelBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch);
     virtual ~LabelBranch();
 
     void setLabelNameBranch(std::shared_ptr<Branch> label_name_branch);

@@ -27,7 +27,7 @@
 #include "InstructionBranch.h"
 #include "OperandBranch.h"
 
-InstructionBranch::InstructionBranch(Compiler* compiler) : OffsetableBranch(compiler, "INSTRUCTION", "")
+InstructionBranch::InstructionBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch) : OffsetableBranch(compiler, segment_branch, "INSTRUCTION", "")
 {
 }
 
@@ -95,5 +95,5 @@ void InstructionBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 
 std::shared_ptr<Branch> InstructionBranch::create_clone()
 {
-    return std::shared_ptr<Branch>(new InstructionBranch(getCompiler()));
+    return std::shared_ptr<Branch>(new InstructionBranch(getCompiler(), getSegmentBranch()));
 }

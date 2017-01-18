@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/main.o \
 	${OBJECTDIR}/src/Assembler8086.o \
+	${OBJECTDIR}/src/ChildOfSegment.o \
 	${OBJECTDIR}/src/CodeGen8086.o \
 	${OBJECTDIR}/src/DataBranch.o \
 	${OBJECTDIR}/src/GlobalBranch.o \
@@ -80,6 +81,11 @@ ${OBJECTDIR}/src/Assembler8086.o: src/Assembler8086.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Assembler8086.o src/Assembler8086.cpp
+
+${OBJECTDIR}/src/ChildOfSegment.o: src/ChildOfSegment.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ChildOfSegment.o src/ChildOfSegment.cpp
 
 ${OBJECTDIR}/src/CodeGen8086.o: src/CodeGen8086.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
