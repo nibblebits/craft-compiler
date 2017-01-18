@@ -27,12 +27,17 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 #include "Stream.h"
 #include "def.h"
+
+class VirtualSegment;
 struct FIXUP
 {
     int offset;
     FIXUP_LENGTH length;
+    // The segment where the data for a fixup would be located.
+    std::shared_ptr<VirtualSegment> relating_segment;
 };
 class EXPORT VirtualSegment {
 public:
@@ -41,8 +46,9 @@ public:
     std::string getName();
     Stream* getStream();
     
-    void register_fixup(int offset, FIXUP_LENGTH length);
+    void register_fixup(std::shared_ptr<VirtualSegment> relating_segment, int offset, FIXUP_LENGTH length);
     std::vector<FIXUP> getFixups();
+    bool hasFixups();
     
 private:
     std::vector<FIXUP> fixups;

@@ -45,16 +45,22 @@ Stream* VirtualSegment::getStream()
     return &this->stream;
 }
 
-void VirtualSegment::register_fixup(int offset, FIXUP_LENGTH length)
+void VirtualSegment::register_fixup(std::shared_ptr<VirtualSegment> relating_segment, int offset, FIXUP_LENGTH length)
 {
     // Fixups are resolved during link time, we should register them right now
     struct FIXUP fixup;
     fixup.offset = offset;
     fixup.length = length;
+    fixup.relating_segment = relating_segment;
     this->fixups.push_back(fixup);
 }
 
 std::vector<FIXUP> VirtualSegment::getFixups()
 {
     return this->fixups;
+}
+
+bool VirtualSegment::hasFixups()
+{
+    return !this->fixups.empty();
 }
