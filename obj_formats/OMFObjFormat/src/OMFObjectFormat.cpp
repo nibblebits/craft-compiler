@@ -75,14 +75,41 @@ void OMFObjectFormat::finalize()
         attributes.P = SEG_ATTR_P_USE16;
         MagicOMFAddSEGDEF16(handle, segment->getName().c_str(), attributes, segment->getStream()->getSize());
     }
-    
+
     // Now we need to create the LEDATA records
     for (std::shared_ptr<VirtualSegment> segment : getSegments())
     {
         Stream* stream = segment->getStream();
         MagicOMFAddLEDATA16(handle, segment->getName().c_str(), 0, stream->getSize(), stream->getBuf());
+        // Do we have any fixups for this segment?
+        if (segment->hasFixups())
+        {
+            struct RECORD* record = MagicOMFNewFIXUP16Record(handle);
+            for (FIXUP fixup : segment->getFixups())
+            {
+                LOCATION_TYPE location_type;
+                if (fixup.length == FIXUP_16BIT)
+                {
+                  location_type = FIXUPP_LOCATION_16_BIT_OFFSET;
+                }
+                else if(fixup.length == FIXUP_8BIT)
+                {
+                   location_type = FIXUPP_LOCATION_LOW_ORDER_BYTE_8_BIT_DISPLACEMENT;
+                }
+                else
+                {
+                    throw Exception("void OMFObjectFormat::finalize(): invalid or unimplemented fix up length for the OMF object file");
+                }
+                MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(record,
+                                   fixup.relating_segment->getName().c_str(),
+                                   fixup.offset,
+                                   location_type);
+            }
+            
+            MagicOMFFinishFIXUP16(record);
+        }
     }
-    
+
     // Let us build the buffer
     MagicOMFGenerateBuffer(handle);
 
