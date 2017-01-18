@@ -55,9 +55,14 @@ void VDEFBranch::setValueExpBranch(std::shared_ptr<Branch> branch)
     this->registerBranch("value_exp_branch", branch);
 }
 
-void VDEFBranch::setPointer(bool is_pointer)
+void VDEFBranch::setPointer(bool is_pointer, int depth)
 {
+    if (is_pointer && depth <= 0)
+    {
+        throw Exception("void VDEFBranch::setPointer(bool is_pointer, int depth): specifying VDEFBranch as a pointer but pointer depth is zero or below.");
+    }
     this->is_pointer = is_pointer;
+    this->ptr_depth = depth;
 }
 
 void VDEFBranch::setVariableType(VARIABLE_TYPE var_type)
@@ -191,6 +196,11 @@ bool VDEFBranch::isPointer()
     return this->is_pointer;
 }
 
+int VDEFBranch::getPointerDepth()
+{
+    return this->ptr_depth;
+}
+
 bool VDEFBranch::isSigned()
 {
     std::shared_ptr<Branch> data_type_branch = getDataTypeBranch();
@@ -258,6 +268,7 @@ void VDEFBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
     std::shared_ptr<VDEFBranch> vdef_branch_clone = std::dynamic_pointer_cast<VDEFBranch>(cloned_branch);
     vdef_branch_clone->setDataTypeBranch(getDataTypeBranch()->clone());
     vdef_branch_clone->setVariableIdentifierBranch(getVariableIdentifierBranch()->clone());
+    vdef_branch_clone->setPointer(isPointer(), getPointerDepth());
     if (hasValueExpBranch())
     {
         vdef_branch_clone->setValueExpBranch(getValueExpBranch()->clone());

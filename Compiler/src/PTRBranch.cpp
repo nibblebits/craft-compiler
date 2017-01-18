@@ -44,6 +44,16 @@ std::shared_ptr<Branch> PTRBranch::getExpressionBranch()
     return CustomBranch::getRegisteredBranchByName("expression_branch");
 }
 
+void PTRBranch::setPointerDepth(int depth)
+{
+    this->ptr_depth = depth;
+}
+
+int PTRBranch::getPointerDepth()
+{
+    return this->ptr_depth;
+}
+
 void PTRBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<PTRBranch> ptr_branch_clone = std::dynamic_pointer_cast<PTRBranch>(cloned_branch);

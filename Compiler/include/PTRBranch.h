@@ -35,11 +35,14 @@ public:
     void setExpressionBranch(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getExpressionBranch();
 
+    void setPointerDepth(int depth);
+    int getPointerDepth();
+    
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
 
 private:
-
+    int ptr_depth;
 };
 
 #endif /* PTRBRANCH_H */

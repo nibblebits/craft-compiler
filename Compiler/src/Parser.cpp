@@ -509,12 +509,12 @@ void Parser::process_stmt()
             process_break();
             process_semicolon();
         }
-        else if(is_peek_value("continue"))
+        else if (is_peek_value("continue"))
         {
             // This is a "continue" statement so process it
             process_continue();
             process_semicolon();
-            
+
         }
         else
         {
@@ -584,8 +584,10 @@ void Parser::process_variable_declaration()
     {
         // Shift and pop the pointer operator
         shift_pop();
-        // Lets set this variable definition branch as a pointer branch
-        var_root->setPointer(true);
+        
+        // Lets find out how much pointer depth we have here
+        int depth = 1 + get_pointer_depth();
+        var_root->setPointer(true, depth);
     }
 
     // Process the variable access
@@ -628,7 +630,10 @@ void Parser::process_ptr()
         error_expecting("operator: *", this->branch_type);
     }
 
+    int depth = 1 + get_pointer_depth();
+
     std::shared_ptr<PTRBranch> ptr_branch = std::shared_ptr<PTRBranch>(new PTRBranch(compiler));
+    ptr_branch->setPointerDepth(depth);
 
     peek();
     if (is_peek_symbol("("))
@@ -1197,7 +1202,9 @@ void Parser::process_structure_declaration()
     {
         // Shift and pop the operator from the stack as we do not need it anymore
         shift_pop();
-        struct_declaration->setPointer(true);
+        // Lets find out how much depth this pointer is
+        int depth = 1 + get_pointer_depth();
+        struct_declaration->setPointer(true, depth);
     }
 
     // process the variable access
@@ -1509,7 +1516,7 @@ void Parser::process_continue()
     {
         error_expecting("continue", this->branch_value);
     }
-    
+
     std::shared_ptr<ContinueBranch> continue_branch = std::shared_ptr<ContinueBranch>(new ContinueBranch(getCompiler()));
     push_branch(continue_branch);
 }
@@ -1921,6 +1928,28 @@ std::shared_ptr<STRUCTBranch> Parser::getDeclaredStructure(std::string struct_na
     return NULL;
 }
 
+int Parser::get_pointer_depth()
+{
+    int depth = 0;
+    // Lets keep checking for more "*" operators as this may not be a 1D pointer
+    while (true)
+    {
+        peek();
+        if (is_peek_operator("*"))
+        {
+            // Shift and pop the "*" operator
+            shift_pop();
+            // Increase the depth
+            depth++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return depth;
+}
+
 void Parser::buildTree()
 {
     if (this->input.empty())
@@ -1946,7 +1975,6 @@ void Parser::buildTree()
 
 std::shared_ptr<Tree> Parser::getTree()
 {
-
     return this->tree;
 }
 

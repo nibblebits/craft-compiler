@@ -37,7 +37,7 @@ public:
     void setDataTypeBranch(std::shared_ptr<Branch> branch);
     void setVariableIdentifierBranch(std::shared_ptr<Branch> branch);
     void setValueExpBranch(std::shared_ptr<Branch> branch);
-    void setPointer(bool is_pointer);
+    void setPointer(bool is_pointer, int depth = 0);
     void setVariableType(VARIABLE_TYPE var_type);
 
     void setCustomDataTypeSize(int size);
@@ -45,13 +45,15 @@ public:
     std::shared_ptr<VarIdentifierBranch> getVariableIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
     std::shared_ptr<Branch> getNameBranch();
+
     VARIABLE_TYPE getVariableType();
 
     bool hasValueExpBranch();
-    int getPositionRelScope(POSITION_OPTIONS options=0);
-    int getPositionRelZero(POSITION_OPTIONS options=0);
+    int getPositionRelScope(POSITION_OPTIONS options = 0);
+    int getPositionRelZero(POSITION_OPTIONS options = 0);
 
     bool isPointer();
+    int getPointerDepth();
     bool isSigned();
     bool isPrimitive();
     bool hasCustomDataTypeSize();
@@ -66,6 +68,7 @@ private:
     int custom_data_type_size;
     VARIABLE_TYPE var_type;
     bool is_pointer;
+    int ptr_depth;
 };
 
 #endif /* VDEFBRANCH_H */

@@ -28,13 +28,12 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
 #include "Token.h"
 #include "LexerException.h"
 #include "CompilerEntity.h"
 #include "def.h"
-
 typedef bool (*is_func)();
-typedef bool (*callback_func)(char);
 
 class EXPORT Lexer : public CompilerEntity
 {
@@ -52,7 +51,7 @@ private:
     std::string tokenValue;
     CharPos position;
     std::string::iterator it;
-    void fillTokenWhile(callback_func callback);
+    void fillTokenWhile(std::function<bool(char c)> callback);
 
     static bool isOperator(char op);
     static bool isSymbol(char op);

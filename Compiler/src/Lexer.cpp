@@ -86,8 +86,13 @@ void Lexer::tokenize()
         }
         else if (isOperator(c))
         {
-            fillTokenWhile([](char c) -> bool
+            bool first_done = false;
+            fillTokenWhile([&](char c) -> bool
             {
+                // Required as pointers need multiple operator tokens not one as a whole
+                if (first_done && c == '*')
+                    return false;
+                first_done = true;
                 return isOperator(c);
             });
 
@@ -159,18 +164,18 @@ std::vector<std::shared_ptr<Token>> Lexer::getTokens()
     return this->tokens;
 }
 
-void Lexer::fillTokenWhile(callback_func callback)
+void Lexer::fillTokenWhile(std::function<bool(char c)> callback)
 {
-    char c = *it;
-    tokenValue = c;
+    char c;
+    tokenValue = "";
     do
     {
-        it++;
         c = *it;
         if (callback(c))
         {
             tokenValue += c;
             position.col_pos++;
+            it++;
         }
         else
         {
@@ -245,6 +250,6 @@ bool Lexer::isDataTypeKeyword(std::string value)
         if (c == value)
             return true;
     }
-    
+
     return false;
 }

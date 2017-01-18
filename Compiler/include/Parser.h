@@ -150,6 +150,7 @@ private:
     int get_order_of_operations_priority_for_operator(std::string op);
     ORDER_OF_OPERATIONS_PRIORITY get_order_of_operations_priority(std::string lop, std::string rop);
     std::shared_ptr<STRUCTBranch> getDeclaredStructure(std::string struct_name);
+    int get_pointer_depth();
     
     std::shared_ptr<Logger> logger;
     std::deque<std::shared_ptr<Token>> input;
