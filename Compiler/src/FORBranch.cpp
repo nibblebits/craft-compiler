@@ -80,18 +80,12 @@ int FORBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::function<bool(s
 {
     int size = 0;
     std::shared_ptr<Branch> init_branch = getInitBranch();
-    // Our first child is the init_branch which we are processing.
-    if (elem_proc_start != NULL)
+    if (!invoke_scope_size_proc_if_possible(elem_proc_start, init_branch, should_stop))
     {
-        if (!elem_proc_start(init_branch))
-        {
-            if (should_stop != NULL)
-            {
-                *should_stop = true;
-            }
-            return size;
-        }
+        return 0;
     }
+
+
     if (init_branch->getType() == "V_DEF")
     {
         std::shared_ptr<VDEFBranch> vdef_init_branch = std::dynamic_pointer_cast<VDEFBranch>(init_branch);
@@ -99,24 +93,20 @@ int FORBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::function<bool(s
         size = getCompiler()->getSizeOfVarDef(vdef_init_branch);
     }
 
-    // Our first child is the init_branch which we are processing.
-    if (elem_proc_end != NULL)
-    {
-        if (!elem_proc_end(init_branch))
-        {
-            if (should_stop != NULL)
-            {
-                *should_stop = true;
-            }
 
-            return size;
-        }
+    // Invoke the end for the init branch
+    if (!invoke_scope_size_proc_if_possible(elem_proc_end, init_branch, should_stop))
+    {
+        return size;
     }
 
+    // Do we include subscopes?
+    if (options & GET_SCOPE_SIZE_INCLUDE_SUBSCOPES)
+    {
 
-    std::shared_ptr<BODYBranch> body_branch = getBodyBranch();
-    size += body_branch->getScopeSize(options, elem_proc_start, elem_proc_end, should_stop);
-
+        std::shared_ptr<BODYBranch> body_branch = getBodyBranch();
+        size += body_branch->getScopeSize(options, elem_proc_start, elem_proc_end, should_stop);
+    }
     return size;
 }
 

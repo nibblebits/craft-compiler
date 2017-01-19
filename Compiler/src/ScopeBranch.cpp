@@ -36,7 +36,7 @@ ScopeBranch::~ScopeBranch()
 {
 }
 
-bool ScopeBranch::invoke_scope_size_proc_start_if_possible(std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc, std::shared_ptr<Branch> child, bool* should_stop)
+bool ScopeBranch::invoke_scope_size_proc_if_possible(std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc, std::shared_ptr<Branch> child, bool* should_stop)
 {
     if (elem_proc != NULL)
     {

@@ -41,7 +41,7 @@ int StandardScopeBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::funct
     int size = 0;
     for (std::shared_ptr<Branch> child : this->getChildren())
     {
-        if (!invoke_scope_size_proc_start_if_possible(elem_proc_start, child, should_stop))
+        if (!invoke_scope_size_proc_if_possible(elem_proc_start, child, should_stop))
         {
             stop = true;
             break;
@@ -69,7 +69,7 @@ int StandardScopeBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::funct
             }
         }
 
-        if (!invoke_scope_size_proc_start_if_possible(elem_proc_end, child, should_stop))
+        if (!invoke_scope_size_proc_if_possible(elem_proc_end, child, should_stop))
         {
             stop = true;
             break;
@@ -85,11 +85,11 @@ int StandardScopeBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::funct
             if (hasLocalScope())
             {
                 // Lets check that we are aloud to invoke the parent scope
-                if (invoke_scope_size_proc_start_if_possible(elem_proc_start, getLocalScope(), should_stop))
+                if (invoke_scope_size_proc_if_possible(elem_proc_start, getLocalScope(), should_stop))
                 {
                     size += getLocalScope()->getScopeSize(options, elem_proc_start, elem_proc_end, should_stop);
                     // Lets invoke the end proc
-                    invoke_scope_size_proc_start_if_possible(elem_proc_end, getLocalScope(), should_stop);
+                    invoke_scope_size_proc_if_possible(elem_proc_end, getLocalScope(), should_stop);
                 }
                 
             }
