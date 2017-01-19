@@ -1156,9 +1156,9 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     this->cur_func_scope_size = body_branch->getScopeSize();
 
     do_asm("push bp");
+    do_asm("mov bp, sp");
     // Generate some ASM to reserve space on the stack for this scope
     do_asm("sub sp, " + std::to_string(this->cur_func_scope_size));
-    do_asm("mov bp, sp");
 
     // Handle the arguments
     handle_func_args(arguments_branch);
