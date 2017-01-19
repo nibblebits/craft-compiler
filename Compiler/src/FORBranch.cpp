@@ -107,6 +107,23 @@ int FORBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::function<bool(s
         std::shared_ptr<BODYBranch> body_branch = getBodyBranch();
         size += body_branch->getScopeSize(options, elem_proc_start, elem_proc_end, should_stop);
     }
+
+    // Shall we include the parent scopes size?
+    if (options & GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES)
+    {
+        if (hasLocalScope())
+        {
+            // Lets check that we are aloud to invoke the parent scope
+            if (invoke_scope_size_proc_if_possible(elem_proc_start, getLocalScope(), should_stop))
+            {
+                size += getLocalScope()->getScopeSize(options, elem_proc_start, elem_proc_end, should_stop);
+                // Lets invoke the end proc
+                invoke_scope_size_proc_if_possible(elem_proc_end, getLocalScope(), should_stop);
+            }
+
+        }
+    }
+
     return size;
 }
 
