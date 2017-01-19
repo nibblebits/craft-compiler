@@ -9,10 +9,11 @@
         <group>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/PTRBranch.h</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/PTRBranch.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/VarIdentifierBranch.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/VDEFBranch.h</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/VarIdentifierBranch.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/TreeImprover.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/VDEFBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/Parser.h</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/Lexer.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/Parser.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/Lexer.h</file>

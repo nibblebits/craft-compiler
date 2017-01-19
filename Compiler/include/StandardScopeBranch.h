@@ -33,7 +33,7 @@ public:
     StandardScopeBranch(Compiler* compiler, std::string name, std::string value);
     virtual ~StandardScopeBranch();
 
-    int getScopeSize(GET_SCOPE_SIZE_OPTIONS options=0, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start = NULL, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end = NULL, bool *should_stop = NULL);
+    int getScopeSize(GET_SCOPE_SIZE_OPTIONS options=0, std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc_start = NULL, std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc_end = NULL, bool *should_stop = NULL);
     std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope = true, bool no_follow = false);
     std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(std::string var_name, bool lookup_scope = true);
 

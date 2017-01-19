@@ -35,12 +35,14 @@ class EXPORT ScopeBranch : public CustomBranch
 public:
     ScopeBranch(Compiler* compiler, std::string name, std::string value);
     virtual ~ScopeBranch();
-    virtual int getScopeSize(GET_SCOPE_SIZE_OPTIONS options=0, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start = NULL, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end = NULL, bool *should_stop = NULL) = 0;
+    virtual int getScopeSize(GET_SCOPE_SIZE_OPTIONS options = 0, std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc_start = NULL, std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc_end = NULL, bool *should_stop = NULL) = 0;
     virtual std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope = true, bool no_follow = false) = 0;
     virtual std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(std::string var_name, bool lookup_scope = true) = 0;
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch) = 0;
     virtual std::shared_ptr<Branch> create_clone() = 0;
+protected:
+    bool invoke_scope_size_proc_start_if_possible(std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc, std::shared_ptr<Branch> child, bool* should_stop);
 private:
 
 };

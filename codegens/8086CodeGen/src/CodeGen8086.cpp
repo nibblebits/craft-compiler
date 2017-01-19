@@ -176,16 +176,27 @@ std::string CodeGen8086::make_string(std::shared_ptr<Branch> string_branch)
     return label_name;
 }
 
+// The only supported inline assembly arguments are numbers and variables, you cannot use pointers either.
+
 void CodeGen8086::make_inline_asm(std::shared_ptr<ASMBranch> asm_branch)
 {
     std::string asm_str = asm_branch->getInstructionStartStringBranch()->getValue();
     for (std::shared_ptr<Branch> child_branch : asm_branch->getInstructionArgumentsBranch()->getChildren())
     {
         std::shared_ptr<ASMArgBranch> arg_child_branch = std::dynamic_pointer_cast<ASMArgBranch>(child_branch);
-        std::shared_ptr<VarIdentifierBranch> arg_child_value_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(arg_child_branch->getArgumentValueBranch());
-        // Assumed to be variable, will crash in certain cases.
-        std::string asm_addr = getASMAddressForVariableFormatted(arg_child_value_branch);
-        asm_str += asm_addr + arg_child_branch->getNextStringBranch()->getValue();
+        std::shared_ptr<Branch> argument_val_branch = arg_child_branch->getArgumentValueBranch();
+        std::string op_str;
+        if (argument_val_branch->getType() == "VAR_IDENTIFIER")
+        {
+            std::shared_ptr<VarIdentifierBranch> arg_child_value_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(arg_child_branch->getArgumentValueBranch());
+            op_str = getASMAddressForVariableFormatted(arg_child_value_branch);
+        }
+        else if (argument_val_branch->getType() == "number")
+        {
+            op_str = argument_val_branch->getValue();
+        }
+
+        asm_str += op_str + arg_child_branch->getNextStringBranch()->getValue();
     }
 
     do_asm(asm_str);
@@ -1054,11 +1065,11 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
     do_asm("mov bx, ax");
 
     int depth = ptr_branch->getPointerDepth();
-    for (int i = 0; i < depth-1; i++)
+    for (int i = 0; i < depth - 1; i++)
     {
         do_asm("mov bx, [bx]");
     }
-    
+
     /* If the pointer has structure access or array access then we must calculate it as if no variables exist on the scope 
      * then append the offset to the BX register. */
 
@@ -1277,7 +1288,18 @@ void CodeGen8086::handle_func_return(std::shared_ptr<Branch> branch)
     }
 
     // Restore the stack pointer
-    do_asm("add sp, " + std::to_string(this->current_scope->getScopeSize(GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES)));
+    std::shared_ptr<Branch> branch_to_stop = cur_func->getArgumentsBranch();
+    do_asm("add sp, " + std::to_string(this->current_scope->getScopeSize(GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES, 
+    [&](std::shared_ptr<Branch> branch) -> bool
+    {
+        // We should stop at the function arguments so it doesn't include any more parent scopes when it reaches this point
+        if (branch == branch_to_stop)
+        {
+            return false;
+        }
+        
+        return true;
+    })));
 
     // Pop from the stack back to the BP(Base Pointer) now we are leaving this function
     do_asm("pop bp");

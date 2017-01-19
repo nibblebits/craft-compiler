@@ -76,14 +76,14 @@ std::shared_ptr<BODYBranch> FORBranch::getBodyBranch()
     return std::dynamic_pointer_cast<BODYBranch>(CustomBranch::getRegisteredBranchByName("body_branch"));
 }
 
-int FORBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_start, std::function<bool(std::shared_ptr<Branch> child_branch) > child_proc_end, bool *should_stop)
+int FORBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc_start, std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc_end, bool *should_stop)
 {
     int size = 0;
     std::shared_ptr<Branch> init_branch = getInitBranch();
     // Our first child is the init_branch which we are processing.
-    if (child_proc_start != NULL)
+    if (elem_proc_start != NULL)
     {
-        if (!child_proc_start(init_branch))
+        if (!elem_proc_start(init_branch))
         {
             if (should_stop != NULL)
             {
@@ -100,9 +100,9 @@ int FORBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::function<bool(s
     }
 
     // Our first child is the init_branch which we are processing.
-    if (child_proc_end != NULL)
+    if (elem_proc_end != NULL)
     {
-        if (!child_proc_end(init_branch))
+        if (!elem_proc_end(init_branch))
         {
             if (should_stop != NULL)
             {
@@ -115,7 +115,7 @@ int FORBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::function<bool(s
 
 
     std::shared_ptr<BODYBranch> body_branch = getBodyBranch();
-    size += body_branch->getScopeSize(options, child_proc_start, child_proc_end, should_stop);
+    size += body_branch->getScopeSize(options, elem_proc_start, elem_proc_end, should_stop);
 
     return size;
 }
