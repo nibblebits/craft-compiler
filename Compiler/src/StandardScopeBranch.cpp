@@ -102,10 +102,6 @@ std::shared_ptr<VDEFBranch> StandardScopeBranch::getVariableDefinitionBranch(std
 {
     std::shared_ptr<VDEFBranch> found_branch = NULL;
     std::shared_ptr<Branch> var_iden_name_branch = var_iden->getVariableNameBranch();
-    if (var_iden_name_branch->getValue() != "i")
-    {
-        std::cout << "not I" << std::endl;
-    }
     // Check local scope
     for (std::shared_ptr<Branch> child : this->getChildren())
     {

@@ -104,13 +104,18 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     if (vdef_branch == NULL)
     {
         throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > unpredictable_func, POSITION_OPTIONS options): "
-                "could not find appropriate \"VDEFBranch\" for variable identifier with name: \"" + getVariableNameBranch()->getValue() + "\"");
+                        "could not find appropriate \"VDEFBranch\" for variable identifier with name: \"" + getVariableNameBranch()->getValue() + "\"");
     }
     int pos = 0;
     if (hasRootArrayIndexBranch())
     {
         bool had_static_array = false;
-        int size = vdef_branch->getDataTypeSize(options & POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
+        bool no_pointer = false;
+        if (options & POSITION_OPTION_TREAT_AS_IF_NOT_POINTER)
+        {
+            no_pointer = true;
+        }
+        int size = vdef_branch->getDataTypeSize(no_pointer);
         int offset = size;
         getRootArrayIndexBranch()->iterate_array_indexes([&](std::shared_ptr<ArrayIndexBranch> array_index_branch) -> bool
         {

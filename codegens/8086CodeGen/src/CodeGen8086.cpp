@@ -1089,7 +1089,6 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
                 handle_array_index(array_index_branch, elem_size);
                 do_asm("add bx, di");
             }, POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
-
             do_asm("add bx, " + std::to_string(pos));
         }
     }
@@ -1181,8 +1180,11 @@ void CodeGen8086::handle_func_args(std::shared_ptr<Branch> arguments)
     for (std::shared_ptr<Branch> arg : arguments->getChildren())
     {
         std::shared_ptr<VDEFBranch> arg_vdef = std::dynamic_pointer_cast<VDEFBranch>(arg);
-        // All function arguments are 2 bytes in size.
-        arg_vdef->setCustomDataTypeSize(2);
+        if (!arg_vdef->isPointer())
+        {
+            // All function arguments are 2 bytes in size.
+            arg_vdef->setCustomDataTypeSize(2);
+        }
         this->func_arguments.push_back(arg_vdef);
     }
 }
@@ -1295,17 +1297,17 @@ void CodeGen8086::handle_func_return(std::shared_ptr<Branch> branch)
 
     // Restore the stack pointer
     std::shared_ptr<Branch> branch_to_stop = cur_func->getArgumentsBranch();
-    do_asm("add sp, " + std::to_string(this->current_scope->getScopeSize(GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES, 
-    [&](std::shared_ptr<Branch> branch) -> bool
-    {
-        // We should stop at the function arguments so it doesn't include any more parent scopes when it reaches this point
-        if (branch == branch_to_stop)
-        {
-            return false;
-        }
-        
-        return true;
-    })));
+    do_asm("add sp, " + std::to_string(this->current_scope->getScopeSize(GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES,
+                                                                         [&](std::shared_ptr<Branch> branch) -> bool
+                                                                         {
+                                                                             // We should stop at the function arguments so it doesn't include any more parent scopes when it reaches this point
+                                                                             if (branch == branch_to_stop)
+                                                                             {
+                                                                                 return false;
+                                                                             }
+
+                                                                             return true;
+                                                                         })));
 
     // Pop from the stack back to the BP(Base Pointer) now we are leaving this function
     do_asm("pop bp");
@@ -1845,6 +1847,9 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Va
         handle_array_index(array_index_branch, elem_size);
         address.apply_reg = "di";
     };
+    
+    POSITION_OPTIONS options = 0;
+    
     switch (var_type)
     {
     case VARIABLE_TYPE_GLOBAL_VARIABLE:
@@ -1855,8 +1860,15 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Va
     case VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE:
         address.segment = "bp";
         address.op = "+";
+        options = 0;
+        if (this->is_handling_pointer)
+        {
+            // Root only allows us to prevent *ptr[1] giving address of ptr + 1
+            options |= POSITION_OPTION_STOP_AT_ROOT_VAR;
+        }
         // + 4 due to return address and new base pointer
-        address.offset = var_branch->getPositionRelZero(unpredictable_func) + 4;
+        address.offset = var_branch->getPositionRelZero(unpredictable_func, options) + 4;
+
         break;
     case VARIABLE_TYPE_FUNCTION_VARIABLE:
         if (!top_vdef_branch->isPointer() &&
@@ -1871,7 +1883,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Va
         {
             address.segment = "bp";
             address.op = "-";
-            POSITION_OPTIONS options = POSITION_OPTION_START_WITH_VARSIZE;
+            options = POSITION_OPTION_START_WITH_VARSIZE;
             if (this->is_handling_pointer)
             {
                 // Root only allows us to prevent *ptr[1] giving address of ptr + 1

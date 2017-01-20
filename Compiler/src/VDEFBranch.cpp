@@ -72,6 +72,11 @@ void VDEFBranch::setVariableType(VARIABLE_TYPE var_type)
 
 void VDEFBranch::setCustomDataTypeSize(int size)
 {
+    if (this->isPointer())
+    {
+        throw Exception("void VDEFBranch::setCustomDataTypeSize(int size): it is unsafe to assign a custom data type size for a pointer");
+    }
+    
     this->custom_data_type_size = size;
 }
 
