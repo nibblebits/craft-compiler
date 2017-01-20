@@ -1027,6 +1027,12 @@ void CodeGen8086::calculate_scope_size(std::shared_ptr<ScopeBranch> scope_branch
 {
     this->scope_size = scope_branch->getScopeSize();
 
+    if (scope_branch->getType() == "FOR")
+    {
+        // This is a FOR branch so we also want to include its BODY's scope size
+        std::shared_ptr<FORBranch> for_branch = std::dynamic_pointer_cast<FORBranch>(scope_branch);
+        this->scope_size += for_branch->getBodyBranch()->getScopeSize();
+    }
     // Generate some ASM to reserve space on the stack for this scope
     do_asm("sub sp, " + std::to_string(this->scope_size));
 

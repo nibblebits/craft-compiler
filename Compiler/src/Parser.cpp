@@ -584,7 +584,7 @@ void Parser::process_variable_declaration()
     {
         // Shift and pop the pointer operator
         shift_pop();
-        
+
         // Lets find out how much pointer depth we have here
         int depth = 1 + get_pointer_depth();
         var_root->setPointer(true, depth);
@@ -1384,20 +1384,20 @@ void Parser::process_for_stmt()
     }
 
     // Process the "for" loop body
-    process_body(NULL, false);
+    process_body();
+
+    // Finish the scope for the "for_stmt"
+    finish_local_scope();
+    
     // Pop the resulting body from the stack
     pop_branch();
 
     body = std::dynamic_pointer_cast<BODYBranch>(this->branch);
-
     // Put it all together
     for_stmt->setInitBranch(init_var);
     for_stmt->setCondBranch(cond_exp);
     for_stmt->setLoopBranch(loop_stmt);
     for_stmt->setBodyBranch(body);
-
-    // Finish the scope for the "for_stmt"
-    finish_local_scope();
 
     // Push the for statement to the stack
     push_branch(for_stmt);

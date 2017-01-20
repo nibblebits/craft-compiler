@@ -162,6 +162,7 @@ int VDEFBranch::getPositionRelZero(POSITION_OPTIONS options)
         before_proc = kill_proc;
     }
 
+
     // Get the size of all variables in this variables scope up to this variable.
     int pos = local_scope->getScopeSize(0, before_proc, after_proc);
 
@@ -172,8 +173,11 @@ int VDEFBranch::getPositionRelZero(POSITION_OPTIONS options)
         target_branch = scope_branch;
         /* Is the target branch a BODY branch? 
          * if so then we need to step up once more as this is the target we need to reach when
-         * we want to stop counting */
-        if (target_branch->getType() == "BODY")
+         * we want to stop counting.
+         * 
+         * Also if the BODY's parent is a FOR branch it is important to set the target branch to this. This is a bit of a hack hopefully a better solution comes up.*/
+        if (target_branch->getType() == "BODY" 
+                && target_branch->getParent()->getType() != "FOR")
         {
             target_branch = target_branch->getParent();
         }
@@ -184,7 +188,9 @@ int VDEFBranch::getPositionRelZero(POSITION_OPTIONS options)
             if (options & POSITION_OPTION_START_WITH_VARSIZE)
                 before_proc = kill_proc;
         }
-        scope_branch = target_branch->getLocalScope();
+
+         scope_branch = target_branch->getLocalScope();
+
         pos += scope_branch->getScopeSize(0, before_proc, after_proc);
     }
     return pos;
