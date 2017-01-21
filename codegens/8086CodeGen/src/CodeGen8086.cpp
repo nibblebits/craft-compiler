@@ -44,6 +44,8 @@ CodeGen8086::CodeGen8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat
     this->breakable_label = "";
     this->continue_label = "";
 
+    this->breakable_branch_to_stop_reset = NULL;
+    this->continue_branch_to_stop_reset = NULL;
 }
 
 CodeGen8086::~CodeGen8086()
@@ -84,7 +86,7 @@ void CodeGen8086::setup_comparing()
     is_cmp_expression = true;
 }
 
-void CodeGen8086::new_breakable_label()
+void CodeGen8086::new_breakable_label(std::shared_ptr<Branch> branch_to_stop_reset)
 {
     // Save what is currently there if any
     if (this->breakable_label != "")
@@ -92,8 +94,14 @@ void CodeGen8086::new_breakable_label()
         this->breakable_label_stack.push_back(this->breakable_label);
     }
 
+    if (this->breakable_branch_to_stop_reset != NULL)
+    {
+        this->breakable_branch_to_stop_reset_stack.push_back(this->breakable_branch_to_stop_reset);
+    }
+
     // Ok safe to overwrite
     this->breakable_label = build_unique_label();
+    this->breakable_branch_to_stop_reset = branch_to_stop_reset;
 }
 
 void CodeGen8086::end_breakable_label()
@@ -108,9 +116,19 @@ void CodeGen8086::end_breakable_label()
     {
         this->breakable_label = "";
     }
+
+    if (!this->breakable_branch_to_stop_reset_stack.empty())
+    {
+        this->breakable_branch_to_stop_reset = this->breakable_branch_to_stop_reset_stack.back();
+        this->breakable_branch_to_stop_reset_stack.pop_back();
+    }
+    else
+    {
+        this->breakable_branch_to_stop_reset = NULL;
+    }
 }
 
-void CodeGen8086::new_continue_label(std::string label_name)
+void CodeGen8086::new_continue_label(std::string label_name, std::shared_ptr<Branch> branch_to_stop_reset)
 {
     // Save what is currently there if any
     if (this->continue_label != "")
@@ -118,8 +136,14 @@ void CodeGen8086::new_continue_label(std::string label_name)
         this->continue_label_stack.push_back(this->continue_label);
     }
 
+    if (this->continue_branch_to_stop_reset != NULL)
+    {
+        this->continue_branch_to_stop_reset_stack.push_back(this->continue_branch_to_stop_reset);
+    }
+    
     // Ok safe to overwrite
     this->continue_label = label_name;
+    this->continue_branch_to_stop_reset = branch_to_stop_reset;
 }
 
 void CodeGen8086::end_continue_label()
@@ -133,6 +157,16 @@ void CodeGen8086::end_continue_label()
     else
     {
         this->continue_label = "";
+    }
+    
+    if (!this->continue_branch_to_stop_reset_stack.empty())
+    {
+        this->continue_branch_to_stop_reset = this->continue_branch_to_stop_reset_stack.back();
+        this->continue_branch_to_stop_reset_stack.pop_back();
+    }
+    else
+    {
+        this->continue_branch_to_stop_reset = NULL;
     }
 }
 
@@ -1428,6 +1462,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
 
 void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
 {
+    do_asm("; FOR STATEMENT");
     std::shared_ptr<Branch> init_branch = branch->getInitBranch();
     std::shared_ptr<Branch> cond_branch = branch->getCondBranch();
     std::shared_ptr<Branch> loop_branch = branch->getLoopBranch();
@@ -1440,10 +1475,10 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     std::string loop_part_label = build_unique_label();
 
     // Setup the new breakable label so that break statements can break out of this for loop.
-    new_breakable_label();
+    new_breakable_label(branch);
 
     // Set the new continue label to be the loop label, so that if the programmer uses continue it will jump to the loop label.
-    new_continue_label(loop_part_label);
+    new_continue_label(loop_part_label, body_branch);
 
     // Calculate the scope size for the "for" loop
     calculate_scope_size(std::dynamic_pointer_cast<ScopeBranch>(branch));
@@ -1500,14 +1535,15 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
     std::shared_ptr<Branch> exp_branch = branch->getExpressionBranch();
     std::shared_ptr<BODYBranch> body_branch = branch->getBodyBranch();
 
-    // We need to create a new breakable label as you can break from "WHILE" statements
-    new_breakable_label();
     std::string exp_label = build_unique_label();
     std::string true_label = build_unique_label();
     std::string false_label = build_unique_label();
 
+    // We need to create a new breakable label as you can break from "WHILE" statements
+    new_breakable_label(body_branch);
+
     // We need to setup expression labels for the continue label.
-    new_continue_label(exp_label);
+    new_continue_label(exp_label, body_branch);
 
     make_exact_label(exp_label);
 
@@ -1549,12 +1585,35 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
 void CodeGen8086::handle_break(std::shared_ptr<BreakBranch> branch)
 {
     // Looks like we are breaking out of this
+    std::shared_ptr<Branch> branch_to_stop = this->breakable_branch_to_stop_reset;
+    do_asm("add sp, " + std::to_string(branch->getLocalScope()->getScopeSize(GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES, NULL,
+                                                                             [&](std::shared_ptr<Branch> branch) -> bool
+                                                                             {
+                                                                                 // We should stop at the function arguments so it doesn't include any more parent scopes when it reaches this point
+                                                                                 if (branch == branch_to_stop)
+                                                                                 {
+                                                                                     return false;
+                                                                                 }
+
+                                                                                 return true;
+                                                                             })));
     do_asm("jmp " + this->breakable_label);
 }
 
 void CodeGen8086::handle_continue(std::shared_ptr<ContinueBranch> branch)
 {
-    // We need to continue
+    std::shared_ptr<Branch> branch_to_stop = this->continue_branch_to_stop_reset;
+    do_asm("add sp, " + std::to_string(branch->getLocalScope()->getScopeSize(GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES, NULL,
+                                                                             [&](std::shared_ptr<Branch> branch) -> bool
+                                                                             {
+                                                                                 // We should stop at the function arguments so it doesn't include any more parent scopes when it reaches this point
+                                                                                 if (branch == branch_to_stop)
+                                                                                 {
+                                                                                     return false;
+                                                                                 }
+
+                                                                                 return true;
+                                                                             })));
     do_asm("jmp " + this->continue_label);
 }
 
@@ -1847,9 +1906,9 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Va
         handle_array_index(array_index_branch, elem_size);
         address.apply_reg = "di";
     };
-    
+
     POSITION_OPTIONS options = 0;
-    
+
     switch (var_type)
     {
     case VARIABLE_TYPE_GLOBAL_VARIABLE:

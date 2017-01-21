@@ -68,6 +68,7 @@ struct VARIABLE_ADDRESS
 
 class FuncBranch;
 class ScopeBranch;
+
 class CodeGen8086 : public CodeGenerator
 {
 public:
@@ -81,15 +82,15 @@ public:
     inline std::string make_unique_label(std::string segment = "code");
     inline std::string build_unique_label();
     void setup_comparing();
-    void new_breakable_label();
+    void new_breakable_label(std::shared_ptr<Branch> branch_to_stop_reset);
     void end_breakable_label();
-    
-    void new_continue_label(std::string label_name);
+
+    void new_continue_label(std::string label_name, std::shared_ptr<Branch> branch_to_stop_reset);
     void end_continue_label();
-    
+
     void new_scope(std::shared_ptr<StandardScopeBranch> scope_branch);
     void end_scope();
-    
+
     std::string make_string(std::shared_ptr<Branch> string_branch);
     void make_inline_asm(std::shared_ptr<ASMBranch> asm_branch);
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
@@ -185,9 +186,16 @@ private:
     std::string cmp_exp_last_logic_operator;
     std::string breakable_label;
     std::string continue_label;
-    
+
     std::deque<std::string> breakable_label_stack;
     std::deque<std::string> continue_label_stack;
+
+    // Basically the branch where the count for the stack pointer to restore should stop
+    std::shared_ptr<Branch> breakable_branch_to_stop_reset;
+    std::shared_ptr<Branch> continue_branch_to_stop_reset;
+
+    std::deque<std::shared_ptr<Branch>> breakable_branch_to_stop_reset_stack;
+    std::deque<std::shared_ptr<Branch>> continue_branch_to_stop_reset_stack;
     
     bool is_cmp_expression;
     bool do_signed;
@@ -207,10 +215,10 @@ private:
     // Holds the current function being generated
     std::shared_ptr<FuncBranch> cur_func;
     int cur_func_scope_size;
-    
+
     std::shared_ptr<StandardScopeBranch> current_scope;
     std::deque<std::shared_ptr<StandardScopeBranch>> current_scopes;
-    
+
     int current_label_index;
     int scope_size;
 

@@ -72,6 +72,10 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
     {
         improve_if(std::dynamic_pointer_cast<IFBranch>(branch));
     }
+    else if(branch->getType() == "WHILE")
+    {
+        improve_while(std::dynamic_pointer_cast<WhileBranch>(branch));
+    }
     else if (branch->getType() == "FOR")
     {
         improve_for(std::dynamic_pointer_cast<FORBranch>(branch));
@@ -293,6 +297,9 @@ void TreeImprover::improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_ide
 
 void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch)
 {
+    // Improve the expression of the if statement
+    improve_branch(if_branch->getExpressionBranch());
+    
     // Improve the body of the if statement
     improve_body(if_branch->getBodyBranch());
 
@@ -309,6 +316,15 @@ void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch)
     }
 }
 
+void TreeImprover::improve_while(std::shared_ptr<WhileBranch> while_branch)
+{
+    // improve the expression of the while loop
+    improve_branch(while_branch->getExpressionBranch());
+    
+    // Improve the body of the while loop
+    improve_body(while_branch->getBodyBranch());
+    
+}
 void TreeImprover::improve_for(std::shared_ptr<FORBranch> for_branch)
 {
     improve_branch(for_branch->getInitBranch());

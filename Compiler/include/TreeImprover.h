@@ -35,6 +35,7 @@ class EBranch;
 class VarIdentifierBranch;
 class BODYBranch;
 class IFBranch;
+class WhileBranch;
 class FORBranch;
 class PTRBranch;
 
@@ -55,6 +56,7 @@ private:
     void improve_body(std::shared_ptr<BODYBranch> body_branch);
     void improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     void improve_if(std::shared_ptr<IFBranch> if_branch);
+    void improve_while(std::shared_ptr<WhileBranch> while_branch);
     void improve_for(std::shared_ptr<FORBranch> for_branch);
     void improve_ptr(std::shared_ptr<PTRBranch> ptr_branch);
 
