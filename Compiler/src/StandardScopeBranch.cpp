@@ -37,8 +37,15 @@ StandardScopeBranch::~StandardScopeBranch()
 
 int StandardScopeBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc_start, std::function<bool(std::shared_ptr<Branch> child_branch) > elem_proc_end, bool *should_stop)
 {
+    // Should we stop here at this current scope?
+    if (!invoke_scope_size_proc_if_possible(elem_proc_start, this->getptr(), should_stop))
+    {
+        return 0;
+    }
+
     bool stop = false;
     int size = 0;
+
     for (std::shared_ptr<Branch> child : this->getChildren())
     {
         if (!invoke_scope_size_proc_if_possible(elem_proc_start, child, should_stop))
@@ -77,24 +84,24 @@ int StandardScopeBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::funct
     }
 
 
+    // Lets invoke the end proc for this scope
+    if(!invoke_scope_size_proc_if_possible(elem_proc_end, this->getptr(), should_stop))
+    {
+        return size;
+    }
+
     if (!stop)
     {
-
         // Shall we include the parent scopes size?
         if (options & GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES)
         {
-            // Should we stop here at this current scope? Or should we look higher into our parent scope
-            if (invoke_scope_size_proc_if_possible(elem_proc_start, this->getptr(), should_stop))
+            if (hasLocalScope())
             {
-                if (hasLocalScope())
-                {
-                        size += getLocalScope()->getScopeSize(options, elem_proc_start, elem_proc_end, should_stop);
-                        // Lets invoke the end proc
-                        invoke_scope_size_proc_if_possible(elem_proc_end, getLocalScope(), should_stop);
-                }
+                size += getLocalScope()->getScopeSize(options, elem_proc_start, elem_proc_end, should_stop);
             }
         }
     }
+
     return size;
 }
 
