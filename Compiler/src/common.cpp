@@ -68,24 +68,34 @@ void EXPORT debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs)
 }
 #endif
 
+std::ifstream::pos_type EXPORT GetFileSize(std::string filename)
+{
+    std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+    std::ifstream::pos_type pos = in.tellg();
+    in.close();
+    return pos;
+}
+
 std::string EXPORT LoadFile(std::string filename)
 {
     // Load the file
     std::ifstream ifs;
     std::string source = "";
-    ifs.open(filename, ios::binary);
+    std::string line = "";
+    
+    ifs.open(filename, ios::in | ios::binary);
     if (!ifs.is_open())
     {
         throw Exception("Failed to open: " + filename);
     }
 
-    while (ifs.good())
+    while (std::getline(ifs, line))
     {
-        source += ifs.get();
+        source += line;
     }
-    ifs.close();
     
-
+    ifs.close();
+   
     return source;
 }
 
