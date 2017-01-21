@@ -79,19 +79,19 @@ int StandardScopeBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::funct
 
     if (!stop)
     {
+
         // Shall we include the parent scopes size?
         if (options & GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES)
         {
-            if (hasLocalScope())
+            // Should we stop here at this current scope? Or should we look higher into our parent scope
+            if (invoke_scope_size_proc_if_possible(elem_proc_start, this->getptr(), should_stop))
             {
-                // Lets check that we are aloud to invoke the parent scope
-                if (invoke_scope_size_proc_if_possible(elem_proc_start, getLocalScope(), should_stop))
+                if (hasLocalScope())
                 {
-                    size += getLocalScope()->getScopeSize(options, elem_proc_start, elem_proc_end, should_stop);
-                    // Lets invoke the end proc
-                    invoke_scope_size_proc_if_possible(elem_proc_end, getLocalScope(), should_stop);
+                        size += getLocalScope()->getScopeSize(options, elem_proc_start, elem_proc_end, should_stop);
+                        // Lets invoke the end proc
+                        invoke_scope_size_proc_if_possible(elem_proc_end, getLocalScope(), should_stop);
                 }
-                
             }
         }
     }
@@ -139,6 +139,7 @@ std::shared_ptr<VDEFBranch> StandardScopeBranch::getVariableDefinitionBranch(std
                     && found_branch->getType() == "STRUCT_DEF")
             {
                 // We have a structure access branch so we need to keep going
+
                 std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(found_branch);
                 std::shared_ptr<BODYBranch> struct_body = struct_def_branch->getStructBody();
                 std::shared_ptr<VarIdentifierBranch> next_var_iden_branch =
