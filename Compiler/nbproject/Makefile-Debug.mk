@@ -69,6 +69,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/PTRBranch.o \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/Preprocessor.o \
+	${OBJECTDIR}/src/ReturnBranch.o \
 	${OBJECTDIR}/src/RootBranch.o \
 	${OBJECTDIR}/src/STRUCTAccessBranch.o \
 	${OBJECTDIR}/src/STRUCTBranch.o \
@@ -282,6 +283,11 @@ ${OBJECTDIR}/src/Preprocessor.o: src/Preprocessor.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Preprocessor.o src/Preprocessor.cpp
+
+${OBJECTDIR}/src/ReturnBranch.o: src/ReturnBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ReturnBranch.o src/ReturnBranch.cpp
 
 ${OBJECTDIR}/src/RootBranch.o: src/RootBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

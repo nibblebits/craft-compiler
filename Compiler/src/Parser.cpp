@@ -1122,12 +1122,11 @@ void Parser::process_return_stmt()
     }
 
     // Create the return branch
-    std::shared_ptr<Branch> return_branch = std::shared_ptr<Branch>(new Branch("RETURN", ""));
+    std::shared_ptr<ReturnBranch> return_branch = std::shared_ptr<ReturnBranch>(new ReturnBranch(this->compiler));
     // If their was an expression then we need to add it to the return branch
     if (exp != NULL)
     {
-
-        return_branch->addChild(exp);
+        return_branch->setExpressionBranch(exp);
     }
 
     // Finally push the return branch to the stack

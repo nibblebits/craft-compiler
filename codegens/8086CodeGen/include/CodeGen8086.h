@@ -126,7 +126,7 @@ public:
     void handle_stmt(std::shared_ptr<Branch> branch);
     void handle_function_call(std::shared_ptr<FuncCallBranch> branch);
     void handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch);
-    void handle_func_return(std::shared_ptr<Branch> branch);
+    void handle_func_return(std::shared_ptr<ReturnBranch> return_branch);
     void handle_compare_expression();
     void handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> branch);
     void handle_if_stmt(std::shared_ptr<IFBranch> branch);

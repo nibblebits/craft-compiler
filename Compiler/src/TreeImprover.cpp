@@ -72,7 +72,7 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
     {
         improve_if(std::dynamic_pointer_cast<IFBranch>(branch));
     }
-    else if(branch->getType() == "WHILE")
+    else if (branch->getType() == "WHILE")
     {
         improve_while(std::dynamic_pointer_cast<WhileBranch>(branch));
     }
@@ -93,7 +93,11 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
     }
     else if (branch->getType() == "RETURN")
     {
-        improve_branch(branch->getFirstChild());
+        std::shared_ptr<ReturnBranch> return_branch = std::dynamic_pointer_cast<ReturnBranch>(branch);
+        if (return_branch->hasExpressionBranch())
+        {
+            improve_branch(return_branch->getExpressionBranch());
+        }
     }
     else if (branch->getType() == "ADDRESS_OF")
     {
@@ -184,6 +188,7 @@ void TreeImprover::improve_body(std::shared_ptr<BODYBranch> body_branch)
 
 
 // NOTE: THIS METHOD IS MAY BE DANGEROUS WHEN USING SIGNED OR NEGATIVE NUMBERS
+
 void TreeImprover::improve_expression(std::shared_ptr<EBranch> expression_branch)
 {
     /*  We need to try and lower the expression branches to the lowest point we can
@@ -248,7 +253,7 @@ void TreeImprover::improve_expression(std::shared_ptr<EBranch> expression_branch
                         new_branch = root_e->getReplaceeBranch();
                     }
                 }
-                
+
                 // Improve the left and right expression operand branches
                 improve_branch(left_branch);
                 improve_branch(right_branch);
@@ -287,7 +292,7 @@ void TreeImprover::improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_ide
         // Process the VAR_IDENTIFIER below it
         improve_var_iden(next_var_iden_branch);
     }
-    
+
     if (var_iden_branch->hasRootArrayIndexBranch())
     {
         std::shared_ptr<ArrayIndexBranch> array_index_branch = var_iden_branch->getRootArrayIndexBranch();
@@ -299,7 +304,7 @@ void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch)
 {
     // Improve the expression of the if statement
     improve_branch(if_branch->getExpressionBranch());
-    
+
     // Improve the body of the if statement
     improve_body(if_branch->getBodyBranch());
 
@@ -320,11 +325,12 @@ void TreeImprover::improve_while(std::shared_ptr<WhileBranch> while_branch)
 {
     // improve the expression of the while loop
     improve_branch(while_branch->getExpressionBranch());
-    
+
     // Improve the body of the while loop
     improve_body(while_branch->getBodyBranch());
-    
+
 }
+
 void TreeImprover::improve_for(std::shared_ptr<FORBranch> for_branch)
 {
     improve_branch(for_branch->getInitBranch());

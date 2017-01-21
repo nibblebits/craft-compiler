@@ -1253,7 +1253,7 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
     }
     else if (branch->getType() == "RETURN")
     {
-        handle_func_return(branch);
+        handle_func_return(std::dynamic_pointer_cast<ReturnBranch>(branch));
     }
     else if (branch->getType() == "V_DEF" ||
             branch->getType() == "STRUCT_DEF")
@@ -1319,14 +1319,13 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
 
 }
 
-void CodeGen8086::handle_func_return(std::shared_ptr<Branch> branch)
+void CodeGen8086::handle_func_return(std::shared_ptr<ReturnBranch> return_branch)
 {
-    if (branch->hasChildren())
+    if (return_branch->hasExpressionBranch())
     {
         // We have something to return
-        std::shared_ptr<Branch> return_child = branch->getFirstChild();
         // AX will be set to the value to return once the expression is complete.
-        make_expression(return_child);
+        make_expression(return_branch->getExpressionBranch());
     }
 
     // Restore the stack pointer
