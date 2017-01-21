@@ -164,10 +164,18 @@ void TreeImprover::improve_func(std::shared_ptr<FuncBranch> func_branch)
     this->current_var_type = VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE;
     improve_func_arguments(func_arguments_branch);
 
-
     // Improve the function body
+    bool has_return_branch = false;
     this->current_var_type = VARIABLE_TYPE_FUNCTION_VARIABLE;
-    improve_body(func_body_branch);
+    improve_body(func_body_branch, &has_return_branch);
+    
+    if (func_branch->getReturnTypeBranch()->getValue() == "void" 
+            && !has_return_branch)
+    {
+        // No return branch found for function that returns void so we need to add one
+        std::shared_ptr<ReturnBranch> return_branch = std::shared_ptr<ReturnBranch>(new ReturnBranch(getCompiler()));
+        func_body_branch->addChild(return_branch);
+    }
 }
 
 void TreeImprover::improve_func_arguments(std::shared_ptr<Branch> func_args_branch)
@@ -178,10 +186,21 @@ void TreeImprover::improve_func_arguments(std::shared_ptr<Branch> func_args_bran
     });
 }
 
-void TreeImprover::improve_body(std::shared_ptr<BODYBranch> body_branch)
+void TreeImprover::improve_body(std::shared_ptr<BODYBranch> body_branch, bool* has_return_branch)
 {
+    if (has_return_branch != NULL)
+    {
+        *has_return_branch = false;
+    }
+    
     body_branch->iterate_children([&](std::shared_ptr<Branch> child_branch)
     {
+        if (child_branch->getType() == "RETURN"
+                && has_return_branch != NULL)
+        {
+            *has_return_branch = true;
+        }
+
         improve_branch(child_branch);
     });
 }

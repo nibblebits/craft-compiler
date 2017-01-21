@@ -53,7 +53,7 @@ private:
     void improve_branch(std::shared_ptr<Branch> branch);
     void improve_func(std::shared_ptr<FuncBranch> func_branch);
     void improve_func_arguments(std::shared_ptr<Branch> func_args_branch);
-    void improve_body(std::shared_ptr<BODYBranch> body_branch);
+    void improve_body(std::shared_ptr<BODYBranch> body_branch, bool* has_return_branch=NULL);
     void improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     void improve_if(std::shared_ptr<IFBranch> if_branch);
     void improve_while(std::shared_ptr<WhileBranch> while_branch);
