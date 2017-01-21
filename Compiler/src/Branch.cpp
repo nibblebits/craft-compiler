@@ -66,8 +66,19 @@ void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> ch
     // Setup local scopes if they are not already set for this child
     if (!branch->hasLocalScope())
     {
-        branch->setLocalScope(getLocalScope());
+        std::shared_ptr<ScopeBranch> scope_branch = std::dynamic_pointer_cast<ScopeBranch>(this->getptr());
+        if (scope_branch != NULL)
+        {
+            // Ok we ourselves are a scope branch so lets set the scope to us
+            branch->setLocalScope(scope_branch);
+        }
+        else
+        {
+            // We are not a scope branch so lets set the scope for this branch to our local scope
+            branch->setLocalScope(getLocalScope());
+        }
     }
+
 
     if (!branch->hasRootScope())
     {
