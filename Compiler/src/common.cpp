@@ -73,7 +73,7 @@ std::string EXPORT LoadFile(std::string filename)
     // Load the file
     std::ifstream ifs;
     std::string source = "";
-    ifs.open(filename);
+    ifs.open(filename, ios::binary);
     if (!ifs.is_open())
     {
         throw Exception("Failed to open: " + filename);
@@ -84,6 +84,7 @@ std::string EXPORT LoadFile(std::string filename)
         source += ifs.get();
     }
     ifs.close();
+    
 
     return source;
 }
