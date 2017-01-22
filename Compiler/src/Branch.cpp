@@ -57,6 +57,17 @@ void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> ch
         throw Exception("Branch::addChild(std::shared_ptr<Branch> branch): child already has a parent! Try cloning the branch first");
     }
 
+    try
+    {
+        branch->validity_check();
+    }
+    catch (Exception ex)
+    {
+        ex.setFunctionName("void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of)");
+        ex.appendMessage("cannot add as child as ", STRING_APPEND_START);
+        throw ex;
+    }
+
     // Lets let this child know who its parent is
     branch->setParent(this->getptr());
 
@@ -103,6 +114,16 @@ void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> ch
 
 void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)
 {
+    try
+    {
+        validity_check();
+    }
+    catch (Exception ex)
+    {
+        ex.setFunctionName("void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)");
+        ex.appendMessage("cannot replace child as ", STRING_APPEND_START);
+        throw ex;
+    }
     for (int i = 0; i < this->children.size(); i++)
     {
         std::shared_ptr<Branch> c = this->children.at(i);
@@ -121,11 +142,33 @@ void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch>
 
 void Branch::replaceSelf(std::shared_ptr<Branch> replacee_branch)
 {
+    try
+    {
+        validity_check();
+    }
+    catch (Exception ex)
+    {
+        ex.setFunctionName("void Branch::replaceSelf(std::shared_ptr<Branch> replacee_branch)");
+        ex.appendMessage("cannot replace self as ", STRING_APPEND_START);
+        throw ex;
+    }
+
+    try
+    {
+        replacee_branch->validity_check();
+    }
+    catch (Exception ex)
+    {
+        ex.setFunctionName("void Branch::replaceSelf(std::shared_ptr<Branch> replacee_branch)");
+        ex.setMessage("cannot replace self with \"replacee_branch\" as the branch did not pass the validity check");
+        throw ex;
+    }
     getParent()->replaceChild(this->getptr(), replacee_branch);
 }
 
 void Branch::replaceWithChildren()
 {
+    validity_check();
     if (!hasParent())
     {
         throw Exception("void Branch::replaceWithChildren(): you must have a parent to replace yourself with your children");
@@ -171,6 +214,16 @@ void Branch::removeChild(std::shared_ptr<Branch> child)
 
 void Branch::removeSelf()
 {
+    try
+    {
+        validity_check();
+    }
+    catch (Exception ex)
+    {
+        ex.setFunctionName("void Branch::removeSelf():");
+        ex.appendMessage("cannot remove self as ", STRING_APPEND_START);
+        throw ex;
+    }
     getParent()->removeChild(this->getptr());
 }
 
@@ -289,6 +342,15 @@ std::vector<std::shared_ptr<Branch>> Branch::getChildren()
 
 std::shared_ptr<Branch> Branch::getParent()
 {
+    try
+    {
+        validity_check();
+    }
+    catch (Exception ex)
+    {
+        ex.setFunctionName("std::shared_ptr<Branch> Branch::getParent()");
+        throw ex;
+    }
     return this->parent;
 }
 
@@ -421,7 +483,19 @@ int Branch::getBranchType()
 
 void Branch::validity_check()
 {
-    // Nothing to validate.
+    if (this->wasReplaced())
+    {
+        throw Exception(""
+                        "this branch of type \"" + getType() + "\" has been replaced with branch of type \"" + getReplaceeBranch()->getType() + "\". Please use the replacee branch.",
+                        "void Branch::validity_check()");
+    }
+
+    if (isRemoved())
+    {
+        throw Exception("this branch of type \"" + getType() + "\" has been flagged as removed",
+                        "void Branch::validity_check()");
+    }
+
 }
 
 void Branch::rebuild()

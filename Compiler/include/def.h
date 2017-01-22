@@ -105,6 +105,14 @@ enum
 
 typedef unsigned int FIXUP_LENGTH;
 
+enum
+{
+    STRING_APPEND_START = 0x01,
+    STRING_APPEND_END = 0x02
+};
+
+typedef unsigned int STRING_APPEND_OPTIONS;
+
 
 #endif /* DEF_H */
 

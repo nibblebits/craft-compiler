@@ -27,13 +27,16 @@
 
 #include <stdexcept>
 #include <string>
+#include "def.h"
+
 class Exception : public std::logic_error
 {
 public:
 
-    Exception(std::string message) : logic_error(message)
+    Exception(std::string message, std::string func_name="") : logic_error(message)
     {
         this->msg = message;
+        this->func_name = func_name;
     }
 
     virtual ~Exception()
@@ -41,12 +44,51 @@ public:
 
     }
 
+    void setMessage(std::string message)
+    {
+        this->msg = message;
+    }
+    
+    void appendMessage(std::string message, STRING_APPEND_OPTIONS options)
+    {
+        if (options & STRING_APPEND_START)
+        {
+            this->msg = message + this->msg;
+        }
+        else
+        {
+            this->msg += message;
+        }
+    }
     std::string getMessage()
     {
-        return this->msg;
+        std::string formatted_msg = "";
+        if (hasFunctionName())
+        {
+            formatted_msg = getFunctionName() + ": ";
+        }
+        
+        formatted_msg += this->msg;
+        return formatted_msg;
+    }
+    
+    void setFunctionName(std::string func_name)
+    {
+        this->func_name = func_name;
+    }
+    
+    std::string getFunctionName()
+    {
+        return this->func_name;
+    }
+    
+    bool hasFunctionName()
+    {
+        return this->func_name != "";
     }
 private:
     std::string msg;
+    std::string func_name;
 };
 
 

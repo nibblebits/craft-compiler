@@ -88,8 +88,34 @@ void EBranch::iterate_expressions(std::function<void(std::shared_ptr<Branch> lef
 
 }
 
+bool EBranch::hasNumber()
+{
+    return this->getFirstChild()->getType() == "number"
+            || this->getSecondChild()->getType() == "number";
+}
+
+bool EBranch::allAreNumbers()
+{
+    return this->getFirstChild()->getType() == "number"
+            && this->getSecondChild()->getType() == "number";
+}
+
+bool EBranch::hasVarIdentifier()
+{
+    return this->getFirstChild()->getType() == "VAR_IDENTIFIER"
+            || this->getSecondChild()->getType() == "VAR_IDENTIFIER";
+}
+
+bool EBranch::allAreVarIdentifiers()
+{
+    return this->getFirstChild()->getType() == "VAR_IDENTIFIER"
+            && this->getSecondChild()->getType() == "VAR_IDENTIFIER";
+}
+
 void EBranch::validity_check()
 {
+    CustomBranch::validity_check();
+    
     // Lets check that this EBranch is valid
     int total_children = getChildren().size();
     if (total_children != 2)
@@ -108,7 +134,7 @@ void EBranch::rebuild()
         // We should replace our self with our child as "E" branches are illegal with one child.
         replaceSelf(getFirstChild());
     }
-    else if(total_children == 0)
+    else if (total_children == 0)
     {
         // We have zero children, we should delete ourself.
         removeSelf();
