@@ -56,7 +56,8 @@ struct formatted_segment CodeGen8086::format_segment(std::string segment_name)
 {
     struct formatted_segment segment;
 
-    segment.start_segment = "segment " + segment_name;
+    // Commented for now as assembly simulator does not support it
+    segment.start_segment = ";segment " + segment_name;
     segment.end_segment = "; END SEGMENT";
     return segment;
 }
@@ -1186,7 +1187,8 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     std::shared_ptr<BODYBranch> body_branch = func_branch->getBodyBranch();
 
     // Make the function global.
-    do_asm("global " + name_branch->getValue());
+    // Commented for now as assembly simulator does not support it
+    do_asm(";global " + name_branch->getValue());
 
     // Make the function label
     make_label(name_branch->getValue());
@@ -1421,7 +1423,8 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
     // AX now contains true or false 
     std::string true_label = build_unique_label();
     std::string false_label = build_unique_label();
-
+    std::string end_label = build_unique_label();
+    
     do_asm("cmp ax, 0");
     do_asm("je " + false_label);
     // This is where we will jump if its true
@@ -1434,6 +1437,9 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
 
     reset_scope_size();
 
+    // Ok lets jump over the false label.
+    do_asm("jmp " + end_label);
+    
     // This is where we will jump if its false, the body will never be run.
     make_exact_label(false_label);
 
@@ -1457,6 +1463,9 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
         handle_body(else_body_branch);
     }
 
+    
+    // This is the end of the if statement
+    make_exact_label(end_label);
 }
 
 void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
