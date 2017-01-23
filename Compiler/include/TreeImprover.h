@@ -47,7 +47,7 @@ public:
 
     void setTree(std::shared_ptr<Tree> tree);
     void improve();
-    void improve_expression(std::shared_ptr<EBranch> expression_branch);
+    void improve_expression(std::shared_ptr<EBranch> expression_branch, bool is_root=true);
 private:
     void improve_top();
     void improve_branch(std::shared_ptr<Branch> branch);

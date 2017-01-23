@@ -168,8 +168,8 @@ void TreeImprover::improve_func(std::shared_ptr<FuncBranch> func_branch)
     bool has_return_branch = false;
     this->current_var_type = VARIABLE_TYPE_FUNCTION_VARIABLE;
     improve_body(func_body_branch, &has_return_branch);
-    
-    if (func_branch->getReturnTypeBranch()->getValue() == "void" 
+
+    if (func_branch->getReturnTypeBranch()->getValue() == "void"
             && !has_return_branch)
     {
         // No return branch found for function that returns void so we need to add one
@@ -192,7 +192,7 @@ void TreeImprover::improve_body(std::shared_ptr<BODYBranch> body_branch, bool* h
     {
         *has_return_branch = false;
     }
-    
+
     body_branch->iterate_children([&](std::shared_ptr<Branch> child_branch)
     {
         if (child_branch->getType() == "RETURN"
@@ -205,93 +205,107 @@ void TreeImprover::improve_body(std::shared_ptr<BODYBranch> body_branch, bool* h
     });
 }
 
-
-// NOTE: THIS METHOD IS MAY BE DANGEROUS WHEN USING SIGNED OR NEGATIVE NUMBERS
-
-void TreeImprover::improve_expression(std::shared_ptr<EBranch> expression_branch)
+void TreeImprover::improve_expression(std::shared_ptr<EBranch> expression_branch, bool is_root)
 {
-    /*  We need to try and lower the expression branches to the lowest point we can
-     *  for example 5 + 9 + 3 will become one branch containing 17.*/
+    std::shared_ptr<Branch> left_branch = expression_branch->getFirstChild();
+    std::shared_ptr<Branch> right_branch = expression_branch->getSecondChild();
 
-    int result_to_add = 0;
-    std::shared_ptr<Branch> new_branch = NULL;
-    std::shared_ptr<Token> last_known_number_branch = NULL;
-    std::function<void(std::shared_ptr<EBranch>, std::shared_ptr<Branch>, std::shared_ptr<Branch>) > func =
-            [&](
-            std::shared_ptr<EBranch> root_e,
-            std::shared_ptr<Branch> left_branch,
-            std::shared_ptr<Branch> right_branch)
-            {
-                if (left_branch->getType() == "number" &&
-                        right_branch->getType() == "number")
-                {
-                    // Both are numbers so we can safely craft a new branch from them
-                    std::shared_ptr<Token> left_token = std::dynamic_pointer_cast<Token>(left_branch);
-                    // Both the left and right branches contain numbers so lets evaluate the numbers and replace them with one branch holding the result
-                    int left_n = std::stoi(left_branch->getValue());
-                    int right_n = std::stoi(right_branch->getValue());
-                    long result = getCompiler()->evaluate(left_n, right_n, root_e->getValue());
-
-                    CharPos pos = left_token->getPosition();
-                    std::shared_ptr<Token> token = std::shared_ptr<Token>(new Token("number", std::to_string(result), pos));
-                    root_e->replaceSelf(token);
-                    last_known_number_branch = token;
-                }
-                else
-                {
-                    if (left_branch->getType() == "number")
-                    {
-                        if (left_branch->getParent()->getValue() == "+")
-                        {
-                            result_to_add += std::stoi(left_branch->getValue());
-                            left_branch->removeSelf();
-                            root_e->rebuild();
-                            last_known_number_branch = std::dynamic_pointer_cast<Token>(left_branch);
-                        }
-                    }
-                    else if (right_branch->getType() == "number")
-                    {
-                        if (right_branch->getParent()->getValue() == "+")
-                        {
-                            result_to_add += std::stoi(right_branch->getValue());
-                            right_branch->removeSelf();
-                            root_e->rebuild();
-                            last_known_number_branch = std::dynamic_pointer_cast<Token>(right_branch);
-                        }
-                    }
-                }
-
-                /* If their was a rebuild the expression branch should have been replaced with its first child. 
-                 * The branch may have also been replaced if the left and right branches was both a number, as shown further above. */
-
-                // We are only interested if we are on the highest root of the expression branch
-                if (expression_branch == root_e)
-                {
-                    if (root_e->wasReplaced())
-                    {
-                        new_branch = root_e->getReplaceeBranch();
-                    }
-                }
-
-                // Improve the left and right expression operand branches
-                improve_branch(left_branch);
-                improve_branch(right_branch);
-            };
-
-    expression_branch->iterate_expressions(func);
-
-    if (new_branch != NULL)
+    if (left_branch->getType() == "number" &&
+            right_branch->getType() == "number")
     {
-        // We now need to add on the new result (if any)
-        if (result_to_add != 0)
+        // Both are numbers so we can safely craft a new branch from them
+        std::shared_ptr<Token> left_token = std::dynamic_pointer_cast<Token>(left_branch);
+        // Both the left and right branches contain numbers so lets evaluate the numbers and replace them with one branch holding the result
+        int left_n = std::stoi(left_branch->getValue());
+        int right_n = std::stoi(right_branch->getValue());
+        long result = getCompiler()->evaluate(left_n, right_n, expression_branch->getValue());
+
+        CharPos pos = left_token->getPosition();
+        std::shared_ptr<Token> token = std::shared_ptr<Token>(new Token("number", std::to_string(result), pos));
+        debug_output_branch(expression_branch);
+        expression_branch->replaceSelf(token);
+    }
+
+
+    // Improve the left and right expression operand branches
+    improve_branch(left_branch);
+    improve_branch(right_branch);
+
+    // If the branches were replaced on the tree we need to get their new branch.
+    if (left_branch->wasReplaced())
+    {
+        left_branch = left_branch->getReplaceeBranch();
+    }
+    if (right_branch->wasReplaced())
+    {
+        right_branch = right_branch->getReplaceeBranch();
+    }
+
+
+    if (right_branch->getType() == "E")
+    {
+        std::shared_ptr<EBranch> e_right_branch = std::dynamic_pointer_cast<EBranch>(right_branch);
+        if (e_right_branch->allAreNumbers())
         {
-            std::shared_ptr<Token> token = std::shared_ptr<Token>(new Token("number", std::to_string(result_to_add), last_known_number_branch->getPosition()));
-            // Create a new expression branch
-            std::shared_ptr<EBranch> e_branch = std::shared_ptr<EBranch>(new EBranch(getCompiler(), "+"));
-            new_branch->replaceSelf(e_branch);
-            e_branch->addChild(token);
-            e_branch->addChild(new_branch);
-            e_branch->rebuild();
+            // We can go again
+            improve_expression(e_right_branch, false);
+        }
+    }
+    if (left_branch->getType() == "E")
+    {
+        std::shared_ptr<EBranch> e_left_branch = std::dynamic_pointer_cast<EBranch>(left_branch);
+        if (e_left_branch->allAreNumbers())
+        {
+            // We can go again
+            improve_expression(e_left_branch, false);
+        }
+    }
+
+
+    // We need to check to see if our root was replaced because of cases like this: (50 + 23) + (90 + 40) we will still have an E branch when there does not need to be one
+    if (is_root)
+    {
+        if (!expression_branch->wasReplaced())
+        {
+            if (expression_branch->allAreNumbers())
+            {
+                improve_expression(expression_branch, false);
+            }
+            else
+            {
+                // We need to check for numbers that can be added together to further shrink the expression
+                if (expression_branch->hasOnlyOneNumber()
+                        && expression_branch->hasOnlyOneExpression())
+                {
+                    std::shared_ptr<Token> number_branch = expression_branch->getOnlyNumberBranch();
+                    std::shared_ptr<EBranch> exp_branch = expression_branch->getOnlyExpressionBranch();
+
+                    // We can only reduct if the expressions share the same operator
+                    if (expression_branch->getValue() == exp_branch->getValue())
+                    {
+                        // Sub expressions eligible for this reduction will only have one number branch as if they had two they would have been reduced earlier
+                        if (exp_branch->hasOnlyOneNumber())
+                        {
+                            std::shared_ptr<Token> second_number_branch = exp_branch->getOnlyNumberBranch();
+                            // Ok these branches are eligible for reduction lets evaluate their values
+                            long new_value = getCompiler()->evaluate(
+                                                                     std::stoi(number_branch->getValue()),
+                                                                     std::stoi(second_number_branch->getValue()),
+                                                                     expression_branch->getValue());
+                            // We now have the new value so we should replace the second number with the result and then remove the first number
+                            std::shared_ptr<Token> new_token = std::shared_ptr<Token>(new Token("number", std::to_string(new_value), number_branch->getPosition()));
+                            second_number_branch->replaceSelf(new_token);
+
+                            // Finally we need to remove the first number from the tree and rebuild both expression branches
+                            number_branch->removeSelf();
+
+                            expression_branch->rebuild();
+                            exp_branch->rebuild();
+                        }
+                    }
+
+                }
+            }
         }
     }
 }
