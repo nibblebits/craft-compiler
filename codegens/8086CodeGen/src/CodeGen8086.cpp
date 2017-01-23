@@ -57,7 +57,7 @@ struct formatted_segment CodeGen8086::format_segment(std::string segment_name)
     struct formatted_segment segment;
 
     // Commented for now as assembly simulator does not support it
-    segment.start_segment = ";segment " + segment_name;
+    segment.start_segment = "segment " + segment_name;
     segment.end_segment = "; END SEGMENT";
     return segment;
 }
@@ -141,7 +141,7 @@ void CodeGen8086::new_continue_label(std::string label_name, std::shared_ptr<Bra
     {
         this->continue_branch_to_stop_reset_stack.push_back(this->continue_branch_to_stop_reset);
     }
-    
+
     // Ok safe to overwrite
     this->continue_label = label_name;
     this->continue_branch_to_stop_reset = branch_to_stop_reset;
@@ -159,7 +159,7 @@ void CodeGen8086::end_continue_label()
     {
         this->continue_label = "";
     }
-    
+
     if (!this->continue_branch_to_stop_reset_stack.empty())
     {
         this->continue_branch_to_stop_reset = this->continue_branch_to_stop_reset_stack.back();
@@ -513,6 +513,12 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
         std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(exp);
         std::shared_ptr<VarIdentifierBranch> var_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(address_of_branch->getVariableBranch());
         make_move_var_addr_to_reg(register_to_store, var_branch);
+    }
+    else if (exp->getType() == "ASSIGN")
+    {
+        // We have an assignment in this expression.
+        std::shared_ptr<AssignBranch> assign_branch = std::dynamic_pointer_cast<AssignBranch>(exp);
+        handle_scope_assignment(assign_branch);
     }
 }
 
@@ -1142,7 +1148,10 @@ void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
     std::shared_ptr<VarIdentifierBranch> variable_iden_branch = vdef_branch->getVariableIdentifierBranch();
     std::shared_ptr<Branch> variable_data_type_branch = vdef_branch->getDataTypeBranch();
     std::shared_ptr<Branch> variable_name_branch = variable_iden_branch->getVariableNameBranch();
+
+    // Value branch may only be a number for global variables, the framework will ensure this for us no need to check
     std::shared_ptr<Branch> value_branch = vdef_branch->getValueExpBranch();
+
 
     make_label(variable_name_branch->getValue(), "data");
 
@@ -1156,11 +1165,11 @@ void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
     {
         if (vdef_branch->isPointer() || vdef_branch->getDataTypeSize() == 2)
         {
-            do_asm("dw 0", "data");
+            do_asm("dw " + value_branch->getValue(), "data");
         }
         else
         {
-            do_asm("db 0", "data");
+            do_asm("db " + value_branch->getValue(), "data");
         }
     }
 
@@ -1424,7 +1433,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
     std::string true_label = build_unique_label();
     std::string false_label = build_unique_label();
     std::string end_label = build_unique_label();
-    
+
     do_asm("cmp ax, 0");
     do_asm("je " + false_label);
     // This is where we will jump if its true
@@ -1439,7 +1448,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
 
     // Ok lets jump over the false label.
     do_asm("jmp " + end_label);
-    
+
     // This is where we will jump if its false, the body will never be run.
     make_exact_label(false_label);
 
@@ -1463,7 +1472,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
         handle_body(else_body_branch);
     }
 
-    
+
     // This is the end of the if statement
     make_exact_label(end_label);
 }
