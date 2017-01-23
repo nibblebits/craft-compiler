@@ -25,6 +25,8 @@
  */
 
 #include "EBranch.h"
+#include "Token.h"
+#include "VarIdentifierBranch.h"
 
 EBranch::EBranch(Compiler* compiler, std::string value) : CustomBranch(compiler, "E", value)
 {
@@ -100,10 +102,26 @@ bool EBranch::allAreNumbers()
             && this->getSecondChild()->getType() == "number";
 }
 
+bool EBranch::hasOnlyOneNumber()
+{
+    return (
+            this->getFirstChild()->getType() == "number" && this->getSecondChild()->getType() != "number" ||
+            this->getSecondChild()->getType() == "number" && this->getFirstChild()->getType() != "number"
+            );
+}
+
 bool EBranch::hasVarIdentifier()
 {
     return this->getFirstChild()->getType() == "VAR_IDENTIFIER"
             || this->getSecondChild()->getType() == "VAR_IDENTIFIER";
+}
+
+bool EBranch::hasOnlyOneVarIdentifier()
+{
+    return (
+            this->getFirstChild()->getType() == "VAR_IDENTIFIER" && this->getSecondChild()->getType() != "VAR_IDENTIFIER" ||
+            this->getSecondChild()->getType() == "VAR_IDENTIFIER" && this->getFirstChild()->getType() != "VAR_IDENTIFIER"
+            );
 }
 
 bool EBranch::allAreVarIdentifiers()
@@ -112,16 +130,71 @@ bool EBranch::allAreVarIdentifiers()
             && this->getSecondChild()->getType() == "VAR_IDENTIFIER";
 }
 
-void EBranch::validity_check()
+bool EBranch::hasExpression()
 {
-    CustomBranch::validity_check();
-    
+    return this->getFirstChild()->getType() == "E"
+            || this->getSecondChild()->getType() == "E";
+}
+
+bool EBranch::allAreExpressions()
+{
+    return this->getFirstChild()->getType() == "E"
+            && this->getSecondChild()->getType() == "E";
+}
+
+bool EBranch::hasOnlyOneExpression()
+{
+    return (
+            this->getFirstChild()->getType() == "E" && this->getSecondChild()->getType() != "E" ||
+            this->getSecondChild()->getType() == "E" && this->getFirstChild()->getType() != "E"
+            );
+}
+
+std::shared_ptr<Token> EBranch::getOnlyNumberBranch()
+{
+    if (!hasOnlyOneNumber())
+    {
+        throw Exception("std::shared_ptr<Branch> EBranch::getOnlyNumberBranch(): none or more than one number branch exists");
+    }
+
+    return std::dynamic_pointer_cast<Token>(getFirstChildOfType("number"));
+}
+
+std::shared_ptr<EBranch> EBranch::getOnlyExpressionBranch()
+{
+    if (!hasOnlyOneExpression())
+    {
+        throw Exception("std::shared_ptr<Branch> EBranch::getOnlyExpressionBranch(): none or more than one \"E\" branch exists");
+    }
+
+    return std::dynamic_pointer_cast<EBranch>(getFirstChildOfType("E"));
+}
+
+std::shared_ptr<VarIdentifierBranch> EBranch::getOnlyVarIdentifierBranch()
+{
+    if (!hasOnlyOneVarIdentifier())
+    {
+        throw Exception("std::shared_ptr<Branch> EBranch::getOnlyVarIdentifierBranch(): none or more than one \"VAR_IDENTIFIER\" branch exists");
+    }
+
+    return std::dynamic_pointer_cast<VarIdentifierBranch>(getFirstChildOfType("VAR_IDENTIFIER"));
+}
+
+void EBranch::validate_children()
+{
+
     // Lets check that this EBranch is valid
     int total_children = getChildren().size();
     if (total_children != 2)
     {
-        throw Exception("void EBranch::validity_check(): expecting two children but " + std::to_string(total_children) + " were provided.");
+        throw Exception("void EBranch::validate_ebranch(): expecting two children but " + std::to_string(total_children) + " was provided.");
     }
+}
+
+void EBranch::validity_check()
+{
+    CustomBranch::validity_check();
+    validate_children();
 }
 
 void EBranch::rebuild()

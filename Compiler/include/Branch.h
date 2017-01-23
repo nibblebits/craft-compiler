@@ -66,6 +66,8 @@ public:
     bool hasChildren();
     std::shared_ptr<Branch> getParent();
     bool hasParent();
+    std::shared_ptr<Branch> getFirstChildOfType(std::string type);
+        bool hasChildOfType(std::string type);
     std::shared_ptr<Branch> lookUpTreeUntilParentTypeFound(std::string parent_type_to_find);
     std::shared_ptr<Branch> lookDownTreeUntilFirstChildOfType(std::string type);
     std::shared_ptr<Branch> lookDownTreeUntilLastChildOfType(std::string type);
@@ -85,6 +87,7 @@ public:
     std::shared_ptr<Branch> getReplaceeBranch();
 
     virtual int getBranchType();
+    void validate_identity_on_tree();
     virtual void validity_check();
     virtual void rebuild();
     virtual std::shared_ptr<Branch> clone();

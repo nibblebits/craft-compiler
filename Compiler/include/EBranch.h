@@ -27,6 +27,9 @@
 
 #include "CustomBranch.h"
 
+class Token;
+class VarIdentifierBranch;
+
 class EXPORT EBranch : public CustomBranch
 {
 public:
@@ -34,6 +37,24 @@ public:
     virtual ~EBranch();
     void iterate_expressions(std::function<void(std::shared_ptr<EBranch> root_e, std::shared_ptr<Branch> left_branch, std::shared_ptr<Branch> right_branch) > func);
     void iterate_expressions(std::function<void(std::shared_ptr<Branch> left_branch) > left_func, std::function<void(std::shared_ptr<Branch> right_branch) > right_func);
+
+    /* Should change this to have a method called "has" where they may apply a type and I should also add a "getOnly" method to get a branch
+     * this would be a better design, the methods below can still be kept but they should make use of these methods.*/
+    bool hasNumber();
+    bool hasOnlyOneNumber();
+    bool allAreNumbers();
+    bool hasVarIdentifier();
+    bool hasOnlyOneVarIdentifier();
+    bool allAreVarIdentifiers();
+    bool hasExpression();
+    bool allAreExpressions();
+    bool hasOnlyOneExpression();
+
+    std::shared_ptr<Token> getOnlyNumberBranch();
+    std::shared_ptr<EBranch> getOnlyExpressionBranch();
+    std::shared_ptr<VarIdentifierBranch> getOnlyVarIdentifierBranch();
+
+    void validate_children();
     virtual void validity_check();
     virtual void rebuild();
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
