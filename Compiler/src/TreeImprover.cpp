@@ -222,7 +222,6 @@ void TreeImprover::improve_expression(std::shared_ptr<EBranch> expression_branch
 
         CharPos pos = left_token->getPosition();
         std::shared_ptr<Token> token = std::shared_ptr<Token>(new Token("number", std::to_string(result), pos));
-        debug_output_branch(expression_branch);
         expression_branch->replaceSelf(token);
     }
 

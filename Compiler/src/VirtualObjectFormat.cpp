@@ -39,7 +39,7 @@ VirtualObjectFormat::~VirtualObjectFormat()
 std::shared_ptr<VirtualSegment> VirtualObjectFormat::createSegment(std::string segment_name)
 {
     std::shared_ptr<VirtualSegment> segment = std::shared_ptr<VirtualSegment>(new_segment(segment_name));
-    std::cout << segments.size() << std::endl;
+
     this->segments.push_back(segment);
     return segment;
 }
