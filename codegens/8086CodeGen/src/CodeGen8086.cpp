@@ -1183,7 +1183,7 @@ void CodeGen8086::handle_structure(std::shared_ptr<STRUCTBranch> struct_branch)
 void CodeGen8086::handle_function_definition(std::shared_ptr<FuncDefBranch> func_def_branch)
 {
     std::shared_ptr<Branch> name_branch = func_def_branch->getNameBranch();
-    do_asm("extern " + name_branch->getValue());
+    do_asm("extern _" + name_branch->getValue());
 }
 
 void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
