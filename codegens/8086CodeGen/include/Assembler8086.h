@@ -219,7 +219,10 @@ enum
 
     POP_REG16,
 
-    RET
+    RET,
+    
+    XOR_REG_WITH_REG_W0,
+    XOR_REG_WITH_REG_W1
 };
 
 struct ins_syntax_def
