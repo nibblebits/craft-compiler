@@ -26,20 +26,27 @@
 #define LABELBRANCH_H
 
 #include "OffsetableBranch.h"
+
+class MustFitTable;
 class LabelBranch : public OffsetableBranch
 {
 public:
     LabelBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch);
+    LabelBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch, std::shared_ptr<MustFitTable> must_fit_table);
+    
     virtual ~LabelBranch();
 
     void setLabelNameBranch(std::shared_ptr<Branch> label_name_branch);
     std::shared_ptr<Branch> getLabelNameBranch();
     void setContentsBranch(std::shared_ptr<Branch> contents_branch);
     std::shared_ptr<Branch> getContentsBranch();
-    
+
+    std::shared_ptr<MustFitTable> getMustFitTable();
+
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
-
+private:
+    std::shared_ptr<MustFitTable> must_fit_table;
 };
 
 #endif /* LABELBRANCH_H */

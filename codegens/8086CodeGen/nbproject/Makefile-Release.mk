@@ -43,6 +43,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/GlobalBranch.o \
 	${OBJECTDIR}/src/InstructionBranch.o \
 	${OBJECTDIR}/src/LabelBranch.o \
+	${OBJECTDIR}/src/MustFitTable.o \
 	${OBJECTDIR}/src/OffsetableBranch.o \
 	${OBJECTDIR}/src/OperandBranch.o \
 	${OBJECTDIR}/src/SegmentBranch.o
@@ -111,6 +112,11 @@ ${OBJECTDIR}/src/LabelBranch.o: src/LabelBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/LabelBranch.o src/LabelBranch.cpp
+
+${OBJECTDIR}/src/MustFitTable.o: src/MustFitTable.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MustFitTable.o src/MustFitTable.cpp
 
 ${OBJECTDIR}/src/OffsetableBranch.o: src/OffsetableBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

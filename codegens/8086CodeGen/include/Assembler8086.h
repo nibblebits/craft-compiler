@@ -34,6 +34,7 @@ class SegmentBranch;
 class OperandBranch;
 class LabelBranch;
 class DataBranch;
+class OffsetableBranch;
 
 typedef int INSTRUCTION_TYPE;
 typedef unsigned short INSTRUCTION_INFO;
@@ -91,7 +92,7 @@ enum
     HAS_REG_USE_RIGHT = 0x80,
     SHORT_POSSIBLE = 0x100,
     NEAR_POSSIBLE = 0x200,
-    USE_CONDITION_CODE = 0x400,
+    USE_CONDITION_CODE = 0x400
 };
 
 enum
@@ -100,9 +101,8 @@ enum
     REG16,
     AL,
     AX,
-    MEM,
-    MEML8,
-    MEML16,
+    MEM8,
+    MEM16,
     IMM8,
     IMM16,
     ALONE
@@ -112,20 +112,19 @@ enum
 {
     REG8_REG8 = (REG8 << OPERAND_BIT_SIZE | REG8),
     REG16_REG16 = (REG16 << OPERAND_BIT_SIZE | REG16),
-    REG8_MEM = (REG8 << OPERAND_BIT_SIZE | MEM),
-    REG16_MEM = (REG16 << OPERAND_BIT_SIZE | MEM),
-    MEM_REG8 = (MEM << OPERAND_BIT_SIZE | REG8),
-    MEM_REG16 = (MEM << OPERAND_BIT_SIZE | REG16),
+    REG8_MEM16 = (REG8 << OPERAND_BIT_SIZE | MEM16),
+    REG16_MEM16 = (REG16 << OPERAND_BIT_SIZE | MEM16),
+    MEM16_REG8 = (MEM16 << OPERAND_BIT_SIZE | REG8),
+    MEM16_REG16 = (MEM16 << OPERAND_BIT_SIZE | REG16),
     REG8_IMM8 = (REG8 << OPERAND_BIT_SIZE | IMM8),
     REG16_IMM16 = (REG16 << OPERAND_BIT_SIZE | IMM16),
     REG16_IMM8 = (REG16 << OPERAND_BIT_SIZE | IMM8),
-    MEM_IMM8 = (MEM << OPERAND_BIT_SIZE | IMM8),
-    MEM_IMM16 = (MEM << OPERAND_BIT_SIZE | IMM16),
-    MEM_AL = (MEM << OPERAND_BIT_SIZE | AL),
-    MEM_AX = (MEM << OPERAND_BIT_SIZE | AX),
-    MEM_ALONE = (MEM << OPERAND_BIT_SIZE | ALONE),
-    MEML8_ALONE = (MEML8 << OPERAND_BIT_SIZE | ALONE),
-    MEML16_ALONE = (MEML16 << OPERAND_BIT_SIZE | ALONE),
+    MEM16_IMM8 = (MEM16 << OPERAND_BIT_SIZE | IMM8),
+    MEM16_IMM16 = (MEM16 << OPERAND_BIT_SIZE | IMM16),
+    MEM16_AL = (MEM16 << OPERAND_BIT_SIZE | AL),
+    MEM16_AX = (MEM16 << OPERAND_BIT_SIZE | AX),
+    MEM16_ALONE = (MEM16 << OPERAND_BIT_SIZE | ALONE),
+    MEM8_ALONE = (MEM8 << OPERAND_BIT_SIZE | ALONE),
     AL_IMM8 = (AL << OPERAND_BIT_SIZE | IMM8),
     AX_IMM16 = (AX << OPERAND_BIT_SIZE | IMM16),
     IMM8_ALONE = (IMM8 << OPERAND_BIT_SIZE | ALONE),
@@ -220,11 +219,13 @@ enum
     POP_REG16,
 
     RET,
-    
+
     XOR_REG_WITH_REG_W0,
     XOR_REG_WITH_REG_W1,
     XOR_MEM_WITH_REG_W0,
-    XOR_MEM_WITH_REG_W1
+    XOR_MEM_WITH_REG_W1,
+    XOR_REG_WITH_MEM_W0,
+    XOR_REG_WITH_MEM_W1
 };
 
 struct ins_syntax_def
@@ -240,6 +241,7 @@ struct condition_code_instruction
     CONDITION_CODE code;
 };
 
+class MustFitTable;
 class Assembler8086 : public Assembler
 {
 public:
@@ -254,16 +256,24 @@ private:
     void exp_handler();
     virtual void left_exp_handler();
     virtual void right_exp_handler();
+    virtual void push_branch(std::shared_ptr<Branch> branch);
+    
+    std::shared_ptr<MustFitTable> get_must_fit_table_for_label(std::string label_name);
     void assembler_pass_1();
     void pass_1_segment(std::shared_ptr<SegmentBranch> segment_branch);
     void pass_1_part(std::shared_ptr<Branch> branch);
 
+    void assembler_pass_2();
+    void pass_2_segment(std::shared_ptr<SegmentBranch> segment_branch);
+    void pass_2_part(std::shared_ptr<Branch> branch);
+    void handle_mustfits_for_label_branch(std::shared_ptr<LabelBranch> label_branch);
+    
     void get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm);
     int get_offset_from_oomod(char oo, char mmm);
     int get_instruction_size(std::shared_ptr<InstructionBranch> ins_branch);
     void register_segment(std::shared_ptr<SegmentBranch> segment_branch);
     void switch_to_segment(std::string segment_name);
-    void assembler_pass_2();
+    void assembler_pass_3();
     void handle_rrr(int* opcode, INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
     void handle_condition_code(int* opcode, std::shared_ptr<InstructionBranch> ins_branch);
     void gen_oommm(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> ins_branch);
@@ -291,6 +301,13 @@ private:
     INSTRUCTION_TYPE get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch);
     INSTRUCTION_TYPE get_mov_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
     INSTRUCTION_TYPE get_add_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
+
+    OPERAND_DATA_SIZE get_data_size_for_reg(std::string reg);
+    OPERAND_DATA_SIZE get_operand_data_size_for_number(int number);
+    void calculate_data_size_for_operand(std::shared_ptr<OperandBranch> branch);
+    void calculate_operand_sizes_for_instruction(std::shared_ptr<InstructionBranch> instruction_branch);
+    void add_must_fits_if_required(std::shared_ptr<InstructionBranch> ins_branch);
+    
     inline bool is_accumulator_and_not_ah(std::string _register);
     inline bool is_reg(std::string _register);
     inline char get_reg(std::string _register);
@@ -328,12 +345,14 @@ private:
 
     std::shared_ptr<SegmentBranch> segment_branch;
     std::vector<std::shared_ptr<SegmentBranch>> segment_branches;
-    
+
     Stream* sstream;
     std::shared_ptr<OperandBranch> left;
     std::shared_ptr<Branch> left_reg;
     std::shared_ptr<OperandBranch> right;
     std::shared_ptr<Branch> right_reg;
+    
+    std::shared_ptr<OffsetableBranch> last_offsetable_branch;
 
     INSTRUCTION_TYPE cur_ins_type;
     char mmm;

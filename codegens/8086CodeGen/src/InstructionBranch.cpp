@@ -27,8 +27,10 @@
 #include "InstructionBranch.h"
 #include "OperandBranch.h"
 
+
 InstructionBranch::InstructionBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch) : OffsetableBranch(compiler, segment_branch, "INSTRUCTION", "")
 {
+
 }
 
 InstructionBranch::~InstructionBranch()
@@ -65,6 +67,7 @@ void InstructionBranch::setRightBranch(std::shared_ptr<OperandBranch> right_bran
     CustomBranch::registerBranch("right_branch", right_branch);
 }
 
+
 std::shared_ptr<OperandBranch> InstructionBranch::getLeftBranch()
 {
     return std::dynamic_pointer_cast<OperandBranch>(CustomBranch::getRegisteredBranchByName("left_branch"));
@@ -85,12 +88,18 @@ bool InstructionBranch::hasRightBranch()
     return CustomBranch::isBranchRegistered("right_branch");
 }
 
+bool InstructionBranch::hasOnlyLeftOperandBranch()
+{
+    return hasLeftBranch() && !hasRightBranch();
+}
+
 void InstructionBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<InstructionBranch> ins_branch = std::dynamic_pointer_cast<InstructionBranch>(cloned_branch);
     ins_branch->setInstructionNameBranch(getInstructionNameBranch()->clone());
     ins_branch->setLeftBranch(std::dynamic_pointer_cast<OperandBranch>(getLeftBranch()->clone()));
     ins_branch->setRightBranch(std::dynamic_pointer_cast<OperandBranch>(getRightBranch()->clone()));
+    ins_branch->setNextOffsetableBranch(getNextOffsetableBranch());
 }
 
 std::shared_ptr<Branch> InstructionBranch::create_clone()

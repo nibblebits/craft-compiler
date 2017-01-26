@@ -28,6 +28,7 @@
 
 OffsetableBranch::OffsetableBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch, std::string type, std::string value) : ChildOfSegment(compiler, segment_branch, type, value)
 {
+    this->next_offsetable_branch = NULL;
 }
 
 OffsetableBranch::~OffsetableBranch()
@@ -42,6 +43,16 @@ void OffsetableBranch::setOffset(int offset)
 int OffsetableBranch::getOffset()
 {
     return this->offset;
+}
+
+void OffsetableBranch::setNextOffsetableBranch(std::shared_ptr<OffsetableBranch> branch)
+{
+    this->next_offsetable_branch = branch;
+}
+
+std::shared_ptr<OffsetableBranch> OffsetableBranch::getNextOffsetableBranch()
+{
+    return this->next_offsetable_branch;
 }
 
 void OffsetableBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)

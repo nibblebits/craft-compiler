@@ -26,6 +26,7 @@
 #define OFFSETABLEBRANCH_H
 
 #include "ChildOfSegment.h"
+
 class OffsetableBranch : public ChildOfSegment
 {
 public:
@@ -35,12 +36,16 @@ public:
     void setOffset(int offset);
     int getOffset();
 
+    void setNextOffsetableBranch(std::shared_ptr<OffsetableBranch> branch);
+    std::shared_ptr<OffsetableBranch> getNextOffsetableBranch();
+
+
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
 
-
 private:
     int offset;
+    std::shared_ptr<OffsetableBranch> next_offsetable_branch;
 };
 
 #endif /* OFFSETABLEBRANCH_H */

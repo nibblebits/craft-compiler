@@ -42,11 +42,15 @@ public:
     
     void setLeftBranch(std::shared_ptr<OperandBranch> left_branch);
     void setRightBranch(std::shared_ptr<OperandBranch> right_branch);
-
+    
     std::shared_ptr<OperandBranch> getLeftBranch();
     std::shared_ptr<OperandBranch> getRightBranch();
+   
+    
     bool hasLeftBranch();
     bool hasRightBranch();
+    
+    bool hasOnlyLeftOperandBranch();
     
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();

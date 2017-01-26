@@ -11,6 +11,7 @@
       <itemPath>include/GlobalBranch.h</itemPath>
       <itemPath>include/InstructionBranch.h</itemPath>
       <itemPath>include/LabelBranch.h</itemPath>
+      <itemPath>include/MustFitTable.h</itemPath>
       <itemPath>include/OffsetableBranch.h</itemPath>
       <itemPath>include/OperandBranch.h</itemPath>
       <itemPath>include/SegmentBranch.h</itemPath>
@@ -31,6 +32,7 @@
       <itemPath>src/GlobalBranch.cpp</itemPath>
       <itemPath>src/InstructionBranch.cpp</itemPath>
       <itemPath>src/LabelBranch.cpp</itemPath>
+      <itemPath>src/MustFitTable.cpp</itemPath>
       <itemPath>src/OffsetableBranch.cpp</itemPath>
       <itemPath>src/OperandBranch.cpp</itemPath>
       <itemPath>src/SegmentBranch.cpp</itemPath>
@@ -85,6 +87,8 @@
       </item>
       <item path="include/LabelBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/MustFitTable.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/OffsetableBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/OperandBranch.h" ex="false" tool="3" flavor2="0">
@@ -110,6 +114,8 @@
       <item path="src/InstructionBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LabelBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MustFitTable.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/OffsetableBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -152,6 +158,8 @@
       </item>
       <item path="include/LabelBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/MustFitTable.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/OffsetableBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/OperandBranch.h" ex="false" tool="3" flavor2="0">
@@ -177,6 +185,8 @@
       <item path="src/InstructionBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/LabelBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MustFitTable.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/OffsetableBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

@@ -25,10 +25,16 @@
  */
 
 #include "LabelBranch.h"
+#include "MustFitTable.h"
 
 LabelBranch::LabelBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch) : OffsetableBranch(compiler, segment_branch, "LABEL", "")
 {
+    this->must_fit_table = std::shared_ptr<MustFitTable>(new MustFitTable());
+}
 
+LabelBranch::LabelBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch, std::shared_ptr<MustFitTable> must_fit_table) : OffsetableBranch(compiler, segment_branch, "LABEL", "")
+{
+    this->must_fit_table = must_fit_table;
 }
 
 LabelBranch::~LabelBranch()
@@ -38,6 +44,9 @@ LabelBranch::~LabelBranch()
 void LabelBranch::setLabelNameBranch(std::shared_ptr<Branch> label_name_branch)
 {
     CustomBranch::registerBranch("label_name_branch", label_name_branch);
+    
+    // We should also update the name in the must fit table
+    this->must_fit_table->setLabelName(label_name_branch->getValue());
 }
 
 std::shared_ptr<Branch> LabelBranch::getLabelNameBranch()
@@ -55,6 +64,12 @@ std::shared_ptr<Branch> LabelBranch::getContentsBranch()
     return CustomBranch::getRegisteredBranchByName("contents_branch");
 }
 
+
+std::shared_ptr<MustFitTable> LabelBranch::getMustFitTable()
+{
+    return this->must_fit_table;
+}
+
 void LabelBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<LabelBranch> label_branch = std::dynamic_pointer_cast<LabelBranch>(cloned_branch);
@@ -63,5 +78,5 @@ void LabelBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 
 std::shared_ptr<Branch> LabelBranch::create_clone()
 {
-    return std::shared_ptr<Branch>(new LabelBranch(getCompiler(), getSegmentBranch()));
+    return std::shared_ptr<Branch>(new LabelBranch(getCompiler(), getSegmentBranch(), getMustFitTable()));
 }

@@ -44,6 +44,8 @@
 #include "EBranch.h"
 #include "GlobalBranch.h"
 #include "DataBranch.h"
+#include "OffsetableBranch.h"
+#include "MustFitTable.h"
 
 /* The instruction map, maps the instruction enum to the correct opcodes. 
  * as some instructions share the same opcode */
@@ -54,7 +56,7 @@ unsigned char ins_map[] = {
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
     0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70,
     0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x50,
-    0x58, 0xc3, 0x30, 0x31, 0x30, 0x31
+    0x58, 0xc3, 0x30, 0x31, 0x30, 0x31, 0x32, 0x33
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -65,7 +67,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
-    1, 1, 2, 2, 4, 4
+    1, 1, 2, 2, 4, 4, 4, 4
 };
 
 
@@ -78,7 +80,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
     4, 4, 6, 6, 6, 6, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -152,8 +154,10 @@ INSTRUCTION_INFO ins_info[] = {
     NO_PROPERTIES, // ret
     HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // xor reg8, reg8
     USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // xor reg16, reg16
-    HAS_OORRRMMM  | HAS_REG_USE_RIGHT, // xor mem, reg8
+    HAS_OORRRMMM | HAS_REG_USE_RIGHT, // xor mem, reg8
     USE_W | HAS_OORRRMMM | HAS_REG_USE_RIGHT, // xor mem, reg16
+    HAS_OORRRMMM | HAS_REG_USE_LEFT, // xor reg8, mem
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT // xor reg16, mem
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -161,48 +165,48 @@ struct ins_syntax_def ins_syntax[] = {
     "mov", MOV_REG_TO_REG_W1, REG16_REG16,
     "mov", MOV_IMM_TO_REG_W0, REG8_IMM8,
     "mov", MOV_IMM_TO_REG_W1, REG16_IMM16,
-    "mov", MOV_IMM_TO_MEM_W0, MEM_IMM8,
-    "mov", MOV_IMM_TO_MEM_W1, MEM_IMM16,
-    "mov", MOV_ACC_TO_MEMOFFS_W0, MEM_AL,
-    "mov", MOV_ACC_TO_MEMOFFS_W1, MEM_AX,
-    "mov", MOV_REG_TO_MEM_W0, MEM_REG8,
-    "mov", MOV_REG_TO_MEM_W1, MEM_REG16,
-    "mov", MOV_MEM_TO_REG_W0, REG8_MEM,
-    "mov", MOV_MEM_TO_REG_W1, REG16_MEM,
-    "mov", MOV_REG_TO_MEM_W0, MEM_REG8,
-    "mov", MOV_REG_TO_MEM_W1, MEM_REG16,
+    "mov", MOV_IMM_TO_MEM_W0, MEM16_IMM8,
+    "mov", MOV_IMM_TO_MEM_W1, MEM16_IMM16,
+    "mov", MOV_ACC_TO_MEMOFFS_W0, MEM16_AL,
+    "mov", MOV_ACC_TO_MEMOFFS_W1, MEM16_AX,
+    "mov", MOV_REG_TO_MEM_W0, MEM16_REG8,
+    "mov", MOV_REG_TO_MEM_W1, MEM16_REG16,
+    "mov", MOV_MEM_TO_REG_W0, REG8_MEM16,
+    "mov", MOV_MEM_TO_REG_W1, REG16_MEM16,
+    "mov", MOV_REG_TO_MEM_W0, MEM16_REG8,
+    "mov", MOV_REG_TO_MEM_W1, MEM16_REG16,
     "add", ADD_REG_WITH_REG_W0, REG8_REG8,
     "add", ADD_REG_WITH_REG_W1, REG16_REG16,
-    "add", ADD_MEM_WITH_REG_W0, MEM_REG8,
-    "add", ADD_MEM_WITH_REG_W1, MEM_REG16,
-    "add", ADD_REG_WITH_MEM_W0, REG8_MEM,
-    "add", ADD_REG_WITH_MEM_W1, REG16_MEM,
+    "add", ADD_MEM_WITH_REG_W0, MEM16_REG8,
+    "add", ADD_MEM_WITH_REG_W1, MEM16_REG16,
+    "add", ADD_REG_WITH_MEM_W0, REG8_MEM16,
+    "add", ADD_REG_WITH_MEM_W1, REG16_MEM16,
     "add", ADD_ACC_WITH_IMM_W0, AL_IMM8,
     "add", ADD_ACC_WITH_IMM_W1, AX_IMM16,
     "add", ADD_REG_WITH_IMM_W0, REG8_IMM8,
     "add", ADD_REG_WITH_IMM_W1, REG16_IMM16,
-    "add", ADD_MEM_WITH_IMM_W0, MEM_IMM8,
-    "add", ADD_MEM_WITH_IMM_W1, MEM_IMM16,
+    "add", ADD_MEM_WITH_IMM_W0, MEM16_IMM8,
+    "add", ADD_MEM_WITH_IMM_W1, MEM16_IMM16,
     "sub", SUB_REG_WITH_REG_W0, REG8_REG8,
     "sub", SUB_REG_WITH_REG_W1, REG16_REG16,
-    "sub", SUB_MEM_WITH_REG_W0, MEM_REG8,
-    "sub", SUB_MEM_WITH_REG_W1, MEM_REG16,
-    "sub", SUB_REG_WITH_MEM_W0, REG8_MEM,
-    "sub", SUB_REG_WITH_MEM_W1, REG16_MEM,
+    "sub", SUB_MEM_WITH_REG_W0, MEM16_REG8,
+    "sub", SUB_MEM_WITH_REG_W1, MEM16_REG16,
+    "sub", SUB_REG_WITH_MEM_W0, REG8_MEM16,
+    "sub", SUB_REG_WITH_MEM_W1, REG16_MEM16,
     "sub", SUB_ACC_WITH_IMM_W0, AL_IMM8,
     "sub", SUB_ACC_WITH_IMM_W1, AX_IMM16,
     "sub", SUB_REG_WITH_IMM_W0, REG8_IMM8,
     "sub", SUB_REG_WITH_IMM_W1, REG16_IMM16,
-    "sub", SUB_MEM_WITH_IMM_W0, MEM_IMM8,
-    "sub", SUB_MEM_WITH_IMM_W1, MEM_IMM16,
+    "sub", SUB_MEM_WITH_IMM_W0, MEM16_IMM8,
+    "sub", SUB_MEM_WITH_IMM_W1, MEM16_IMM16,
     "mul", MUL_WITH_REG_W0, REG8_ALONE,
     "mul", MUL_WITH_REG_W1, REG16_ALONE,
-    "mul", MUL_WITH_MEM_W0, MEML8_ALONE,
-    "mul", MUL_WITH_MEM_W1, MEML16_ALONE,
+    "mul", MUL_WITH_MEM_W0, MEM8_ALONE,
+    "mul", MUL_WITH_MEM_W1, MEM16_ALONE,
     "div", DIV_WITH_REG_W0, REG8_ALONE,
     "div", DIV_WITH_REG_W1, REG16_ALONE,
-    "div", DIV_WITH_MEM_W0, MEML8_ALONE,
-    "div", DIV_WITH_MEM_W1, MEML16_ALONE,
+    "div", DIV_WITH_MEM_W0, MEM8_ALONE,
+    "div", DIV_WITH_MEM_W1, MEM16_ALONE,
     "jmp", JMP_SHORT, IMM8_ALONE,
     "jmp", JMP_NEAR, IMM16_ALONE,
     "call", CALL_NEAR, IMM16_ALONE,
@@ -221,8 +225,10 @@ struct ins_syntax_def ins_syntax[] = {
     "ret", RET, ALONE_ALONE,
     "xor", XOR_REG_WITH_REG_W0, REG8_REG8,
     "xor", XOR_REG_WITH_REG_W1, REG16_REG16,
-    "xor", XOR_MEM_WITH_REG_W0, MEM_REG8,
-    "xor", XOR_MEM_WITH_REG_W1, MEM_REG16
+    "xor", XOR_MEM_WITH_REG_W0, MEM16_REG8,
+    "xor", XOR_MEM_WITH_REG_W1, MEM16_REG16,
+    "xor", XOR_REG_WITH_MEM_W0, REG8_MEM16,
+    "xor", XOR_REG_WITH_MEM_W1, REG16_MEM16
 };
 
 /* Certain instructions have condition codes that specify a particular event.
@@ -655,6 +661,8 @@ void Assembler8086::parse_ins()
     std::shared_ptr<OperandBranch> dest_op = NULL;
     std::shared_ptr<OperandBranch> source_op = NULL;
 
+    OPERAND_DATA_SIZE def_data_size = OPERAND_DATA_SIZE_UNKNOWN;
+
     // Shift and pop the instruction
     shift_pop();
     name_branch = getPoppedBranch();
@@ -664,7 +672,7 @@ void Assembler8086::parse_ins()
     if (is_next_valid_operand())
     {
         // Next will be the left operand
-        parse_operand();
+        parse_operand(def_data_size);
         // Pop it off
         pop_branch();
         dest_op = std::dynamic_pointer_cast<OperandBranch>(getPoppedBranch());
@@ -675,19 +683,6 @@ void Assembler8086::parse_ins()
         {
             // Now we need to shift and pop off the comma ","
             shift_pop();
-
-            OPERAND_DATA_SIZE def_data_size = OPERAND_DATA_SIZE_UNKNOWN;
-            if (dest_op->hasRegisterBranch())
-            {
-                if (is_reg_16_bit(dest_op->getRegisterBranch()->getValue()))
-                {
-                    def_data_size = OPERAND_DATA_SIZE_WORD;
-                }
-                else
-                {
-                    def_data_size = OPERAND_DATA_SIZE_BYTE;
-                }
-            }
 
             // Finally a final expression which will be the second operand
             parse_operand(def_data_size);
@@ -834,8 +829,41 @@ bool Assembler8086::is_next_data()
 
 void Assembler8086::generate()
 {
+    // Calculates offsets instruction and operand sizes.
     assembler_pass_1();
+    // Figures out if labels are not out of range for particular instructions
     assembler_pass_2();
+    // Generates the instructions into machine code.
+    assembler_pass_3();
+}
+
+void Assembler8086::push_branch(std::shared_ptr<Branch> branch)
+{
+    Assembler::push_branch(branch);
+
+    // Are we pushing an offsetable branch?
+    std::shared_ptr<OffsetableBranch> offsetable_branch = std::dynamic_pointer_cast<OffsetableBranch>(branch);
+    if (offsetable_branch != NULL)
+    {
+        // Yes we did lets set the previous offsetable branches next offsetable branch to us
+        if (this->last_offsetable_branch != NULL)
+        {
+            this->last_offsetable_branch->setNextOffsetableBranch(offsetable_branch);
+        }
+
+        this->last_offsetable_branch = offsetable_branch;
+    }
+}
+
+std::shared_ptr<MustFitTable> Assembler8086::get_must_fit_table_for_label(std::string label_name)
+{
+    std::shared_ptr<LabelBranch> label_branch = get_label_branch(label_name);
+    if (label_branch != NULL)
+    {
+        return label_branch->getMustFitTable();
+    }
+
+    return NULL;
 }
 
 void Assembler8086::assembler_pass_1()
@@ -873,6 +901,7 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
         // This is a label, therefore we need to give it, its position.
         std::shared_ptr<LabelBranch> label_branch = std::dynamic_pointer_cast<LabelBranch>(branch);
         label_branch->setOffset(this->cur_offset);
+
         // Now we need to pass through the children
         for (std::shared_ptr<Branch> child : label_branch->getContentsBranch()->getChildren())
         {
@@ -882,6 +911,13 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
     else if (branch->getType() == "INSTRUCTION")
     {
         std::shared_ptr<InstructionBranch> ins_branch = std::dynamic_pointer_cast<InstructionBranch>(branch);
+        // Lets calculate the operand sizes for this instruction
+        calculate_operand_sizes_for_instruction(ins_branch);
+
+        /* An operand may have specified a label that is too far in offset for the given instruction
+         * We register possible scenarios like this so that they can be resolved later on if required.*/
+        add_must_fits_if_required(ins_branch);
+
         ins_branch->setOffset(this->cur_offset);
         int size = get_instruction_size(std::dynamic_pointer_cast<InstructionBranch>(branch));
         ins_branch->setSize(size);
@@ -936,6 +972,68 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
     {
         throw AssemblerException("void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch): "
                                  "unsupported branch type of type \"" + branch->getType() + "\" was provided");
+    }
+}
+
+void Assembler8086::assembler_pass_2()
+{
+    for (std::shared_ptr<Branch> branch : root->getChildren())
+    {
+        if (branch->getType() == "SEGMENT")
+        {
+            pass_2_segment(std::dynamic_pointer_cast<SegmentBranch>(branch));
+        }
+        else
+        {
+            throw new AssemblerException("void Assembler8086::generate(): branch requires a segment.");
+        }
+    }
+}
+
+void Assembler8086::pass_2_segment(std::shared_ptr<SegmentBranch> segment_branch)
+{
+    // Now we need to pass through the children
+    for (std::shared_ptr<Branch> child : segment_branch->getContentsBranch()->getChildren())
+    {
+        pass_2_part(child);
+    }
+}
+
+void Assembler8086::pass_2_part(std::shared_ptr<Branch> branch)
+{
+    if (branch->getType() == "LABEL")
+    {
+        // Ok we need to handle the must fit
+        handle_mustfits_for_label_branch(std::dynamic_pointer_cast<LabelBranch>(branch));
+    }
+}
+
+void Assembler8086::handle_mustfits_for_label_branch(std::shared_ptr<LabelBranch> label_branch)
+{
+    std::shared_ptr<MustFitTable> must_fit_table = label_branch->getMustFitTable();
+    
+    // Lets check if any fixups are required
+    if (must_fit_table->hasMustFits())
+    {
+        for (struct MUST_FIT must_fit : must_fit_table->getMustFits())
+        {
+            std::shared_ptr<InstructionBranch> ins_branch = must_fit.ins_branch;
+            int our_pos = label_branch->getOffset();
+            int ins_pos = ins_branch->getOffset();
+            int offset = our_pos - ins_pos;
+            if (must_fit.must_fit == MUST_FIT_8_BIT_SIGNED)
+            {
+                
+                if (offset > 128 
+                        || offset < -128)
+                {
+                    // Offset is above or below 128 so it will not fit into an 8 bit singed integer
+                    // Lets just throw an exception here then since the programmer did something they shouldn't have done
+                    // and this assembler currently does not fix these problems automatically.
+                    throw Exception("void Assembler8086::handle_mustfits_for_label_branch(std::shared_ptr<LabelBranch> label_branch): offset boundaries breached for instruction " + ins_branch->getInstructionNameBranch()->getValue());
+                }
+            }
+        }
     }
 }
 
@@ -1166,7 +1264,7 @@ void Assembler8086::switch_to_segment(std::string segment_name)
     throw AssemblerException("void Assembler8086::switch_to_segment(std::string segment_name): \"" + segment_name + "\" does not exist");
 }
 
-void Assembler8086::assembler_pass_2()
+void Assembler8086::assembler_pass_3()
 {
     for (std::shared_ptr<Branch> branch : root->getChildren())
     {
@@ -1592,15 +1690,11 @@ OPERAND_INFO Assembler8086::get_operand_info(std::shared_ptr<OperandBranch> op_b
         // If a data size is provided then we must be loading bits of 8 or 16
         if (op_branch->getDataSize() == OPERAND_DATA_SIZE_BYTE)
         {
-            info = MEML8;
+            info = MEM8;
         }
         else if (op_branch->getDataSize() == OPERAND_DATA_SIZE_WORD)
         {
-            info = MEML16;
-        }
-        else
-        {
-            info = MEM;
+            info = MEM16;
         }
     }
 
@@ -1851,6 +1945,166 @@ INSTRUCTION_TYPE Assembler8086::get_add_ins_type(std::shared_ptr<InstructionBran
     }
 
     return -1;
+}
+
+OPERAND_DATA_SIZE Assembler8086::get_data_size_for_reg(std::string reg)
+{
+    OPERAND_DATA_SIZE def_data_size = OPERAND_DATA_SIZE_UNKNOWN;
+
+    if (is_reg_16_bit(reg))
+    {
+        def_data_size = OPERAND_DATA_SIZE_WORD;
+    }
+    else
+    {
+        def_data_size = OPERAND_DATA_SIZE_BYTE;
+    }
+
+    return def_data_size;
+}
+
+OPERAND_DATA_SIZE Assembler8086::get_operand_data_size_for_number(int number)
+{
+    OPERAND_DATA_SIZE size;
+    if (number < 256)
+    {
+        size = OPERAND_DATA_SIZE_BYTE;
+    }
+    else
+    {
+        size = OPERAND_DATA_SIZE_WORD;
+    }
+
+    return size;
+}
+
+void Assembler8086::calculate_data_size_for_operand(std::shared_ptr<OperandBranch> branch)
+{
+    if (branch->getDataSize() != OPERAND_DATA_SIZE_UNKNOWN)
+    {
+        // The size has already been decided externally nothing we can do here
+        return;
+    }
+
+    OPERAND_DATA_SIZE size = OPERAND_DATA_SIZE_UNKNOWN;
+    if (branch->hasRegisterBranch())
+    {
+        size = get_data_size_for_reg(branch->getRegisterBranch()->getValue());
+    }
+    else
+    {
+        size = OPERAND_DATA_SIZE_WORD;
+    }
+
+    branch->setDataSize(size);
+}
+
+void Assembler8086::calculate_operand_sizes_for_instruction(std::shared_ptr<InstructionBranch> instruction_branch)
+{
+    /* Ok we need to calculate the operand sizes for this instruction as they are not yet calculated 
+     * the algorithm is as follows.
+     */
+
+    std::shared_ptr<OperandBranch> left = instruction_branch->getLeftBranch();
+    std::shared_ptr<OperandBranch> right = instruction_branch->getRightBranch();
+
+    SYNTAX_INFO op_syntax_info;
+    OPERAND_DATA_SIZE data_size;
+
+    // We should only calculate the data size of the left branch if the left branches data size is unknown
+    if (instruction_branch->hasLeftBranch()
+            && left->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN)
+    {
+        if (instruction_branch->hasOnlyLeftOperandBranch()
+                && left->isOnlyImmediate())
+        {
+            if (left->hasIdentifierBranch())
+            {
+                // Default to IMM8 for identifier branches it will be automatically upgraded further down if needed
+                op_syntax_info = IMM8_ALONE;
+            }
+            else if (left->hasNumberBranch())
+            {
+                data_size = get_operand_data_size_for_number(std::stoi(left->getNumberBranch()->getValue()));
+                if (data_size == OPERAND_DATA_SIZE_BYTE)
+                {
+                    op_syntax_info = IMM8_ALONE;
+                }
+                else
+                {
+                    op_syntax_info = IMM16_ALONE;
+                }
+            }
+
+
+            std::string instruction_name = instruction_branch->getInstructionNameBranch()->getValue();
+            INSTRUCTION_TYPE type;
+            if (op_syntax_info == IMM8_ALONE)
+            {
+                // Ok we need to check to see if a MEM8 is legal or not. If it is not we will then default to MEM16
+                type = get_instruction_type_by_name_and_syntax(instruction_name, op_syntax_info);
+                if (!(ins_info[type] & SHORT_POSSIBLE))
+                {
+                    // Ok short is not possible to we need to change this to use MEM16 instead of MEM8
+                    op_syntax_info = IMM16_ALONE;
+                }
+            }
+
+            if (op_syntax_info == IMM16_ALONE)
+            {
+                // Ok we need to check to see if a MEM16 is legal or not. If it is not we will then default to MEM8
+                type = get_instruction_type_by_name_and_syntax(instruction_name, op_syntax_info);
+                if (!(ins_info[type] & NEAR_POSSIBLE))
+                {
+                    // Ok near is not possible so lets throw an exception as clearly something is wrong we cannot downgrade.
+                    throw Exception("void Assembler8086::calculate_operand_sizes_for_instruction(std::shared_ptr<InstructionBranch> instruction_branch): Attempting to use MEM16 when no MEM16 is available for this instruction.");
+                }
+            }
+
+            if (op_syntax_info == IMM8_ALONE)
+            {
+                data_size = OPERAND_DATA_SIZE_BYTE;
+            }
+            else
+            {
+                data_size = OPERAND_DATA_SIZE_WORD;
+            }
+
+            left->setDataSize(data_size);
+        }
+        else
+        {
+            if (instruction_branch->hasLeftBranch())
+            {
+                calculate_data_size_for_operand(left);
+            }
+        }
+    }
+
+    // We should only calculate the data size for the right operand if the size is unknown
+    if (instruction_branch->hasRightBranch()
+            && right->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN)
+    {
+        calculate_data_size_for_operand(right);
+    }
+}
+
+void Assembler8086::add_must_fits_if_required(std::shared_ptr<InstructionBranch> ins_branch)
+{
+    // We may need to register a offset fixup for later on incase label offsets are too far for the instruction
+    if (ins_branch->hasOnlyLeftOperandBranch())
+    {
+        std::shared_ptr<OperandBranch> left = ins_branch->getLeftBranch();
+        if (left->isOnlyImmediate() &&
+                left->hasIdentifierBranch())
+        {
+            // Ok lets get the label branch 
+            std::shared_ptr<LabelBranch> label_branch = get_label_branch(left->getIdentifierBranch()->getValue());
+            MUST_FIT_TYPE must_fit = (left->getDataSize() == OPERAND_DATA_SIZE_BYTE ? MUST_FIT_8_BIT_SIGNED : MUST_FIT_16_BIT_SIGNED);
+            label_branch->getMustFitTable()->addMustFit(must_fit, ins_branch, left);
+        }
+    }
+
 }
 
 bool Assembler8086::is_accumulator_and_not_ah(std::string _register)
