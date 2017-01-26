@@ -56,7 +56,7 @@ unsigned char ins_map[] = {
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
     0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70,
     0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x50,
-    0x58, 0xc3, 0x30, 0x31, 0x30, 0x31, 0x32, 0x33
+    0x58, 0xc3, 0x30, 0x31, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -67,7 +67,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
-    1, 1, 2, 2, 4, 4, 4, 4
+    1, 1, 2, 2, 4, 4, 4, 4, 2, 3
 };
 
 
@@ -80,7 +80,7 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
     4, 4, 6, 6, 6, 6, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -157,7 +157,9 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_OORRRMMM | HAS_REG_USE_RIGHT, // xor mem, reg8
     USE_W | HAS_OORRRMMM | HAS_REG_USE_RIGHT, // xor mem, reg16
     HAS_OORRRMMM | HAS_REG_USE_LEFT, // xor reg8, mem
-    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT // xor reg16, mem
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT, // xor reg16, mem
+    HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // xor al, imm8
+    USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT // xor ax, imm16
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -228,7 +230,9 @@ struct ins_syntax_def ins_syntax[] = {
     "xor", XOR_MEM_WITH_REG_W0, MEM16_REG8,
     "xor", XOR_MEM_WITH_REG_W1, MEM16_REG16,
     "xor", XOR_REG_WITH_MEM_W0, REG8_MEM16,
-    "xor", XOR_REG_WITH_MEM_W1, REG16_MEM16
+    "xor", XOR_REG_WITH_MEM_W1, REG16_MEM16,
+    "xor", XOR_ACC_WITH_IMM_W0, AL_IMM8,
+    "xor", XOR_ACC_WITH_IMM_W1, AX_IMM16
 };
 
 /* Certain instructions have condition codes that specify a particular event.
@@ -1011,7 +1015,7 @@ void Assembler8086::pass_2_part(std::shared_ptr<Branch> branch)
 void Assembler8086::handle_mustfits_for_label_branch(std::shared_ptr<LabelBranch> label_branch)
 {
     std::shared_ptr<MustFitTable> must_fit_table = label_branch->getMustFitTable();
-    
+
     // Lets check if any fixups are required
     if (must_fit_table->hasMustFits())
     {
@@ -1023,8 +1027,8 @@ void Assembler8086::handle_mustfits_for_label_branch(std::shared_ptr<LabelBranch
             int offset = our_pos - ins_pos;
             if (must_fit.must_fit == MUST_FIT_8_BIT_SIGNED)
             {
-                
-                if (offset > 128 
+
+                if (offset > 128
                         || offset < -128)
                 {
                     // Offset is above or below 128 so it will not fit into an 8 bit singed integer
@@ -1991,9 +1995,33 @@ void Assembler8086::calculate_data_size_for_operand(std::shared_ptr<OperandBranc
     {
         size = get_data_size_for_reg(branch->getRegisterBranch()->getValue());
     }
-    else
+    else if (branch->hasIdentifierBranch())
     {
         size = OPERAND_DATA_SIZE_WORD;
+    }
+    else if (branch->hasNumberBranch())
+    {
+        unsigned int number = std::stoi(branch->getNumberBranch()->getValue());
+        if (number < 256)
+        {
+            // we can fit this in a byte
+            size = OPERAND_DATA_SIZE_BYTE;
+            // Set the data size ready for get_instruction_type
+            branch->setDataSize(size);
+            if(get_instruction_type(branch->getInstructionBranch()) == -1)
+            {
+                /* Illegal instruction so lets set it to a word instead and
+                 * if there is still a problem it will be caught later on.
+                 */
+                size = OPERAND_DATA_SIZE_WORD;
+            }
+            
+        }
+        else
+        {
+            // We need to use a word here
+            size = OPERAND_DATA_SIZE_WORD;
+        }
     }
 
     branch->setDataSize(size);

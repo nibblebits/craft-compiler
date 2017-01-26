@@ -28,6 +28,7 @@
 #include "ChildOfSegment.h"
 #include "Assembler8086.h"
 
+class InstructionBranch;
 class OperandBranch : public ChildOfSegment
 {
 public:
@@ -43,6 +44,8 @@ public:
     
     void setIdentifierBranch(std::shared_ptr<Branch> label_branch);
     std::shared_ptr<Branch> getIdentifierBranch();
+    
+    std::shared_ptr<InstructionBranch> getInstructionBranch();
 
     void setMemoryAccess(bool is_memory_access);
     void setDataSize(OPERAND_DATA_SIZE size);

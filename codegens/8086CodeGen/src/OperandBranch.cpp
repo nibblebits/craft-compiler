@@ -25,6 +25,7 @@
  */
 
 #include "OperandBranch.h"
+#include "InstructionBranch.h"
 
 OperandBranch::OperandBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch) : ChildOfSegment(compiler, segment_branch, "OPERAND", "")
 {
@@ -63,6 +64,11 @@ void OperandBranch::setIdentifierBranch(std::shared_ptr<Branch> label_branch)
 std::shared_ptr<Branch> OperandBranch::getIdentifierBranch()
 {
     return CustomBranch::getRegisteredBranchByName("label_branch");
+}
+
+std::shared_ptr<InstructionBranch> OperandBranch::getInstructionBranch()
+{
+    return std::dynamic_pointer_cast<InstructionBranch>(getParent());
 }
 
 void OperandBranch::setMemoryAccess(bool is_memory_access)
