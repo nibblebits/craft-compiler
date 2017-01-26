@@ -61,13 +61,13 @@ protected:
     void addRegister(std::string _register);
     std::vector<std::shared_ptr<Token>> getTokens();
 
-    void push_branch(std::shared_ptr<Branch> branch);
-    void pop_branch();
-    void pop_front_branch();
-    void peek();
-    void peek(int offset);
-    void shift();
-    void shift_pop();
+    virtual void push_branch(std::shared_ptr<Branch> branch);
+    virtual void pop_branch();
+    virtual void pop_front_branch();
+    virtual void peek();
+    virtual void peek(int offset);
+    virtual void shift();
+    virtual void shift_pop();
 
     bool is_peek_type(std::string type);
     bool is_peek_value(std::string value);

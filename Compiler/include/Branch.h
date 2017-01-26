@@ -56,7 +56,8 @@ public:
     void setRoot(std::shared_ptr<RootBranch> root_branch);
     void setRootScope(std::shared_ptr<ScopeBranch> root_scope, bool set_to_all_children = false);
     void setLocalScope(std::shared_ptr<ScopeBranch> local_scope, bool set_to_all_children = false);
-
+    
+    
     std::shared_ptr<Branch> getFirstChild();
     std::shared_ptr<Branch> getSecondChild();
     std::shared_ptr<Branch> getThirdChild();
@@ -66,6 +67,7 @@ public:
     bool hasChildren();
     std::shared_ptr<Branch> getParent();
     bool hasParent();
+    bool isChildAheadOfChild(std::shared_ptr<Branch> child1, std::shared_ptr<Branch> child2);
     std::shared_ptr<Branch> getFirstChildOfType(std::string type);
         bool hasChildOfType(std::string type);
     std::shared_ptr<Branch> lookUpTreeUntilParentTypeFound(std::string parent_type_to_find);

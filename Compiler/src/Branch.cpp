@@ -366,6 +366,19 @@ bool Branch::hasParent()
     return this->parent != NULL;
 }
 
+bool Branch::isChildAheadOfChild(std::shared_ptr<Branch> child1, std::shared_ptr<Branch> child2)
+{
+    for (std::shared_ptr<Branch> child : getChildren())
+    {
+        if (child == child1)
+            return true;
+        else if(child == child2)
+            return false;
+    }
+    
+    throw Exception("bool Branch::isChildAheadOfChild(std::shared_ptr<Branch> child1, std::shared_ptr<Branch> child2): neither children are children of this branch");
+}
+
 std::shared_ptr<Branch> Branch::getFirstChildOfType(std::string type)
 {
     for (std::shared_ptr<Branch> child : getChildren())
