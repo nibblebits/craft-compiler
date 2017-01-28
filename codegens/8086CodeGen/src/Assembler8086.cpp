@@ -56,7 +56,8 @@ unsigned char ins_map[] = {
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
     0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70,
     0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x50,
-    0x58, 0xc3, 0x30, 0x31, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35
+    0x58, 0xc3, 0x30, 0x31, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
+    0x80, 0x81
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -67,7 +68,8 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
-    1, 1, 2, 2, 4, 4, 4, 4, 2, 3
+    1, 1, 2, 2, 4, 4, 4, 4, 2, 3,
+    3, 4
 };
 
 
@@ -80,7 +82,8 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
     4, 4, 6, 6, 6, 6, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    6, 6
 };
 
 /* Describes information relating to an instruction 
@@ -159,7 +162,9 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_OORRRMMM | HAS_REG_USE_LEFT, // xor reg8, mem
     USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT, // xor reg16, mem
     HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // xor al, imm8
-    USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT // xor ax, imm16
+    USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // xor ax, imm16
+    HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // xor reg8, imm8
+    USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // xor reg16, imm16
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -232,7 +237,9 @@ struct ins_syntax_def ins_syntax[] = {
     "xor", XOR_REG_WITH_MEM_W0, REG8_MEM16,
     "xor", XOR_REG_WITH_MEM_W1, REG16_MEM16,
     "xor", XOR_ACC_WITH_IMM_W0, AL_IMM8,
-    "xor", XOR_ACC_WITH_IMM_W1, AX_IMM16
+    "xor", XOR_ACC_WITH_IMM_W1, AX_IMM16,
+    "xor", XOR_REG_WITH_IMM_W0, REG8_IMM8,
+    "xor", XOR_REG_WITH_IMM_W1, REG16_IMM16
 };
 
 /* Certain instructions have condition codes that specify a particular event.
@@ -1707,18 +1714,28 @@ OPERAND_INFO Assembler8086::get_operand_info(std::shared_ptr<OperandBranch> op_b
 
 SYNTAX_INFO Assembler8086::get_syntax_info(std::shared_ptr<InstructionBranch> instruction_branch, OPERAND_INFO* left_op, OPERAND_INFO* right_op)
 {
-    *left_op = ALONE;
-    *right_op = ALONE;
+    OPERAND_INFO left_op_local = ALONE;
+    OPERAND_INFO right_op_local = ALONE;
     if (instruction_branch->hasLeftBranch())
     {
-        *left_op = get_operand_info(instruction_branch->getLeftBranch());
+        left_op_local = get_operand_info(instruction_branch->getLeftBranch());
     }
     if (instruction_branch->hasRightBranch())
     {
-        *right_op = get_operand_info(instruction_branch->getRightBranch());
+        right_op_local = get_operand_info(instruction_branch->getRightBranch());
     }
 
-    return (*left_op << OPERAND_BIT_SIZE | *right_op);
+    if (left_op != NULL)
+    {
+        *left_op = left_op_local;
+    }
+
+    if (right_op != NULL)
+    {
+        *right_op = right_op_local;
+    }
+
+    return (left_op_local << OPERAND_BIT_SIZE | right_op_local);
 }
 
 INSTRUCTION_TYPE Assembler8086::get_instruction_type_by_name_and_syntax(std::string instruction_name, SYNTAX_INFO syntax_info)
@@ -1984,6 +2001,7 @@ OPERAND_DATA_SIZE Assembler8086::get_operand_data_size_for_number(int number)
 
 void Assembler8086::calculate_data_size_for_operand(std::shared_ptr<OperandBranch> branch)
 {
+    std::shared_ptr<InstructionBranch> ins_branch = branch->getInstructionBranch();
     if (branch->getDataSize() != OPERAND_DATA_SIZE_UNKNOWN)
     {
         // The size has already been decided externally nothing we can do here
@@ -1997,7 +2015,18 @@ void Assembler8086::calculate_data_size_for_operand(std::shared_ptr<OperandBranc
     }
     else if (branch->hasIdentifierBranch())
     {
-        size = OPERAND_DATA_SIZE_WORD;
+        size = OPERAND_DATA_SIZE_BYTE;
+        // Set the data size ready for get_syntax_info
+        branch->setDataSize(size);
+        SYNTAX_INFO syntax_info = get_syntax_info(ins_branch);
+        INSTRUCTION_TYPE type = get_instruction_type_by_name_and_syntax(ins_branch->getInstructionNameBranch()->getValue(), syntax_info);
+        if (type == -1)
+        {
+            /* Illegal instruction so lets set it to a word instead and
+             * if there is still a problem it will be caught later on.
+             */
+            size = OPERAND_DATA_SIZE_WORD;
+        }
     }
     else if (branch->hasNumberBranch())
     {
@@ -2006,16 +2035,18 @@ void Assembler8086::calculate_data_size_for_operand(std::shared_ptr<OperandBranc
         {
             // we can fit this in a byte
             size = OPERAND_DATA_SIZE_BYTE;
-            // Set the data size ready for get_instruction_type
+            // Set the data size ready for get_syntax_info
             branch->setDataSize(size);
-            if(get_instruction_type(branch->getInstructionBranch()) == -1)
+            SYNTAX_INFO syntax_info = get_syntax_info(ins_branch);
+            INSTRUCTION_TYPE type = get_instruction_type_by_name_and_syntax(ins_branch->getInstructionNameBranch()->getValue(), syntax_info);
+            if (type == -1)
             {
                 /* Illegal instruction so lets set it to a word instead and
                  * if there is still a problem it will be caught later on.
                  */
                 size = OPERAND_DATA_SIZE_WORD;
             }
-            
+
         }
         else
         {
