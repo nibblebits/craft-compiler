@@ -11,13 +11,13 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
                    projectFiles="true">
-    </logicalFolder>
-    <logicalFolder name="SourceFiles"
-                   displayName="Source Files"
-                   projectFiles="true">
-      <itemPath>src/CraftUniversalObjectFormat.cpp</itemPath>
-      <itemPath>src/UOFSegment.cpp</itemPath>
-      <itemPath>src/main.cpp</itemPath>
+      <logicalFolder name="SourceFiles"
+                     displayName="Source Files"
+                     projectFiles="true">
+        <itemPath>src/CraftUniversalObjectFormat.cpp</itemPath>
+        <itemPath>src/UOFSegment.cpp</itemPath>
+        <itemPath>src/main.cpp</itemPath>
+      </logicalFolder>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"

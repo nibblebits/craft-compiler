@@ -1,4 +1,1 @@
-uint8 main()
-{
-	return 0;
-}
+__asm("xor al, 50");

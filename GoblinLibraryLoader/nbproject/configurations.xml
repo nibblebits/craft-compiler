@@ -45,6 +45,9 @@
             <pElem>include</pElem>
           </incDir>
         </cTool>
+        <ccTool>
+          <standard>11</standard>
+        </ccTool>
         <linkerTool>
           <output>../bin/GoblinLibraryLoader.${CND_DLIB_EXT}</output>
         </linkerTool>

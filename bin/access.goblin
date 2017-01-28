@@ -1,0 +1,97 @@
+uint8 ReadChar()
+{
+	uint8 c;
+	__asm("mov ah, 0x00");
+	__asm("int 0x16");
+	__asm("mov %i, al", c);
+	return c;
+}
+
+uint8 ReadString(uint8* ptr)
+{
+	uint8 i = 0;
+	while(1)
+	{
+		uint8 c = ReadChar();
+		if (c == 13)
+		{
+			break;
+		}
+		WriteChar(c);
+		*ptr[i] = c;
+		i = i + 1;
+	}
+	
+	*ptr[i+1] = 0; 
+	
+	return 0;
+}
+uint8 WriteChar(uint8 c)
+{
+	__asm("mov ah, 0eh");
+	__asm("mov al, %i", c);
+	__asm("int 0x10");
+	
+	return 0;
+}
+
+uint8 WriteString(uint8* ptr)
+{
+	uint8 i = 0;
+	while(1)
+	{
+		uint8 c = *ptr[i];
+		if (c == 0)
+		{
+			break;
+		}
+		WriteChar(c);
+		i = i +1;
+	}
+	
+	WriteChar(10);	
+	
+	return 0;
+}
+
+uint8 strcmp(uint8* first, uint8* second)
+{
+	uint8 i = 0;
+	while(1)
+	{
+		uint8 fc = *first[i];
+		uint8 sc = *second[i];
+		if (fc == 0)
+		{
+			return 1;
+		}
+		
+		if (fc != sc)
+		{
+			return 0;
+		}
+		i = i + 1;
+	}
+	
+	return 0;
+}
+
+
+uint8 main()
+{
+	uint8 array[20];
+	ReadString(&array);
+	if (strcmp("nibblebits", &array))
+	{
+		WriteString("Access Granted");
+	}
+	else if(strcmp("dan", &array))
+	{
+		WriteString("Welcome Dan");
+	}
+	else
+	{
+		WriteString("Access Denied");
+	}
+	return 0;
+}

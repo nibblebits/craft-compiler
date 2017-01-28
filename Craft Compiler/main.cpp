@@ -232,7 +232,7 @@ int main(int argc, char** argv)
     }
 
     // Let the compiler know the arguments that were passed to us.
-    for(Argument argument : arguments.getArguments())
+    for (Argument argument : arguments.getArguments())
     {
         compiler.setArgument(argument.name, argument.value);
     }
@@ -287,7 +287,7 @@ int main(int argc, char** argv)
         debug_output_tokens(lexer->getTokens());
 #endif
     }
-    catch (LexerException ex)
+    catch (Exception ex)
     {
         std::cout << "Error with input: " << ex.getMessage() << std::endl;
         return ERROR_WITH_LEXER;
@@ -331,17 +331,24 @@ int main(int argc, char** argv)
         semanticValidator->setTree(parser->getTree());
         semanticValidator->validate();
     }
-    catch (SemanticValidatorException ex)
+    catch (Exception ex)
     {
         std::cout << "Error with validation: " << ex.getMessage() << std::endl;
         return ERROR_WITH_SEMANTIC_VALIDATION;
     }
 
     // Improve the tree
-    // Get some exception handling here soon
-    treeImprover->setTree(parser->getTree());
-    treeImprover->improve();
-
+    try
+    {
+        treeImprover->setTree(parser->getTree());
+        treeImprover->improve();
+    }
+    catch (Exception ex)
+    {
+        std::cout << "Error with improving the tree: " << ex.getMessage() << std::endl;
+        return ERROR_WITH_TREE_IMPROVER;
+    }
+    
 #ifdef DEBUG_MODE
     debug_output_branch(parser->getTree()->root);
 #endif 
@@ -354,6 +361,8 @@ int main(int argc, char** argv)
         // Finalize the object
         std::shared_ptr<VirtualObjectFormat> obj_format = codegen->getObjectFormat();
         obj_format->finalize();
+        // Reset the object stream position to 0 so its ready for writing.
+        obj_format->getObjectStream()->setPosition(0);
 
         // Ok lets write the object file
         if (object_file_output)
