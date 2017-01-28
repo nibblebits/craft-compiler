@@ -229,7 +229,9 @@ enum
     XOR_ACC_WITH_IMM_W0,
     XOR_ACC_WITH_IMM_W1,
     XOR_REG_WITH_IMM_W0,
-    XOR_REG_WITH_IMM_W1
+    XOR_REG_WITH_IMM_W1,
+    XOR_MEM_WITH_IMM_W0,
+    XOR_MEM_WITH_IMM_W1
 };
 
 struct ins_syntax_def
