@@ -41,8 +41,47 @@ std::shared_ptr<VirtualSegment> OMFObjectFormat::new_segment(std::string segment
     return std::shared_ptr<VirtualSegment>(new VirtualSegment(segment_name));
 }
 
+LOCATION_TYPE OMFObjectFormat::get_location_type_from_fixup_standard(std::shared_ptr<FIXUP_STANDARD> fixup_standard)
+{
+    LOCATION_TYPE location_type;
+    FIXUP_LENGTH length = fixup_standard->getFixupLength();
+    if (length == FIXUP_16BIT)
+    {
+        location_type = FIXUPP_LOCATION_16_BIT_OFFSET;
+    }
+    else if (length == FIXUP_8BIT)
+    {
+        location_type = FIXUPP_LOCATION_LOW_ORDER_BYTE_8_BIT_DISPLACEMENT;
+    }
+    else
+    {
+        throw Exception("LOCATION_TYPE OMFObjectFormat::get_location_type_from_fixup_standard(std::shared_ptr<FIXUP_STANDARD> fixup_standard): invalid or unimplemented fix up length for the OMF object file");
+    }
+
+    return location_type;
+}
+
+void OMFObjectFormat::handle_segment_fixup(struct RECORD* record, std::shared_ptr<SEGMENT_FIXUP> seg_fixup)
+{
+    LOCATION_TYPE location_type = get_location_type_from_fixup_standard(seg_fixup);
+    MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(record,
+                                                seg_fixup->getRelatingSegment()->getName().c_str(),
+                                                seg_fixup->getOffset(),
+                                                location_type);
+}
+
+void OMFObjectFormat::handle_extern_fixup(struct RECORD* record, std::shared_ptr<EXTERN_FIXUP> extern_fixup)
+{
+    LOCATION_TYPE location_type = get_location_type_from_fixup_standard(extern_fixup);
+    MagicOMFAddFIXUP16_SubRecord_Fixup_External(record,
+                                               extern_fixup->getExternalName().c_str(),
+                                               extern_fixup->getOffset(),
+                                               location_type);
+}
+
 void OMFObjectFormat::finalize()
 {
+    struct RECORD* record;
     // Lets create a Magic OMF handle using the MagicOMF library that was written for this library
     struct MagicOMFHandle* handle = MagicOMFCreateHandle();
     // Create the THEADR, this should be the input filename
@@ -57,7 +96,7 @@ void OMFObjectFormat::finalize()
 
 
     // We need to create LNAMES for the segments
-    struct RECORD* record = MagicOMFNewLNAMESRecord(handle);
+    record = MagicOMFNewLNAMESRecord(handle);
     for (std::shared_ptr<VirtualSegment> segment : getSegments())
     {
         MagicOMFAddLNAME(record, segment->getName().c_str());
@@ -76,6 +115,14 @@ void OMFObjectFormat::finalize()
         MagicOMFAddSEGDEF16(handle, segment->getName().c_str(), attributes, segment->getStream()->getSize());
     }
 
+    // Write any external definition records
+    record = MagicOMFNewEXTDEFRecord(handle);
+    for (std::string external_ref : getExternalReferences())
+    {
+        MagicOMFAddEXTDEF(record, external_ref.c_str(), 0);
+    }
+    MagicOMFFinishEXTDEF(record);
+
     // Now we need to create the LEDATA records
     for (std::shared_ptr<VirtualSegment> segment : getSegments())
     {
@@ -85,34 +132,26 @@ void OMFObjectFormat::finalize()
         if (segment->hasFixups())
         {
             struct RECORD* record = MagicOMFNewFIXUP16Record(handle);
-            for (FIXUP fixup : segment->getFixups())
+            for (std::shared_ptr<FIXUP> fixup : segment->getFixups())
             {
-                LOCATION_TYPE location_type;
-                if (fixup.length == FIXUP_16BIT)
+                FIXUP_TYPE fixup_type = fixup->getType();
+                switch (fixup_type)
                 {
-                  location_type = FIXUPP_LOCATION_16_BIT_OFFSET;
+                case FIXUP_TYPE_SEGMENT:
+                    handle_segment_fixup(record, std::dynamic_pointer_cast<SEGMENT_FIXUP>(fixup));
+                    break;
+                case FIXUP_TYPE_EXTERN:
+                    handle_extern_fixup(record, std::dynamic_pointer_cast<EXTERN_FIXUP>(fixup));
+                    break;
                 }
-                else if(fixup.length == FIXUP_8BIT)
-                {
-                   location_type = FIXUPP_LOCATION_LOW_ORDER_BYTE_8_BIT_DISPLACEMENT;
-                }
-                else
-                {
-                    throw Exception("void OMFObjectFormat::finalize(): invalid or unimplemented fix up length for the OMF object file");
-                }
-                MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(record,
-                                   fixup.relating_segment->getName().c_str(),
-                                   fixup.offset,
-                                   location_type);
             }
-            
             MagicOMFFinishFIXUP16(record);
         }
     }
 
     // Finally we need to generate the MODEND record to signify the end of this object file
     MagicOMFAddMODEND16(handle);
-    
+
     // Let us build the buffer
     MagicOMFGenerateBuffer(handle);
 

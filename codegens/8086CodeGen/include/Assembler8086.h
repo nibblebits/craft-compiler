@@ -44,6 +44,16 @@ typedef char CONDITION_CODE;
 typedef char OPERAND_DATA_SIZE;
 #define OPERAND_BIT_SIZE sizeof(OPERAND_INFO) * 8
 
+
+enum
+{
+    IDENTIFIER_TYPE_LABEL,
+    IDENTIFIER_TYPE_EXTERN,
+    IDENTIFIER_TYPE_SEGMENT
+};
+
+typedef int IDENTIFIER_TYPE;
+
 enum
 {
     OPERAND_DATA_SIZE_UNKNOWN,
@@ -293,6 +303,11 @@ private:
     inline char bind_modrm(char oo, char rrr, char mmm);
     inline bool has_oommm(INSTRUCTION_TYPE ins_type);
     CONDITION_CODE get_condition_code_for_instruction(std::string instruction_name);
+    bool has_label_branch(std::string label_name);
+    bool has_extern(std::string extern_name);
+    bool has_segment(std::string segment_name);
+    IDENTIFIER_TYPE get_identifier_type(std::string iden_name);
+    int get_label_offset(std::string label_name, std::shared_ptr<InstructionBranch> ins_branch, bool short_or_near_possible);
     int get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_or_near_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
     std::shared_ptr<VirtualSegment> get_virtual_segment_for_label(std::string label_name);
     void register_fixup_if_required(int offset, FIXUP_LENGTH length, std::shared_ptr<OperandBranch> branch);
@@ -335,6 +350,7 @@ private:
     void parse_label();
     void parse_ins();
     void parse_global();
+    void parse_extern();
     void parse_data(DATA_BRANCH_TYPE data_branch_type = -1);
 
     inline bool is_next_valid_operand();
@@ -342,6 +358,7 @@ private:
     inline bool is_next_label();
     inline bool is_next_instruction();
     inline bool is_next_global();
+    inline bool is_next_extern();
     inline bool is_next_data();
 
     std::shared_ptr<Branch> root;

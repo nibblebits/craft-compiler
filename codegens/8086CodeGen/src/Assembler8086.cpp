@@ -43,6 +43,7 @@
 #include "OperandBranch.h"
 #include "EBranch.h"
 #include "GlobalBranch.h"
+#include "ExternBranch.h"
 #include "DataBranch.h"
 #include "OffsetableBranch.h"
 #include "MustFitTable.h"
@@ -399,6 +400,10 @@ void Assembler8086::parse_part()
     {
         parse_global();
     }
+    else if (is_next_extern())
+    {
+        parse_extern();
+    }
     else if (is_next_data())
     {
         parse_data();
@@ -739,6 +744,29 @@ void Assembler8086::parse_global()
     push_branch(global_branch);
 }
 
+void Assembler8086::parse_extern()
+{
+    // Shift and pop the extern keyword
+    shift_pop();
+
+    peek();
+    if (!is_peek_type("identifier"))
+    {
+        throw Exception("void Assembler8086::parse_extern(): expecting an identifier but none was provided");
+    }
+
+    // Ok lets shift and pop the extern name
+    shift_pop();
+
+    std::shared_ptr<Branch> extern_name_branch = getPoppedBranch();
+    std::shared_ptr<ExternBranch> extern_branch = std::shared_ptr<ExternBranch>(new ExternBranch(getCompiler()));
+    extern_branch->setNameBranch(extern_name_branch);
+
+    // The extern branch has been constructed so lets push it to the stack
+    push_branch(extern_branch);
+
+}
+
 void Assembler8086::parse_data(DATA_BRANCH_TYPE data_branch_type)
 {
     std::shared_ptr<DataBranch> data_branch = std::shared_ptr<DataBranch>(new DataBranch(getCompiler(), this->segment_branch));
@@ -834,6 +862,12 @@ bool Assembler8086::is_next_global()
 {
     peek();
     return is_peek_keyword("global");
+}
+
+bool Assembler8086::is_next_extern()
+{
+    peek();
+    return is_peek_keyword("extern");
 }
 
 bool Assembler8086::is_next_data()
@@ -942,6 +976,11 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
     {
 
     }
+    else if (branch->getType() == "EXTERN")
+    {
+        std::shared_ptr<ExternBranch> extern_branch = std::dynamic_pointer_cast<ExternBranch>(branch);
+        getObjectFormat()->registerExternalReference(extern_branch->getNameBranch()->getValue());
+    }
     else if (branch->getType() == "DATA")
     {
 
@@ -1027,7 +1066,7 @@ void Assembler8086::handle_mustfits_for_label_branch(std::shared_ptr<LabelBranch
 {
     std::shared_ptr<MustFitTable> must_fit_table = label_branch->getMustFitTable();
 
-    // Lets check if any fixups are required
+    // Lets check if any must ifts are required
     if (must_fit_table->hasMustFits())
     {
         for (struct MUST_FIT must_fit : must_fit_table->getMustFits())
@@ -1524,6 +1563,99 @@ CONDITION_CODE Assembler8086::get_condition_code_for_instruction(std::string ins
     return -1;
 }
 
+bool Assembler8086::has_label_branch(std::string label_name)
+{
+    for (std::shared_ptr<SegmentBranch> i_segment : segment_branches)
+    {
+        for (std::shared_ptr<Branch> child : i_segment->getContentsBranch()->getChildren())
+        {
+            if (child->getType() == "LABEL")
+            {
+                std::shared_ptr<LabelBranch> lbl_branch = std::dynamic_pointer_cast<LabelBranch>(child);
+                if (lbl_branch->getLabelNameBranch()->getValue() == label_name)
+                    return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Assembler8086::has_extern(std::string extern_name)
+{
+    for (std::shared_ptr<SegmentBranch> i_segment : segment_branches)
+    {
+        for (std::shared_ptr<Branch> child : i_segment->getContentsBranch()->getChildren())
+        {
+            if (child->getType() == "EXTERN")
+            {
+                std::shared_ptr<ExternBranch> extern_branch = std::dynamic_pointer_cast<ExternBranch>(child);
+                if (extern_branch->getNameBranch()->getValue() == extern_name)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Assembler8086::has_segment(std::string segment_name)
+{
+    for (std::shared_ptr<SegmentBranch> i_segment : segment_branches)
+    {
+        if (i_segment->getSegmentNameBranch()->getValue() == segment_name)
+            return true;
+    }
+
+    return false;
+}
+
+IDENTIFIER_TYPE Assembler8086::get_identifier_type(std::string iden_name)
+{
+    IDENTIFIER_TYPE iden_type = -1;
+    // Do we have a label?
+    if (has_label_branch(iden_name))
+    {
+        iden_type = IDENTIFIER_TYPE_LABEL;
+    }
+    else if (has_extern(iden_name))
+    {
+        iden_type = IDENTIFIER_TYPE_EXTERN;
+    }
+    else if (has_segment(iden_name))
+    {
+        iden_type = IDENTIFIER_TYPE_SEGMENT;
+    }
+    else
+    {
+        throw Exception("IDENTIFIER_TYPE Assembler8086::get_identifier_type(std::string iden_name): identifier type unknown");
+    }
+    
+    return iden_type;
+}
+
+int Assembler8086::get_label_offset(std::string label_name, std::shared_ptr<InstructionBranch> ins_branch, bool short_or_near_possible)
+{
+    int value;
+    int lbl_offset = get_label_offset(label_name);
+    if (short_or_near_possible)
+    {
+        // Ok its possible to deal with this as a short so lets do that, this is valid with things such as short jumps.  
+        int ins_offset = ins_branch->getOffset();
+        int ins_size = ins_branch->getSize();
+        int abs = lbl_offset - ins_offset - ins_size;
+        value = abs;
+    }
+    else
+    {
+        value = lbl_offset;
+    }
+
+    return value;
+}
+
 int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_or_near_possible, std::shared_ptr<InstructionBranch> ins_branch)
 {
     int value = 0;
@@ -1534,19 +1666,18 @@ int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch,
 
     if (branch->hasIdentifierBranch())
     {
-        int lbl_offset = get_label_offset(branch->getIdentifierBranch()->getValue());
-        if (short_or_near_possible)
+        std::string iden_value = branch->getIdentifierBranch()->getValue();
+        IDENTIFIER_TYPE iden_type = get_identifier_type(iden_value);
+        switch (iden_type)
         {
-            // Ok its possible to deal with this as a short so lets do that, this is valid with things such as short jumps.  
-            int ins_offset = ins_branch->getOffset();
-            int ins_size = ins_branch->getSize();
-            int abs = lbl_offset - ins_offset - ins_size;
-            value += abs;
+        case IDENTIFIER_TYPE_LABEL:
+            value += get_label_offset(iden_value, ins_branch, short_or_near_possible);
+            break;
+        case IDENTIFIER_TYPE_SEGMENT:
+            // Nothing to do with segments yet
+            break;
         }
-        else
-        {
-            value += lbl_offset;
-        }
+
     }
 
     return value;
@@ -1568,7 +1699,16 @@ void Assembler8086::register_fixup_if_required(int offset, FIXUP_LENGTH length, 
     }
 
     // Ok lets register this fixup
-    segment->register_fixup(get_virtual_segment_for_label(branch->getIdentifierBranch()->getValue()), offset, length);
+    std::string iden_value = branch->getIdentifierBranch()->getValue();
+    IDENTIFIER_TYPE iden_type = get_identifier_type(iden_value);
+    if (iden_type == IDENTIFIER_TYPE_LABEL)
+    {
+        segment->register_fixup(get_virtual_segment_for_label(iden_value), offset, length);
+    }
+    else if (iden_type == IDENTIFIER_TYPE_EXTERN)
+    {
+        segment->register_fixup_extern(iden_value, offset, length);
+    }
 }
 
 void Assembler8086::write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<OperandBranch> branch)
@@ -1630,7 +1770,7 @@ std::shared_ptr<LabelBranch> Assembler8086::get_label_branch(std::string label_n
         }
     }
 
-    return NULL;
+    throw Exception("std::shared_ptr<LabelBranch> Assembler8086::get_label_branch(std::string label_name): the label branch does not exist");
 }
 
 int Assembler8086::get_label_offset(std::string label_name)
@@ -2154,17 +2294,25 @@ void Assembler8086::calculate_operand_sizes_for_instruction(std::shared_ptr<Inst
 
 void Assembler8086::add_must_fits_if_required(std::shared_ptr<InstructionBranch> ins_branch)
 {
-    // We may need to register a offset fixup for later on incase label offsets are too far for the instruction
+    // We may need to register a offset must fit for later on incase label offsets are too far for the instruction
     if (ins_branch->hasOnlyLeftOperandBranch())
     {
         std::shared_ptr<OperandBranch> left = ins_branch->getLeftBranch();
         if (left->isOnlyImmediate() &&
                 left->hasIdentifierBranch())
         {
-            // Ok lets get the label branch 
-            std::shared_ptr<LabelBranch> label_branch = get_label_branch(left->getIdentifierBranch()->getValue());
-            MUST_FIT_TYPE must_fit = (left->getDataSize() == OPERAND_DATA_SIZE_BYTE ? MUST_FIT_8_BIT_SIGNED : MUST_FIT_16_BIT_SIGNED);
-            label_branch->getMustFitTable()->addMustFit(must_fit, ins_branch, left);
+            std::string iden_name = left->getIdentifierBranch()->getValue();
+            if (get_identifier_type(iden_name) == IDENTIFIER_TYPE_LABEL)
+            {
+                // Ok lets get the label branch 
+                std::shared_ptr<LabelBranch> label_branch = get_label_branch(left->getIdentifierBranch()->getValue());
+                if (label_branch != NULL)
+                {
+                    MUST_FIT_TYPE must_fit = (left->getDataSize() == OPERAND_DATA_SIZE_BYTE ? MUST_FIT_8_BIT_SIGNED : MUST_FIT_16_BIT_SIGNED);
+                    label_branch->getMustFitTable()->addMustFit(must_fit, ins_branch, left);
+                }
+            }
+
         }
     }
 

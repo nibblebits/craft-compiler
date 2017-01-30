@@ -16,30 +16,31 @@
  */
 
 /* 
- * File:   OMFObjectFormat.h
+ * File:   ExternBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 11 January 2017, 22:10
+ * Created on 30 January 2017, 00:37
  */
 
-#ifndef OMFOBJECTFORMAT_H
-#define OMFOBJECTFORMAT_H
-#include "MagicOMF.h"
-#include "VirtualObjectFormat.h"
+#ifndef EXTERNBRANCH_H
+#define EXTERNBRANCH_H
 
-class EXPORT OMFObjectFormat : public VirtualObjectFormat {
+#include "CustomBranch.h"
+
+class ExternBranch : public CustomBranch
+{
 public:
-    OMFObjectFormat(Compiler* compiler);
-    virtual ~OMFObjectFormat();
+    ExternBranch(Compiler* compiler);
+    virtual ~ExternBranch();
 
-    virtual std::shared_ptr<VirtualSegment> new_segment(std::string segment_name);
-    virtual void finalize();
+    void setNameBranch(std::shared_ptr<Branch> name_branch);
+    std::shared_ptr<Branch> getNameBranch();
 
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
 private:
-    LOCATION_TYPE get_location_type_from_fixup_standard(std::shared_ptr<FIXUP_STANDARD> fixup_standard);
-    void handle_segment_fixup(struct RECORD* record, std::shared_ptr<SEGMENT_FIXUP> seg_fixup);
-    void handle_extern_fixup(struct RECORD* record, std::shared_ptr<EXTERN_FIXUP> extern_fixup);
+
 };
 
-#endif /* OMFOBJECTFORMAT_H */
+#endif /* EXTERNBRANCH_H */
 
