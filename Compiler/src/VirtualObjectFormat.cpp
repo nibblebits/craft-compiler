@@ -27,6 +27,7 @@
 #include "VirtualObjectFormat.h"
 #include "VirtualSegment.h"
 #include <iostream>
+
 VirtualObjectFormat::VirtualObjectFormat(Compiler* compiler) : CompilerEntity(compiler)
 {
 
@@ -39,7 +40,6 @@ VirtualObjectFormat::~VirtualObjectFormat()
 std::shared_ptr<VirtualSegment> VirtualObjectFormat::createSegment(std::string segment_name)
 {
     std::shared_ptr<VirtualSegment> segment = std::shared_ptr<VirtualSegment>(new_segment(segment_name));
-
     this->segments.push_back(segment);
     return segment;
 }
@@ -51,7 +51,7 @@ std::shared_ptr<VirtualSegment> VirtualObjectFormat::getSegment(std::string segm
         if (segment->getName() == segment_name)
             return segment;
     }
-    
+
     return NULL;
 }
 
@@ -59,7 +59,48 @@ std::vector<std::shared_ptr<VirtualSegment>> VirtualObjectFormat::getSegments()
 {
     return this->segments;
 }
-        
+
+void VirtualObjectFormat::registerGlobalReference(std::shared_ptr<VirtualSegment> segment, std::string ref_name, int offset)
+{
+    if (segment == NULL)
+    {
+        throw Exception("void VirtualObjectFormat::registerGlobalReference(std::shared_ptr<VirtualSegment> segment, std::string ref_name, int offset): expecting a segment but NULL was provided");
+    }
+
+    segment->register_global_reference(ref_name, offset);
+}
+
+std::vector<std::shared_ptr<GLOBAL_REF>> VirtualObjectFormat::getGlobalReferences()
+{
+    std::vector<std::shared_ptr < GLOBAL_REF>> references;
+    for (std::shared_ptr<VirtualSegment> segment : getSegments())
+    {
+        std::vector<std::shared_ptr < GLOBAL_REF>> seg_refs = segment->getGlobalReferences();
+        references.insert(references.end(), seg_refs.begin(), seg_refs.end());
+    }
+
+    return references;
+}
+
+std::vector<std::shared_ptr<GLOBAL_REF>> VirtualObjectFormat::getGlobalReferencesForSegment(std::string segment_name)
+{
+    return getSegment(segment_name)->getGlobalReferences();
+}
+
+void VirtualObjectFormat::registerExternalReference(std::string ref_name)
+{
+    this->external_references.push_back(ref_name);
+}
+
+std::vector<std::string> VirtualObjectFormat::getExternalReferences()
+{
+    return this->external_references;
+}
+
+bool VirtualObjectFormat::hasExternalReferences()
+{
+    return !this->external_references.empty();
+}
 
 Stream* VirtualObjectFormat::getObjectStream()
 {

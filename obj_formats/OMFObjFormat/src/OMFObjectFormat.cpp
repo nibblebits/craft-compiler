@@ -74,9 +74,9 @@ void OMFObjectFormat::handle_extern_fixup(struct RECORD* record, std::shared_ptr
 {
     LOCATION_TYPE location_type = get_location_type_from_fixup_standard(extern_fixup);
     MagicOMFAddFIXUP16_SubRecord_Fixup_External(record,
-                                               extern_fixup->getExternalName().c_str(),
-                                               extern_fixup->getOffset(),
-                                               location_type);
+                                                extern_fixup->getExternalName().c_str(),
+                                                extern_fixup->getOffset(),
+                                                location_type);
 }
 
 void OMFObjectFormat::finalize()
@@ -115,13 +115,31 @@ void OMFObjectFormat::finalize()
         MagicOMFAddSEGDEF16(handle, segment->getName().c_str(), attributes, segment->getStream()->getSize());
     }
 
-    // Write any external definition records
-    record = MagicOMFNewEXTDEFRecord(handle);
-    for (std::string external_ref : getExternalReferences())
+    // We should write any pubdef records for global definitions
+    for (std::shared_ptr<VirtualSegment> segment : getSegments())
     {
-        MagicOMFAddEXTDEF(record, external_ref.c_str(), 0);
+        if (segment->hasGlobalReferences())
+        {
+            struct RECORD* record = MagicOMFNewPUBDEF16Record(handle, segment->getName().c_str());
+            for (std::shared_ptr<GLOBAL_REF> global_ref : segment->getGlobalReferences())
+            {
+                MagicOMFAddPUBDEF16Identifier(record, global_ref->getName().c_str(), global_ref->getOffset(), 0);
+            }
+            MagicOMFFinishPUBDEF16(record);
+        }
+
     }
-    MagicOMFFinishEXTDEF(record);
+
+    // Write any external definition records
+    if (hasExternalReferences())
+    {
+        record = MagicOMFNewEXTDEFRecord(handle);
+        for (std::string external_ref : getExternalReferences())
+        {
+            MagicOMFAddEXTDEF(record, external_ref.c_str(), 0);
+        }
+        MagicOMFFinishEXTDEF(record);
+    }
 
     // Now we need to create the LEDATA records
     for (std::shared_ptr<VirtualSegment> segment : getSegments())

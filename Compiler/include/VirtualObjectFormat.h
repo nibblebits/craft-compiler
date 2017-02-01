@@ -32,6 +32,7 @@
 #include "Stream.h"
 #include "CompilerEntity.h"
 
+
 class EXPORT VirtualObjectFormat : public CompilerEntity
 {
 public:
@@ -42,6 +43,14 @@ public:
     std::shared_ptr<VirtualSegment> getSegment(std::string segment_name);
     std::vector<std::shared_ptr<VirtualSegment>> getSegments();
 
+    void registerGlobalReference(std::shared_ptr<VirtualSegment> segment, std::string ref_name, int offset);
+    std::vector<std::shared_ptr<GLOBAL_REF>> getGlobalReferences();
+    std::vector<std::shared_ptr<GLOBAL_REF>> getGlobalReferencesForSegment(std::string segment_name);
+
+    void registerExternalReference(std::string ref_name);
+    std::vector<std::string> getExternalReferences();
+    bool hasExternalReferences();
+
     Stream* getObjectStream();
 
     virtual void finalize() = 0;
@@ -50,6 +59,7 @@ protected:
 private:
     Stream object_stream;
     std::vector<std::shared_ptr<VirtualSegment>> segments;
+    std::vector<std::string> external_references;
 };
 
 #endif /* VIRTUALOBJECTFORMAT_H */

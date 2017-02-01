@@ -304,12 +304,14 @@ private:
     inline bool has_oommm(INSTRUCTION_TYPE ins_type);
     CONDITION_CODE get_condition_code_for_instruction(std::string instruction_name);
     bool has_label_branch(std::string label_name);
+    bool has_global(std::string global_name);
     bool has_extern(std::string extern_name);
     bool has_segment(std::string segment_name);
     IDENTIFIER_TYPE get_identifier_type(std::string iden_name);
     int get_label_offset(std::string label_name, std::shared_ptr<InstructionBranch> ins_branch, bool short_or_near_possible);
     int get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_or_near_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
     std::shared_ptr<VirtualSegment> get_virtual_segment_for_label(std::string label_name);
+    void register_global_reference_if_any(std::shared_ptr<LabelBranch> label_branch);
     void register_fixup_if_required(int offset, FIXUP_LENGTH length, std::shared_ptr<OperandBranch> branch);
     void write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<OperandBranch> branch);
     unsigned char write_abs_static8(std::shared_ptr<OperandBranch> branch, bool short_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);

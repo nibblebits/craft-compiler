@@ -983,7 +983,6 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
     }
     else if (branch->getType() == "DATA")
     {
-
         std::shared_ptr<DataBranch> data_branch = std::dynamic_pointer_cast<DataBranch>(branch);
         do
         {
@@ -1046,6 +1045,8 @@ void Assembler8086::assembler_pass_2()
 
 void Assembler8086::pass_2_segment(std::shared_ptr<SegmentBranch> segment_branch)
 {
+    // Switch to the segment
+    switch_to_segment(segment_branch->getSegmentNameBranch()->getValue());
     // Now we need to pass through the children
     for (std::shared_ptr<Branch> child : segment_branch->getContentsBranch()->getChildren())
     {
@@ -1055,11 +1056,16 @@ void Assembler8086::pass_2_segment(std::shared_ptr<SegmentBranch> segment_branch
 
 void Assembler8086::pass_2_part(std::shared_ptr<Branch> branch)
 {
-    if (branch->getType() == "LABEL")
+    std::string type = branch->getType();
+    if (type == "LABEL")
     {
+        std::shared_ptr<LabelBranch> label_branch = std::dynamic_pointer_cast<LabelBranch>(branch);
+        // Ok we need to register a global reference (if any)
+        register_global_reference_if_any(label_branch);
         // Ok we need to handle the must fit
-        handle_mustfits_for_label_branch(std::dynamic_pointer_cast<LabelBranch>(branch));
+        handle_mustfits_for_label_branch(label_branch);
     }
+
 }
 
 void Assembler8086::handle_mustfits_for_label_branch(std::shared_ptr<LabelBranch> label_branch)
@@ -1581,6 +1587,26 @@ bool Assembler8086::has_label_branch(std::string label_name)
     return false;
 }
 
+bool Assembler8086::has_global(std::string global_name)
+{
+    for (std::shared_ptr<SegmentBranch> i_segment : segment_branches)
+    {
+        for (std::shared_ptr<Branch> child : i_segment->getContentsBranch()->getChildren())
+        {
+            if (child->getType() == "GLOBAL")
+            {
+                std::shared_ptr<GlobalBranch> global_branch = std::dynamic_pointer_cast<GlobalBranch>(child);
+                if (global_branch->getLabelNameBranch()->getValue() == global_name)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 bool Assembler8086::has_extern(std::string extern_name)
 {
     for (std::shared_ptr<SegmentBranch> i_segment : segment_branches)
@@ -1632,7 +1658,7 @@ IDENTIFIER_TYPE Assembler8086::get_identifier_type(std::string iden_name)
     {
         throw Exception("IDENTIFIER_TYPE Assembler8086::get_identifier_type(std::string iden_name): identifier type unknown");
     }
-    
+
     return iden_type;
 }
 
@@ -1688,6 +1714,15 @@ std::shared_ptr<VirtualSegment> Assembler8086::get_virtual_segment_for_label(std
     std::shared_ptr<LabelBranch> label_branch = get_label_branch(label_name);
     std::string segment_name = label_branch->getSegmentBranch()->getSegmentNameBranch()->getValue();
     return getObjectFormat()->getSegment(segment_name);
+}
+
+void Assembler8086::register_global_reference_if_any(std::shared_ptr<LabelBranch> label_branch)
+{
+    std::string label_name = label_branch->getLabelNameBranch()->getValue();
+    if (has_global(label_name))
+    {
+        getObjectFormat()->registerGlobalReference(this->segment, label_name, label_branch->getOffset());
+    }
 }
 
 void Assembler8086::register_fixup_if_required(int offset, FIXUP_LENGTH length, std::shared_ptr<OperandBranch> branch)
