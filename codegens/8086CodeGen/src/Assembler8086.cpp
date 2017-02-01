@@ -58,7 +58,7 @@ unsigned char ins_map[] = {
     0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70,
     0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x50,
     0x58, 0xc3, 0x30, 0x31, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
-    0x80, 0x81, 0x80, 0x81
+    0x80, 0x81, 0x80, 0x81, 0x08, 0x09
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -70,7 +70,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
     1, 1, 2, 2, 4, 4, 4, 4, 2, 3,
-    3, 4, 3, 4
+    3, 4, 3, 4, 2, 2
 };
 
 
@@ -84,7 +84,7 @@ unsigned char static_rrr[] = {
     4, 4, 6, 6, 6, 6, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    6, 6, 6, 6
+    6, 6, 6, 6, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -168,6 +168,8 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // xor reg16, imm16
     HAS_OOMMM | HAS_IMM_USE_LEFT | HAS_IMM_USE_RIGHT, // xor mem, imm8
     USE_W | HAS_OOMMM | HAS_IMM_USE_LEFT | HAS_IMM_USE_RIGHT, // xor mem, imm16
+    HAS_OORRRMMM, // or reg8, reg8
+    USE_W | HAS_OORRRMMM, // or reg16, reg16
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -244,7 +246,9 @@ struct ins_syntax_def ins_syntax[] = {
     "xor", XOR_REG_WITH_IMM_W0, REG8_IMM8,
     "xor", XOR_REG_WITH_IMM_W1, REG16_IMM16,
     "xor", XOR_MEM_WITH_IMM_W0, MEM16_IMM8,
-    "xor", XOR_MEM_WITH_IMM_W1, MEM16_IMM16
+    "xor", XOR_MEM_WITH_IMM_W1, MEM16_IMM16,
+    "or", OR_REG_WITH_REG_W0, REG8_REG8,
+    "or", OR_REG_WITH_REG_W1, REG16_REG16
 };
 
 /* Certain instructions have condition codes that specify a particular event.
