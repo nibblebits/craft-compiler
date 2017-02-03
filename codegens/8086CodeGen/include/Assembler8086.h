@@ -250,7 +250,9 @@ enum
     OR_REG_WITH_MEM_W0,
     OR_REG_WITH_MEM_W1,
     OR_ACC_WITH_IMM_W0,
-    OR_ACC_WITH_IMM_W1
+    OR_ACC_WITH_IMM_W1,
+    OR_REG_WITH_IMM_W0,
+    OR_REG_WITH_IMM_W1
 };
 
 struct ins_syntax_def
