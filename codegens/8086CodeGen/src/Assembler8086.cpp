@@ -64,14 +64,14 @@ unsigned char ins_map[] = {
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
 unsigned char ins_sizes[] = {
-    2, 2, 2, 3, 3, 4, 3, 3, 3, 3,
+    2, 2, 2, 3, 5, 6, 3, 3, 3, 3,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 3, 3, 4, 3, 4, 2, 2, 2, 2,
-    2, 2, 2, 3, 2, 3, 2, 3, 2, 2,
+    2, 3, 3, 4, 5, 6, 2, 2, 2, 2,
+    2, 2, 2, 3, 2, 3, 5, 6, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
     1, 1, 2, 2, 4, 4, 4, 4, 2, 3,
-    3, 4, 3, 4, 2, 2, 4, 4, 4, 4,
+    3, 4, 5, 6, 2, 2, 4, 4, 4, 4,
     2, 3, 3, 4, 5, 6
 };
 
@@ -1322,7 +1322,6 @@ int Assembler8086::get_instruction_size(std::shared_ptr<InstructionBranch> ins_b
 {
     int ins_type = get_instruction_type(ins_branch);
     int size = ins_sizes[ins_type];
-
     if (has_oommm(ins_type))
     {
         get_modrm_from_instruction(ins_branch, &oo, &rrr, &mmm);
