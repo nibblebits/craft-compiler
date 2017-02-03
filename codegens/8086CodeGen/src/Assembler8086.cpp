@@ -169,8 +169,8 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // xor ax, imm16
     HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // xor reg8, imm8
     USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // xor reg16, imm16
-    HAS_OOMMM | HAS_IMM_USE_LEFT | HAS_IMM_USE_RIGHT, // xor mem, imm8
-    USE_W | HAS_OOMMM | HAS_IMM_USE_LEFT | HAS_IMM_USE_RIGHT, // xor mem, imm16
+    HAS_OOMMM | HAS_IMM_USE_RIGHT, // xor mem, imm8
+    USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT, // xor mem, imm16
     HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // or reg8, reg8
     USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // or reg16, reg16
     HAS_OORRRMMM | HAS_REG_USE_RIGHT, // or mem, reg8
@@ -724,6 +724,9 @@ void Assembler8086::parse_ins()
         pop_branch();
         dest_op = std::dynamic_pointer_cast<OperandBranch>(getPoppedBranch());
 
+        // Get the data size for the recently parsed operand, we will set it ready for the second operand (if any)
+        def_data_size = dest_op->getDataSize();
+        
         // Do we have a second operand?
         peek();
         if (is_peek_symbol(","))
