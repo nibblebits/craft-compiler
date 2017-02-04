@@ -277,7 +277,9 @@ enum
     RCR_REG_WITH_IMM8_W0,
     RCR_REG_WITH_IMM8_W1,
     RCR_MEM_WITH_IMM8_W0,
-    RCR_MEM_WITH_IMM8_W1
+    RCR_MEM_WITH_IMM8_W1,
+    
+    INT_IMM8
 };
 
 struct ins_syntax_def
