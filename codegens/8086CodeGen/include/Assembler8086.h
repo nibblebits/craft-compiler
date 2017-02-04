@@ -270,7 +270,9 @@ enum
     AND_MEM_WITH_IMM_W1,
     
     RCL_REG_WITH_IMM8_W0,
-    RCL_REG_WITH_IMM8_W1
+    RCL_REG_WITH_IMM8_W1,
+    RCL_MEM_WITH_IMM8_W0,
+    RCL_MEM_WITH_IMM8_W1
 };
 
 struct ins_syntax_def
