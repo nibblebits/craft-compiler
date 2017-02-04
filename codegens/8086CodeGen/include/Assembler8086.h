@@ -254,7 +254,10 @@ enum
     OR_REG_WITH_IMM_W0,
     OR_REG_WITH_IMM_W1,
     OR_MEM_WITH_IMM_W0,
-    OR_MEM_WITH_IMM_W1
+    OR_MEM_WITH_IMM_W1,
+    
+    AND_REG_WITH_REG_W0,
+    AND_REG_WITH_REG_W1
 };
 
 struct ins_syntax_def
