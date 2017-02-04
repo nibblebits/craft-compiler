@@ -261,7 +261,9 @@ enum
     AND_MEM_WITH_REG_W0,
     AND_MEM_WITH_REG_W1,
     AND_REG_WITH_MEM_W0,
-    AND_REG_WITH_MEM_W1
+    AND_REG_WITH_MEM_W1,
+    AND_ACC_WITH_IMM_W0,
+    AND_ACC_WITH_IMM_W1
 };
 
 struct ins_syntax_def
