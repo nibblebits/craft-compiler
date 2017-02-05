@@ -392,7 +392,8 @@ private:
     void parse_global();
     void parse_extern();
     void parse_data(DATA_BRANCH_TYPE data_branch_type = -1);
-
+    void parse_newline();
+    
     inline bool is_next_valid_operand();
     inline bool is_next_segment();
     inline bool is_next_label();
@@ -400,7 +401,8 @@ private:
     inline bool is_next_global();
     inline bool is_next_extern();
     inline bool is_next_data();
-
+    inline bool is_next_newline();
+    
     std::shared_ptr<Branch> root;
 
     std::shared_ptr<VirtualSegment> segment;

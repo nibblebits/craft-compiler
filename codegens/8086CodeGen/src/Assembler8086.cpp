@@ -485,6 +485,14 @@ void Assembler8086::parse_part()
     {
         parse_data();
     }
+    else if (is_next_newline())
+    {
+        // Get rid of the new line we don't want it
+        parse_newline();
+        // Lets parse what we were actually looking for if there is anything
+        if (hasTokens())
+            parse_part();
+    }
     else
     {
         peek();
@@ -712,9 +720,12 @@ void Assembler8086::parse_segment()
         }
 
         parse_part();
-        pop_branch();
-        // Add the branch to the segment contents branch
-        contents_branch->addChild(getPoppedBranch());
+        if (hasBranches())
+        {
+            pop_branch();
+            // Add the branch to the segment contents branch
+            contents_branch->addChild(getPoppedBranch());
+        }
 
     }
 
@@ -749,9 +760,12 @@ void Assembler8086::parse_label()
         }
 
         parse_part();
-        pop_branch();
-        // Add the branch to the label contents branch
-        label_contents_branch->addChild(getPoppedBranch());
+        if (hasBranches())
+        {
+            pop_branch();
+            // Add the branch to the label contents branch
+            label_contents_branch->addChild(getPoppedBranch());
+        }
     }
 
     push_branch(label_branch);
@@ -904,6 +918,12 @@ void Assembler8086::parse_data(DATA_BRANCH_TYPE data_branch_type)
     push_branch(data_branch);
 }
 
+void Assembler8086::parse_newline()
+{
+    // Shift off the new line we don't need it
+    shift_pop();
+}
+
 bool Assembler8086::is_next_valid_operand()
 {
     return (is_peek_type("identifier")
@@ -959,6 +979,12 @@ bool Assembler8086::is_next_data()
 {
     peek();
     return is_peek_keyword("db") || is_peek_keyword("dw");
+}
+
+bool Assembler8086::is_next_newline()
+{
+    peek();
+    return is_peek_type("new_line");
 }
 
 void Assembler8086::generate()
