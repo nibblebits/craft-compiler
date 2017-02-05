@@ -487,11 +487,7 @@ void Assembler8086::parse_part()
     }
     else if (is_next_newline())
     {
-        // Get rid of the new line we don't want it
         parse_newline();
-        // Lets parse what we were actually looking for if there is anything
-        if (hasTokens())
-            parse_part();
     }
     else
     {
@@ -720,12 +716,14 @@ void Assembler8086::parse_segment()
         }
 
         parse_part();
-        if (hasBranches())
+        pop_branch();
+        // We don't want to add new lines as children, its a bit hacky struggling to think of a better solution at the moment
+        if (getPoppedBranchType() != "new_line")
         {
-            pop_branch();
             // Add the branch to the segment contents branch
             contents_branch->addChild(getPoppedBranch());
         }
+
 
     }
 
@@ -760,12 +758,14 @@ void Assembler8086::parse_label()
         }
 
         parse_part();
-        if (hasBranches())
+        pop_branch();
+        // We don't want to add new lines, its a bit hacky I can't think of a better solution at the moment
+        if (getPoppedBranchType() != "new_line")
         {
-            pop_branch();
             // Add the branch to the label contents branch
             label_contents_branch->addChild(getPoppedBranch());
         }
+
     }
 
     push_branch(label_branch);
@@ -920,8 +920,8 @@ void Assembler8086::parse_data(DATA_BRANCH_TYPE data_branch_type)
 
 void Assembler8086::parse_newline()
 {
-    // Shift off the new line we don't need it
-    shift_pop();
+    // Shift the new line we still need it on the tree because each parse is required to push a branch
+    shift();
 }
 
 bool Assembler8086::is_next_valid_operand()
