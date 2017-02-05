@@ -209,7 +209,7 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // rcr reg16, imm8
     HAS_OOMMM | HAS_IMM_USE_RIGHT, // rcr mem, imm8
     USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT, // rcr mem, imm8
-    HAS_IMM_USE_RIGHT, // int imm8
+    HAS_IMM_USE_LEFT, // int imm8
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -396,7 +396,7 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addInstruction("pop");
     Assembler::addInstruction("rcl");
     Assembler::addInstruction("rcr");
-    
+
     this->left = NULL;
     this->right = NULL;
     this->segment = NULL;
@@ -776,7 +776,7 @@ void Assembler8086::parse_ins()
 
         // Get the data size for the recently parsed operand, we will set it ready for the second operand (if any)
         def_data_size = dest_op->getDataSize();
-        
+
         // Do we have a second operand?
         peek();
         if (is_peek_symbol(","))
@@ -2360,68 +2360,9 @@ void Assembler8086::calculate_operand_sizes_for_instruction(std::shared_ptr<Inst
     if (instruction_branch->hasLeftBranch()
             && left->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN)
     {
-        if (instruction_branch->hasOnlyLeftOperandBranch()
-                && left->isOnlyImmediate())
-        {
-            if (left->hasIdentifierBranch())
-            {
-                // Default to IMM8 for identifier branches it will be automatically upgraded further down if needed
-                op_syntax_info = IMM8_ALONE;
-            }
-            else if (left->hasNumberBranch())
-            {
-                data_size = get_operand_data_size_for_number(std::stoi(left->getNumberBranch()->getValue()));
-                if (data_size == OPERAND_DATA_SIZE_BYTE)
-                {
-                    op_syntax_info = IMM8_ALONE;
-                }
-                else
-                {
-                    op_syntax_info = IMM16_ALONE;
-                }
-            }
-
-
-            std::string instruction_name = instruction_branch->getInstructionNameBranch()->getValue();
-            INSTRUCTION_TYPE type;
-            if (op_syntax_info == IMM8_ALONE)
-            {
-                // Ok we need to check to see if a MEM8 is legal or not. If it is not we will then default to MEM16
-                type = get_instruction_type_by_name_and_syntax(instruction_name, op_syntax_info);
-                if (!(ins_info[type] & SHORT_POSSIBLE))
-                {
-                    // Ok short is not possible to we need to change this to use MEM16 instead of MEM8
-                    op_syntax_info = IMM16_ALONE;
-                }
-            }
-
-            if (op_syntax_info == IMM16_ALONE)
-            {
-                // Ok we need to check to see if a MEM16 is legal or not. If it is not we will then default to MEM8
-                type = get_instruction_type_by_name_and_syntax(instruction_name, op_syntax_info);
-                if (!(ins_info[type] & NEAR_POSSIBLE))
-                {
-                    // Ok near is not possible so lets throw an exception as clearly something is wrong we cannot downgrade.
-                    throw Exception("void Assembler8086::calculate_operand_sizes_for_instruction(std::shared_ptr<InstructionBranch> instruction_branch): Attempting to use MEM16 when no MEM16 is available for this instruction.");
-                }
-            }
-
-            if (op_syntax_info == IMM8_ALONE)
-            {
-                data_size = OPERAND_DATA_SIZE_BYTE;
-            }
-            else
-            {
-                data_size = OPERAND_DATA_SIZE_WORD;
-            }
-
-            left->setDataSize(data_size);
-        }
-        else
-        {
-            calculate_data_size_for_operand(left);
-        }
+        calculate_data_size_for_operand(left);
     }
+
 
     // We should only calculate the data size for the right operand if the size is unknown
     if (instruction_branch->hasRightBranch()
