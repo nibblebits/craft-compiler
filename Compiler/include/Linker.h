@@ -27,25 +27,26 @@
 
 #include <vector>
 #include <fstream>
-#include "Stack.h"
+#include <queue>
+#include <memory>
 #include "Stream.h"
 #include "Exception.h"
 #include "LinkerException.h"
 #include "def.h"
 #include "CompilerEntity.h"
 
+class VirtualObjectFormat;
 class EXPORT Linker : public CompilerEntity {
 public:
     Linker(Compiler* compiler);
     virtual ~Linker();
-    void addObjectFile(std::string filename);
-    void addObjectFileStream(Stream* stream);
+    void addObjectFile(std::shared_ptr<VirtualObjectFormat> obj);
     void link();
     Stream* getExecutableStream();
-    virtual void link_merge(Stream* obj1, Stream* obj2, Stream* result_obj) = 0;
-    virtual void final_merge(Stream* executable_stream, Stream* final_obj) = 0;
+    virtual void link_merge(std::shared_ptr<VirtualObjectFormat> obj1, std::shared_ptr<VirtualObjectFormat> obj2) = 0;
+    virtual void final_merge(Stream* executable_stream, std::shared_ptr<VirtualObjectFormat> final_obj) = 0;
 private:
-    Stack<Stream> obj_stream_stack;
+    std::queue<std::shared_ptr<VirtualObjectFormat>> obj_stack;
     Stream executable_stream;
 };
 

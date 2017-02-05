@@ -26,6 +26,7 @@
 
 #include "Linker.h"
 #include "Stream.h"
+#include "VirtualObjectFormat.h"
 
 Linker::Linker(Compiler* compiler) : CompilerEntity(compiler)
 {
@@ -36,40 +37,28 @@ Linker::~Linker()
 
 }
 
-void Linker::addObjectFile(std::string filename)
+void Linker::addObjectFile(std::shared_ptr<VirtualObjectFormat> obj)
 {
-    Stream stream;
-    stream.loadFromFile(filename);
-    this->obj_stream_stack.push(stream);
-}
-
-void Linker::addObjectFileStream(Stream* stream)
-{
-    // We will copy this stream into a new stream for now
-    Stream new_stream;
-    while(!stream->isEmpty())
-    {
-        new_stream.write8(stream->read8());
-    }
-    this->obj_stream_stack.push(new_stream);
+    this->obj_stack.push(obj);
 }
 
 void Linker::link()
 {
-    while (!this->obj_stream_stack.isEmpty())
+    while (!this->obj_stack.empty())
     {
-        Stream obj1_stream = this->obj_stream_stack.pop();
-        if (!this->obj_stream_stack.isEmpty())
+        std::shared_ptr<VirtualObjectFormat> obj1 = this->obj_stack.front();
+        this->obj_stack.pop();
+        if (!this->obj_stack.empty())
         {
-            Stream obj2_stream = this->obj_stream_stack.pop();
-            Stream result_stream;
-            this->link_merge(&obj1_stream, &obj2_stream, &result_stream);
-            // Push the modified stream back to the stack
-            this->obj_stream_stack.push(result_stream);
+            std::shared_ptr<VirtualObjectFormat> obj2 = this->obj_stack.back();
+            this->obj_stack.pop();
+            this->link_merge(obj1, obj2);
+            // Push the modified object back to the stack
+            this->obj_stack.push(obj1);
         }
         else
         {
-            this->final_merge(&this->executable_stream, &obj1_stream);
+            this->final_merge(&this->executable_stream, obj1);
         }
     }
 }
