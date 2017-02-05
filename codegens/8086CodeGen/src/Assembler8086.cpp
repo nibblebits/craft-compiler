@@ -488,7 +488,12 @@ void Assembler8086::parse_part()
     else
     {
         peek();
-        throw AssemblerException("void Assembler8086::parse_part():  unexpected token \"" + getpeekTokenValue() + "\" this instruction or syntax may not be implemented.");
+        throw AssemblerException(
+                                 "void Assembler8086::parse_part():  unexpected token \"" + getpeekTokenType() +
+                                 ": " + getpeekTokenValue() +
+                                 "\" on line " + std::to_string(getpeekToken()->getPosition().line_no) +
+                                 " this instruction or syntax may not be implemented."
+                                 );
     }
 
 }
@@ -2349,7 +2354,7 @@ void Assembler8086::calculate_operand_sizes_for_instruction(std::shared_ptr<Inst
         data_size = get_data_size_for_reg(right->getRegisterBranch()->getValue());
         right->setDataSize(data_size);
         if (instruction_branch->hasLeftBranch()
-                && left->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN)
+                && !left->isAccessingMemory() && left->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN)
         {
             // Ok lets set the left to the rights data size
             left->setDataSize(data_size);
