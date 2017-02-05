@@ -111,6 +111,7 @@ private:
     static bool isCharacter(char op);
     static bool isNumber(char op);
     static bool isWhitespace(char op);
+    static bool isNewLine(char op);
     bool isKeyword(std::string op);
     bool isInstruction(std::string op);
     bool isRegister(std::string op);

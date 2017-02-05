@@ -129,8 +129,9 @@ void Assembler::lexify()
         }
         else if (isWhitespace(c))
         {
-            if (c == '\n')
+            if (isNewLine(c))
             {
+                lex_token = new Token("new_line", "", position);
                 position.line_no++;
                 position.col_pos = 0;
             }
@@ -260,6 +261,11 @@ bool Assembler::isNumber(char op)
 bool Assembler::isWhitespace(char op)
 {
     return (op < 33);
+}
+
+bool Assembler::isNewLine(char op)
+{
+    return (op == 10);
 }
 
 bool Assembler::isKeyword(std::string op)
@@ -533,37 +539,37 @@ std::shared_ptr<Branch> Assembler::sum_expression(std::shared_ptr<Branch> expres
     {
         op = root_e->getValue();
         if (left_branch->getType() == "number"
-                && right_branch->getType() == "number")
+                                  && right_branch->getType() == "number")
         {
-            std::shared_ptr<Token> r_token = std::dynamic_pointer_cast<Token>(right_branch);
-            last_char_pos = r_token->getPosition();
+                                  std::shared_ptr<Token> r_token = std::dynamic_pointer_cast<Token>(right_branch);
+                                  last_char_pos = r_token->getPosition();
 
-            sum += getCompiler()->evaluate(std::stoi(left_branch->getValue()), std::stoi(right_branch->getValue()), op);
-            // Ok now remove the branch
-            root_e->removeSelf();
+                                  sum += getCompiler()->evaluate(std::stoi(left_branch->getValue()), std::stoi(right_branch->getValue()), op);
+                                  // Ok now remove the branch
+                                  root_e->removeSelf();
         }
-        else if(left_branch->getType() == "number"
-                || right_branch->getType() == "number")
+        else if (left_branch->getType() == "number"
+                                  || right_branch->getType() == "number")
         {
-            std::shared_ptr<Token> target_token;
-            if (left_branch->getType() == "number")
+                                  std::shared_ptr<Token> target_token;
+                                  if (left_branch->getType() == "number")
             {
-                target_token = std::dynamic_pointer_cast<Token>(left_branch);
+                                  target_token = std::dynamic_pointer_cast<Token>(left_branch);
             }
             else
             {
-                target_token = std::dynamic_pointer_cast<Token>(right_branch);
+                                  target_token = std::dynamic_pointer_cast<Token>(right_branch);
             }
-            
-            // It is only save to evaluate "+" and "-" as both branches are not numbers
-            if (op == "+"
-                    || op == "-")
+
+                                  // It is only save to evaluate "+" and "-" as both branches are not numbers
+                                  if (op == "+"
+                                  || op == "-")
             {
-                sum = getCompiler()->evaluate(sum, std::stoi(target_token->getValue()), op);
-                target_token->removeSelf();
-                root_e->rebuild();
+                                  sum = getCompiler()->evaluate(sum, std::stoi(target_token->getValue()), op);
+                                  target_token->removeSelf();
+                                  root_e->rebuild();
             }
-            
+
         }
     });
 
@@ -574,7 +580,7 @@ std::shared_ptr<Branch> Assembler::sum_expression(std::shared_ptr<Branch> expres
         // Zero children just return the summed token branch
         return summed_branch;
     }
-    
+
     // Ok the new branch has a child so lets add the summed branch and return
     new_branch->addChild(summed_branch);
     return new_branch;

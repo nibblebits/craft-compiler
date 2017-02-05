@@ -29,7 +29,7 @@
 #include "Branch.h"
 #include "CharPos.h"
 
-class Token : public Branch
+class EXPORT Token : public Branch
 {
 public:
     Token(std::string type, std::string value, CharPos position);
