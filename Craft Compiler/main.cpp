@@ -241,7 +241,8 @@ int main(int argc, char** argv)
             << (object_file_output ? " as an object file " : "") << ", code generator: " << codegen_name << std::endl;
     try
     {
-        source_file_data = LoadFile(input_file_name);
+        std::shared_ptr<Stream> input_stream = LoadFile(input_file_name);
+        source_file_data = std::string(input_stream->getBuf(), input_stream->getSize());
     }
     catch (Exception ex)
     {
