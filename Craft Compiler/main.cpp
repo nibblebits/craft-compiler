@@ -44,6 +44,7 @@ using namespace std;
 
 typedef CodeGenerator* (*CodegenInitFunc)(Compiler*, std::shared_ptr<VirtualObjectFormat> object_format);
 typedef VirtualObjectFormat* (*VirtualObjFormatInitFunc)(Compiler*);
+typedef Linker* (*LinkerInitFunc)(Compiler*);
 
 enum
 {
@@ -60,6 +61,8 @@ enum
     ERROR_WITH_OUTPUT_FILE = 11,
     ERROR_WITH_CODEGENERATOR = 12,
     ERROR_WITH_PREPROCESSOR = 13,
+    ERROR_WITH_OBJECT_FORMAT = 14,
+    ERROR_WITH_LINKER = 15
 } CompilerErrorCode;
 
 Compiler compiler;
@@ -75,16 +78,42 @@ std::string input_file_name;
 std::string output_file_name;
 std::string source_file_data;
 std::string obj_format_name;
-std::string exe_format_name;
+std::string exe_format;
 bool object_file_output = false;
 
 ArgumentContainer arguments;
+
+std::shared_ptr<Linker> getLinker(std::string linker_name)
+{
+    std::shared_ptr<Linker> linker = NULL;
+    void* lib_addr = GoblinLoadLibrary(std::string(std::string(LINKER_DIR)
+                                                   + "/" + linker_name + std::string(LIBRARY_EXT)).c_str());
+    if (lib_addr == NULL)
+    {
+        throw Exception("The linker: " + linker_name + " could not be found or loaded");
+    }
+
+    LinkerInitFunc init_func = (LinkerInitFunc) GoblinGetAddress(lib_addr, "Init");
+    if (init_func == NULL)
+    {
+        throw Exception("The linker: " + linker_name + " does not have a valid \"Init\" function");
+    }
+
+    linker = std::shared_ptr<Linker>(init_func(&compiler));
+
+    if (linker == NULL)
+    {
+        throw Exception("The linker: " + linker_name + " returned a NULL pointer when expecting a \"Linker\" object");
+    }
+
+    return linker;
+}
 
 std::shared_ptr<VirtualObjectFormat> getObjectFormat(std::string object_format_name)
 {
     std::shared_ptr<VirtualObjectFormat> virtual_obj_format = NULL;
     void* lib_addr = GoblinLoadLibrary(std::string(std::string(OBJ_FORMAT_DIR)
-                                                   + "/" + object_format_name + std::string(CODEGEN_EXT)).c_str());
+                                                   + "/" + object_format_name + std::string(LIBRARY_EXT)).c_str());
     if (lib_addr == NULL)
     {
         throw Exception("The object format: " + object_format_name + " could not be found or loaded");
@@ -110,7 +139,7 @@ std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name, std::s
 {
     std::shared_ptr<CodeGenerator> codegen = NULL;
     void* lib_addr = GoblinLoadLibrary(std::string(std::string(CODEGEN_DIR)
-                                                   + "/" + codegen_name + std::string(CODEGEN_EXT)).c_str());
+                                                   + "/" + codegen_name + std::string(LIBRARY_EXT)).c_str());
 
     if (lib_addr == NULL)
     {
@@ -132,6 +161,17 @@ std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name, std::s
         throw Exception("The code generator: " + codegen_name + " returned a NULL pointer when expecting a \"CodeGenerator\" object");
     }
     return codegen;
+}
+
+std::string getFileExtension(std::string filename)
+{
+    std::vector<std::string> split = Helper::split(filename, '.');
+    if (split.size() < 2)
+    {
+        throw Exception("File has no extension", "std::string getFileExtension(std::string filename)");
+    }
+
+    return split.at(split.size() - 1);
 }
 
 bool handle_parser_errors_and_warnings()
@@ -157,76 +197,56 @@ bool handle_parser_errors_and_warnings()
  */
 int GenerateMode()
 {
-    try
+
+    if (!arguments.hasArgument("input"))
     {
-        if (!arguments.hasArgument("format"))
-        {
-            std::cout << "No object format defined, defaulting to omf." << std::endl;
-            obj_format_name = "omf";
-        }
-        else
-        {
-            obj_format_name = arguments.getArgumentValue("format");
-        }
+        std::cout << "You must provide an input file, use -input filename" << std::endl;
+        return PROBLEM_WITH_ARGUMENT;
+    }
 
-        if (!arguments.hasArgument("input"))
+    if (!arguments.hasArgument("output"))
+    {
+        std::cout << "You must provide an output file, use -output filename" << std::endl;
+        return PROBLEM_WITH_ARGUMENT;
+    }
+
+    if (!arguments.hasArgument("format"))
+    {
+        std::cout << "No object format defined, defaulting to omf." << std::endl;
+        obj_format_name = "omf";
+    }
+    else
+    {
+        obj_format_name = arguments.getArgumentValue("format");
+    }
+
+    if (!arguments.hasArgument("codegen"))
+    {
+        std::cout << "No code generator provided, defaulting to standard code generator" << std::endl;
+        codegen_name = "goblin_bytecode";
+    }
+    else
+    {
+        codegen_name = arguments.getArgumentValue("codegen");
+    }
+
+    if (arguments.hasArgument("L"))
+    {
+        if (object_file_output)
         {
-            // No input required if we are linking
-            std::cout << "You must provide an input file, use -input filename" << std::endl;
-            return PROBLEM_WITH_ARGUMENT;
-
-        }
-
-        if (!arguments.hasArgument("output"))
-        {
-            std::cout << "You must provide an output file, use -output filename" << std::endl;
-            return PROBLEM_WITH_ARGUMENT;
-        }
-
-        if (!arguments.hasArgument("codegen"))
-        {
-            std::cout << "No code generator provided, defaulting to standard code generator" << std::endl;
-            codegen_name = "goblin_bytecode";
-        }
-        else
-        {
-            codegen_name = arguments.getArgumentValue("codegen");
-        }
-
-        if (arguments.hasArgument("L"))
-        {
-            if (object_file_output)
-            {
-                std::cout << "You cannot link objects while outputting as an object file." << std::endl;
-                return PROBLEM_WITH_ARGUMENT;
-            }
-        }
-
-        if (arguments.hasArgument("exe"))
-        {
-            if (!arguments.hasArgument("L"))
-            {
-                std::cout << "You cannot provide an executable output while not linking, please use the -L option" << std::endl;
-                return PROBLEM_WITH_ARGUMENT;
-            }
-
-        }
-
-        input_file_name = arguments.getArgumentValue("input");
-        output_file_name = arguments.getArgumentValue("output");
-
-        if (input_file_name == output_file_name)
-        {
-            std::cout << "The input file and the output file may not be the same" << std::endl;
+            std::cout << "You cannot link objects while outputting as an object file." << std::endl;
             return PROBLEM_WITH_ARGUMENT;
         }
     }
-    catch (GoblinArgumentException ex)
-    {
-        std::cout << "Error parsing arguments: " + ex.getMessage() << std::endl;
-        return ARGUMENT_PARSE_PROBLEM;
-    }
 
+    input_file_name = arguments.getArgumentValue("input");
+    output_file_name = arguments.getArgumentValue("output");
+
+    if (input_file_name == output_file_name)
+    {
+        std::cout << "The input file and the output file may not be the same" << std::endl;
+        return PROBLEM_WITH_ARGUMENT;
+    }
 
     // We now need to compile the input into an object file
 
@@ -374,14 +394,95 @@ int GenerateMode()
 /* Links object files to form an executable */
 int LinkMode()
 {
-    std::cout << "Linking is currently not supported sorry.";
+    std::vector<std::string> file_names_to_link;
+    std::vector<std::shared_ptr < VirtualObjectFormat>> obj_files;
+
+    if (!arguments.hasArgument("input"))
+    {
+        std::cout << "You must provide multiple input files to link with, use -input \"obj1,obj2\"" << std::endl;
+        return PROBLEM_WITH_ARGUMENT;
+    }
+
+    if (!arguments.hasArgument("output"))
+    {
+        std::cout << "You must provide an output file, use -output filename" << std::endl;
+        return PROBLEM_WITH_ARGUMENT;
+    }
+
+    if (arguments.hasArgument("format"))
+    {
+        exe_format = arguments.getArgumentValue("format");
+    }
+    else
+    {
+        std::cout << "No executable format defined, defaulting to bin" << std::endl;
+        exe_format = "bin";
+    }
+
+
+    file_names_to_link = Helper::split(arguments.getArgumentValue("input"), ',');
+
+    if (file_names_to_link.size() < 2)
+    {
+        std::cout << "You are required to link a minimum of two files but " << std::to_string(file_names_to_link.size()) << " files were provided" << std::endl;
+        return PROBLEM_WITH_ARGUMENT;
+    }
+
+    std::cout << "Will link files: " << arguments.getArgumentValue("input") <<
+            " to produce executable of type \"" << arguments.getArgumentValue("format") <<
+            "\" at location \"" << arguments.getArgumentValue("output") << "\"" << std::endl;
+
+    // We must load the object files into memory, we also need to take their type into consideration
+    for (std::string file_name : file_names_to_link)
+    {
+        std::cout << "Loading " << file_name << std::endl;
+        std::string file_ext = getFileExtension(file_name);
+        try
+        {
+            std::shared_ptr<VirtualObjectFormat> obj_format = getObjectFormat(file_ext);
+            std::shared_ptr<Stream> stream = LoadFile(file_name);
+            try
+            {
+                obj_format->read(stream);
+            }
+            catch (Exception ex)
+            {
+                std::cout << "There was a problem reading from or translating the object stream for object format "
+                        "of type \"" << file_ext << "\"" << ", for input file: \"" << file_name << "\"." <<
+                        " Detailed message: " << ex.getMessage() << std::endl;
+                return ERROR_WITH_OBJECT_FORMAT;
+            }
+            // Ok we have everything we need let's add the object file to a vector for later processing
+            obj_files.push_back(obj_format);
+        }
+        catch (Exception ex)
+        {
+            std::cout << "Could not load object format of type \"" <<
+                    file_ext << "\" for input file: \"" << file_name << "\"." <<
+                    " Please make sure a virtual object format exists for the given type." << std::endl <<
+                    "Detailed reason for failure: \"" << ex.getMessage() << "\"" << std::endl;
+            return ERROR_WITH_OBJECT_FORMAT;
+        }
+    }
+
+    // Now we must load the executable format linker
+    std::shared_ptr<Linker> linker;
+    try
+    {
+        linker = getLinker(exe_format);
+    }
+    catch (Exception ex)
+    {
+        std::cout << "Error loading linker: " + ex.getMessage() << std::endl;
+    }
+
+    // Now link the files together
     return 0;
 }
 
 int main(int argc, char** argv)
 {
     arguments = GoblinArgumentParser_GetArguments(argc, argv);
-    std::vector<std::string> file_names_to_link;
 
     std::cout << COMPILER_FULLNAME << std::endl;
     if (argc == 1)
@@ -410,7 +511,7 @@ int main(int argc, char** argv)
             return PROBLEM_WITH_ARGUMENT;
         }
     }
-    
+
     // We need to find out if we are linking or generating
     if (arguments.hasArgument("O"))
     {

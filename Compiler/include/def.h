@@ -39,6 +39,7 @@
 
 #define CODEGEN_DIR "./codegens"
 #define OBJ_FORMAT_DIR "./obj_formats"
+#define LINKER_DIR "./linkers"
 
 // If its a CYGWIN compiler then enable _WIN32
 #ifdef __CYGWIN__
@@ -46,9 +47,9 @@
 #endif
 
 #ifdef _WIN32
-#define CODEGEN_EXT ".dll"
+#define LIBRARY_EXT ".dll"
 #else
-#define CODEGEN_EXT ".so"
+#define LIBRARY_EXT ".so"
 #endif
 
 #ifdef EXTERNAL_USE

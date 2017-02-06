@@ -101,7 +101,7 @@ void Stream::writeStr(std::string str, bool write_null_terminator, size_t fill_t
 void Stream::writeStr(const char* str, bool write_null_terminator, size_t fill_to)
 {
     int i = 0;
-    while(str[i] != 0)
+    while (str[i] != 0)
     {
         write8(str[i]);
         i++;
@@ -112,7 +112,7 @@ void Stream::writeStr(const char* str, bool write_null_terminator, size_t fill_t
         write8(0);
         i++;
     }
-    
+
     if (fill_to != -1 && fill_to - i > 0)
     {
         // We need to fill it to a maximum point
@@ -121,6 +121,19 @@ void Stream::writeStr(const char* str, bool write_null_terminator, size_t fill_t
             write8(0);
         }
     }
+}
+
+void Stream::writeStream(Stream* stream)
+{
+    while(!stream->isEmpty())
+    {
+        write8(stream->read8());
+    }
+}
+
+void Stream::writeStream(std::shared_ptr<Stream> stream)
+{
+    writeStream(stream.get());
 }
 
 uint8_t Stream::read8()

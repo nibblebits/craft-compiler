@@ -47,6 +47,16 @@ FIXUP_STANDARD::~FIXUP_STANDARD()
 
 }
 
+void FIXUP_STANDARD::setOffset(int offset)
+{
+    this->offset = offset;
+}
+
+void FIXUP_STANDARD::appendOffset(int offset)
+{
+    this->offset += offset;
+}
+
 int FIXUP_STANDARD::getOffset()
 {
     return this->offset;

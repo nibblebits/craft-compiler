@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <cstring>
 #include <fstream>
+#include <memory>
 #include <vector>
 #include "Exception.h"
 #include "def.h"
@@ -45,7 +46,8 @@ public:
     void write32(uint32_t i);
     void writeStr(std::string str, bool write_null_terminator = true, size_t fill_to = -1);
     void writeStr(const char* str, bool write_null_terminator = true, size_t fill_to = -1);
-
+    void writeStream(Stream* stream);
+    void writeStream(std::shared_ptr<Stream> stream);
     uint8_t read8();
     uint16_t read16();
     uint32_t read32();

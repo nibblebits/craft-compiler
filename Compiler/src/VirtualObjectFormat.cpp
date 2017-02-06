@@ -27,6 +27,8 @@
 #include "VirtualObjectFormat.h"
 #include "VirtualSegment.h"
 #include <iostream>
+#include <algorithm>
+#include <map>
 
 VirtualObjectFormat::VirtualObjectFormat(Compiler* compiler) : CompilerEntity(compiler)
 {
@@ -59,6 +61,11 @@ std::vector<std::shared_ptr<VirtualSegment>> VirtualObjectFormat::getSegments()
     return this->segments;
 }
 
+bool VirtualObjectFormat::hasSegment(std::string segment_name)
+{
+    return getSegment(segment_name) != NULL;
+}
+
 void VirtualObjectFormat::registerGlobalReference(std::shared_ptr<VirtualSegment> segment, std::string ref_name, int offset)
 {
     if (segment == NULL)
@@ -88,12 +95,21 @@ std::vector<std::shared_ptr<GLOBAL_REF>> VirtualObjectFormat::getGlobalReference
 
 void VirtualObjectFormat::registerExternalReference(std::string ref_name)
 {
+    // Check if the reference is already registered.
+    if (hasExternalReference(ref_name))
+        return;
+
     this->external_references.push_back(ref_name);
 }
 
 std::vector<std::string> VirtualObjectFormat::getExternalReferences()
 {
     return this->external_references;
+}
+
+bool VirtualObjectFormat::hasExternalReference(std::string ref_name)
+{
+    return std::find(this->external_references.begin(), this->external_references.end(), ref_name) != this->external_references.end();
 }
 
 bool VirtualObjectFormat::hasExternalReferences()
@@ -104,4 +120,70 @@ bool VirtualObjectFormat::hasExternalReferences()
 Stream* VirtualObjectFormat::getObjectStream()
 {
     return &this->object_stream;
+}
+
+void VirtualObjectFormat::append(std::shared_ptr<VirtualObjectFormat> obj_format)
+{
+    // Append any external references
+    for (std::string ext_ref : obj_format->getExternalReferences())
+    {
+        registerExternalReference(ext_ref);
+    }
+
+    std::map<std::string, int> old_size_map;
+    int old_size;
+    std::shared_ptr<VirtualSegment> our_segment;
+
+    // Append the segments, this requires two passes due to relating segments
+    for (std::shared_ptr<VirtualSegment> segment : obj_format->getSegments())
+    {
+        if (hasSegment(segment->getName()))
+        {
+            our_segment = getSegment(segment->getName());
+        }
+        else
+        {
+            // We don't have the segment so we need to create it
+            our_segment = createSegment(segment->getName());
+        }
+
+        // Log the old size for later we are going to need it to resolve offsets
+        old_size = our_segment->getStream()->getSize();
+        old_size_map[our_segment->getName()] = old_size;
+
+        // Write the segments stream to our own
+        our_segment->getStream()->writeStream(segment->getStream());
+    }
+
+    // Pass 2
+    for (std::shared_ptr<VirtualSegment> segment : obj_format->getSegments())
+    {
+        our_segment = getSegment(segment->getName());
+        int old_size = old_size_map[segment->getName()];
+        // Relocatable offsets of the new stream are now wrong so we need to fix them and add them to our segment
+        for (std::shared_ptr<FIXUP> fixup : segment->getFixups())
+        {
+            std::shared_ptr<FIXUP_STANDARD> fixup_standard = std::dynamic_pointer_cast<FIXUP_STANDARD>(fixup);
+            fixup_standard->appendOffset(old_size);
+            if (fixup->getType() == FIXUP_TYPE_SEGMENT)
+            {
+                std::shared_ptr<SEGMENT_FIXUP> seg_fixup = std::dynamic_pointer_cast<SEGMENT_FIXUP>(fixup);
+                // We want our copy of the relating segment not theirs.
+                std::shared_ptr<VirtualSegment> relating_seg = getSegment(seg_fixup->getRelatingSegment()->getName());
+                our_segment->register_fixup(relating_seg, seg_fixup->getOffset(), seg_fixup->getFixupLength());
+            }
+            else if(fixup->getType() == FIXUP_TYPE_EXTERN)
+            {
+                std::shared_ptr<EXTERN_FIXUP> extern_fixup = std::dynamic_pointer_cast<EXTERN_FIXUP>(fixup);
+                our_segment->register_fixup_extern(extern_fixup->getExternalName(), extern_fixup->getOffset(), extern_fixup->getFixupLength());
+            }
+        }
+
+        // We should also add the global references
+        for (std::shared_ptr<GLOBAL_REF> global_ref : segment->getGlobalReferences())
+        {
+            our_segment->register_global_reference(global_ref->getName(), global_ref->getOffset());
+        }
+    }
+
 }

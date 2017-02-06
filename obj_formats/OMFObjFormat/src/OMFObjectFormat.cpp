@@ -79,6 +79,103 @@ void OMFObjectFormat::handle_extern_fixup(struct RECORD* record, std::shared_ptr
                                                 location_type);
 }
 
+void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)
+{
+    char* buf = input_stream->getBuf();
+    struct MagicOMFHandle* handle = MagicOMFTranslate(buf, input_stream->getSize(), true);
+    if (handle->has_error)
+    {
+        throw Exception("Problem reading OMF file: " + std::string(GetErrorMessage(handle->last_error_code))
+                        , "void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)");
+    }
+
+    struct RECORD* current = handle->root;
+    while (current != NULL)
+    {
+        switch (current->type)
+        {
+        case SEGDEF_16_ID:
+        {
+            struct SEGDEF_16* segdef_16 = (struct SEGDEF_16*) current->contents;
+            VirtualObjectFormat::createSegment(segdef_16->class_name_str);
+        }
+            break;
+        case LEDATA_16_ID:
+        {
+            struct LEDATA_16* ledata_16 = (struct LEDATA_16*) current->contents;
+            std::shared_ptr<VirtualSegment> segment = VirtualObjectFormat::getSegment(ledata_16->SEGDEF_16_record->class_name_str);
+            Stream* stream = segment->getStream();
+            char* buf = ledata_16->data_bytes;
+            for (int i = 0; i < ledata_16->data_bytes_size; i++)
+            {
+                stream->write8(buf[i]);
+            }
+        }
+            break;
+        case EXTDEF_ID:
+        {
+            struct EXTDEF* extdef = (struct EXTDEF*) current->contents;
+            VirtualObjectFormat::registerExternalReference(extdef->name_str);
+        }
+            break;
+        case PUBDEF_16_ID:
+        {
+            struct PUBDEF_16* pubdef_16 = (struct PUBDEF_16*) current->contents;
+            std::shared_ptr<VirtualSegment> segment = VirtualObjectFormat::getSegment(pubdef_16->segdef_16_record->class_name_str);
+            struct PUBDEF_16_IDEN* current_iden = pubdef_16->iden;
+            while (current_iden != NULL)
+            {
+                VirtualObjectFormat::registerGlobalReference(segment, current_iden->name_str, current_iden->p_offset);
+                current_iden = current_iden->next;
+                break;
+            }
+        }
+            break;
+        case FIXUPP_16_ID:
+        {
+            struct FIXUP_16_SUBRECORD_DESCRIPTOR* fixup_16_desc = (struct FIXUP_16_SUBRECORD_DESCRIPTOR*) current->contents;
+            while (fixup_16_desc != NULL)
+            {
+                if (fixup_16_desc->subrecord_type == FIXUPP_FIXUP_SUBRECORD)
+                {
+                    struct FIXUPP_16_FIXUP_SUBRECORD* subrecord = (struct FIXUPP_16_FIXUP_SUBRECORD*) fixup_16_desc->subrecord;
+                    std::shared_ptr<VirtualSegment> target_segment = VirtualObjectFormat::getSegment(subrecord->target_data->SEGDEF_16_record->class_name_str);
+                    FIXUP_LENGTH length;
+                    if (subrecord->location == FIXUPP_LOCATION_LOW_ORDER_BYTE_8_BIT_DISPLACEMENT)
+                    {
+                        length = FIXUP_8BIT;
+                    }
+                    else if (subrecord->location == FIXUPP_LOCATION_16_BIT_OFFSET)
+                    {
+                        length = FIXUP_16BIT;
+                    }
+                    else
+                    {
+                        throw Exception("Unsupported location provided in OMF object file for the FIXUPP record.", "void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)");
+                    }
+
+                    if (subrecord->mode == FIXUPP_MODE_SELF_RELATIVE_FIXUP)
+                    {
+                        // External fixup
+                        target_segment->register_fixup_extern(subrecord->relating_extdef->name_str, subrecord->data_record_offset, length);
+                    }
+                    else
+                    {
+                        // Internal fixup
+                        std::shared_ptr<VirtualSegment> relating_segment = VirtualObjectFormat::getSegment(subrecord->relating_data->SEGDEF_16_record->class_name_str);
+                        target_segment->register_fixup(relating_segment, subrecord->data_record_offset, length);
+                    }
+                }
+                fixup_16_desc = fixup_16_desc->next_subrecord_descriptor;
+            }
+        }
+            break;
+
+        }
+        current = current->next;
+    }
+}
+
 void OMFObjectFormat::finalize()
 {
     struct RECORD* record;

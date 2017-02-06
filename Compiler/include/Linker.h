@@ -36,15 +36,19 @@
 #include "CompilerEntity.h"
 
 class VirtualObjectFormat;
-class EXPORT Linker : public CompilerEntity {
+
+class EXPORT Linker : public CompilerEntity
+{
 public:
     Linker(Compiler* compiler);
     virtual ~Linker();
     void addObjectFile(std::shared_ptr<VirtualObjectFormat> obj);
     void link();
     Stream* getExecutableStream();
-    virtual void link_merge(std::shared_ptr<VirtualObjectFormat> obj1, std::shared_ptr<VirtualObjectFormat> obj2) = 0;
-    virtual void final_merge(Stream* executable_stream, std::shared_ptr<VirtualObjectFormat> final_obj) = 0;
+protected:
+    virtual void link_merge(std::shared_ptr<VirtualObjectFormat> obj1, std::shared_ptr<VirtualObjectFormat> obj2);
+    virtual void resolve(std::shared_ptr<VirtualObjectFormat> final_obj) = 0;
+    virtual void build(Stream* executable_stream, std::shared_ptr<VirtualObjectFormat> final_obj) = 0;
 private:
     std::queue<std::shared_ptr<VirtualObjectFormat>> obj_stack;
     Stream executable_stream;

@@ -58,9 +58,18 @@ void Linker::link()
         }
         else
         {
-            this->final_merge(&this->executable_stream, obj1);
+            // Resolve unknown symbols
+            this->resolve(obj1);
+            // Build the executable
+            this->build(&this->executable_stream, obj1);
         }
     }
+}
+
+void Linker::link_merge(std::shared_ptr<VirtualObjectFormat> obj1, std::shared_ptr<VirtualObjectFormat> obj2)
+{
+    // We need to merge the formats
+    obj1->append(obj2);
 }
 
 Stream* Linker::getExecutableStream()

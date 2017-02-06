@@ -38,11 +38,23 @@
 #include "Stream.h"
 #include "def.h"
 
+#ifdef DEBUG_MODE
+class VirtualObjectFormat;
+class VirtualSegment;
+#endif
+
 std::ifstream::pos_type EXPORT GetFileSize(std::string filename);
 std::shared_ptr<Stream> EXPORT LoadFile(std::string filename);
+
+#ifdef DEBUG_MODE
 void EXPORT debug_output_tokens(std::vector<std::shared_ptr<Token>> tokens);
 void EXPORT debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs = 0);
+void EXPORT debug_virtual_object_format(std::shared_ptr<VirtualObjectFormat> virtual_object_format);
+#endif
+
 void EXPORT WriteFile(std::string filename, Stream* stream);
+
+int GetFixupLengthAsInteger(FIXUP_LENGTH fixup_len);
 
 #endif /* COMMON_H */
 

@@ -16,31 +16,27 @@
  */
 
 /* 
- * File:   OMFObjectFormat.h
+ * File:   BinLinker.h
  * Author: Daniel McCarthy
  *
- * Created on 11 January 2017, 22:10
+ * Created on 06 February 2017, 19:09
  */
 
-#ifndef OMFOBJECTFORMAT_H
-#define OMFOBJECTFORMAT_H
-#include "MagicOMF.h"
-#include "VirtualObjectFormat.h"
+#ifndef BINLINKER_H
+#define BINLINKER_H
 
-class EXPORT OMFObjectFormat : public VirtualObjectFormat {
+#include "Linker.h"
+
+class BinLinker : public Linker {
 public:
-    OMFObjectFormat(Compiler* compiler);
-    virtual ~OMFObjectFormat();
-
-    virtual std::shared_ptr<VirtualSegment> new_segment(std::string segment_name);
-    virtual void read(std::shared_ptr<Stream> input_stream);
-    virtual void finalize();
-
+    BinLinker(Compiler* compiler);
+    virtual ~BinLinker();
+protected:
+    virtual void resolve(std::shared_ptr<VirtualObjectFormat> final_obj);
+    virtual void build(Stream* executable_stream, std::shared_ptr<VirtualObjectFormat> final_obj);
 private:
-    LOCATION_TYPE get_location_type_from_fixup_standard(std::shared_ptr<FIXUP_STANDARD> fixup_standard);
-    void handle_segment_fixup(struct RECORD* record, std::shared_ptr<SEGMENT_FIXUP> seg_fixup);
-    void handle_extern_fixup(struct RECORD* record, std::shared_ptr<EXTERN_FIXUP> extern_fixup);
+
 };
 
-#endif /* OMFOBJECTFORMAT_H */
+#endif /* BINLINKER_H */
 

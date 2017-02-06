@@ -56,6 +56,8 @@ class EXPORT FIXUP_STANDARD : public FIXUP
 public:
     FIXUP_STANDARD(int offset, FIXUP_LENGTH length);
     virtual ~FIXUP_STANDARD();
+    void setOffset(int offset);
+    void appendOffset(int offset);
     int getOffset();
     FIXUP_LENGTH getFixupLength();
     virtual FIXUP_TYPE getType() = 0;

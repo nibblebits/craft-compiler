@@ -31,6 +31,8 @@ using namespace std;
 
 #ifdef DEBUG_MODE
 
+#include "VirtualObjectFormat.h"
+
 void EXPORT debug_output_tokens(std::vector<std::shared_ptr<Token>> tokens)
 {
     std::cout << "DEBUG TOKEN OUTPUT" << std::endl;
@@ -66,6 +68,62 @@ void EXPORT debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs)
         debug_output_branch(child, no_tabs + 1);
 
 }
+
+void debug_virtual_object_format_segment(std::shared_ptr<VirtualSegment> segment)
+{
+    std::cout << "\t" << segment->getName() << std::endl;
+    if (segment->hasFixups())
+    {
+        std::cout << "\t" << "Displaying FIXUPS" << std::endl;
+        for (std::shared_ptr<FIXUP> fixup : segment->getFixups())
+        {
+            std::cout << "\t\t";
+            if (fixup->getType() == FIXUP_TYPE_SEGMENT)
+            {
+                std::shared_ptr<SEGMENT_FIXUP> seg_fixup = std::dynamic_pointer_cast<SEGMENT_FIXUP>(fixup);
+                std::cout << "SEGMENT FIXUP: " << seg_fixup->getRelatingSegment()->getName() <<
+                        " offset: " << seg_fixup->getOffset() << " fixup size: " <<
+                        std::to_string(GetFixupLengthAsInteger(seg_fixup->getFixupLength())) << std::endl;
+            }
+            else if (fixup->getType() == FIXUP_TYPE_EXTERN)
+            {
+                std::shared_ptr<EXTERN_FIXUP> extern_fixup = std::dynamic_pointer_cast<EXTERN_FIXUP>(fixup);
+                std::cout << "EXTERN FIXUP: " << extern_fixup->getExternalName() <<
+                        " offset: " << extern_fixup->getOffset() << " fixup size: " <<
+                        std::to_string(GetFixupLengthAsInteger(extern_fixup->getFixupLength())) << std::endl;
+            }
+        }
+    }
+    else
+    {
+        std::cout << "\t" << "No FIXUPS to display" << std::endl;
+    }
+
+    if (segment->hasGlobalReferences())
+    {
+        std::cout << "\t" << "Displaying global exported references" << std::endl;
+        for (std::shared_ptr<GLOBAL_REF> global_ref : segment->getGlobalReferences())
+        {
+            std::cout << "\t\t";
+            std::cout << "GLOBAL REF: " << global_ref->getName() << ", segment: " << global_ref->getSegment()->getName() << 
+                    " offset: " << global_ref->getOffset() << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << "\t" << "No global exported references to display" << std::endl;
+    }
+}
+
+void debug_virtual_object_format(std::shared_ptr<VirtualObjectFormat> virtual_object_format)
+{
+    std::cout << "Total segments: " << virtual_object_format->getSegments().size() << std::endl;
+    for (std::shared_ptr<VirtualSegment> segment : virtual_object_format->getSegments())
+    {
+        debug_virtual_object_format_segment(segment);
+    }
+}
+
 #endif
 
 std::ifstream::pos_type EXPORT GetFileSize(std::string filename)
@@ -118,4 +176,27 @@ void EXPORT WriteFile(std::string filename, Stream* stream)
     }
 
     ofs.close();
+}
+
+int GetFixupLengthAsInteger(FIXUP_LENGTH fixup_len)
+{
+    int len = -1;
+    switch (fixup_len)
+    {
+    case FIXUP_8BIT:
+        len = 1;
+        break;
+    case FIXUP_16BIT:
+        len = 2;
+        break;
+    case FIXUP_32BIT:
+        len = 4;
+        break;
+    }
+
+    if (len == -1)
+    {
+        throw Exception("Invalid fixup length provided", "int GetFixupLengthAsInteger(FIXUP_LENGTH fixup_len)");
+    }
+    return len;
 }
