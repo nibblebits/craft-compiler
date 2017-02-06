@@ -125,10 +125,13 @@ void Stream::writeStr(const char* str, bool write_null_terminator, size_t fill_t
 
 void Stream::writeStream(Stream* stream)
 {
-    while(!stream->isEmpty())
+    int old_pos = stream->getPosition();
+    stream->setPosition(0);
+    while(stream->hasInput())
     {
         write8(stream->read8());
     }
+    stream->setPosition(old_pos);
 }
 
 void Stream::writeStream(std::shared_ptr<Stream> stream)
@@ -140,7 +143,7 @@ uint8_t Stream::read8()
 {
     if (this->vector.size() <= pos)
     {
-        throw Exception("uint8_t Stream::read8(): out of bounds");
+        throw Exception("uint8_t Stream::read8(): stream out of bounds");
     }
     uint8_t c = this->vector.at(pos);
     pos++;

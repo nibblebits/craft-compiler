@@ -53,6 +53,7 @@ public:
     uint32_t read32();
     std::string readStr();
     size_t getSize();
+    [[deprecated("There is a bug with isEmpty avoid usage until a fix is made")]]
     bool isEmpty();
     bool hasInput();
     void empty();
