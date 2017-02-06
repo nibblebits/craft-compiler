@@ -70,6 +70,16 @@ SemanticValidator* semanticValidator;
 TreeImprover* treeImprover;
 Preprocessor* preprocessor;
 
+std::string codegen_name;
+std::string input_file_name;
+std::string output_file_name;
+std::string source_file_data;
+std::string obj_format_name;
+std::string exe_format_name;
+bool object_file_output = false;
+
+ArgumentContainer arguments;
+
 std::shared_ptr<VirtualObjectFormat> getObjectFormat(std::string object_format_name)
 {
     std::shared_ptr<VirtualObjectFormat> virtual_obj_format = NULL;
@@ -142,103 +152,87 @@ bool handle_parser_errors_and_warnings()
 
 }
 
-int main(int argc, char** argv)
+/*
+ * Generates an object file based on source file input
+ */
+int GenerateMode()
 {
-    std::string codegen_name;
-    std::string input_file_name;
-    std::string output_file_name;
-    std::string source_file_data;
-    std::string obj_format_name;
-    bool object_file_output = false;
-    ArgumentContainer arguments;
-    std::vector<std::string> file_names_to_link;
-
-    std::cout << COMPILER_FULLNAME << std::endl;
-    if (argc == 1)
+    try
     {
-        std::cout << "No arguments provided, provide the argument \"-help\" for more information" << std::endl;
-        return NO_ARGUMENTS_PROVIDED;
-    }
-    else
-    {
-        try
+        if (!arguments.hasArgument("format"))
         {
-            arguments = GoblinArgumentParser_GetArguments(argc, argv);
-            if (!arguments.hasArgument("input"))
-            {
-                std::cout << "You must provide an input file, use -input filename" << std::endl;
-                return PROBLEM_WITH_ARGUMENT;
-            }
+            std::cout << "No object format defined, defaulting to omf." << std::endl;
+            obj_format_name = "omf";
+        }
+        else
+        {
+            obj_format_name = arguments.getArgumentValue("format");
+        }
 
-            if (!arguments.hasArgument("output"))
-            {
-                std::cout << "You must provide an output file, use -output filename" << std::endl;
-                return PROBLEM_WITH_ARGUMENT;
-            }
+        if (!arguments.hasArgument("input"))
+        {
+            // No input required if we are linking
+            std::cout << "You must provide an input file, use -input filename" << std::endl;
+            return PROBLEM_WITH_ARGUMENT;
 
-            if (!arguments.hasArgument("codegen"))
-            {
-                std::cout << "No code generator provided, defaulting to standard code generator" << std::endl;
-                codegen_name = "goblin_bytecode";
-            }
-            else
-            {
-                codegen_name = arguments.getArgumentValue("codegen");
-            }
+        }
 
-            if (arguments.hasArgument("O"))
+        if (!arguments.hasArgument("output"))
+        {
+            std::cout << "You must provide an output file, use -output filename" << std::endl;
+            return PROBLEM_WITH_ARGUMENT;
+        }
+
+        if (!arguments.hasArgument("codegen"))
+        {
+            std::cout << "No code generator provided, defaulting to standard code generator" << std::endl;
+            codegen_name = "goblin_bytecode";
+        }
+        else
+        {
+            codegen_name = arguments.getArgumentValue("codegen");
+        }
+
+        if (arguments.hasArgument("L"))
+        {
+            if (object_file_output)
             {
-                object_file_output = true;
-
-                if (!arguments.hasArgument("format"))
-                {
-                    std::cout << "No object format defined, defaulting to cuof." << std::endl;
-                    obj_format_name = "cuof";
-                }
-                else
-                {
-                    obj_format_name = arguments.getArgumentValue("format");
-                }
-            }
-
-            if (arguments.hasArgument("L"))
-            {
-                if (object_file_output)
-                {
-                    std::cout << "You cannot link objects while outputting as an object file." << std::endl;
-                    return PROBLEM_WITH_ARGUMENT;
-                }
-                else
-                {
-                    std::string to_link_str = arguments.getArgumentValue("L");
-                    file_names_to_link = Helper::split(to_link_str, ',');
-                }
-            }
-
-            input_file_name = arguments.getArgumentValue("input");
-            output_file_name = arguments.getArgumentValue("output");
-
-            if (input_file_name == output_file_name)
-            {
-                std::cout << "The input file and the output file may not be the same" << std::endl;
+                std::cout << "You cannot link objects while outputting as an object file." << std::endl;
                 return PROBLEM_WITH_ARGUMENT;
             }
         }
-        catch (GoblinArgumentException ex)
+
+        if (arguments.hasArgument("exe"))
         {
-            std::cout << "Error parsing arguments: " + ex.getMessage() << std::endl;
-            return ARGUMENT_PARSE_PROBLEM;
+            if (!arguments.hasArgument("L"))
+            {
+                std::cout << "You cannot provide an executable output while not linking, please use the -L option" << std::endl;
+                return PROBLEM_WITH_ARGUMENT;
+            }
+
+        }
+
+        input_file_name = arguments.getArgumentValue("input");
+        output_file_name = arguments.getArgumentValue("output");
+
+        if (input_file_name == output_file_name)
+        {
+            std::cout << "The input file and the output file may not be the same" << std::endl;
+            return PROBLEM_WITH_ARGUMENT;
         }
     }
-
-    // Let the compiler know the arguments that were passed to us.
-    for (Argument argument : arguments.getArguments())
+    catch (GoblinArgumentException ex)
     {
-        compiler.setArgument(argument.name, argument.value);
+        std::cout << "Error parsing arguments: " + ex.getMessage() << std::endl;
+        return ARGUMENT_PARSE_PROBLEM;
     }
+
+
+    // We now need to compile the input into an object file
 
     std::cout << "Compiling: " << input_file_name << " to " << output_file_name
-            << (object_file_output ? " as an object file " : "") << ", code generator: " << codegen_name << std::endl;
+            << " code generator: " + codegen_name << std::endl;
+
     try
     {
         std::shared_ptr<Stream> input_stream = LoadFile(input_file_name);
@@ -349,11 +343,10 @@ int main(int argc, char** argv)
         std::cout << "Error with improving the tree: " << ex.getMessage() << std::endl;
         return ERROR_WITH_TREE_IMPROVER;
     }
-    
+
 #ifdef DEBUG_MODE
     debug_output_branch(parser->getTree()->root);
 #endif 
-
     try
     {
         codegen->generate(parser->getTree());
@@ -366,42 +359,74 @@ int main(int argc, char** argv)
         obj_format->getObjectStream()->setPosition(0);
 
         // Ok lets write the object file
-        if (object_file_output)
-        {
-            WriteFile(output_file_name, obj_format->getObjectStream());
-        }
-        /*
-        // This is an object file output so there is no need for any linking
-        if (object_file_output)
-        {
-            WriteFile(output_file_name, obj_stream);
-        }
-        else
-        {
-            try
-            {
-                linker->addObjectFileStream(obj_stream);
-                for (std::string filename_to_link : file_names_to_link)
-                {
-                    std::cout << "Will link with: " << filename_to_link << std::endl;
-                    linker->addObjectFile(filename_to_link);
-                }
-                linker->link();
-                Stream* executable_stream = linker->getExecutableStream();
-                WriteFile(output_file_name, executable_stream);
-            }
-            catch (Exception ex)
-            {
-                std::cout << ex.getMessage() << std::endl;
-                return ERROR_WITH_OUTPUT_FILE;
-            }
-        }
-         */
+        WriteFile(output_file_name, obj_format->getObjectStream());
+
     }
     catch (Exception ex)
     {
         std::cout << "Error with code generator: " << ex.getMessage() << std::endl;
         return ERROR_WITH_CODEGENERATOR;
     }
+
+    return 0;
+}
+
+/* Links object files to form an executable */
+int LinkMode()
+{
+    std::cout << "Linking is currently not supported sorry.";
+    return 0;
+}
+
+int main(int argc, char** argv)
+{
+    arguments = GoblinArgumentParser_GetArguments(argc, argv);
+    std::vector<std::string> file_names_to_link;
+
+    std::cout << COMPILER_FULLNAME << std::endl;
+    if (argc == 1)
+    {
+        std::cout << "No arguments provided, provide the argument \"-help\" for more information" << std::endl;
+        return NO_ARGUMENTS_PROVIDED;
+    }
+
+    // Let the compiler know the arguments that were passed to us.
+    for (Argument argument : arguments.getArguments())
+    {
+        compiler.setArgument(argument.name, argument.value);
+    }
+
+    // Some error checking
+    if (arguments.hasArgument("O") && arguments.hasArgument("L"))
+    {
+        std::cout << "You have specified to produce an output file and also link. This is not yet supported please choose one or the other." << std::endl;
+        return PROBLEM_WITH_ARGUMENT;
+    }
+    else if (arguments.hasArgument("L"))
+    {
+        if (arguments.hasArgument("codegen"))
+        {
+            std::cout << "Code generator: " << arguments.getArgumentValue("codegen") << " has been provided but this is pointless as we are linking not generating. Please remove -codegen" << std::endl;
+            return PROBLEM_WITH_ARGUMENT;
+        }
+    }
+    
+    // We need to find out if we are linking or generating
+    if (arguments.hasArgument("O"))
+    {
+        // Ok we are compiling to produce an object file
+        return GenerateMode();
+    }
+    else if (arguments.hasArgument("L"))
+    {
+        // Ok we are linking object files together to produce an executable file
+        return LinkMode();
+    }
+    else
+    {
+        std::cout << "I do not know weather to produce an object file or link to create an executable, please specify either -O or -L" << std::endl;
+        return PROBLEM_WITH_ARGUMENT;
+    }
+
     return 0;
 }
