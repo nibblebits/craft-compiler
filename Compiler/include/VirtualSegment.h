@@ -102,7 +102,7 @@ private:
     int offset;
 };
 
-class EXPORT VirtualSegment
+class EXPORT VirtualSegment : public std::enable_shared_from_this<VirtualSegment>
 {
 public:
     VirtualSegment(std::string segment_name);

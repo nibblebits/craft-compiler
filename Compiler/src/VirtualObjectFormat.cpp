@@ -30,7 +30,6 @@
 
 VirtualObjectFormat::VirtualObjectFormat(Compiler* compiler) : CompilerEntity(compiler)
 {
-
 }
 
 VirtualObjectFormat::~VirtualObjectFormat()

@@ -53,6 +53,7 @@ public:
 
     Stream* getObjectStream();
 
+    virtual void read(std::shared_ptr<Stream> input_stream) = 0;
     virtual void finalize() = 0;
 protected:
     virtual std::shared_ptr<VirtualSegment> new_segment(std::string segment_name) = 0;

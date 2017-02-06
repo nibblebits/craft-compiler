@@ -53,7 +53,7 @@ void EXPORT debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs)
     if (local_scope != NULL)
     {
         std::shared_ptr<Branch> local_scope_parent = local_scope->getParent();
-        std::cout << branch->getType() << ":" << branch->getValue() << " -> " << branch->getChildren().size() << " -> " 
+        std::cout << branch->getType() << ":" << branch->getValue() << " -> " << branch->getChildren().size() << " -> "
                 << branch->getLocalScope()->getType() << " sp: " << ((local_scope_parent != NULL) ? local_scope_parent->getType() : " NO SCOPE PARENT") << std::endl;
     }
     else
@@ -76,27 +76,30 @@ std::ifstream::pos_type EXPORT GetFileSize(std::string filename)
     return pos;
 }
 
-std::string EXPORT LoadFile(std::string filename)
+std::shared_ptr<Stream> EXPORT LoadFile(std::string filename)
 {
     // Load the file
     std::ifstream ifs;
-    std::string source = "";
-    std::string line = "";
-    
+    std::shared_ptr<Stream> stream = std::shared_ptr<Stream>(new Stream());
+
     ifs.open(filename, ios::in | ios::binary);
     if (!ifs.is_open())
     {
         throw Exception("Failed to open: " + filename);
     }
 
-    while (std::getline(ifs, line))
+    while (ifs.good())
     {
-        source += line;
+        char c = ifs.get();
+        if (c != -1)
+        {
+            stream->write8(c);
+        }
     }
-    
+
     ifs.close();
-   
-    return source;
+
+    return stream;
 }
 
 void EXPORT WriteFile(std::string filename, Stream* stream)

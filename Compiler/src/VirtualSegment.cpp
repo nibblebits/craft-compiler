@@ -158,7 +158,7 @@ void VirtualSegment::register_fixup_extern(std::string extern_name, int offset, 
 
 void VirtualSegment::register_global_reference(std::string ref_name, int offset)
 {
-    std::shared_ptr<GLOBAL_REF> global_reference = std::shared_ptr<GLOBAL_REF>(new GLOBAL_REF(std::shared_ptr<VirtualSegment>(this), ref_name, offset));
+    std::shared_ptr<GLOBAL_REF> global_reference = std::shared_ptr<GLOBAL_REF>(new GLOBAL_REF(shared_from_this(), ref_name, offset));
     this->global_references.push_back(global_reference);
 }
 
