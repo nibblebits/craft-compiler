@@ -26,6 +26,7 @@
 
 #include "VirtualObjectFormat.h"
 #include "VirtualSegment.h"
+#include "Compiler.h"
 #include <iostream>
 #include <algorithm>
 #include <map>
@@ -40,7 +41,15 @@ VirtualObjectFormat::~VirtualObjectFormat()
 
 std::shared_ptr<VirtualSegment> VirtualObjectFormat::createSegment(std::string segment_name)
 {
-    std::shared_ptr<VirtualSegment> segment = std::shared_ptr<VirtualSegment>(new_segment(segment_name));
+    uint32_t origin = 0;
+    // We need to see if an origin is present, this would have been provided in the arguments upon running the compiler
+    std::string argument_name = "org_" + segment_name;
+    if(getCompiler()->hasArgument(argument_name))
+    {
+        // An argument exists so lets set the origin
+        origin = std::stoi(getCompiler()->getArgumentValue(argument_name));
+    }
+    std::shared_ptr<VirtualSegment> segment = std::shared_ptr<VirtualSegment>(new_segment(segment_name, origin));
     this->segments.push_back(segment);
     return segment;
 }
@@ -168,8 +177,10 @@ void VirtualObjectFormat::append(std::shared_ptr<VirtualObjectFormat> obj_format
             if (fixup->getType() == FIXUP_TYPE_SEGMENT)
             {
                 std::shared_ptr<SEGMENT_FIXUP> seg_fixup = std::dynamic_pointer_cast<SEGMENT_FIXUP>(fixup);
-                // We want our copy of the relating segment not theirs.
+                // We want a new fix up based on these changes 
                 std::shared_ptr<VirtualSegment> relating_seg = getSegment(seg_fixup->getRelatingSegment()->getName());
+                int new_data_offset = old_size_map[relating_seg->getName()] + our_segment->getStream()->peek16(seg_fixup->getOffset());
+                our_segment->getStream()->overwrite16(seg_fixup->getOffset(), new_data_offset);
                 our_segment->register_fixup(relating_seg, seg_fixup->getOffset(), seg_fixup->getFixupLength());
             }
             else if(fixup->getType() == FIXUP_TYPE_EXTERN)

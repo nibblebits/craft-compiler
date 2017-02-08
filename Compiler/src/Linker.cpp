@@ -27,6 +27,7 @@
 #include "Linker.h"
 #include "Stream.h"
 #include "VirtualObjectFormat.h"
+#include "common.h"
 
 Linker::Linker(Compiler* compiler) : CompilerEntity(compiler)
 {
@@ -58,6 +59,9 @@ void Linker::link()
         }
         else
         {
+#ifdef DEBUG_MODE
+            debug_virtual_object_format(obj1);
+#endif
             // Resolve unknown symbols
             this->resolve(obj1);
             // Build the executable

@@ -134,9 +134,10 @@ int GLOBAL_REF::getOffset()
     return this->offset;
 }
 
-VirtualSegment::VirtualSegment(std::string segment_name)
+VirtualSegment::VirtualSegment(std::string segment_name, uint32_t origin)
 {
     this->segment_name = segment_name;
+    this->origin = origin;
 }
 
 VirtualSegment::~VirtualSegment()
@@ -190,4 +191,14 @@ std::vector<std::shared_ptr<GLOBAL_REF>> VirtualSegment::getGlobalReferences()
 bool VirtualSegment::hasGlobalReferences()
 {
     return !getGlobalReferences().empty();
+}
+
+bool VirtualSegment::hasOrigin()
+{
+    return this->origin != 0;
+}
+
+uint32_t VirtualSegment::getOrigin()
+{
+    return this->origin;
 }

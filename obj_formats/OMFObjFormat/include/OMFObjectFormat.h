@@ -32,7 +32,7 @@ public:
     OMFObjectFormat(Compiler* compiler);
     virtual ~OMFObjectFormat();
 
-    virtual std::shared_ptr<VirtualSegment> new_segment(std::string segment_name);
+    virtual std::shared_ptr<VirtualSegment> new_segment(std::string segment_name, uint32_t origin);
     virtual void read(std::shared_ptr<Stream> input_stream);
     virtual void finalize();
 

@@ -35,10 +35,10 @@ OMFObjectFormat::~OMFObjectFormat()
 {
 }
 
-std::shared_ptr<VirtualSegment> OMFObjectFormat::new_segment(std::string segment_name)
+std::shared_ptr<VirtualSegment> OMFObjectFormat::new_segment(std::string segment_name, uint32_t origin)
 {
     // We are not doing anything special so lets just return the standard virtual segment
-    return std::shared_ptr<VirtualSegment>(new VirtualSegment(segment_name));
+    return std::shared_ptr<VirtualSegment>(new VirtualSegment(segment_name, origin));
 }
 
 LOCATION_TYPE OMFObjectFormat::get_location_type_from_fixup_standard(std::shared_ptr<FIXUP_STANDARD> fixup_standard)

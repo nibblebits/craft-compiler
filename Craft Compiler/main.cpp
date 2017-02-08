@@ -375,8 +375,6 @@ int GenerateMode()
         // Finalize the object
         std::shared_ptr<VirtualObjectFormat> obj_format = codegen->getObjectFormat();
         obj_format->finalize();
-        // Reset the object stream position to 0 so its ready for writing.
-        obj_format->getObjectStream()->setPosition(0);
 
         // Ok lets write the object file
         WriteFile(output_file_name, obj_format->getObjectStream());
@@ -420,6 +418,7 @@ int LinkMode()
     }
 
 
+    output_file_name = arguments.getArgumentValue("output");
     file_names_to_link = Helper::split(arguments.getArgumentValue("input"), ',');
 
     if (file_names_to_link.size() < 2)
@@ -474,9 +473,35 @@ int LinkMode()
     catch (Exception ex)
     {
         std::cout << "Error loading linker: " + ex.getMessage() << std::endl;
+        return ERROR_WITH_LINKER;
     }
 
+
     // Now link the files together
+    for (std::shared_ptr<VirtualObjectFormat> obj_file : obj_files)
+    {
+        linker->addObjectFile(obj_file);
+    }
+
+    try
+    {
+        linker->link();
+    }
+    catch (Exception ex)
+    {
+        std::cout << "Failed to link: " + ex.getMessage() << std::endl;
+    }
+
+    // Ok lets write the executable file
+    try
+    {
+        WriteFile(output_file_name, linker->getExecutableStream());
+    }
+    catch (Exception ex)
+    {
+        std::cout << "Failed to output executable file" << std::endl;
+        return ERROR_WITH_OUTPUT_FILE;
+    }
     return 0;
 }
 

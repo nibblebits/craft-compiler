@@ -113,6 +113,11 @@ std::string Compiler::getArgumentValue(std::string name)
     return this->arguments[name];
 }
 
+bool Compiler::hasArgument(std::string name)
+{
+    return this->arguments.find(name) != this->arguments.end();
+}
+
 std::shared_ptr<VDEFBranch> Compiler::getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name)
 {
     for (std::shared_ptr<Branch> branch : structure->getStructBodyBranch()->getChildren())

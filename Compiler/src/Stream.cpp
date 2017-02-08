@@ -34,6 +34,7 @@
 Stream::Stream()
 {
     setPosition(0);
+    setOverwriteMode(false);
 }
 
 Stream::~Stream()
@@ -62,7 +63,12 @@ void Stream::loadFrom_ifstream(std::ifstream* stream)
 
 void Stream::setPosition(size_t position)
 {
-    pos = position;
+    this->pos = position;
+}
+
+void Stream::setOverwriteMode(bool overwrite_mode)
+{
+    this->overwrite_mode = overwrite_mode;
 }
 
 void Stream::write8(uint8_t c)
@@ -71,7 +77,14 @@ void Stream::write8(uint8_t c)
     {
         throw Exception("uint8_t Stream::write8(): out of bounds");
     }
-    vector.insert(vector.begin() + pos, c);
+    if (isOverwriteModeEnabled())
+    {
+        vector.at(pos) = c;
+    }
+    else
+    {
+        vector.insert(vector.begin() + pos, c);
+    }
     pos++;
 }
 
@@ -127,7 +140,7 @@ void Stream::writeStream(Stream* stream)
 {
     int old_pos = stream->getPosition();
     stream->setPosition(0);
-    while(stream->hasInput())
+    while (stream->hasInput())
     {
         write8(stream->read8());
     }
@@ -139,32 +152,89 @@ void Stream::writeStream(std::shared_ptr<Stream> stream)
     writeStream(stream.get());
 }
 
+void Stream::overwrite8(int pos, uint8_t c)
+{
+    // Work on this what if overwrite mode is already set? You have an issue then
+    setOverwriteMode(true);
+    int old_pos = getPosition();
+    setPosition(pos);
+    write8(c);
+    setPosition(old_pos);
+    setOverwriteMode(false);
+}
+
+void Stream::overwrite16(int pos, uint16_t s)
+{
+    // Work on this what if overwrite mode is already set? You have an issue then
+    setOverwriteMode(true);
+    int old_pos = getPosition();
+    setPosition(pos);
+    write16(s);
+    setPosition(old_pos);
+    setOverwriteMode(false);
+}
+
+void Stream::overwrite32(int pos, uint32_t i)
+{
+    // Work on this what if overwrite mode is already set? You have an issue then
+    setOverwriteMode(true);
+    int old_pos = getPosition();
+    setPosition(pos);
+    write32(i);
+    setPosition(old_pos);
+    setOverwriteMode(false);
+}
+
+uint8_t Stream::peek8(int pos)
+{
+    if (this->vector.size() <= pos)
+    {
+        throw Exception("uint8_t Stream::peek8(int pos) stream out of bounds");
+    }
+    uint8_t c = this->vector.at(pos);
+    return c;
+}
+
+uint16_t Stream::peek16(int pos)
+{
+    uint8_t c1 = peek8(pos);
+    uint8_t c2 = peek8(pos + 1);
+
+    uint16_t result = (c2 << 8 | c1);
+    return result;
+}
+
+uint32_t Stream::peek32(int pos)
+{
+    uint16_t s1 = peek16(pos);
+    uint16_t s2 = peek16(pos + 2);
+
+    uint32_t result = (s2 << 16 | s1);
+    return result;
+}
+
 uint8_t Stream::read8()
 {
     if (this->vector.size() <= pos)
     {
         throw Exception("uint8_t Stream::read8(): stream out of bounds");
     }
-    uint8_t c = this->vector.at(pos);
+    uint8_t c = peek8(pos);
     pos++;
     return c;
 }
 
 uint16_t Stream::read16()
 {
-    uint8_t c1 = read8();
-    uint8_t c2 = read8();
-
-    uint16_t result = (c2 << 8 | c1);
+    uint16_t result = peek16(pos);
+    pos += 2;
     return result;
 }
 
 uint32_t Stream::read32()
 {
-    uint16_t s1 = read16();
-    uint16_t s2 = read16();
-
-    uint32_t result = (s2 << 16 | s1);
+    uint32_t result = peek32(pos);
+    pos += 4;
     return result;
 }
 
@@ -193,6 +263,11 @@ bool Stream::isEmpty()
 bool Stream::hasInput()
 {
     return pos < vector.size();
+}
+
+bool Stream::isOverwriteModeEnabled()
+{
+    return this->overwrite_mode;
 }
 
 void Stream::empty()

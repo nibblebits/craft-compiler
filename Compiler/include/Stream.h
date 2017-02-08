@@ -41,6 +41,8 @@ public:
     void loadFromFile(std::string filename);
     void loadFrom_ifstream(std::ifstream* stream);
     void setPosition(size_t position);
+    void setOverwriteMode(bool overwrite_mode);
+    
     void write8(uint8_t c);
     void write16(uint16_t s);
     void write32(uint32_t i);
@@ -48,6 +50,15 @@ public:
     void writeStr(const char* str, bool write_null_terminator = true, size_t fill_to = -1);
     void writeStream(Stream* stream);
     void writeStream(std::shared_ptr<Stream> stream);
+    
+    void overwrite8(int pos, uint8_t c);
+    void overwrite16(int pos, uint16_t s);
+    void overwrite32(int pos, uint32_t i);
+    
+    uint8_t peek8(int pos);
+    uint16_t peek16(int pos);
+    uint32_t peek32(int pos);
+    
     uint8_t read8();
     uint16_t read16();
     uint32_t read32();
@@ -56,6 +67,7 @@ public:
     [[deprecated("There is a bug with isEmpty avoid usage until a fix is made")]]
     bool isEmpty();
     bool hasInput();
+    bool isOverwriteModeEnabled();
     void empty();
     int getPosition();
 
@@ -64,6 +76,7 @@ public:
 
 private:
     std::vector<uint8_t> vector;
+    bool overwrite_mode;
     int pos;
 };
 

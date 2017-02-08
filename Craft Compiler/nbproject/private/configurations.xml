@@ -13,8 +13,6 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
-        <gdb_signals>
-        </gdb_signals>
         <gdb_options>
           <DebugOptions>
           </DebugOptions>
@@ -26,18 +24,18 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -output test_exe.bin -L "test_source.obj" -exe "bin"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino  -L -format "omf"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino -codegen 8086CodeGen -L -format "omf"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output test_source.goblino -codegen 8086CodeGen -O -format "omf"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output "test_source.obj" -codegen 8086CodeGen -O -format "omf"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.obj" -output "test_source.bin" -L -format "bin"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "" -output "test_source.bin" -L -format "bin"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}"  -output "test_source.bin" -L -format "bin"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output "test_source.obj" -codegen 8086CodeGen -O -format "omf"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.obj,test.obj" -output "test_source.bin" -L -format "bin"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.omf,test.omf" -output "test_source.bin" -L -format "bin"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.omf,test2.omf" -output "test_source.bin" -L -format "bin"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.omf,test2.omf" -output "test_source.bin" -L -format "bin" -org_code "256" -org_data "256"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.omf,test2.omf" -output "test.com" -L -format "bin" -org_code "256" -org_data "256"</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" -input "test_source.omf,test.omf" -output "test_source.bin" -L -format "bin"</runcommand>
+        <runcommand>"${OUTPUT_PATH}" -input "test.omf,test2.omf" -output "test.com" -L -format "bin" -org_code "256" -org_data "256"</runcommand>
         <rundir>C:\Users\dansb\Desktop\CraftCompilerV0.1.0\bin</rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

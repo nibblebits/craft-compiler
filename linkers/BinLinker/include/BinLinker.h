@@ -26,12 +26,15 @@
 #define BINLINKER_H
 
 #include "Linker.h"
+#include "VirtualObjectFormat.h"
 
 class BinLinker : public Linker {
 public:
     BinLinker(Compiler* compiler);
     virtual ~BinLinker();
 protected:
+    int countStreamSizesStopAtSegment(std::shared_ptr<VirtualObjectFormat> obj, std::shared_ptr<VirtualSegment> segment_to_stop);
+    void WriteSegment(Stream* executable_stream, std::shared_ptr<VirtualSegment> segment);
     virtual void resolve(std::shared_ptr<VirtualObjectFormat> final_obj);
     virtual void build(Stream* executable_stream, std::shared_ptr<VirtualObjectFormat> final_obj);
 private:

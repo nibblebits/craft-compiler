@@ -107,7 +107,7 @@ private:
 class EXPORT VirtualSegment : public std::enable_shared_from_this<VirtualSegment>
 {
 public:
-    VirtualSegment(std::string segment_name);
+    VirtualSegment(std::string segment_name, uint32_t origin);
     virtual ~VirtualSegment();
     std::string getName();
     Stream* getStream();
@@ -120,12 +120,17 @@ public:
 
     std::vector<std::shared_ptr<GLOBAL_REF>> getGlobalReferences();
     bool hasGlobalReferences();
+    
+    bool hasOrigin();
+    uint32_t getOrigin();
 
 private:
     std::vector<std::shared_ptr<FIXUP>> fixups;
     std::vector<std::shared_ptr<GLOBAL_REF>> global_references;
     std::string segment_name;
     Stream stream;
+    
+    uint32_t origin;
 };
 
 #endif /* VIRTUALSEGMENT_H */

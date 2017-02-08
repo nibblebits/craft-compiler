@@ -60,7 +60,7 @@ public:
     virtual void read(std::shared_ptr<Stream> input_stream) = 0;
     virtual void finalize() = 0;
 protected:
-    virtual std::shared_ptr<VirtualSegment> new_segment(std::string segment_name) = 0;
+    virtual std::shared_ptr<VirtualSegment> new_segment(std::string segment_name, uint32_t origin) = 0;
 private:
     Stream object_stream;
     std::vector<std::shared_ptr<VirtualSegment>> segments;

@@ -71,7 +71,7 @@ void EXPORT debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs)
 
 void debug_virtual_object_format_segment(std::shared_ptr<VirtualSegment> segment)
 {
-    std::cout << "\t" << segment->getName() << std::endl;
+    std::cout << "\tSEGMENT: " << segment->getName() << std::endl;
     if (segment->hasFixups())
     {
         std::cout << "\t" << "Displaying FIXUPS" << std::endl;

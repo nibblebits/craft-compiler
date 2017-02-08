@@ -61,6 +61,7 @@ public:
     std::shared_ptr<CodeGenerator> getCodeGenerator();
     std::shared_ptr<Linker> getLinker();
     std::string getArgumentValue(std::string name);
+    bool hasArgument(std::string name);
 
     std::shared_ptr<VDEFBranch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
     int getSizeOfVarDef(std::shared_ptr<VDEFBranch> vdef_branch);
