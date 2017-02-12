@@ -30,10 +30,13 @@
 
 #include "Stream.h"
 #include <string.h>
+#include <iostream>
+#include <map>
 
 Stream::Stream()
 {
     setPosition(0);
+    this->joint_pos = 0;
     setOverwriteMode(false);
 }
 
@@ -61,7 +64,7 @@ void Stream::loadFrom_ifstream(std::ifstream* stream)
     }
 }
 
-void Stream::setPosition(size_t position)
+void Stream::setPosition(int position)
 {
     this->pos = position;
 }
@@ -71,12 +74,19 @@ void Stream::setOverwriteMode(bool overwrite_mode)
     this->overwrite_mode = overwrite_mode;
 }
 
-void Stream::write8(uint8_t c)
+void Stream::write8(uint8_t c, int pos, bool ignore_joined_streams)
 {
+    // No position provided? lets use the current position
+    if (pos == -1)
+    {
+        pos = this->pos;
+    }
+
     if (this->vector.size() < 0)
     {
         throw Exception("uint8_t Stream::write8(): out of bounds");
     }
+
     if (isOverwriteModeEnabled())
     {
         vector.at(pos) = c;
@@ -85,7 +95,27 @@ void Stream::write8(uint8_t c)
     {
         vector.insert(vector.begin() + pos, c);
     }
-    pos++;
+
+    if (!ignore_joined_streams)
+    {
+        std::shared_ptr<Stream> joint_stream = getJoinedStreamForPosition(pos);
+        if (joint_stream != NULL)
+        {
+            // A stream has been joint to the current position so lets write to the joint stream
+            bool is_joint_stream_overwrite_enabled = joint_stream->isOverwriteModeEnabled();
+            // Change the overwrite mode to our own overwrite mode
+            joint_stream->setOverwriteMode(isOverwriteModeEnabled());
+            std::map<std::shared_ptr<Stream>, int>::iterator it = this->joined_streams.find(joint_stream);
+            int joint_stream_start_pos = it->second;
+            int joint_write_rel_pos = pos - joint_stream_start_pos;
+            joint_stream->write8(c, joint_write_rel_pos);
+            // Restore the previous overwrite mode for this stream
+            joint_stream->setOverwriteMode(is_joint_stream_overwrite_enabled);
+        }
+
+        updateDataForJoinedParents(c, this->pos);
+    }
+    this->pos++;
 }
 
 void Stream::write16(uint16_t s)
@@ -152,6 +182,29 @@ void Stream::writeStream(std::shared_ptr<Stream> stream)
     writeStream(stream.get());
 }
 
+void Stream::joinStream(std::shared_ptr<Stream> stream)
+{
+    int old_size = getSize();
+    writeStream(stream);
+    this->joined_streams[stream] = old_size;
+    stream->newJointParent(shared_from_this());
+}
+
+void Stream::newJointParent(std::shared_ptr<Stream> stream)
+{
+    if (!stream->hasJoinedChild(shared_from_this()))
+    {
+        throw Exception("The stream does not have you as a child already.", "Stream::newJointParent(std::shared_ptr<Stream> stream)");
+    }
+
+    if (hasJoinedParent(stream))
+    {
+        throw Exception("The stream provided is already a joined parent", "Stream::newJointParent(std::shared_ptr<Stream> stream)");
+    }
+
+    this->parent_joined_streams.push_back(stream);
+}
+
 void Stream::overwrite8(int pos, uint8_t c)
 {
     // Work on this what if overwrite mode is already set? You have an issue then
@@ -187,11 +240,13 @@ void Stream::overwrite32(int pos, uint32_t i)
 
 uint8_t Stream::peek8(int pos)
 {
+    uint8_t c;
     if (this->vector.size() <= pos)
     {
         throw Exception("uint8_t Stream::peek8(int pos) stream out of bounds");
     }
-    uint8_t c = this->vector.at(pos);
+    c = this->vector.at(pos);
+
     return c;
 }
 
@@ -255,6 +310,29 @@ size_t Stream::getSize()
     return vector.size();
 }
 
+std::shared_ptr<Stream> Stream::getJoinedStreamForPosition(int pos)
+{
+    std::map<std::shared_ptr<Stream>, int>::iterator it;
+    for (it = this->joined_streams.begin(); it != this->joined_streams.end(); it++)
+    {
+        std::shared_ptr<Stream> stream = it->first;
+        int stream_start_pos = it->second;
+        if (pos >= stream_start_pos
+                && pos < stream_start_pos + stream->getSize())
+        {
+            // Our position is in range, lets return this stream
+            return stream;
+        }
+    }
+
+    return NULL;
+}
+
+int Stream::getJoinedStreamPosition(std::shared_ptr<Stream> stream)
+{
+    return this->joined_streams.at(stream);
+}
+
 bool Stream::isEmpty()
 {
     return vector.empty();
@@ -263,6 +341,21 @@ bool Stream::isEmpty()
 bool Stream::hasInput()
 {
     return pos < vector.size();
+}
+
+bool Stream::hasJoinedChild(std::shared_ptr<Stream> stream)
+{
+    return this->joined_streams.count(stream);
+}
+
+bool Stream::hasJoinedParent(std::shared_ptr<Stream> stream)
+{
+    return std::find(this->parent_joined_streams.begin(), this->parent_joined_streams.end(), stream) != this->parent_joined_streams.end();
+}
+
+bool Stream::isJointWith(std::shared_ptr<Stream> stream)
+{
+    return this->joined_streams.find(stream) != this->joined_streams.end();
 }
 
 bool Stream::isOverwriteModeEnabled()
@@ -291,4 +384,17 @@ char* Stream::toNewBuf()
     char* data = new char[size];
     memcpy(data, getBuf(), size);
     return data;
+}
+
+void Stream::updateDataForJoinedParents(uint8_t c, int pos_rel_to_us)
+{
+    for (std::shared_ptr<Stream> stream : this->parent_joined_streams)
+    {
+        int our_pos_on_stream = stream->getJoinedStreamPosition(shared_from_this());
+        int abs_pos = our_pos_on_stream + pos_rel_to_us;
+        bool was_overwrite_enabled = stream->isOverwriteModeEnabled();
+        stream->setOverwriteMode(isOverwriteModeEnabled());
+        stream->write8(c, abs_pos, true);
+        stream->setOverwriteMode(was_overwrite_enabled);
+    }
 }
