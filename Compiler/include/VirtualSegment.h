@@ -35,58 +35,75 @@ class VirtualSegment;
 
 enum
 {
-    FIXUP_TYPE_SEGMENT,
-    FIXUP_TYPE_EXTERN
+    FIXUP_TYPE_SELF_RELATIVE,
+    FIXUP_TYPE_SEGMENT
 };
 
 typedef int FIXUP_TYPE;
 
+enum
+{
+    FIXUP_TARGET_TYPE_SEGMENT,
+    FIXUP_TARGET_TYPE_EXTERN
+};
+
+typedef int FIXUP_TARGET_TYPE;
+
+class EXPORT FIXUP_TARGET
+{
+public:
+    FIXUP_TARGET();
+    virtual ~FIXUP_TARGET();
+    virtual FIXUP_TARGET_TYPE getType() = 0;
+    virtual std::string getTypeAsString() = 0;
+};
+
+class EXPORT FIXUP_TARGET_SEGMENT : public FIXUP_TARGET
+{
+public:
+    FIXUP_TARGET_SEGMENT(std::shared_ptr<VirtualSegment> target_segment);
+    virtual ~FIXUP_TARGET_SEGMENT();
+    std::shared_ptr<VirtualSegment> getTargetSegment();
+    virtual FIXUP_TARGET_TYPE getType();
+    virtual std::string getTypeAsString();
+private:
+    std::shared_ptr<VirtualSegment> target_segment;
+};
+
+class EXPORT FIXUP_TARGET_EXTERN : public FIXUP_TARGET
+{
+public:
+    FIXUP_TARGET_EXTERN(std::string extern_name);
+    virtual ~FIXUP_TARGET_EXTERN();
+    std::string getExternalName();
+    virtual FIXUP_TARGET_TYPE getType();
+    virtual std::string getTypeAsString();
+private:
+    std::string extern_name;
+};
+
 class EXPORT FIXUP
 {
 public:
-    FIXUP();
+    FIXUP(std::shared_ptr<VirtualSegment> segment_to_fix, std::shared_ptr<FIXUP_TARGET> target, FIXUP_TYPE fixup_type, int offset, FIXUP_LENGTH length);
     virtual ~FIXUP();
-    virtual FIXUP_TYPE getType() = 0;
-private:
 
-};
-
-class EXPORT FIXUP_STANDARD : public FIXUP
-{
-public:
-    FIXUP_STANDARD(int offset, FIXUP_LENGTH length);
-    virtual ~FIXUP_STANDARD();
     void setOffset(int offset);
     void appendOffset(int offset);
     int getOffset();
-    FIXUP_LENGTH getFixupLength();
-    virtual FIXUP_TYPE getType() = 0;
+    FIXUP_LENGTH getLength();
+    std::shared_ptr<VirtualSegment> getSegmentToFix();
+
+    FIXUP_TYPE getType();
+    std::string getTypeAsString();
+    std::shared_ptr<FIXUP_TARGET> getTarget();
+
 private:
+    std::shared_ptr<VirtualSegment> segment_to_fix;
+    std::shared_ptr<FIXUP_TARGET> target;
     int offset;
+    FIXUP_TYPE type;
     FIXUP_LENGTH length;
-};
-
-class EXPORT SEGMENT_FIXUP : public FIXUP_STANDARD
-{
-public:
-    SEGMENT_FIXUP(std::shared_ptr<VirtualSegment> relating_segment, int offset, FIXUP_LENGTH length);
-    virtual ~SEGMENT_FIXUP();
-    std::shared_ptr<VirtualSegment> getRelatingSegment();
-    virtual FIXUP_TYPE getType();
-private:
-    // The segment where the data for a fixup would be located.
-    std::shared_ptr<VirtualSegment> relating_segment;
-};
-
-class EXPORT EXTERN_FIXUP : public FIXUP_STANDARD
-{
-public:
-    EXTERN_FIXUP(std::string extern_name, int offset, FIXUP_LENGTH length);
-    virtual ~EXTERN_FIXUP();
-    std::string getExternalName();
-    virtual FIXUP_TYPE getType();
-private:
-    std::string extern_name;
 };
 
 class EXPORT GLOBAL_REF
@@ -110,17 +127,21 @@ public:
     VirtualSegment(std::string segment_name, uint32_t origin);
     virtual ~VirtualSegment();
     std::string getName();
-    Stream* getStream();
+    std::shared_ptr<Stream> getStream();
 
-    void register_fixup(std::shared_ptr<VirtualSegment> relating_segment, int offset, FIXUP_LENGTH length);
-    void register_fixup_extern(std::string extern_name, int offset, FIXUP_LENGTH length);
+    void register_fixup(std::shared_ptr<FIXUP_TARGET> fixup_target, FIXUP_TYPE fixup_type, int offset, FIXUP_LENGTH length);
+    void register_fixup_target_segment(FIXUP_TYPE fixup_type, std::shared_ptr<VirtualSegment> relating_segment, int offset, FIXUP_LENGTH length);
+    void register_fixup_target_extern(FIXUP_TYPE fixup_type, std::string extern_name, int offset, FIXUP_LENGTH length);
     void register_global_reference(std::string ref_name, int offset);
     std::vector<std::shared_ptr<FIXUP>> getFixups();
     bool hasFixups();
 
     std::vector<std::shared_ptr<GLOBAL_REF>> getGlobalReferences();
+    std::shared_ptr<GLOBAL_REF> getGlobalReferenceByName(std::string ref_name);
+
     bool hasGlobalReferences();
-    
+    bool hasGlobalReference(std::string ref_name);
+
     bool hasOrigin();
     uint32_t getOrigin();
 
@@ -128,8 +149,8 @@ private:
     std::vector<std::shared_ptr<FIXUP>> fixups;
     std::vector<std::shared_ptr<GLOBAL_REF>> global_references;
     std::string segment_name;
-    Stream stream;
-    
+    std::shared_ptr<Stream> stream;
+
     uint32_t origin;
 };
 

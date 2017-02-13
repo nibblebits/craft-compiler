@@ -59,11 +59,13 @@ void Linker::link()
         }
         else
         {
-#ifdef DEBUG_MODE
-            debug_virtual_object_format(obj1);
-#endif
             // Resolve unknown symbols
             this->resolve(obj1);
+            
+#ifdef DEBUG_MODE
+            std::cout << "Final Object" << std::endl;
+            debug_virtual_object_format(obj1);
+#endif
             // Build the executable
             this->build(&this->executable_stream, obj1);
         }

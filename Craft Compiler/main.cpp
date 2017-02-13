@@ -451,6 +451,12 @@ int LinkMode()
                         " Detailed message: " << ex.getMessage() << std::endl;
                 return ERROR_WITH_OBJECT_FORMAT;
             }
+
+#ifdef DEBUG_MODE
+            // Lets output debugging information as debug mode is enabled
+            debug_virtual_object_format(obj_format);
+#endif
+
             // Ok we have everything we need let's add the object file to a vector for later processing
             obj_files.push_back(obj_format);
         }

@@ -41,10 +41,14 @@ VirtualObjectFormat::~VirtualObjectFormat()
 
 std::shared_ptr<VirtualSegment> VirtualObjectFormat::createSegment(std::string segment_name)
 {
+    if (hasSegment(segment_name))
+    {
+        throw Exception("The segment: " + segment_name + " already exists.", "std::shared_ptr<VirtualSegment> VirtualObjectFormat::createSegment(std::string segment_name)");
+    }
     uint32_t origin = 0;
     // We need to see if an origin is present, this would have been provided in the arguments upon running the compiler
     std::string argument_name = "org_" + segment_name;
-    if(getCompiler()->hasArgument(argument_name))
+    if (getCompiler()->hasArgument(argument_name))
     {
         // An argument exists so lets set the origin
         origin = std::stoi(getCompiler()->getArgumentValue(argument_name));
@@ -102,6 +106,28 @@ std::vector<std::shared_ptr<GLOBAL_REF>> VirtualObjectFormat::getGlobalReference
     return getSegment(segment_name)->getGlobalReferences();
 }
 
+bool VirtualObjectFormat::hasGlobalReference(std::string ref_name)
+{
+    for (std::shared_ptr<VirtualSegment> segment : getSegments())
+    {
+        if (segment->hasGlobalReference(ref_name))
+            return true;
+    }
+
+    return false;
+}
+
+std::shared_ptr<GLOBAL_REF> VirtualObjectFormat::getGlobalReferenceByName(std::string ref_name)
+{
+    for (std::shared_ptr<VirtualSegment> segment : getSegments())
+    {
+        if (segment->hasGlobalReference(ref_name))
+            return segment->getGlobalReferenceByName(ref_name);
+    }
+
+    return NULL;
+}
+
 void VirtualObjectFormat::registerExternalReference(std::string ref_name)
 {
     // Check if the reference is already registered.
@@ -139,62 +165,77 @@ void VirtualObjectFormat::append(std::shared_ptr<VirtualObjectFormat> obj_format
         registerExternalReference(ext_ref);
     }
 
-    std::map<std::string, int> old_size_map;
-    int old_size;
-    std::shared_ptr<VirtualSegment> our_segment;
-
-    // Append the segments, this requires two passes due to relating segments
+    // Merge all the same segments together
     for (std::shared_ptr<VirtualSegment> segment : obj_format->getSegments())
     {
+        std::shared_ptr<VirtualSegment> main_segment;
         if (hasSegment(segment->getName()))
         {
-            our_segment = getSegment(segment->getName());
+            main_segment = getSegment(segment->getName());
         }
         else
         {
-            // We don't have the segment so we need to create it
-            our_segment = createSegment(segment->getName());
+            main_segment = createSegment(segment->getName());
         }
 
-        // Log the old size for later we are going to need it to resolve offsets
-        old_size = our_segment->getStream()->getSize();
-        old_size_map[our_segment->getName()] = old_size;
-
-        // Write the segments stream to our own
-        our_segment->getStream()->writeStream(segment->getStream());
+        // Lets join their streams to the main segment stream
+        std::shared_ptr<Stream> main_segment_stream = main_segment->getStream();
+        std::shared_ptr<Stream> segment_stream = segment->getStream();
+        main_segment_stream->joinStream(segment_stream);
     }
 
-    // Pass 2
+    // Apply fixups where appropriate
     for (std::shared_ptr<VirtualSegment> segment : obj_format->getSegments())
     {
-        our_segment = getSegment(segment->getName());
-        int old_size = old_size_map[segment->getName()];
-        // Relocatable offsets of the new stream are now wrong so we need to fix them and add them to our segment
+        std::shared_ptr<VirtualSegment> main_segment = getSegment(segment->getName());
+        std::shared_ptr<Stream> main_segment_stream = main_segment->getStream();
+        std::shared_ptr<Stream> segment_stream = segment->getStream();
+
+        int abs_segment_pos = main_segment_stream->getJoinedStreamPosition(segment_stream);
+
+        // Handle fixups
         for (std::shared_ptr<FIXUP> fixup : segment->getFixups())
         {
-            std::shared_ptr<FIXUP_STANDARD> fixup_standard = std::dynamic_pointer_cast<FIXUP_STANDARD>(fixup);
-            fixup_standard->appendOffset(old_size);
-            if (fixup->getType() == FIXUP_TYPE_SEGMENT)
+            std::shared_ptr<FIXUP_TARGET> target = fixup->getTarget();
+            if (target->getType() == FIXUP_TARGET_TYPE_SEGMENT)
             {
-                std::shared_ptr<SEGMENT_FIXUP> seg_fixup = std::dynamic_pointer_cast<SEGMENT_FIXUP>(fixup);
-                // We want a new fix up based on these changes 
-                std::shared_ptr<VirtualSegment> relating_seg = getSegment(seg_fixup->getRelatingSegment()->getName());
-                int new_data_offset = old_size_map[relating_seg->getName()] + our_segment->getStream()->peek16(seg_fixup->getOffset());
-                our_segment->getStream()->overwrite16(seg_fixup->getOffset(), new_data_offset);
-                our_segment->register_fixup(relating_seg, seg_fixup->getOffset(), seg_fixup->getFixupLength());
+                std::shared_ptr<FIXUP_TARGET_SEGMENT> fixup_target_segment = std::dynamic_pointer_cast<FIXUP_TARGET_SEGMENT>(target);
+                if (fixup->getType() == FIXUP_TYPE_SEGMENT)
+                {
+                    // We need the absolute position of the segment on the main stream
+                    std::shared_ptr<VirtualSegment> target_segment = fixup_target_segment->getTargetSegment();
+                    std::shared_ptr<VirtualSegment> main_target_segment = getSegment(target_segment->getName());
+                    int fixup_offset = fixup->getOffset();
+                    int abs_pos_to_stream = main_target_segment->getStream()->getJoinedStreamPosition(target_segment->getStream());
+                    int new_pos;
+                    // Now lets fix the offset
+                    switch (fixup->getLength())
+                    {
+                    case FIXUP_8BIT:
+                        new_pos = abs_pos_to_stream + segment_stream->peek8(fixup_offset);
+                        segment_stream->overwrite8(fixup_offset, new_pos);
+                        break;
+                    case FIXUP_16BIT:
+                        new_pos = abs_pos_to_stream + segment_stream->peek16(fixup_offset);
+                        segment_stream->overwrite16(fixup_offset, new_pos);
+                        break;
+                    case FIXUP_32BIT:
+                        new_pos = abs_pos_to_stream + segment_stream->peek32(fixup_offset);
+                        segment_stream->overwrite32(fixup_offset, new_pos);
+                        break;
+                    }
+                }
             }
-            else if(fixup->getType() == FIXUP_TYPE_EXTERN)
-            {
-                std::shared_ptr<EXTERN_FIXUP> extern_fixup = std::dynamic_pointer_cast<EXTERN_FIXUP>(fixup);
-                our_segment->register_fixup_extern(extern_fixup->getExternalName(), extern_fixup->getOffset(), extern_fixup->getFixupLength());
-            }
+            // We need to add the fixup to the main segment
+            int new_offset_pos = abs_segment_pos + fixup->getOffset();
+            main_segment->register_fixup(fixup->getTarget(), fixup->getType(), new_offset_pos, fixup->getLength());
         }
 
-        // We should also add the global references
-        for (std::shared_ptr<GLOBAL_REF> global_ref : segment->getGlobalReferences())
+        // Handle globals
+        for (std::shared_ptr<GLOBAL_REF> global : segment->getGlobalReferences())
         {
-            our_segment->register_global_reference(global_ref->getName(), global_ref->getOffset());
+            int new_offset_pos = abs_segment_pos + global->getOffset();
+            main_segment->register_global_reference(global->getName(), new_offset_pos);
         }
     }
-
 }

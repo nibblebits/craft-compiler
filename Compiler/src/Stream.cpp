@@ -330,6 +330,10 @@ std::shared_ptr<Stream> Stream::getJoinedStreamForPosition(int pos)
 
 int Stream::getJoinedStreamPosition(std::shared_ptr<Stream> stream)
 {
+    if (!hasJoinedChild(stream))
+    {
+        throw Exception("The stream provided is not a joined child of this stream", "int Stream::getJoinedStreamPosition(std::shared_ptr<Stream> stream)");
+    }
     return this->joined_streams.at(stream);
 }
 
