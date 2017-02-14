@@ -47,27 +47,25 @@ void Linker::link()
 {
     while (!this->obj_stack.empty())
     {
-        std::shared_ptr<VirtualObjectFormat> obj1 = this->obj_stack.front();
+        std::shared_ptr<VirtualObjectFormat> main_obj = this->obj_stack.front();
         this->obj_stack.pop();
         if (!this->obj_stack.empty())
         {
-            std::shared_ptr<VirtualObjectFormat> obj2 = this->obj_stack.back();
+            std::shared_ptr<VirtualObjectFormat> other_obj = this->obj_stack.back();
             this->obj_stack.pop();
-            this->link_merge(obj1, obj2);
-            // Push the modified object back to the stack
-            this->obj_stack.push(obj1);
+            this->link_merge(main_obj, other_obj);
         }
         else
         {
             // Resolve unknown symbols
-            this->resolve(obj1);
+            this->resolve(main_obj);
             
 #ifdef DEBUG_MODE
             std::cout << "Final Object" << std::endl;
-            debug_virtual_object_format(obj1);
+            debug_virtual_object_format(main_obj);
 #endif
             // Build the executable
-            this->build(&this->executable_stream, obj1);
+            this->build(&this->executable_stream, main_obj);
         }
     }
 }

@@ -374,7 +374,7 @@ bool Stream::hasJoinedParent(std::shared_ptr<Stream> stream)
 
 bool Stream::isJointWith(std::shared_ptr<Stream> stream)
 {
-    return this->joined_streams.find(stream) != this->joined_streams.end();
+    return hasJoinedChild(stream) || hasJoinedParent(stream);
 }
 
 bool Stream::isOverwriteModeEnabled()

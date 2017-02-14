@@ -72,7 +72,7 @@ void EXPORT debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs)
 void debug_virtual_object_format_segment(std::shared_ptr<VirtualSegment> segment)
 {
     std::shared_ptr<Stream> segment_stream = segment->getStream();
-    std::cout << "\tSEGMENT: " << segment->getName() << std::endl;
+    std::cout << "\tSEGMENT: " << segment->getName() << ", segment address: " << segment.get() << std::endl;
 
     if (segment->hasFixups())
     {
