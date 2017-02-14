@@ -45,7 +45,7 @@ public:
     void setPosition(int position);
     void setOverwriteMode(bool overwrite_mode);
 
-    void write8(uint8_t c, int pos = -1, bool ignore_joined_streams=false);
+    void write8(uint8_t c, int pos = -1, bool ignore_joined_parents=false);
     void write16(uint16_t s);
     void write32(uint32_t i);
     void writeStr(std::string str, bool write_null_terminator = true, size_t fill_to = -1);

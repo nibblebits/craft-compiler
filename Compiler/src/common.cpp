@@ -71,28 +71,43 @@ void EXPORT debug_output_branch(std::shared_ptr<Branch> branch, int no_tabs)
 
 void debug_virtual_object_format_segment(std::shared_ptr<VirtualSegment> segment)
 {
+    std::shared_ptr<Stream> segment_stream = segment->getStream();
     std::cout << "\tSEGMENT: " << segment->getName() << std::endl;
-    
+
     if (segment->hasFixups())
     {
         std::cout << "\t" << "Displaying FIXUPS" << std::endl;
         for (std::shared_ptr<FIXUP> fixup : segment->getFixups())
         {
+            int fixup_offset = fixup->getOffset();
             std::cout << "\t\t";
             std::shared_ptr<FIXUP_TARGET> fixup_target = fixup->getTarget();
-            std::cout << "Fixup type: " << fixup->getTypeAsString() <<  ", targeting: "  << fixup_target->getTypeAsString();
+            std::cout << "Fixup type: " << fixup->getTypeAsString() << ", targeting: " << fixup_target->getTypeAsString();
             if (fixup_target->getType() == FIXUP_TARGET_TYPE_SEGMENT)
             {
+                int offset_val;
+                switch (fixup->getLength())
+                {
+                case FIXUP_8BIT:
+                    offset_val = segment_stream->peek8(fixup_offset);
+                    break;
+                case FIXUP_16BIT:
+                    offset_val = segment_stream->peek16(fixup_offset);
+                    break;
+                case FIXUP_32BIT:
+                    offset_val = segment_stream->peek32(fixup_offset);
+                    break;
+                }
                 std::shared_ptr<FIXUP_TARGET_SEGMENT> fixup_target_segment = std::dynamic_pointer_cast<FIXUP_TARGET_SEGMENT>(fixup_target);
-                std::cout << " target segment: " << fixup_target_segment->getTargetSegment()->getName() << ",";
+                std::cout << " target segment: " << fixup_target_segment->getTargetSegment()->getName() << ", offset value: " << std::to_string(offset_val);
             }
             else if (fixup_target->getType() == FIXUP_TARGET_TYPE_EXTERN)
             {
                 std::shared_ptr<FIXUP_TARGET_EXTERN> fixup_target_extern = std::dynamic_pointer_cast<FIXUP_TARGET_EXTERN>(fixup_target);
                 std::cout << " target extern: " << fixup_target_extern->getExternalName() << ",";
             }
-                   
-            std::cout << " offset: " << fixup->getOffset() << " fixup length: " << std::to_string(GetFixupLengthAsInteger(fixup->getLength())) << std::endl;
+
+            std::cout << " offset: " << fixup_offset << " fixup length: " << std::to_string(GetFixupLengthAsInteger(fixup->getLength())) << std::endl;
         }
     }
     else
@@ -106,7 +121,7 @@ void debug_virtual_object_format_segment(std::shared_ptr<VirtualSegment> segment
         for (std::shared_ptr<GLOBAL_REF> global_ref : segment->getGlobalReferences())
         {
             std::cout << "\t\t";
-            std::cout << "GLOBAL REF: " << global_ref->getName() << ", segment: " << global_ref->getSegment()->getName() << 
+            std::cout << "GLOBAL REF: " << global_ref->getName() << ", segment: " << global_ref->getSegment()->getName() <<
                     " offset: " << global_ref->getOffset() << std::endl;
         }
     }
@@ -114,7 +129,7 @@ void debug_virtual_object_format_segment(std::shared_ptr<VirtualSegment> segment
     {
         std::cout << "\t" << "No global exported references to display" << std::endl;
     }
-     
+
 }
 
 void debug_virtual_object_format(std::shared_ptr<VirtualObjectFormat> virtual_object_format)
