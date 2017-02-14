@@ -37,37 +37,46 @@ Linker::~Linker()
 {
 
 }
-
 void Linker::addObjectFile(std::shared_ptr<VirtualObjectFormat> obj)
 {
-    this->obj_stack.push(obj);
+    if (hasObjectFile(obj))
+    {
+        throw Exception("The object file provided has already been added to this linker", "void Linker::addObjectFile(std::shared_ptr<VirtualObjectFormat> obj)");
+    }
+    this->obj_stack.push_back(obj);
+}
+
+bool Linker::hasObjectFile(std::shared_ptr<VirtualObjectFormat> obj)
+{
+    return std::find(this->obj_stack.begin(), this->obj_stack.end(), obj) != this->obj_stack.end();
 }
 
 void Linker::link()
 {
+    if (this->obj_stack.empty())
+    {
+        throw Exception("Nothing to link", "void Linker::link()");
+    }
+    std::shared_ptr<VirtualObjectFormat> main_obj = this->obj_stack.front();
+    this->obj_stack.pop_front();
     while (!this->obj_stack.empty())
     {
-        std::shared_ptr<VirtualObjectFormat> main_obj = this->obj_stack.front();
-        this->obj_stack.pop();
-        if (!this->obj_stack.empty())
-        {
-            std::shared_ptr<VirtualObjectFormat> other_obj = this->obj_stack.back();
-            this->obj_stack.pop();
-            this->link_merge(main_obj, other_obj);
-        }
-        else
-        {
-            // Resolve unknown symbols
-            this->resolve(main_obj);
-            
-#ifdef DEBUG_MODE
-            std::cout << "Final Object" << std::endl;
-            debug_virtual_object_format(main_obj);
-#endif
-            // Build the executable
-            this->build(&this->executable_stream, main_obj);
-        }
+        std::shared_ptr<VirtualObjectFormat> other_obj = this->obj_stack.front();
+        this->obj_stack.pop_front();
+        this->link_merge(main_obj, other_obj);
     }
+
+
+    // Resolve unknown symbols
+    this->resolve(main_obj);
+
+#ifdef DEBUG_MODE
+    std::cout << "Final Object" << std::endl;
+    debug_virtual_object_format(main_obj);
+#endif
+    // Build the executable
+    this->build(&this->executable_stream, main_obj);
+
 }
 
 void Linker::link_merge(std::shared_ptr<VirtualObjectFormat> obj1, std::shared_ptr<VirtualObjectFormat> obj2)

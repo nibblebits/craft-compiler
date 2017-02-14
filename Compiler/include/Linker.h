@@ -27,7 +27,7 @@
 
 #include <vector>
 #include <fstream>
-#include <queue>
+#include <deque>
 #include <memory>
 #include "Stream.h"
 #include "Exception.h"
@@ -43,6 +43,7 @@ public:
     Linker(Compiler* compiler);
     virtual ~Linker();
     void addObjectFile(std::shared_ptr<VirtualObjectFormat> obj);
+    bool hasObjectFile(std::shared_ptr<VirtualObjectFormat> obj);
     void link();
     Stream* getExecutableStream();
 protected:
@@ -50,7 +51,7 @@ protected:
     virtual void resolve(std::shared_ptr<VirtualObjectFormat> final_obj) = 0;
     virtual void build(Stream* executable_stream, std::shared_ptr<VirtualObjectFormat> final_obj) = 0;
 private:
-    std::queue<std::shared_ptr<VirtualObjectFormat>> obj_stack;
+    std::deque<std::shared_ptr<VirtualObjectFormat>> obj_stack;
     Stream executable_stream;
 };
 
