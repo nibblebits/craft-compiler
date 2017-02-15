@@ -24,6 +24,8 @@
  * Description: 
  */
 
+#include <string>
+
 #include "OMFObjectFormat.h"
 #include "Compiler.h"
 
@@ -41,10 +43,11 @@ std::shared_ptr<VirtualSegment> OMFObjectFormat::new_segment(std::string segment
     return std::shared_ptr<VirtualSegment>(new VirtualSegment(segment_name, origin));
 }
 
-LOCATION_TYPE OMFObjectFormat::get_location_type_from_fixup_standard(std::shared_ptr<FIXUP_STANDARD> fixup_standard)
+
+LOCATION_TYPE OMFObjectFormat::get_location_type_from_fixup(std::shared_ptr<FIXUP> fixup)
 {
     LOCATION_TYPE location_type;
-    FIXUP_LENGTH length = fixup_standard->getFixupLength();
+    FIXUP_LENGTH length = fixup->getLength();
     if (length == FIXUP_16BIT)
     {
         location_type = FIXUPP_LOCATION_16_BIT_OFFSET;
@@ -55,32 +58,33 @@ LOCATION_TYPE OMFObjectFormat::get_location_type_from_fixup_standard(std::shared
     }
     else
     {
-        throw Exception("LOCATION_TYPE OMFObjectFormat::get_location_type_from_fixup_standard(std::shared_ptr<FIXUP_STANDARD> fixup_standard): invalid or unimplemented fix up length for the OMF object file");
+        throw Exception("invalid or unimplemented fix up length for the OMF object file", "LOCATION_TYPE OMFObjectFormat::get_location_type_from_fixup(std::shared_ptr<FIXUP> fixup)");
     }
 
     return location_type;
 }
 
-void OMFObjectFormat::handle_segment_fixup(struct RECORD* record, std::shared_ptr<SEGMENT_FIXUP> seg_fixup)
+void OMFObjectFormat::handle_segment_fixup(struct RECORD* record, std::shared_ptr<FIXUP> fixup, std::shared_ptr<FIXUP_TARGET_SEGMENT> fixup_target_seg)
 {
-    LOCATION_TYPE location_type = get_location_type_from_fixup_standard(seg_fixup);
+    LOCATION_TYPE location_type = get_location_type_from_fixup(fixup);
     MagicOMFAddFIXUP16_SubRecord_Fixup_Internal(record,
-                                                seg_fixup->getRelatingSegment()->getName().c_str(),
-                                                seg_fixup->getOffset(),
+                                                fixup_target_seg->getTargetSegment()->getName().c_str(),
+                                                fixup->getOffset(),
                                                 location_type);
 }
 
-void OMFObjectFormat::handle_extern_fixup(struct RECORD* record, std::shared_ptr<EXTERN_FIXUP> extern_fixup)
+void OMFObjectFormat::handle_extern_fixup(struct RECORD* record, std::shared_ptr<FIXUP> fixup, std::shared_ptr<FIXUP_TARGET_EXTERN> fixup_target_extern)
 {
-    LOCATION_TYPE location_type = get_location_type_from_fixup_standard(extern_fixup);
+    LOCATION_TYPE location_type = get_location_type_from_fixup(fixup);
     MagicOMFAddFIXUP16_SubRecord_Fixup_External(record,
-                                                extern_fixup->getExternalName().c_str(),
-                                                extern_fixup->getOffset(),
+                                                fixup_target_extern->getExternalName().c_str(),
+                                                fixup->getOffset(),
                                                 location_type);
 }
 
 void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)
 {
+    
     char* buf = input_stream->getBuf();
     struct MagicOMFHandle* handle = MagicOMFTranslate(buf, input_stream->getSize(), true);
     if (handle->has_error)
@@ -104,7 +108,7 @@ void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)
         {
             struct LEDATA_16* ledata_16 = (struct LEDATA_16*) current->contents;
             std::shared_ptr<VirtualSegment> segment = VirtualObjectFormat::getSegment(ledata_16->SEGDEF_16_record->class_name_str);
-            Stream* stream = segment->getStream();
+            std::shared_ptr<Stream> stream = segment->getStream();
             char* buf = ledata_16->data_bytes;
             for (int i = 0; i < ledata_16->data_bytes_size; i++)
             {
@@ -154,16 +158,27 @@ void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)
                         throw Exception("Unsupported location provided in OMF object file for the FIXUPP record.", "void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)");
                     }
 
+                    FIXUP_TYPE fixup_type;
+                    
                     if (subrecord->mode == FIXUPP_MODE_SELF_RELATIVE_FIXUP)
                     {
-                        // External fixup
-                        target_segment->register_fixup_extern(subrecord->relating_extdef->name_str, subrecord->data_record_offset, length);
+                        fixup_type = FIXUP_TYPE_SELF_RELATIVE;
                     }
                     else
                     {
+                        fixup_type = FIXUP_TYPE_SEGMENT;
+                    }
+                    
+                    if (subrecord->target_type == FIXUPP_TARGET_TYPE_EXTIDX)
+                    {
+                        // External fixup
+                        target_segment->register_fixup_target_extern(fixup_type, subrecord->relating_extdef->name_str, subrecord->data_record_offset, length);
+                    }
+                    else if(subrecord->target_type == FIXUPP_TARGET_TYPE_SEGIDX)
+                    {
                         // Internal fixup
                         std::shared_ptr<VirtualSegment> relating_segment = VirtualObjectFormat::getSegment(subrecord->relating_data->SEGDEF_16_record->class_name_str);
-                        target_segment->register_fixup(relating_segment, subrecord->data_record_offset, length);
+                        target_segment->register_fixup_target_segment(fixup_type, relating_segment, subrecord->data_record_offset, length);
                     }
                 }
                 fixup_16_desc = fixup_16_desc->next_subrecord_descriptor;
@@ -174,10 +189,12 @@ void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)
         }
         current = current->next;
     }
+     
 }
 
 void OMFObjectFormat::finalize()
 {
+    
     struct RECORD* record;
     // Lets create a Magic OMF handle using the MagicOMF library that was written for this library
     struct MagicOMFHandle* handle = MagicOMFCreateHandle();
@@ -241,7 +258,7 @@ void OMFObjectFormat::finalize()
     // Now we need to create the LEDATA records
     for (std::shared_ptr<VirtualSegment> segment : getSegments())
     {
-        Stream* stream = segment->getStream();
+        std::shared_ptr<Stream> stream = segment->getStream();
         MagicOMFAddLEDATA16(handle, segment->getName().c_str(), 0, stream->getSize(), stream->getBuf());
         // Do we have any fixups for this segment?
         if (segment->hasFixups())
@@ -249,14 +266,14 @@ void OMFObjectFormat::finalize()
             struct RECORD* record = MagicOMFNewFIXUP16Record(handle);
             for (std::shared_ptr<FIXUP> fixup : segment->getFixups())
             {
-                FIXUP_TYPE fixup_type = fixup->getType();
-                switch (fixup_type)
+                std::shared_ptr<FIXUP_TARGET> fixup_target = fixup->getTarget();
+                switch (fixup_target->getType())
                 {
-                case FIXUP_TYPE_SEGMENT:
-                    handle_segment_fixup(record, std::dynamic_pointer_cast<SEGMENT_FIXUP>(fixup));
+                case FIXUP_TARGET_TYPE_SEGMENT:
+                    handle_segment_fixup(record, fixup, std::dynamic_pointer_cast<FIXUP_TARGET_SEGMENT>(fixup_target));
                     break;
-                case FIXUP_TYPE_EXTERN:
-                    handle_extern_fixup(record, std::dynamic_pointer_cast<EXTERN_FIXUP>(fixup));
+                case FIXUP_TARGET_TYPE_EXTERN:
+                    handle_extern_fixup(record, fixup, std::dynamic_pointer_cast<FIXUP_TARGET_EXTERN>(fixup_target));
                     break;
                 }
             }

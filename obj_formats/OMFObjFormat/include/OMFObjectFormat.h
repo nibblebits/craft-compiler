@@ -37,9 +37,9 @@ public:
     virtual void finalize();
 
 private:
-    LOCATION_TYPE get_location_type_from_fixup_standard(std::shared_ptr<FIXUP_STANDARD> fixup_standard);
-    void handle_segment_fixup(struct RECORD* record, std::shared_ptr<SEGMENT_FIXUP> seg_fixup);
-    void handle_extern_fixup(struct RECORD* record, std::shared_ptr<EXTERN_FIXUP> extern_fixup);
+    LOCATION_TYPE get_location_type_from_fixup(std::shared_ptr<FIXUP> fixup);
+    void handle_segment_fixup(struct RECORD* record, std::shared_ptr<FIXUP> fixup, std::shared_ptr<FIXUP_TARGET_SEGMENT> fixup_target_seg);
+    void handle_extern_fixup(struct RECORD* record, std::shared_ptr<FIXUP> fixup, std::shared_ptr<FIXUP_TARGET_EXTERN> fixup_target_extern);
 };
 
 #endif /* OMFOBJECTFORMAT_H */
