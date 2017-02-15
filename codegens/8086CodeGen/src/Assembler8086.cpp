@@ -988,12 +988,14 @@ bool Assembler8086::is_next_newline()
 
 void Assembler8086::generate()
 {
-    // Calculates offsets instruction and operand sizes.
+    // Calculates instruction offsets.
     assembler_pass_1();
-    // Figures out if labels are not out of range for particular instructions
+    // Handles the accessing of labels and if there is a problem then it will store it for assessment in pass 3
     assembler_pass_2();
-    // Generates the instructions into machine code.
+    // Figures out if labels are not out of range for particular instructions
     assembler_pass_3();
+    // Generates the instructions into machine code.
+    assembler_pass_4();
 }
 
 void Assembler8086::push_branch(std::shared_ptr<Branch> branch)
@@ -1073,10 +1075,6 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
         // Lets calculate the operand sizes for this instruction
         calculate_operand_sizes_for_instruction(ins_branch);
 
-        /* An operand may have specified a label that is too far in offset for the given instruction
-         * We register possible scenarios like this so that they can be resolved later on if required.*/
-        add_must_fits_if_required(ins_branch);
-
         ins_branch->setOffset(this->cur_offset);
         int size = get_instruction_size(std::dynamic_pointer_cast<InstructionBranch>(branch));
         ins_branch->setSize(size);
@@ -1146,10 +1144,6 @@ void Assembler8086::assembler_pass_2()
         {
             pass_2_segment(std::dynamic_pointer_cast<SegmentBranch>(branch));
         }
-        else
-        {
-            throw new AssemblerException("void Assembler8086::generate(): branch requires a segment.");
-        }
     }
 }
 
@@ -1165,6 +1159,41 @@ void Assembler8086::pass_2_segment(std::shared_ptr<SegmentBranch> segment_branch
 }
 
 void Assembler8086::pass_2_part(std::shared_ptr<Branch> branch)
+{
+    std::string type = branch->getType();
+    if (type == "INSTRUCTION")
+    {
+        std::shared_ptr<InstructionBranch> ins_branch = std::dynamic_pointer_cast<InstructionBranch>(branch);
+        /* An operand may have specified a label that is too far in offset for the given instruction
+         * We register possible scenarios like this so that they can be resolved later on if required.*/
+        add_must_fits_if_required(ins_branch);
+    }
+
+}
+
+void Assembler8086::assembler_pass_3()
+{
+    for (std::shared_ptr<Branch> branch : root->getChildren())
+    {
+        if (branch->getType() == "SEGMENT")
+        {
+            pass_3_segment(std::dynamic_pointer_cast<SegmentBranch>(branch));
+        }
+    }
+}
+
+void Assembler8086::pass_3_segment(std::shared_ptr<SegmentBranch> segment_branch)
+{
+    // Switch to the segment
+    switch_to_segment(segment_branch->getSegmentNameBranch()->getValue());
+    // Now we need to pass through the children
+    for (std::shared_ptr<Branch> child : segment_branch->getContentsBranch()->getChildren())
+    {
+        pass_3_part(child);
+    }
+}
+
+void Assembler8086::pass_3_part(std::shared_ptr<Branch> branch)
 {
     std::string type = branch->getType();
     if (type == "LABEL")
@@ -1433,7 +1462,7 @@ void Assembler8086::switch_to_segment(std::string segment_name)
     throw AssemblerException("void Assembler8086::switch_to_segment(std::string segment_name): \"" + segment_name + "\" does not exist");
 }
 
-void Assembler8086::assembler_pass_3()
+void Assembler8086::assembler_pass_4()
 {
     for (std::shared_ptr<Branch> branch : root->getChildren())
     {
@@ -1510,7 +1539,7 @@ void Assembler8086::gen_oorrrmmm(std::shared_ptr<InstructionBranch> ins_branch, 
         }
 
         // Write the offset 
-        write_modrm_offset(oo, mmm, selected_branch);
+        write_modrm_offset(oo, mmm, ins_branch, selected_branch);
     }
 }
 
@@ -1557,7 +1586,7 @@ void Assembler8086::gen_imm(INSTRUCTION_INFO info, std::shared_ptr<InstructionBr
     }
 
     // Register a fixup if we need to
-    register_fixup_if_required(cur_address, length, selected_operand);
+    register_fixup_if_required(cur_address, length, ins_branch, selected_operand);
 }
 
 void Assembler8086::generate_part(std::shared_ptr<Branch> branch)
@@ -1774,8 +1803,12 @@ IDENTIFIER_TYPE Assembler8086::get_identifier_type(std::string iden_name)
 int Assembler8086::get_label_offset(std::string label_name, std::shared_ptr<InstructionBranch> ins_branch, bool short_or_near_possible)
 {
     int value;
-    int lbl_offset = get_label_offset(label_name);
-    if (short_or_near_possible)
+    std::shared_ptr<LabelBranch> label_branch = get_label_branch(label_name);
+    int lbl_offset = label_branch->getOffset();
+    
+    // We should only calculate short or near for labels on the same segment as the instruction, otherwise we will give them a position relative to the segment
+    if (short_or_near_possible 
+            && ins_branch->getSegmentBranch() == label_branch->getSegmentBranch())
     {
         // Ok its possible to deal with this as a short so lets do that, this is valid with things such as short jumps.  
         int ins_offset = ins_branch->getOffset();
@@ -1834,7 +1867,7 @@ void Assembler8086::register_global_reference_if_any(std::shared_ptr<LabelBranch
     }
 }
 
-void Assembler8086::register_fixup_if_required(int offset, FIXUP_LENGTH length, std::shared_ptr<OperandBranch> branch)
+void Assembler8086::register_fixup_if_required(int offset, FIXUP_LENGTH length, std::shared_ptr<InstructionBranch> ins_branch, std::shared_ptr<OperandBranch> branch)
 {
     if (!branch->hasIdentifierBranch())
     {
@@ -1845,11 +1878,30 @@ void Assembler8086::register_fixup_if_required(int offset, FIXUP_LENGTH length, 
     // Ok lets register this fixup
     std::string iden_value = branch->getIdentifierBranch()->getValue();
     IDENTIFIER_TYPE iden_type = get_identifier_type(iden_value);
-    
-    // Register fixups here...
+    INSTRUCTION_INFO i_info = ins_info[get_instruction_type(ins_branch)];
+    FIXUP_TYPE fixup_type;
+    if (i_info & SHORT_POSSIBLE
+            || i_info & NEAR_POSSIBLE)
+    {
+        // This instruction uses relative addressing
+        fixup_type = FIXUP_TYPE_SELF_RELATIVE;
+    }
+    else
+    {
+        fixup_type = FIXUP_TYPE_SEGMENT;
+    }
+
+    if (iden_type == IDENTIFIER_TYPE_LABEL)
+    {
+        segment->register_fixup_target_segment(fixup_type, get_virtual_segment_for_label(iden_value), offset, length);
+    }
+    else if (iden_type == IDENTIFIER_TYPE_EXTERN)
+    {
+        segment->register_fixup_target_extern(fixup_type, iden_value, offset, length);
+    }
 }
 
-void Assembler8086::write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<OperandBranch> branch)
+void Assembler8086::write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<InstructionBranch> ins_branch, std::shared_ptr<OperandBranch> branch)
 {
     // Fixups are also registered in this method so that the linker may replace the offset at a later date.
 
@@ -1876,7 +1928,7 @@ void Assembler8086::write_modrm_offset(unsigned char oo, unsigned char mmm, std:
     }
 
     // Register a fixup if we need to
-    register_fixup_if_required(cur_address, length, branch);
+    register_fixup_if_required(cur_address, length, ins_branch, branch);
 }
 
 unsigned char Assembler8086::write_abs_static8(std::shared_ptr<OperandBranch> branch, bool short_possible, std::shared_ptr<InstructionBranch> ins_branch)

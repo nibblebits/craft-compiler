@@ -44,7 +44,6 @@ typedef char CONDITION_CODE;
 typedef char OPERAND_DATA_SIZE;
 #define OPERAND_BIT_SIZE sizeof(OPERAND_INFO) * 8
 
-
 enum
 {
     IDENTIFIER_TYPE_LABEL,
@@ -242,7 +241,7 @@ enum
     XOR_REG_WITH_IMM_W1,
     XOR_MEM_WITH_IMM_W0,
     XOR_MEM_WITH_IMM_W1,
-    
+
     OR_REG_WITH_REG_W0,
     OR_REG_WITH_REG_W1,
     OR_MEM_WITH_REG_W0,
@@ -255,7 +254,7 @@ enum
     OR_REG_WITH_IMM_W1,
     OR_MEM_WITH_IMM_W0,
     OR_MEM_WITH_IMM_W1,
-    
+
     AND_REG_WITH_REG_W0,
     AND_REG_WITH_REG_W1,
     AND_MEM_WITH_REG_W0,
@@ -268,17 +267,17 @@ enum
     AND_REG_WITH_IMM_W1,
     AND_MEM_WITH_IMM_W0,
     AND_MEM_WITH_IMM_W1,
-    
+
     RCL_REG_WITH_IMM8_W0,
     RCL_REG_WITH_IMM8_W1,
     RCL_MEM_WITH_IMM8_W0,
     RCL_MEM_WITH_IMM8_W1,
-    
+
     RCR_REG_WITH_IMM8_W0,
     RCR_REG_WITH_IMM8_W1,
     RCR_MEM_WITH_IMM8_W0,
     RCR_MEM_WITH_IMM8_W1,
-    
+
     INT_IMM8
 };
 
@@ -296,6 +295,7 @@ struct condition_code_instruction
 };
 
 class MustFitTable;
+
 class Assembler8086 : public Assembler
 {
 public:
@@ -311,7 +311,7 @@ private:
     virtual void left_exp_handler();
     virtual void right_exp_handler();
     virtual void push_branch(std::shared_ptr<Branch> branch);
-    
+
     std::shared_ptr<MustFitTable> get_must_fit_table_for_label(std::string label_name);
     void assembler_pass_1();
     void pass_1_segment(std::shared_ptr<SegmentBranch> segment_branch);
@@ -320,14 +320,18 @@ private:
     void assembler_pass_2();
     void pass_2_segment(std::shared_ptr<SegmentBranch> segment_branch);
     void pass_2_part(std::shared_ptr<Branch> branch);
+
+    void assembler_pass_3();
+    void pass_3_segment(std::shared_ptr<SegmentBranch> segment_branch);
+    void pass_3_part(std::shared_ptr<Branch> branch);
     void handle_mustfits_for_label_branch(std::shared_ptr<LabelBranch> label_branch);
-    
+
     void get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm);
     int get_offset_from_oomod(char oo, char mmm);
     int get_instruction_size(std::shared_ptr<InstructionBranch> ins_branch);
     void register_segment(std::shared_ptr<SegmentBranch> segment_branch);
     void switch_to_segment(std::string segment_name);
-    void assembler_pass_3();
+    void assembler_pass_4();
     void handle_rrr(int* opcode, INSTRUCTION_INFO info, std::shared_ptr<InstructionBranch> ins_branch);
     void handle_condition_code(int* opcode, std::shared_ptr<InstructionBranch> ins_branch);
     void gen_oommm(INSTRUCTION_TYPE ins_type, std::shared_ptr<InstructionBranch> ins_branch);
@@ -350,8 +354,8 @@ private:
     int get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_or_near_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
     std::shared_ptr<VirtualSegment> get_virtual_segment_for_label(std::string label_name);
     void register_global_reference_if_any(std::shared_ptr<LabelBranch> label_branch);
-    void register_fixup_if_required(int offset, FIXUP_LENGTH length, std::shared_ptr<OperandBranch> branch);
-    void write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<OperandBranch> branch);
+    void register_fixup_if_required(int offset, FIXUP_LENGTH length, std::shared_ptr<InstructionBranch> ins_branch, std::shared_ptr<OperandBranch> branch);
+    void write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<InstructionBranch> ins_branch, std::shared_ptr<OperandBranch> branch);
     unsigned char write_abs_static8(std::shared_ptr<OperandBranch> branch, bool short_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
     unsigned short write_abs_static16(std::shared_ptr<OperandBranch> branch, bool near_possible = false, std::shared_ptr<InstructionBranch> ins_branch = NULL);
     std::shared_ptr<LabelBranch> get_label_branch(std::string label_name);
@@ -368,7 +372,7 @@ private:
     void calculate_data_size_for_operand(std::shared_ptr<OperandBranch> branch);
     void calculate_operand_sizes_for_instruction(std::shared_ptr<InstructionBranch> instruction_branch);
     void add_must_fits_if_required(std::shared_ptr<InstructionBranch> ins_branch);
-    
+
     inline bool is_accumulator_and_not_ah(std::string _register);
     inline bool is_reg(std::string _register);
     inline char get_reg(std::string _register);
@@ -393,7 +397,7 @@ private:
     void parse_extern();
     void parse_data(DATA_BRANCH_TYPE data_branch_type = -1);
     void parse_newline();
-    
+
     inline bool is_next_valid_operand();
     inline bool is_next_segment();
     inline bool is_next_label();
@@ -402,7 +406,7 @@ private:
     inline bool is_next_extern();
     inline bool is_next_data();
     inline bool is_next_newline();
-    
+
     std::shared_ptr<Branch> root;
 
     std::shared_ptr<VirtualSegment> segment;
@@ -416,7 +420,7 @@ private:
     std::shared_ptr<Branch> left_reg;
     std::shared_ptr<OperandBranch> right;
     std::shared_ptr<Branch> right_reg;
-    
+
     std::shared_ptr<OffsetableBranch> last_offsetable_branch;
 
     INSTRUCTION_TYPE cur_ins_type;
