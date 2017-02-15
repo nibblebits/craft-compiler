@@ -38,6 +38,7 @@ public:
 
 private:
     LOCATION_TYPE get_location_type_from_fixup(std::shared_ptr<FIXUP> fixup);
+    FIXUP_MODE get_fixup_mode_from_fixup(std::shared_ptr<FIXUP> fixup);
     void handle_segment_fixup(struct RECORD* record, std::shared_ptr<FIXUP> fixup, std::shared_ptr<FIXUP_TARGET_SEGMENT> fixup_target_seg);
     void handle_extern_fixup(struct RECORD* record, std::shared_ptr<FIXUP> fixup, std::shared_ptr<FIXUP_TARGET_EXTERN> fixup_target_extern);
 };
