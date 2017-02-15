@@ -48,6 +48,22 @@
 #include "OffsetableBranch.h"
 #include "MustFitTable.h"
 
+
+#ifdef DEBUG_MODE
+
+const char* operand_info_str[] = {
+    "REG8",
+    "REG16",
+    "AL",
+    "AX",
+    "MEM8",
+    "MEM16",
+    "IMM8",
+    "IMM16",
+    "ALONE"
+};
+
+#endif
 /* The instruction map, maps the instruction enum to the correct opcodes. 
  * as some instructions share the same opcode */
 unsigned char ins_map[] = {
@@ -1805,9 +1821,9 @@ int Assembler8086::get_label_offset(std::string label_name, std::shared_ptr<Inst
     int value;
     std::shared_ptr<LabelBranch> label_branch = get_label_branch(label_name);
     int lbl_offset = label_branch->getOffset();
-    
+
     // We should only calculate short or near for labels on the same segment as the instruction, otherwise we will give them a position relative to the segment
-    if (short_or_near_possible 
+    if (short_or_near_possible
             && ins_branch->getSegmentBranch() == label_branch->getSegmentBranch())
     {
         // Ok its possible to deal with this as a short so lets do that, this is valid with things such as short jumps.  
@@ -2090,6 +2106,23 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type_by_name_and_syntax(std::str
     return -1;
 }
 
+#ifdef DEBUG_MODE
+
+void Assembler8086::output_syntax_info(SYNTAX_INFO syntax_info)
+{
+    OPERAND_INFO left = syntax_info >> OPERAND_BIT_SIZE;
+    OPERAND_INFO right = syntax_info;
+
+    std::cout << "Syntax info: " << get_operand_info_as_string(left) << ":" << get_operand_info_as_string(right) << std::endl;
+}
+
+std::string Assembler8086::get_operand_info_as_string(OPERAND_INFO operand_info)
+{
+    return std::string(operand_info_str[operand_info]);
+}
+
+#endif
+
 INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch)
 {
     INSTRUCTION_TYPE ins_type;
@@ -2100,6 +2133,8 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<Instruction
     // We need to build the syntax and then try and pull out the correct result from an array
     SYNTAX_INFO syntax_info = get_syntax_info(instruction_branch, &left_op, &right_op);
 
+    output_syntax_info(syntax_info);
+    
     // Ok lets get the instruction type now that we have the syntax info
     ins_type = get_instruction_type_by_name_and_syntax(instruction_name, syntax_info);
     if (ins_type == -1)

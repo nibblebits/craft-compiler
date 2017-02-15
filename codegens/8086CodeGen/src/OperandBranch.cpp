@@ -30,6 +30,7 @@
 OperandBranch::OperandBranch(Compiler* compiler, std::shared_ptr<SegmentBranch> segment_branch) : ChildOfSegment(compiler, segment_branch, "OPERAND", "")
 {
     this->is_memory_access = false;
+    this->data_type_size = OPERAND_DATA_SIZE_UNKNOWN;
 }
 
 OperandBranch::~OperandBranch()

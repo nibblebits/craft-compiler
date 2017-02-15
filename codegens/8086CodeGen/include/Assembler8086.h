@@ -363,6 +363,12 @@ private:
     OPERAND_INFO get_operand_info(std::shared_ptr<OperandBranch> op_branch);
     SYNTAX_INFO get_syntax_info(std::shared_ptr<InstructionBranch> instruction_branch, OPERAND_INFO* left_op = NULL, OPERAND_INFO* right_op = NULL);
     INSTRUCTION_TYPE get_instruction_type_by_name_and_syntax(std::string instruction_name, SYNTAX_INFO syntax_info);
+
+#ifdef DEBUG_MODE
+    void output_syntax_info(SYNTAX_INFO syntax_info);
+    std::string get_operand_info_as_string(OPERAND_INFO operand_info);
+#endif
+    
     INSTRUCTION_TYPE get_instruction_type(std::shared_ptr<InstructionBranch> instruction_branch);
     INSTRUCTION_TYPE get_mov_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
     INSTRUCTION_TYPE get_add_ins_type(std::shared_ptr<InstructionBranch> instruction_branch);
