@@ -195,7 +195,7 @@ void EXPORT WriteFile(std::string filename, Stream* stream)
     ofs.close();
 }
 
-int GetFixupLengthAsInteger(FIXUP_LENGTH fixup_len)
+int EXPORT GetFixupLengthAsInteger(FIXUP_LENGTH fixup_len)
 {
     int len = -1;
     switch (fixup_len)
