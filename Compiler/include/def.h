@@ -28,7 +28,7 @@
 #define DEF_H
 
 #define COMPILER_NAME "Craft compiler"
-#define COMPILER_VERSION "v1.0 beta"
+#define COMPILER_VERSION "v0.1.0 beta"
 #define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
 
 // Uncomment this line to enable debug mode, this will display debug related information related to the compiler
