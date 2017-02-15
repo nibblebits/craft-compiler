@@ -67,6 +67,17 @@ void Linker::link()
     }
 
 
+    /* At this point we should have all external references defined in one object file, 
+     * so lets make sure external references can be linked up properly */
+    
+    for (std::string ext_ref : main_obj->getExternalReferences())
+    {
+        if (!main_obj->hasGlobalReference(ext_ref))
+        {
+            throw Exception("Undefined reference: " + ext_ref + ", ensure that you are including all your object files and try again", "void Linker::link()");
+        }
+    }
+    
     // Resolve unknown symbols
     this->resolve(main_obj);
 

@@ -200,30 +200,27 @@ void VirtualObjectFormat::append(std::shared_ptr<VirtualObjectFormat> obj_format
             if (target->getType() == FIXUP_TARGET_TYPE_SEGMENT)
             {
                 std::shared_ptr<FIXUP_TARGET_SEGMENT> fixup_target_segment = std::dynamic_pointer_cast<FIXUP_TARGET_SEGMENT>(target);
-                if (fixup->getType() == FIXUP_TYPE_SEGMENT)
+                // We need the absolute position of the segment on the main stream
+                std::shared_ptr<VirtualSegment> target_segment = fixup_target_segment->getTargetSegment();
+                std::shared_ptr<VirtualSegment> main_target_segment = getSegment(target_segment->getName());
+                int fixup_offset = fixup->getOffset();
+                int abs_pos_to_stream = main_target_segment->getStream()->getJoinedStreamPosition(target_segment->getStream());
+                int new_pos;
+                // Now lets fix the offset
+                switch (fixup->getLength())
                 {
-                    // We need the absolute position of the segment on the main stream
-                    std::shared_ptr<VirtualSegment> target_segment = fixup_target_segment->getTargetSegment();
-                    std::shared_ptr<VirtualSegment> main_target_segment = getSegment(target_segment->getName());
-                    int fixup_offset = fixup->getOffset();
-                    int abs_pos_to_stream = main_target_segment->getStream()->getJoinedStreamPosition(target_segment->getStream());
-                    int new_pos;
-                    // Now lets fix the offset
-                    switch (fixup->getLength())
-                    {
-                    case FIXUP_8BIT:
-                        new_pos = abs_pos_to_stream + segment_stream->peek8(fixup_offset);
-                        segment_stream->overwrite8(fixup_offset, new_pos);
-                        break;
-                    case FIXUP_16BIT:
-                        new_pos = abs_pos_to_stream + segment_stream->peek16(fixup_offset);
-                        segment_stream->overwrite16(fixup_offset, new_pos);
-                        break;
-                    case FIXUP_32BIT:
-                        new_pos = abs_pos_to_stream + segment_stream->peek32(fixup_offset);
-                        segment_stream->overwrite32(fixup_offset, new_pos);
-                        break;
-                    }
+                case FIXUP_8BIT:
+                    new_pos = abs_pos_to_stream + segment_stream->peek8(fixup_offset);
+                    segment_stream->overwrite8(fixup_offset, new_pos);
+                    break;
+                case FIXUP_16BIT:
+                    new_pos = abs_pos_to_stream + segment_stream->peek16(fixup_offset);
+                    segment_stream->overwrite16(fixup_offset, new_pos);
+                    break;
+                case FIXUP_32BIT:
+                    new_pos = abs_pos_to_stream + segment_stream->peek32(fixup_offset);
+                    segment_stream->overwrite32(fixup_offset, new_pos);
+                    break;
                 }
             }
             // We need to add the fixup to the main segment
