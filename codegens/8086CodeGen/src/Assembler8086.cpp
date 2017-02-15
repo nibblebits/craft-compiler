@@ -400,7 +400,6 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     this->left = NULL;
     this->right = NULL;
     this->segment = NULL;
-    this->sstream = NULL;
     this->cur_offset = 0;
 
     // Placeholder branch so programmer does not need to check if operand is NULL constantly.
@@ -1846,14 +1845,8 @@ void Assembler8086::register_fixup_if_required(int offset, FIXUP_LENGTH length, 
     // Ok lets register this fixup
     std::string iden_value = branch->getIdentifierBranch()->getValue();
     IDENTIFIER_TYPE iden_type = get_identifier_type(iden_value);
-    if (iden_type == IDENTIFIER_TYPE_LABEL)
-    {
-        segment->register_fixup(get_virtual_segment_for_label(iden_value), offset, length);
-    }
-    else if (iden_type == IDENTIFIER_TYPE_EXTERN)
-    {
-        segment->register_fixup_extern(iden_value, offset, length);
-    }
+    
+    // Register fixups here...
 }
 
 void Assembler8086::write_modrm_offset(unsigned char oo, unsigned char mmm, std::shared_ptr<OperandBranch> branch)

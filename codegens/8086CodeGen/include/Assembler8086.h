@@ -411,7 +411,7 @@ private:
     std::shared_ptr<SegmentBranch> segment_branch;
     std::vector<std::shared_ptr<SegmentBranch>> segment_branches;
 
-    Stream* sstream;
+    std::shared_ptr<Stream> sstream;
     std::shared_ptr<OperandBranch> left;
     std::shared_ptr<Branch> left_reg;
     std::shared_ptr<OperandBranch> right;
