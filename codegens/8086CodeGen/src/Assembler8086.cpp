@@ -77,7 +77,7 @@ unsigned char ins_map[] = {
     0x80, 0x81, 0x80, 0x81, 0x08, 0x09, 0x08, 0x09, 0x0a, 0x0b,
     0x0c, 0x0d, 0x80, 0x81, 0x80, 0x81, 0x20, 0x21, 0x20, 0x21,
     0x22, 0x23, 0x24, 0x25, 0x80, 0x81, 0x80, 0x81, 0xc0, 0xc1,
-    0xc0, 0xc1, 0xc0, 0xc1, 0xc0, 0xc1, 0xcd
+    0xc0, 0xc1, 0xc0, 0xc1, 0xc0, 0xc1, 0xcd, 0x38, 0x39
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -92,7 +92,7 @@ unsigned char ins_sizes[] = {
     3, 4, 5, 6, 2, 2, 4, 4, 4, 4,
     2, 3, 3, 4, 5, 6, 2, 2, 4, 4,
     4, 4, 2, 3, 3, 4, 5, 6, 3, 4,
-    5, 5, 3, 3, 5, 5, 2
+    5, 5, 3, 3, 5, 5, 2, 2, 2
 };
 
 
@@ -109,7 +109,7 @@ unsigned char static_rrr[] = {
     6, 6, 6, 6, 0, 0, 0, 0, 0, 0,
     0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
     0, 0, 0, 0, 4, 4, 4, 4, 2, 2,
-    2, 2, 3, 3, 3, 3, 0
+    2, 2, 3, 3, 3, 3, 0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -226,6 +226,8 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_OOMMM | HAS_IMM_USE_RIGHT, // rcr mem, imm8
     USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT, // rcr mem, imm8
     HAS_IMM_USE_LEFT, // int imm8
+    HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // cmp reg8, reg8
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT // cmp reg16, reg16
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -335,7 +337,9 @@ struct ins_syntax_def ins_syntax[] = {
     "rcr", RCR_REG_WITH_IMM8_W1, REG16_IMM8,
     "rcr", RCR_MEM_WITH_IMM8_W0, MEM16_IMM8,
     "rcr", RCR_MEM_WITH_IMM8_W1, MEM16_IMM8,
-    "int", INT_IMM8, IMM8_ALONE
+    "int", INT_IMM8, IMM8_ALONE,
+    "cmp", CMP_REG_WITH_REG_W0, REG8_REG8,
+    "cmp", CMP_REG_WITH_REG_W1, REG16_REG16
 };
 
 /* Certain instructions have condition codes that specify a particular event.
@@ -412,6 +416,7 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addInstruction("pop");
     Assembler::addInstruction("rcl");
     Assembler::addInstruction("rcr");
+    Assembler::addInstruction("cmp");
 
     this->left = NULL;
     this->right = NULL;
