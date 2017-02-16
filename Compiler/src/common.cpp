@@ -163,13 +163,25 @@ std::shared_ptr<Stream> EXPORT LoadFile(std::string filename)
         throw Exception("Failed to open: " + filename);
     }
 
-    while (ifs.good())
+    if (ifs.good())
     {
-        char c = ifs.get();
-        if (c != -1)
+        // Get the file length
+        ifs.seekg(0, ifs.end);
+        int length = ifs.tellg();
+        ifs.seekg(0, ifs.beg);
+        char* buf = new char[length];
+        ifs.read(buf, length);
+        if (!ifs.good())
         {
-            stream->write8(c);
+            throw Exception("Managed to open file: " + filename + " but failed with reading.");
         }
+        
+        for (int i = 0; i < length; i++)
+        {
+            stream->write8(buf[i]);
+        }
+        
+        delete[] buf;
     }
 
     ifs.close();
@@ -216,4 +228,9 @@ int EXPORT GetFixupLengthAsInteger(FIXUP_LENGTH fixup_len)
         throw Exception("Invalid fixup length provided", "int GetFixupLengthAsInteger(FIXUP_LENGTH fixup_len)");
     }
     return len;
+}
+
+std::string EXPORT GetCompilerName()
+{
+    return COMPILER_FULLNAME;
 }

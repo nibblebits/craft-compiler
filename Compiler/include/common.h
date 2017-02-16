@@ -55,6 +55,6 @@ void EXPORT debug_virtual_object_format(std::shared_ptr<VirtualObjectFormat> vir
 void EXPORT WriteFile(std::string filename, Stream* stream);
 
 int EXPORT GetFixupLengthAsInteger(FIXUP_LENGTH fixup_len);
-
+std::string EXPORT GetCompilerName();
 #endif /* COMMON_H */
 
