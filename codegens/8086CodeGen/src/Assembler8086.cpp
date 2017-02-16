@@ -67,7 +67,7 @@ const char* operand_info_str[] = {
 /* The instruction map, maps the instruction enum to the correct opcodes. 
  * as some instructions share the same opcode */
 unsigned char ins_map[] = {
-    0x88, 0x89, 0xb1, 0xb8, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
+    0x88, 0x89, 0xb0, 0xb8, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
     0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
     0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
     0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
@@ -420,7 +420,7 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
 
     // Placeholder branch so programmer does not need to check if operand is NULL constantly.
     this->zero_operand_branch = std::shared_ptr<OperandBranch>(new OperandBranch(getCompiler(), NULL));
-    
+
 #ifdef TEST_MODE
     this->cur_ins_sizes = 0;
 #endif
@@ -1011,7 +1011,7 @@ void Assembler8086::generate()
 #ifdef TEST_MODE
     std::cout << "Test mode is enabled, tests will be preformed." << std::endl;
 #endif
-    
+
     // Calculates instruction offsets.
     assembler_pass_1();
     // Handles the accessing of labels and if there is a problem then it will store it for assessment in pass 3
@@ -1020,7 +1020,7 @@ void Assembler8086::generate()
     assembler_pass_3();
     // Generates the instructions into machine code.
     assembler_pass_4();
-    
+
 #ifdef TEST_MODE
     // Test mode is defined so lets just check that the size of the stream matches the stream length
     if (this->sstream->getSize() == this->cur_ins_sizes)
@@ -1032,7 +1032,7 @@ void Assembler8086::generate()
         std::cout << "The instructions summed ins_sizes do not match the size of the stream. If this stream contains only instructions and only one segment then the ins_sizes array is invalid" << std::endl;
     }
 #endif
-    
+
 }
 
 void Assembler8086::push_branch(std::shared_ptr<Branch> branch)
@@ -1932,7 +1932,13 @@ void Assembler8086::register_fixup_if_required(int offset, FIXUP_LENGTH length, 
 
     if (iden_type == IDENTIFIER_TYPE_LABEL)
     {
-        segment->register_fixup_target_segment(fixup_type, get_virtual_segment_for_label(iden_value), offset, length);
+        // We should only register segment relative fixups for anything other than our target segment
+        std::shared_ptr<VirtualSegment> ins_segment = getObjectFormat()->getSegment(ins_branch->getSegmentBranch()->getSegmentNameBranch()->getValue());
+        std::shared_ptr<VirtualSegment> target_segment = get_virtual_segment_for_label(iden_value);
+        if (ins_segment != target_segment)
+        {
+            segment->register_fixup_target_segment(fixup_type, target_segment, offset, length);
+        }
     }
     else if (iden_type == IDENTIFIER_TYPE_EXTERN)
     {
@@ -2155,7 +2161,7 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<Instruction
     std::string instruction_name = instruction_branch->getInstructionNameBranch()->getValue();
     // We need to build the syntax and then try and pull out the correct result from an array
     SYNTAX_INFO syntax_info = get_syntax_info(instruction_branch, &left_op, &right_op);
-    
+
     // Ok lets get the instruction type now that we have the syntax info
     ins_type = get_instruction_type_by_name_and_syntax(instruction_name, syntax_info);
     if (ins_type == -1)
