@@ -28,6 +28,9 @@
 #include "definitions.h"
 #include "Assembler.h"
 
+// Uncomment this when performing tests on the assembler
+#define TEST_MODE
+
 class InstructionBranch;
 class Branch;
 class SegmentBranch;
@@ -435,7 +438,9 @@ private:
     char oo;
     char op;
     int cur_offset;
-
+#ifdef TEST_MODE
+    int cur_ins_sizes;
+#endif
     std::shared_ptr<OperandBranch> zero_operand_branch;
 
 

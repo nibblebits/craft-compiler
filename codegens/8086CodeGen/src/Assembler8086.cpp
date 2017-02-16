@@ -85,7 +85,7 @@ unsigned char ins_sizes[] = {
     2, 2, 2, 3, 5, 6, 3, 3, 3, 3,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     2, 3, 3, 4, 5, 6, 2, 2, 2, 2,
-    2, 2, 2, 3, 2, 3, 5, 6, 2, 2,
+    2, 2, 2, 3, 3, 4, 5, 6, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
     2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
     1, 1, 2, 2, 4, 4, 4, 4, 2, 3,
@@ -141,8 +141,8 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT, // add reg16, mem
     HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add al, imm8
     USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add ax, imm16
-    HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add reg, imm8
-    USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add reg, imm16
+    HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add reg8, imm8
+    USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // add reg16, imm16
     HAS_OOMMM | HAS_IMM_USE_RIGHT, // add mem, imm8
     USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT, // add mem, imm16
     HAS_OORRRMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // sub reg8, reg8
@@ -420,6 +420,10 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
 
     // Placeholder branch so programmer does not need to check if operand is NULL constantly.
     this->zero_operand_branch = std::shared_ptr<OperandBranch>(new OperandBranch(getCompiler(), NULL));
+    
+#ifdef TEST_MODE
+    this->cur_ins_sizes = 0;
+#endif
 
 }
 
@@ -1004,6 +1008,10 @@ bool Assembler8086::is_next_newline()
 
 void Assembler8086::generate()
 {
+#ifdef TEST_MODE
+    std::cout << "Test mode is enabled, tests will be preformed." << std::endl;
+#endif
+    
     // Calculates instruction offsets.
     assembler_pass_1();
     // Handles the accessing of labels and if there is a problem then it will store it for assessment in pass 3
@@ -1012,6 +1020,19 @@ void Assembler8086::generate()
     assembler_pass_3();
     // Generates the instructions into machine code.
     assembler_pass_4();
+    
+#ifdef TEST_MODE
+    // Test mode is defined so lets just check that the size of the stream matches the stream length
+    if (this->sstream->getSize() == this->cur_ins_sizes)
+    {
+        std::cout << "All instruction sizes match the size of the stream" << std::endl;
+    }
+    else
+    {
+        std::cout << "The instructions summed ins_sizes do not match the size of the stream. If this stream contains only instructions and only one segment then the ins_sizes array is invalid" << std::endl;
+    }
+#endif
+    
 }
 
 void Assembler8086::push_branch(std::shared_ptr<Branch> branch)
@@ -1635,7 +1656,9 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
 
     int opcode = ins_map[ins_type];
     INSTRUCTION_INFO info = ins_info[ins_type];
-
+#ifdef TEST_MODE
+    this->cur_ins_sizes += ins_sizes[ins_type];
+#endif
     if (info & HAS_RRR)
     {
         handle_rrr(&opcode, info, instruction_branch);
@@ -2132,8 +2155,6 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<Instruction
     std::string instruction_name = instruction_branch->getInstructionNameBranch()->getValue();
     // We need to build the syntax and then try and pull out the correct result from an array
     SYNTAX_INFO syntax_info = get_syntax_info(instruction_branch, &left_op, &right_op);
-
-    output_syntax_info(syntax_info);
     
     // Ok lets get the instruction type now that we have the syntax info
     ins_type = get_instruction_type_by_name_and_syntax(instruction_name, syntax_info);
