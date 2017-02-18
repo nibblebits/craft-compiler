@@ -76,7 +76,7 @@ std::string CodeGen8086::build_unique_label()
 {
     std::string label_name = std::to_string(this->current_label_index);
     this->current_label_index++;
-    return "_" + label_name;
+    return "_u" + label_name;
 }
 
 void CodeGen8086::setup_comparing()
