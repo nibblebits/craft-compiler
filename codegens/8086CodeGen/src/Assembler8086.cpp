@@ -83,7 +83,7 @@ unsigned char ins_map[] = {
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
 unsigned char ins_sizes[] = {
-    2, 2, 2, 3, 5, 6, 4, 4, 4, 4,
+    2, 2, 2, 3, 5, 6, 2, 2, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 4,
     5, 6, 2, 2, 2, 2, 2, 2, 2, 3,
     3, 4, 5, 6, 2, 2, 2, 2, 2, 2,
@@ -1293,6 +1293,7 @@ void Assembler8086::handle_mustfits_for_label_branch(std::shared_ptr<LabelBranch
     }
 }
 
+
 void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm)
 {
     INSTRUCTION_TYPE ins_type = get_instruction_type(ins_branch);
@@ -1370,6 +1371,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
                 else if (left->hasNumberBranch())
                 {
                     number = std::stoi(left->getNumberBranch()->getValue());
+                    *oo = DISPLACEMENT_16BIT_FOLLOW;
                     if (number < 256)
                     {
                         *oo = DISPLACEMENT_8BIT_FOLLOW;
@@ -1677,7 +1679,7 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
     int opcode = ins_map[ins_type];
     INSTRUCTION_INFO info = ins_info[ins_type];
 #ifdef TEST_MODE
-    this->cur_ins_sizes += ins_sizes[ins_type];
+    this->cur_ins_sizes += get_instruction_size(instruction_branch);
 #endif
     if (info & HAS_RRR)
     {
@@ -2646,7 +2648,9 @@ bool Assembler8086::is_reg_16_bit(std::string _register)
             _register == "ss" ||
             _register == "ds" ||
             _register == "es" ||
-            _register == "es");
+            _register == "es" ||
+            _register == "di" ||
+            _register == "si");
 }
 
 void Assembler8086::ins_info_except()
