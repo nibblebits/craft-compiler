@@ -51,7 +51,7 @@ std::shared_ptr<VirtualSegment> VirtualObjectFormat::createSegment(std::string s
     if (getCompiler()->hasArgument(argument_name))
     {
         // An argument exists so lets set the origin
-        origin = std::stoi(getCompiler()->getArgumentValue(argument_name));
+        origin = getCompiler()->getNumberFromString(getCompiler()->getArgumentValue(argument_name));
     }
     std::shared_ptr<VirtualSegment> segment = std::shared_ptr<VirtualSegment>(new_segment(segment_name, origin));
     this->segments.push_back(segment);

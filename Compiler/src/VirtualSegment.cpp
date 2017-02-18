@@ -28,7 +28,7 @@
 
 FIXUP_TARGET::FIXUP_TARGET()
 {
-    
+
 }
 
 FIXUP_TARGET::~FIXUP_TARGET()
@@ -182,7 +182,7 @@ VirtualSegment::VirtualSegment(std::string segment_name, uint32_t origin)
 {
     this->segment_name = segment_name;
     this->origin = origin;
-    
+
     this->stream = std::shared_ptr<Stream>(new Stream());
 }
 
@@ -208,6 +208,10 @@ void VirtualSegment::register_fixup(std::shared_ptr<FIXUP_TARGET> fixup_target, 
 
 void VirtualSegment::register_fixup_target_segment(FIXUP_TYPE fixup_type, std::shared_ptr<VirtualSegment> relating_segment, int offset, FIXUP_LENGTH length)
 {
+    if (shared_from_this() == relating_segment)
+    {
+        throw Exception("You cannot register a segment relative fixup whose target segment is the same as the segment you are registering the fixup for.", "void VirtualSegment::register_fixup_target_segment(FIXUP_TYPE fixup_type, std::shared_ptr<VirtualSegment> relating_segment, int offset, FIXUP_LENGTH length)");
+    }
     std::shared_ptr<FIXUP_TARGET_SEGMENT> target = std::shared_ptr<FIXUP_TARGET_SEGMENT>(new FIXUP_TARGET_SEGMENT(relating_segment));
     register_fixup(target, fixup_type, offset, length);
 }

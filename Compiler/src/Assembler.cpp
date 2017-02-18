@@ -119,11 +119,36 @@ void Assembler::lexify()
         }
         else if (isNumber(c))
         {
-            tokenValue = c;
-            fillTokenWhile([](char c) -> bool
+            // We need to check for formatting here, maybe it is hex or maybe its binary
+            char c2 = *(it + 1);
+            if (c == '0' && (c2 == 'x' || c2 == 'b'))
             {
-                return isNumber(c);
-            });
+                // We need to add two bytes to the iterator as we no longer care about the 0x or 0b values
+                it += 2;
+                // Ok there is formatting so this is a hex or binary number
+                fillTokenWhile([](char c) -> bool
+                {
+                    return isNumber(c)
+                            || isCharacter(c);
+                });
+
+                try
+                {
+                    // Ok we now have the formatted string so lets convert it to a decimal value as a string and assign it as the token value
+                    tokenValue = std::to_string(getCompiler()->getNumberFromString(tokenValue, c2));
+                }
+                catch (Exception &ex)
+                {
+                    throw AssemblerException(position, "a problem occurred while formatting your number: " + ex.getMessage());
+                }
+            }
+            else
+            {
+                fillTokenWhile([](char c) -> bool
+                {
+                    return isNumber(c);
+                });
+            }
 
             lex_token = new Token("number", tokenValue, position);
         }

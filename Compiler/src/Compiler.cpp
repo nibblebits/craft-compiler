@@ -24,6 +24,7 @@
  * Description: Holds all major entities to the compiler
  */
 
+#include <sstream>
 #include "Compiler.h"
 #include "VDEFBranch.h"
 #include "STRUCTBranch.h"
@@ -363,4 +364,54 @@ bool Compiler::isLogicalOperator(std::string value)
         return true;
 
     return false;
+}
+
+long Compiler::getNumberFromString(std::string str, char formatting_symbol)
+{
+    unsigned long result;
+    if (formatting_symbol == 'x')
+    {
+        // Lets check to see if this is a valid hexadecimal string, before continuing
+        std::locale loc;
+        for (int i = 0; i < str.length(); i++)
+        {
+            if (!std::isxdigit(str[i], loc))
+            {
+                throw Exception("Invalid hexadecimal value", "long Compiler::getNumberFromString(std::string str, char formatting_symbol)");
+            }
+        }
+
+        // Ok its all valid lets convert it
+        std::stringstream ss;
+        ss << std::hex << str;
+        ss >> result;
+    }
+    else if (formatting_symbol == 'b')
+    {
+        throw Exception("Binary formatting is not yet supported", "long Compiler::getNumberFromString(std::string str, char formatting_symbol)");
+    }
+    else
+    {
+        throw Exception("Invalid number format", "long Compiler::getNumberFromString(std::string str, char formatting_symbol)");
+    }
+
+    return result;
+}
+
+long Compiler::getNumberFromString(std::string str)
+{
+    if (str.length() > 2)
+    {
+        if (str[0] == '0')
+        {
+            if (str[1] == 'x' || str[1] == 'b')
+            {
+                char formatting_symbol = str[1];
+                std::string data_to_format = str.substr(2, str.length());
+                return getNumberFromString(data_to_format, formatting_symbol);
+            }
+        }
+    }
+
+    return std::stoi(str);
 }

@@ -24,8 +24,10 @@
  * Description: Turns input into a series of Tokens to be later processed by the parser.
  */
 
-#include "Lexer.h"
 #include <iostream>
+#include "Lexer.h"
+#include "Compiler.h"
+
 const char operators[] = {'=', '+', '-', '/', '*', '<', '>', '&', '|', '^', '%', '!'};
 const char symbols[] = {'(', ')', ',', '#', '{', '}', '.', '[', ']', ';'};
 const std::string general_keywords[] = {
@@ -105,12 +107,36 @@ void Lexer::tokenize()
         }
         else if (isNumber(c))
         {
-            tokenValue = c;
-            fillTokenWhile([](char c) -> bool
+            // We need to check for formatting here, maybe it is hex or maybe its binary
+            char c2 = *(it + 1);
+            if (c == '0' && (c2 == 'x' || c2 == 'b'))
             {
-                return isNumber(c);
-            });
+                // We need to add two bytes to the iterator as we no longer care about the 0x or 0b values
+                it += 2;
+                // Ok there is formatting so this is a hex or binary number
+                fillTokenWhile([](char c) -> bool
+                {
+                    return isNumber(c) 
+                            || isCharacter(c);
+                });
 
+                try
+                {
+                // Ok we now have the formatted string so lets convert it to a decimal value as a string and assign it as the token value
+                tokenValue = std::to_string(getCompiler()->getNumberFromString(tokenValue, c2));
+                } catch(Exception &ex)
+                {
+                     throw LexerException(position, "a problem occurred while formatting your number: " + ex.getMessage());
+                }
+
+            }
+            else
+            {
+                fillTokenWhile([](char c) -> bool
+                {
+                    return isNumber(c);
+                });
+            }
             token = new Token("number", tokenValue, position);
         }
         else if (isWhitespace(c))
@@ -149,6 +175,7 @@ void Lexer::tokenize()
         // Reset the token value and push the token to the tokens vector
         if (token != NULL)
         {
+
             tokenValue = "";
             std::shared_ptr<Token> token_sp(token);
             tokens.push_back(token_sp);
@@ -161,10 +188,11 @@ void Lexer::tokenize()
 
 std::vector<std::shared_ptr<Token>> Lexer::getTokens()
 {
+
     return this->tokens;
 }
 
-void Lexer::fillTokenWhile(std::function<bool(char c)> callback)
+void Lexer::fillTokenWhile(std::function<bool(char c) > callback)
 {
     char c;
     tokenValue = "";
@@ -183,6 +211,7 @@ void Lexer::fillTokenWhile(std::function<bool(char c)> callback)
             break;
         }
     }
+
     while (true);
 }
 
@@ -191,6 +220,7 @@ bool Lexer::isOperator(char op)
     for (char c : operators)
     {
         if (c == op)
+
             return true;
     }
 
@@ -202,6 +232,7 @@ bool Lexer::isSymbol(char op)
     for (char c : symbols)
     {
         if (c == op)
+
             return true;
     }
     return false;
@@ -210,6 +241,7 @@ bool Lexer::isSymbol(char op)
 bool Lexer::isCharacter(char op)
 {
     if ((op >= 65 && op <= 90) || (op >= 97 && op <= 122) || op == 95)
+
         return true;
     return false;
 }
@@ -217,12 +249,14 @@ bool Lexer::isCharacter(char op)
 bool Lexer::isNumber(char op)
 {
     if (op >= 48 && op <= 57)
+
         return true;
     return false;
 }
 
 bool Lexer::isWhitespace(char op)
 {
+
     return (op < 33);
 }
 
@@ -237,6 +271,7 @@ bool Lexer::isKeyword(std::string op)
     for (std::string c : general_keywords)
     {
         if (c == op)
+
             return true;
     }
 

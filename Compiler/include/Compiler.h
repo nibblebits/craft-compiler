@@ -77,6 +77,8 @@ public:
     long evaluate(long n1, long n2, std::string op);
     bool isCompareOperator(std::string value);
     bool isLogicalOperator(std::string value);
+    long getNumberFromString(std::string str, char formatting_symbol);
+    long getNumberFromString(std::string str);
 
 private:
     /* Ideally these do not have to be pointers but since arguments now exist in the constructors of these objects I have ran into issues calling them.
