@@ -2469,7 +2469,7 @@ void Assembler8086::calculate_operand_sizes_for_instruction(std::shared_ptr<Inst
         data_size = get_data_size_for_reg(left->getRegisterBranch()->getValue());
         left->setDataSize(data_size);
         if (instruction_branch->hasRightBranch()
-                && right->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN)
+                && right->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN && !right->isAccessingMemory())
         {
             // Ok lets set the right to the lefts data size
             right->setDataSize(data_size);
@@ -2483,7 +2483,7 @@ void Assembler8086::calculate_operand_sizes_for_instruction(std::shared_ptr<Inst
         data_size = get_data_size_for_reg(right->getRegisterBranch()->getValue());
         right->setDataSize(data_size);
         if (instruction_branch->hasLeftBranch()
-                && !left->isAccessingMemory() && left->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN)
+                && left->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN && !left->isAccessingMemory())
         {
             // Ok lets set the left to the rights data size
             left->setDataSize(data_size);
