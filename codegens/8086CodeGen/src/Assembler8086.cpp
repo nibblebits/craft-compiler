@@ -67,34 +67,34 @@ const char* operand_info_str[] = {
 /* The instruction map, maps the instruction enum to the correct opcodes. 
  * as some instructions share the same opcode */
 unsigned char ins_map[] = {
-    0x88, 0x89, 0xb0, 0xb8, 0xc6, 0xc7, 0xa2, 0xa3, 0xa0, 0xa1,
-    0x8a, 0x8b, 0x88, 0x89, 0x00, 0x01, 0x00, 0x01, 0x02, 0x03,
-    0x04, 0x05, 0x80, 0x81, 0x80, 0x81, 0x28, 0x29, 0x28, 0x29,
-    0x2a, 0x2b, 0x2c, 0x2d, 0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7,
-    0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70,
-    0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70, 0x50,
-    0x58, 0xc3, 0x30, 0x31, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
-    0x80, 0x81, 0x80, 0x81, 0x08, 0x09, 0x08, 0x09, 0x0a, 0x0b,
-    0x0c, 0x0d, 0x80, 0x81, 0x80, 0x81, 0x20, 0x21, 0x20, 0x21,
-    0x22, 0x23, 0x24, 0x25, 0x80, 0x81, 0x80, 0x81, 0xc0, 0xc1,
-    0xc0, 0xc1, 0xc0, 0xc1, 0xc0, 0xc1, 0xcd, 0x38, 0x39, 0x38,
-    0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x80, 0x81, 0x80, 0x81
+    0x88, 0x89, 0xb0, 0xb8, 0xc6, 0xc7, 0x8a, 0x8b, 0x88, 0x89,
+    0x00, 0x01, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x80, 0x81,
+    0x80, 0x81, 0x28, 0x29, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
+    0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7,
+    0xf6, 0xf7, 0xeb, 0xe9, 0xe8, 0x70, 0x70, 0x70, 0x70, 0x70,
+    0x70, 0x70, 0x70, 0x70, 0x70, 0x50, 0x58, 0xc3, 0x30, 0x31,
+    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x80, 0x81, 0x80, 0x81,
+    0x08, 0x09, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x80, 0x81,
+    0x80, 0x81, 0x20, 0x21, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25,
+    0x80, 0x81, 0x80, 0x81, 0xc0, 0xc1, 0xc0, 0xc1, 0xc0, 0xc1,
+    0xc0, 0xc1, 0xcd, 0x38, 0x39, 0x38, 0x39, 0x3a, 0x3b, 0x3c,
+    0x3d, 0x80, 0x81, 0x80, 0x81
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
 unsigned char ins_sizes[] = {
-    2, 2, 2, 3, 5, 6, 3, 3, 3, 3,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    2, 3, 3, 4, 5, 6, 2, 2, 2, 2,
-    2, 2, 2, 3, 3, 4, 5, 6, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 3, 3, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
-    1, 1, 2, 2, 4, 4, 4, 4, 2, 3,
-    3, 4, 5, 6, 2, 2, 4, 4, 4, 4,
-    2, 3, 3, 4, 5, 6, 2, 2, 4, 4,
-    4, 4, 2, 3, 3, 4, 5, 6, 3, 4,
-    5, 5, 3, 3, 5, 5, 2, 2, 2, 4,
-    4, 4, 4, 2, 3, 3, 4, 5, 6
+    2, 2, 2, 3, 5, 6, 4, 4, 4, 4,
+    2, 2, 2, 2, 2, 2, 2, 3, 3, 4,
+    5, 6, 2, 2, 2, 2, 2, 2, 2, 3,
+    3, 4, 5, 6, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 3, 3, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 1, 1, 1, 2, 2,
+    4, 4, 4, 4, 2, 3, 3, 4, 5, 6,
+    2, 2, 4, 4, 4, 4, 2, 3, 3, 4,
+    5, 6, 2, 2, 4, 4, 4, 4, 2, 3,
+    3, 4, 5, 6, 3, 4, 5, 5, 3, 3,
+    5, 5, 2, 2, 2, 4, 4, 4, 4, 2,
+    3, 3, 4, 5, 6
 };
 
 
@@ -104,15 +104,15 @@ unsigned char static_rrr[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 5, 5, 5, 5, 4, 4,
-    4, 4, 6, 6, 6, 6, 0, 0, 0, 0,
+    5, 5, 5, 5, 4, 4, 4, 4, 6, 6,
+    6, 6, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    6, 6, 6, 6, 0, 0, 0, 0, 0, 0,
-    0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
-    0, 0, 0, 0, 4, 4, 4, 4, 2, 2,
-    2, 2, 3, 3, 3, 3, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 7, 7, 7, 7
+    0, 0, 0, 0, 0, 0, 6, 6, 6, 6,
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+    1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    4, 4, 4, 4, 2, 2, 2, 2, 3, 3,
+    3, 3, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 7, 7, 7, 7
 };
 
 /* Describes information relating to an instruction 
@@ -128,10 +128,6 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_RRR | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // mov reg16, imm16
     HAS_OOMMM | HAS_IMM_USE_RIGHT, // mov mem, imm8
     USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT, // mov mem, imm16
-    HAS_IMM_USE_LEFT | HAS_REG_USE_RIGHT, // mov mem, al
-    USE_W | HAS_IMM_USE_LEFT | HAS_REG_USE_RIGHT, // mov mem, ax
-    USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // mov ax, mem
-    USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // mov ax, mem
     HAS_OORRRMMM | HAS_REG_USE_LEFT, // mov reg8, mem
     USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT, // mov reg16, mem
     HAS_OORRRMMM | HAS_REG_USE_RIGHT, // mov mem, reg8
@@ -250,10 +246,6 @@ struct ins_syntax_def ins_syntax[] = {
     "mov", MOV_IMM_TO_REG_W1, REG16_IMM16,
     "mov", MOV_IMM_TO_MEM_W0, MEM16_IMM8,
     "mov", MOV_IMM_TO_MEM_W1, MEM16_IMM16,
-    "mov", MOV_ACC_TO_MEMOFFS_W0, MEM16_AL,
-    "mov", MOV_ACC_TO_MEMOFFS_W1, MEM16_AX,
-    "mov", MOV_REG_TO_MEM_W0, MEM16_REG8,
-    "mov", MOV_REG_TO_MEM_W1, MEM16_REG16,
     "mov", MOV_MEM_TO_REG_W0, REG8_MEM16,
     "mov", MOV_MEM_TO_REG_W1, REG16_MEM16,
     "mov", MOV_REG_TO_MEM_W0, MEM16_REG8,
@@ -2221,7 +2213,7 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<Instruction
         ins_type = get_instruction_type_by_name_and_syntax(instruction_name, syntax_info);
         if (ins_type == -1)
         {
-            
+
             // Bit of a hacky way to get the position of a token
             std::shared_ptr<Token> token = std::dynamic_pointer_cast<Token>(instruction_branch->getInstructionNameBranch());
             CharPos char_pos = token->getPosition();
@@ -2272,29 +2264,15 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
         }
         else if (right->isAccessingMemory())
         {
-            // Is this the accumulator we are going to store this into?
-            if (is_accumulator_and_not_ah(left_reg->getValue()))
+            if (is_reg_16_bit(left_reg->getValue()))
             {
-                if (is_reg_16_bit(left_reg->getValue()))
-                {
-                    return MOV_MEMOFFS_TO_ACC_W1;
-                }
-                else
-                {
-                    return MOV_MEMOFFS_TO_ACC_W0;
-                }
+                return MOV_MEM_TO_REG_W1;
             }
             else
             {
-                if (is_reg_16_bit(left_reg->getValue()))
-                {
-                    return MOV_MEM_TO_REG_W1;
-                }
-                else
-                {
-                    return MOV_MEM_TO_REG_W0;
-                }
+                return MOV_MEM_TO_REG_W0;
             }
+
         }
     }
     else if (left->isAccessingMemory())
@@ -2304,29 +2282,15 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
         {
             right_reg = right->getRegisterBranch();
             // mov mem, reg
-            // Is this the accumulator we are referring to?
-            if (is_accumulator_and_not_ah(right_reg->getValue()))
+            if (is_reg_16_bit(right_reg->getValue()))
             {
-                if (is_reg_16_bit(right_reg->getValue()))
-                {
-                    return MOV_ACC_TO_MEMOFFS_W1;
-                }
-                else
-                {
-                    return MOV_ACC_TO_MEMOFFS_W0;
-                }
+                return MOV_REG_TO_MEM_W1;
             }
             else
             {
-                if (is_reg_16_bit(right_reg->getValue()))
-                {
-                    return MOV_REG_TO_MEM_W1;
-                }
-                else
-                {
-                    return MOV_REG_TO_MEM_W0;
-                }
+                return MOV_REG_TO_MEM_W0;
             }
+
         }
         else if (right->isOnlyImmediate())
         {
