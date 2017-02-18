@@ -66,6 +66,14 @@ struct VARIABLE_ADDRESS
     }
 };
 
+struct COMPARE_EXPRESSION_DESC
+{
+    std::string cmp_exp_true_label_name;
+    std::string cmp_exp_false_label_name;
+    std::string cmp_exp_end_label_name;
+    std::string cmp_exp_last_logic_operator;
+};
+
 class FuncBranch;
 class ScopeBranch;
 
@@ -81,6 +89,7 @@ public:
     inline void make_exact_label(std::string label, std::string segment = "code");
     inline std::string make_unique_label(std::string segment = "code");
     inline std::string build_unique_label();
+
     void setup_comparing();
     void new_breakable_label(std::shared_ptr<Branch> branch_to_stop_reset);
     void end_breakable_label();
@@ -196,7 +205,7 @@ private:
 
     std::deque<std::shared_ptr<Branch>> breakable_branch_to_stop_reset_stack;
     std::deque<std::shared_ptr<Branch>> continue_branch_to_stop_reset_stack;
-    
+
     bool is_cmp_expression;
     bool do_signed;
     bool is_handling_pointer;
@@ -218,7 +227,7 @@ private:
 
     std::shared_ptr<StandardScopeBranch> current_scope;
     std::deque<std::shared_ptr<StandardScopeBranch>> current_scopes;
-
+    std::deque<struct COMPARE_EXPRESSION_DESC> compare_exp_descriptor_stack;
     int current_label_index;
     int scope_size;
 

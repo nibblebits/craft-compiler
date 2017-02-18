@@ -2221,8 +2221,12 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<Instruction
         ins_type = get_instruction_type_by_name_and_syntax(instruction_name, syntax_info);
         if (ins_type == -1)
         {
+            
+            // Bit of a hacky way to get the position of a token
+            std::shared_ptr<Token> token = std::dynamic_pointer_cast<Token>(instruction_branch->getInstructionNameBranch());
+            CharPos char_pos = token->getPosition();
             // There truly is a problem
-            throw AssemblerException("The instruction: " + instruction_name + " does not exist or is not implemented or you are using an illegal syntax");
+            throw AssemblerException("The instruction: \"" + instruction_name + "\" on line " + std::to_string(char_pos.line_no) + " does not exist or is not implemented or you are using an illegal syntax");
         }
     }
 

@@ -299,7 +299,7 @@ void CodeGen8086::handle_logical_expression(std::shared_ptr<Branch> exp_branch, 
     if (left->getType() != "E")
     {
         make_expression(left);
-        // We must setup comparing as it would not have been don e for this variable.
+        // We must setup comparing as it would not have been done for this variable.
         make_compare_instruction(">", "ax", "0");
         // If we have an logical OR then we must end the compare expression here
         if (exp_branch->getValue() == "||")
@@ -369,20 +369,6 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
             left = exp->getFirstChild();
             right = exp->getSecondChild();
 
-            std::string exp_val = exp->getValue();
-            if (compiler->isLogicalOperator(exp_val))
-            {
-                this->cmp_exp_last_logic_operator = exp_val;
-            }
-            else if (compiler->isCompareOperator(exp_val))
-            {
-                // Setup compare labels
-                if (!this->is_cmp_expression)
-                {
-                    setup_comparing();
-                }
-            }
-
             if (left->getType() == "E")
             {
                 make_expression(left);
@@ -420,14 +406,25 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
                 do_asm("pop cx");
             }
 
+
+            std::string exp_val = exp->getValue();
+            if (compiler->isLogicalOperator(exp_val))
+            {
+                this->cmp_exp_last_logic_operator = exp_val;
+            }
+            else if (compiler->isCompareOperator(exp_val))
+            {
+                // Setup compare labels
+                if (!this->is_cmp_expression)
+                {
+                    setup_comparing();
+                }
+            }
+
+
             make_math_instruction(exp->getValue(), "ax", "cx");
 
         }
-
-
-        // Prepone any pointer handling going to restore the previous state.
-        // if (postpone_pointer)
-        //    prepone_pointer_handling();
 
         // Do we have something we need to notify about ending this expression?
         if (exp_end_func != NULL)
@@ -1045,7 +1042,7 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         std::string pos = make_var_access(var_iden_branch);
         // This is a primitive type assignment, including pointer assignments
         is_word = is_alone_var_to_be_word(vdef_in_question_branch);
-        make_mem_assignment(pos, NULL, is_word);
+        make_mem_assignment(pos, NULL, is_word, NULL);
 
     }
 }
