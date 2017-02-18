@@ -78,7 +78,7 @@ unsigned char ins_map[] = {
     0x80, 0x81, 0x20, 0x21, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25,
     0x80, 0x81, 0x80, 0x81, 0xc0, 0xc1, 0xc0, 0xc1, 0xc0, 0xc1,
     0xc0, 0xc1, 0xcd, 0x38, 0x39, 0x38, 0x39, 0x3a, 0x3b, 0x3c,
-    0x3d, 0x80, 0x81, 0x80, 0x81
+    0x3d, 0x80, 0x81, 0x80, 0x81, 0x8d
 };
 
 // Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
@@ -94,7 +94,7 @@ unsigned char ins_sizes[] = {
     5, 6, 2, 2, 4, 4, 4, 4, 2, 3,
     3, 4, 5, 6, 3, 4, 5, 5, 3, 3,
     5, 5, 2, 2, 2, 4, 4, 4, 4, 2,
-    3, 3, 4, 5, 6
+    3, 3, 4, 5, 6, 2
 };
 
 
@@ -112,7 +112,7 @@ unsigned char static_rrr[] = {
     1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
     4, 4, 4, 4, 2, 2, 2, 2, 3, 3,
     3, 3, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 7, 7, 7, 7
+    0, 7, 7, 7, 7, 0
 };
 
 /* Describes information relating to an instruction 
@@ -237,6 +237,7 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // cmp reg16, imm16
     HAS_OOMMM | HAS_IMM_USE_RIGHT, // cmp mem, imm8
     USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT, // cmp mem, imm16
+    USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT, // lea reg16, mem
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -354,7 +355,8 @@ struct ins_syntax_def ins_syntax[] = {
     "cmp", CMP_REG_WITH_IMM_W0, REG8_IMM8,
     "cmp", CMP_REG_WITH_IMM_W1, REG16_IMM16,
     "cmp", CMP_MEM_WITH_IMM_W0, MEM16_IMM8,
-    "cmp", CMP_MEM_WITH_IMM_W1, MEM16_IMM16
+    "cmp", CMP_MEM_WITH_IMM_W1, MEM16_IMM16,
+    "lea", LEA_REGWORD_MEM, REG16_MEM16
 };
 
 /* Certain instructions have condition codes that specify a particular event.

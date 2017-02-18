@@ -289,7 +289,9 @@ enum
     CMP_REG_WITH_IMM_W0,
     CMP_REG_WITH_IMM_W1,
     CMP_MEM_WITH_IMM_W0,
-    CMP_MEM_WITH_IMM_W1
+    CMP_MEM_WITH_IMM_W1,
+    
+    LEA_REGWORD_MEM
 };
 
 struct ins_syntax_def
