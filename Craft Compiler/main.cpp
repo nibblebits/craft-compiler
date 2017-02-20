@@ -421,11 +421,6 @@ int LinkMode()
     output_file_name = arguments.getArgumentValue("output");
     file_names_to_link = Helper::split(arguments.getArgumentValue("input"), ',');
 
-    if (file_names_to_link.size() < 2)
-    {
-        std::cout << "You are required to link a minimum of two files but " << std::to_string(file_names_to_link.size()) << " files were provided" << std::endl;
-        return PROBLEM_WITH_ARGUMENT;
-    }
 
     std::cout << "Will link files: " << arguments.getArgumentValue("input") <<
             " to produce executable of type \"" << arguments.getArgumentValue("format") <<
