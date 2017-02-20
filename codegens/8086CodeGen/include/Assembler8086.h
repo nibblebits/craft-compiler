@@ -205,7 +205,6 @@ enum
     DIV_WITH_MEM_W0,
     DIV_WITH_MEM_W1,
 
-    JMP_SHORT,
     JMP_NEAR,
 
     CALL_NEAR,
