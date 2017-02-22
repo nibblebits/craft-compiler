@@ -98,10 +98,10 @@ typedef unsigned int GET_SCOPE_SIZE_OPTIONS;
 
 enum
 {
-    FIXUP_8BIT,
-    FIXUP_16BIT,
-    FIXUP_32BIT,
-    FIXUP_64_BIT
+    FIXUP_8BIT = 0x01,
+    FIXUP_16BIT = 0x02,
+    FIXUP_32BIT = 0x04,
+    FIXUP_64_BIT = 0x08
 };
 
 typedef unsigned int FIXUP_LENGTH;

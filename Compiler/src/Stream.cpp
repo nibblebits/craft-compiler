@@ -123,7 +123,7 @@ void Stream::write8(uint8_t c, int pos, bool ignore_joined_parents)
     {
         updateDataForJoinedParents(c, pos);
     }
-    
+
     if (!is_custom_pos)
         this->pos++;
 }
@@ -176,20 +176,36 @@ void Stream::writeStr(const char* str, bool write_null_terminator, size_t fill_t
     }
 }
 
-void Stream::writeStream(Stream* stream)
+void Stream::writeStream(Stream* stream, int offset, int total)
 {
+    if (offset >= 0)
+    {
+        if (total <= -1)
+        {
+            throw Exception("Offset is defined but total is not. While using an offset a total must be present.", "void Stream::writeStream(Stream* stream, int offset = -1, int total = -1)");
+        }
+    }
+    else
+    {
+        offset = 0;
+        total = getSize();
+    }
+
     int old_pos = stream->getPosition();
-    stream->setPosition(0);
-    while (stream->hasInput())
+    stream->setPosition(offset);
+    int total_wrote = 0;
+    while (stream->hasInput()
+                && total_wrote < total)
     {
         write8(stream->read8());
+        total_wrote++;
     }
     stream->setPosition(old_pos);
 }
 
-void Stream::writeStream(std::shared_ptr<Stream> stream)
+void Stream::writeStream(std::shared_ptr<Stream> stream, int offset, int total)
 {
-    writeStream(stream.get());
+    writeStream(stream.get(), offset, total);
 }
 
 void Stream::joinStream(std::shared_ptr<Stream> stream)
@@ -318,6 +334,32 @@ std::string Stream::readStr()
     }
 
     return str;
+}
+
+// Splits the stream into a vector of chunks
+std::vector<std::shared_ptr<Stream>> Stream::chunkSplit(int chunk_size)
+{
+    // Ok we first need to know how many chunks we have
+    int total_chunks;
+    int cur_stream_size = getSize();
+    total_chunks = cur_stream_size / chunk_size;
+    if ((cur_stream_size % chunk_size) != 0)
+    {
+        // Ok our stream doesn't divide with no remainder so there must be one more chunk
+        total_chunks++;
+    }
+
+    // Now that we know how many chunks we have lets create a new stream for every chunk
+    std::vector<std::shared_ptr < Stream>> chunk_streams;
+    for (int i = 0; i < total_chunks; i++)
+    {
+        int offset = i * chunk_size;
+        std::shared_ptr<Stream> stream = std::shared_ptr<Stream>(new Stream());
+        stream->writeStream(shared_from_this(), offset, chunk_size);
+        chunk_streams.push_back(stream);
+    }
+
+    return chunk_streams;
 }
 
 size_t Stream::getSize()

@@ -50,8 +50,8 @@ public:
     void write32(uint32_t i);
     void writeStr(std::string str, bool write_null_terminator = true, size_t fill_to = -1);
     void writeStr(const char* str, bool write_null_terminator = true, size_t fill_to = -1);
-    void writeStream(Stream* stream);
-    void writeStream(std::shared_ptr<Stream> stream);
+    void writeStream(Stream* stream, int offset = -1, int total = -1);
+    void writeStream(std::shared_ptr<Stream> stream, int offset = -1, int total = -1);
     void joinStream(std::shared_ptr<Stream> stream);
 
     void overwrite8(int pos, uint8_t c);
@@ -66,6 +66,8 @@ public:
     uint16_t read16();
     uint32_t read32();
     std::string readStr();
+    
+    std::vector<std::shared_ptr<Stream>> chunkSplit(int chunk_size);
     size_t getSize();
     std::shared_ptr<Stream> getJoinedStreamForPosition(int pos);
     int getJoinedStreamPosition(std::shared_ptr<Stream> stream);
