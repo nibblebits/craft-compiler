@@ -42,8 +42,8 @@
           <standard>11</standard>
           <incDir>
             <pElem>include</pElem>
-            <pElem>../../Compiler/include</pElem>
             <pElem>../../libs/MagicOMF/include</pElem>
+            <pElem>../../Compiler/include</pElem>
           </incDir>
         </ccTool>
         <linkerTool>

@@ -105,7 +105,6 @@ void OMFObjectFormat::handle_extern_fixup(struct RECORD* record, std::shared_ptr
 
 void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)
 {
-
     char* buf = input_stream->getBuf();
     struct MagicOMFHandle* handle = MagicOMFTranslate(buf, input_stream->getSize(), true);
     if (handle->has_error)
@@ -215,7 +214,6 @@ void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)
 
 void OMFObjectFormat::finalize()
 {
-
     struct RECORD* record;
     // Lets create a Magic OMF handle using the MagicOMF library that was written for this library
     struct MagicOMFHandle* handle = MagicOMFCreateHandle();
@@ -276,31 +274,72 @@ void OMFObjectFormat::finalize()
         MagicOMFFinishEXTDEF(record);
     }
 
+    // We don't want to lose the memory chunks as the memory will be freed by the smart pointer. A bit of a hack storing all the chunks but this will work for now
+    std::vector<std::shared_ptr < Stream>> all_chunks;
+
     // Now we need to create the LEDATA records
     for (std::shared_ptr<VirtualSegment> segment : getSegments())
     {
         std::shared_ptr<Stream> stream = segment->getStream();
-        MagicOMFAddLEDATA16(handle, segment->getName().c_str(), 0, stream->getSize(), stream->getBuf());
-        // Do we have any fixups for this segment?
-        if (segment->hasFixups())
+        // LEDATA records have a maximum of 1024 bytes so we need to split the stream into 1024 byte chunks
+        std::vector<std::shared_ptr < Stream>> stream_chunks = stream->chunkSplit(MAX_LEDATA_SIZE);
+        // Fixups for the stream chunks
+        std::vector<std::vector<std::shared_ptr < FIXUP>>> fixup_chunks;
+        fixup_chunks.resize(stream_chunks.size());
+        // We must organise the fixups and relocate their offsets for the pacific stream chunks
+        for (std::shared_ptr<FIXUP> fixup : segment->getFixups())
         {
-            struct RECORD* record = MagicOMFNewFIXUP16Record(handle);
-            for (std::shared_ptr<FIXUP> fixup : segment->getFixups())
+            // We should solve the below problem as soon as possible
+            if (fixup->getLength() >= 2 
+                    && fixup->getOffset() == MAX_LEDATA_SIZE-1)
             {
-                std::shared_ptr<FIXUP_TARGET> fixup_target = fixup->getTarget();
-                switch (fixup_target->getType())
-                {
-                case FIXUP_TARGET_TYPE_SEGMENT:
-                    handle_segment_fixup(record, fixup, std::dynamic_pointer_cast<FIXUP_TARGET_SEGMENT>(fixup_target));
-                    break;
-                case FIXUP_TARGET_TYPE_EXTERN:
-                    handle_extern_fixup(record, fixup, std::dynamic_pointer_cast<FIXUP_TARGET_EXTERN>(fixup_target));
-                    break;
-                }
+                throw Exception("Fixup offset is " + std::to_string(MAX_LEDATA_SIZE-1)
+                        + " and has a length of 2 bytes. This is impossible to resolve as a LEDATA's maximum size is " + std::to_string(MAX_LEDATA_SIZE)
+                        + " in the future the OMF(Object Module Format) library will push the data to another LEDATA record but for now this is unimplemented."
+                        + " just re-adjust your code so that the fixup will be at a different position.", "void OMFObjectFormat::finalize()");
             }
-            MagicOMFFinishFIXUP16(record);
+            
+            // Calculate the index in the fixup_chunks vector where this fixup should be pushed to
+            int fixup_index = fixup->getOffset() / MAX_LEDATA_SIZE;
+            // We must now readjust the fixup offset
+            int offset_to_remove = 0;
+            for (int i = 0; i < fixup_index; i++)
+            {
+                offset_to_remove = stream_chunks[i]->getSize();
+            }
+            fixup->setOffset(fixup->getOffset() - offset_to_remove);
+            fixup_chunks[fixup_index].push_back(fixup);
+        }
+
+        for (int i = 0; i < stream_chunks.size(); i++)
+        {
+            std::shared_ptr<Stream> chunk_stream = stream_chunks[i];
+            // We want to save the chunk stream so it is not released at the end of this scope, this is a bit hacky I think
+            all_chunks.push_back(chunk_stream);
+
+            MagicOMFAddLEDATA16(handle, segment->getName().c_str(), 0, chunk_stream->getSize(), chunk_stream->getBuf());
+            // Do we have any fixups for this LEDATA?
+            if (!fixup_chunks[i].empty())
+            {
+                struct RECORD* record = MagicOMFNewFIXUP16Record(handle);
+                for (std::shared_ptr<FIXUP> fixup : fixup_chunks[i])
+                {
+                    std::shared_ptr<FIXUP_TARGET> fixup_target = fixup->getTarget();
+                    switch (fixup_target->getType())
+                    {
+                    case FIXUP_TARGET_TYPE_SEGMENT:
+                        handle_segment_fixup(record, fixup, std::dynamic_pointer_cast<FIXUP_TARGET_SEGMENT>(fixup_target));
+                        break;
+                    case FIXUP_TARGET_TYPE_EXTERN:
+                        handle_extern_fixup(record, fixup, std::dynamic_pointer_cast<FIXUP_TARGET_EXTERN>(fixup_target));
+                        break;
+                    }
+                }
+                MagicOMFFinishFIXUP16(record);
+            }
         }
     }
+
 
     // Finally we need to generate the MODEND record to signify the end of this object file
     MagicOMFAddMODEND16(handle);

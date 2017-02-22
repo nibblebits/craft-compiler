@@ -27,6 +27,8 @@
 #include "MagicOMF.h"
 #include "VirtualObjectFormat.h"
 
+
+#define MAX_LEDATA_SIZE 1024
 class EXPORT OMFObjectFormat : public VirtualObjectFormat {
 public:
     OMFObjectFormat(Compiler* compiler);

@@ -70,12 +70,12 @@ LDLIBSOPTIONS=../../bin/Compiler.dll ../../bin/MagicOMF.dll
 ${OBJECTDIR}/src/OMFObjectFormat.o: src/OMFObjectFormat.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -I../../Compiler/include -I../../libs/MagicOMF/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OMFObjectFormat.o src/OMFObjectFormat.cpp
+	$(COMPILE.cc) -g -Iinclude -I../../libs/MagicOMF/include -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OMFObjectFormat.o src/OMFObjectFormat.cpp
 
 ${OBJECTDIR}/src/main.o: src/main.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -I../../Compiler/include -I../../libs/MagicOMF/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.cpp
+	$(COMPILE.cc) -g -Iinclude -I../../libs/MagicOMF/include -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.cpp
 
 # Subprojects
 .build-subprojects:
