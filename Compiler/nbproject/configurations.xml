@@ -52,6 +52,7 @@
       <itemPath>include/STRUCTAccessBranch.h</itemPath>
       <itemPath>include/STRUCTBranch.h</itemPath>
       <itemPath>include/STRUCTDEFBranch.h</itemPath>
+      <itemPath>include/STRUCTDescriptorBranch.h</itemPath>
       <itemPath>include/Scope.h</itemPath>
       <itemPath>include/ScopeBranch.h</itemPath>
       <itemPath>include/SemanticValidator.h</itemPath>
@@ -121,6 +122,7 @@
       <itemPath>src/STRUCTAccessBranch.cpp</itemPath>
       <itemPath>src/STRUCTBranch.cpp</itemPath>
       <itemPath>src/STRUCTDEFBranch.cpp</itemPath>
+      <itemPath>src/STRUCTDescriptorBranch.cpp</itemPath>
       <itemPath>src/Scope.cpp</itemPath>
       <itemPath>src/ScopeBranch.cpp</itemPath>
       <itemPath>src/SemanticValidator.cpp</itemPath>
@@ -270,6 +272,8 @@
       </item>
       <item path="include/STRUCTDEFBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/STRUCTDescriptorBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Scope.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ScopeBranch.h" ex="false" tool="3" flavor2="0">
@@ -400,6 +404,8 @@
       <item path="src/STRUCTBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/STRUCTDEFBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/STRUCTDescriptorBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Scope.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -549,6 +555,8 @@
       </item>
       <item path="include/STRUCTDEFBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/STRUCTDescriptorBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Scope.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ScopeBranch.h" ex="false" tool="3" flavor2="0">
@@ -679,6 +687,8 @@
       <item path="src/STRUCTBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/STRUCTDEFBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/STRUCTDescriptorBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Scope.cpp" ex="false" tool="1" flavor2="0">
       </item>

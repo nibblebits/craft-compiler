@@ -33,12 +33,31 @@
 Preprocessor::Preprocessor(Compiler* compiler) : CompilerEntity(compiler)
 {
     // Standard macro functions
-    register_macro_function("sizeof", 1, [](std::shared_ptr<Branch> args) -> int
+    register_macro_function("sizeof", 1, [&](std::shared_ptr<Branch> args) -> int
     {
+        int result;
         // Ok we need to get the size of the element
-        std::shared_ptr<VarIdentifierBranch> variable = std::dynamic_pointer_cast<VarIdentifierBranch>(args->getFirstChild());
-        std::shared_ptr<VDEFBranch> vdef_branch = variable->getVariableDefinitionBranch();
-        return vdef_branch->getDataTypeSize();
+        std::shared_ptr<Branch> argument = args->getFirstChild();
+        std::string argument_type = argument->getType();
+        if (argument_type == "VAR_IDENTIFIER")
+        {
+                            std::shared_ptr<VarIdentifierBranch> variable = std::dynamic_pointer_cast<VarIdentifierBranch>(argument);
+                            std::shared_ptr<VDEFBranch> vdef_branch = variable->getVariableDefinitionBranch();
+                            result = vdef_branch->getDataTypeSize();
+        }
+        else if(argument_type == "STRUCT_DESCRIPTOR")
+        {
+            std::shared_ptr<STRUCTDescriptorBranch> struct_descriptor_branch = std::dynamic_pointer_cast<STRUCTDescriptorBranch>(argument);
+            std::shared_ptr<STRUCTBranch> struct_branch = tree->getGlobalStructureByName(struct_descriptor_branch->getStructNameBranch()->getValue());
+            result = struct_branch->getStructBodyBranch()->getScopeSize();
+        }
+        else if(argument_type == "keyword")
+        {
+            // Ok this is just a keyword so we will get the primitive type
+            result = getCompiler()->getPrimitiveDataTypeSize(argument->getValue());
+        }
+        
+        return result;
     });
 }
 
@@ -68,8 +87,8 @@ void Preprocessor::register_macro_function(std::string function_name, int max_ar
 int Preprocessor::invoke_macro_function(std::string function_name, std::shared_ptr<Branch> args)
 {
     struct macro_function func = get_macro_function(function_name);
-    if (func.max_args != MACRO_FUNCTION_ARGUMENTS_NO_LIMIT 
-                && args->getChildren().size() > func.max_args)
+    if (func.max_args != MACRO_FUNCTION_ARGUMENTS_NO_LIMIT
+            && args->getChildren().size() > func.max_args)
     {
         throw Exception("Attempting to apply more arguments than allowed for macro function: " + function_name, "void Preprocessor::invoke_macro_function(std::string function_name, std::shared_ptr<Branch> args)");
     }
@@ -354,7 +373,7 @@ void Preprocessor::process_macro_func_call(std::shared_ptr<MacroFuncCallBranch> 
 {
     std::string func_name = macro_func_call_branch->getFuncNameBranch()->getValue();
     int result = invoke_macro_function(func_name, macro_func_call_branch->getFuncParamsBranch());
-    
+
     // We need to get the closest token that we can so we can get the previous token position. In our case it will be the function name
     std::shared_ptr<Token> token = std::dynamic_pointer_cast<Token>(macro_func_call_branch->getFuncNameBranch());
     std::shared_ptr<Token> token_to_replace_with = std::shared_ptr<Token>(new Token("number", std::to_string(result), token->getPosition()));

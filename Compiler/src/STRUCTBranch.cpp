@@ -27,7 +27,7 @@
 #include "STRUCTBranch.h"
 #include "BODYBranch.h"
 
-STRUCTBranch::STRUCTBranch(Compiler* compiler) : CustomBranch(compiler, "STRUCT", "")
+STRUCTBranch::STRUCTBranch(Compiler* compiler) : STRUCTDescriptorBranch(compiler, "STRUCT", "")
 {
 }
 
@@ -35,19 +35,9 @@ STRUCTBranch::~STRUCTBranch()
 {
 }
 
-void STRUCTBranch::setStructNameBranch(std::shared_ptr<Branch> branch)
-{
-    CustomBranch::registerBranch("struct_name_branch", branch);
-}
-
 void STRUCTBranch::setStructBodyBranch(std::shared_ptr<BODYBranch> branch)
 {
     CustomBranch::registerBranch("struct_body_branch", branch);
-}
-
-std::shared_ptr<Branch> STRUCTBranch::getStructNameBranch()
-{
-    return CustomBranch::getRegisteredBranchByName("struct_name_branch");
 }
 
 std::shared_ptr<BODYBranch> STRUCTBranch::getStructBodyBranch()
@@ -57,6 +47,7 @@ std::shared_ptr<BODYBranch> STRUCTBranch::getStructBodyBranch()
 
 void STRUCTBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
+    STRUCTDescriptorBranch::imp_clone(cloned_branch);
     std::shared_ptr<STRUCTBranch> struct_branch_clone = std::dynamic_pointer_cast<STRUCTBranch>(cloned_branch);
     struct_branch_clone->setStructBodyBranch(std::dynamic_pointer_cast<BODYBranch>(getStructBodyBranch()->clone()));
 }

@@ -48,7 +48,7 @@ std::shared_ptr<STRUCTBranch> RootBranch::getDeclaredStructureByName(std::string
         }
     }
 
-    return NULL;
+    throw Exception("The structure: " + name + " could not be found.", "std::shared_ptr<STRUCTBranch> RootBranch::getDeclaredStructureByName(std::string name)");
 }
 
 void RootBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)

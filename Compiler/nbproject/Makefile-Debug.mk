@@ -76,6 +76,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/STRUCTAccessBranch.o \
 	${OBJECTDIR}/src/STRUCTBranch.o \
 	${OBJECTDIR}/src/STRUCTDEFBranch.o \
+	${OBJECTDIR}/src/STRUCTDescriptorBranch.o \
 	${OBJECTDIR}/src/Scope.o \
 	${OBJECTDIR}/src/ScopeBranch.o \
 	${OBJECTDIR}/src/SemanticValidator.o \
@@ -320,6 +321,11 @@ ${OBJECTDIR}/src/STRUCTDEFBranch.o: src/STRUCTDEFBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTDEFBranch.o src/STRUCTDEFBranch.cpp
+
+${OBJECTDIR}/src/STRUCTDescriptorBranch.o: src/STRUCTDescriptorBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTDescriptorBranch.o src/STRUCTDescriptorBranch.cpp
 
 ${OBJECTDIR}/src/Scope.o: src/Scope.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

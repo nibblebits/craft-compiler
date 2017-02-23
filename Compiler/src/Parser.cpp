@@ -720,6 +720,34 @@ void Parser::process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struc
     push_branch(var_identifier_branch);
 }
 
+void Parser::process_structure_descriptor()
+{
+    peek();
+    if (!is_peek_keyword("struct"))
+    {
+        error_expecting("struct", this->peek_token_value);
+    }
+
+    // Shift and pop the "struct" keyword we don't care about it now
+    shift_pop();
+
+    peek();
+    if (!is_peek_type("identifier"))
+    {
+        error_expecting("identifier", this->peek_token_type);
+    }
+
+    // Lets get the name of this structure
+    shift_pop();
+    std::shared_ptr<Branch> struct_name_branch = this->branch;
+
+    std::shared_ptr<STRUCTDescriptorBranch> struct_desc_branch 
+            = std::shared_ptr<STRUCTDescriptorBranch>(new STRUCTDescriptorBranch(getCompiler()));
+    struct_desc_branch->setStructNameBranch(struct_name_branch);
+
+    push_branch(struct_desc_branch);
+}
+
 void Parser::process_structure_access()
 {
     std::shared_ptr<STRUCTAccessBranch> struct_access_root = NULL;
@@ -985,9 +1013,9 @@ std::shared_ptr<Branch> Parser::process_expression_operator()
     return this->branch;
 }
 
-void Parser::process_function_call(std::shared_ptr<Branch>* func_name_branch, std::shared_ptr<Branch>* func_params_branch)
+void Parser::process_function_call(std::shared_ptr<Branch>* func_name_branch, std::shared_ptr<Branch>* func_params_branch, std::function<void() > handle_func_param)
 {
-   shift_pop();
+    shift_pop();
     // Check that the branch is an identifier as function calls require them
     if (!is_branch_type("identifier"))
     {
@@ -1023,28 +1051,33 @@ void Parser::process_function_call(std::shared_ptr<Branch>* func_name_branch, st
         }
         else
         {
-            // Ok lets process the expression
-
-            process_expression();
+            // Invoke the handle function parameter function passed to us
+            handle_func_param();
             // Pop the resulting expression
             pop_branch();
             // Add it to the params
             params->addChild(this->branch);
         }
     }
-    
+
     *func_name_branch = func_name;
     *func_params_branch = params;
-    
+
 }
+
 void Parser::process_function_call()
 {
     std::shared_ptr<Branch> func_name;
     std::shared_ptr<Branch> func_params;
-    
+
     // Process the function call
-    process_function_call(&func_name, &func_params);
-    
+    process_function_call(&func_name, &func_params, [&]
+    {
+        /* This is called every time we are at a function parameter on the stack e.g test(HERE, HERE, HERE) 
+         * so we are just going to process the expression of this function parameter*/
+        process_expression();
+    });
+
     // We have everything we need now build the function call
     std::shared_ptr<FuncCallBranch> func_call_root = std::shared_ptr<FuncCallBranch>(new FuncCallBranch(this->getCompiler()));
     func_call_root->setFuncNameBranch(func_name);
@@ -1620,19 +1653,46 @@ void Parser::process_macro_function_call()
 {
     std::shared_ptr<Branch> func_name;
     std::shared_ptr<Branch> func_params;
-    
+
     // Process the macro function call
-    process_function_call(&func_name, &func_params);
-    
-    std::shared_ptr<MacroFuncCallBranch> macro_func_call_branch 
+    process_function_call(&func_name, &func_params, [&]
+    {
+        // We need to process the function parameter here, as this is a macro function call it can be a keyword, a structure, a expression, or anything a normal function call can do
+
+        // Lets first check for a keyword
+        peek();
+        if (is_peek_type("keyword"))
+        {
+                          if (is_peek_keyword("struct") &&
+                          is_peek_type("identifier", 1) &&
+                          !is_peek_type("identifier", 2))
+            {
+                          // Ok this is just showing a structure descriptor not a structure definition, e.g its showing "struct test" not "struct test a"
+                          process_structure_descriptor();
+                          return;
+            }
+            else if (is_peek_type("symbol", 1))
+            {
+                          // Ok this is just a keyword on its own lets just shift it onto the stack
+                          shift();
+                          return;
+            }
+        }
+        
+        // Ok nothing has been done so lets just treat it as an expression
+        process_expression();
+
+    });
+
+    std::shared_ptr<MacroFuncCallBranch> macro_func_call_branch
             = std::shared_ptr<MacroFuncCallBranch>(new MacroFuncCallBranch(this->compiler));
-    
+
     macro_func_call_branch->setFuncNameBranch(func_name);
     macro_func_call_branch->setFuncParamsBranch(func_params);
-    
+
     // Lets push the result to the stack
     push_branch(macro_func_call_branch);
-    
+
 }
 
 void Parser::process_macro_definition_identifier()

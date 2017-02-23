@@ -1,5 +1,5 @@
 /*
-    Craft Compiler v0.1.0 - The standard compiler for the Craft programming language.
+    Craft compiler v0.1.0 - The standard compiler for the Craft programming language.
     Copyright (C) 2016  Daniel McCarthy
 
     This program is free software: you can redistribute it and/or modify
@@ -16,24 +16,26 @@
  */
 
 /* 
- * File:   STRUCTBranch.h
+ * File:   STRUCTDescriptorBranch.h
  * Author: Daniel McCarthy
  *
- * Created on 13 October 2016, 05:47
+ * Created on 23 February 2017, 18:20
  */
 
-#ifndef STRUCTBRANCH_H
-#define STRUCTBRANCH_H
+#ifndef STRUCTDESCRIPTORBRANCH_H
+#define STRUCTDESCRIPTORBRANCH_H
 
-#include "StructDescriptorBranch.h"
-class BODYBranch;
-class EXPORT STRUCTBranch : public STRUCTDescriptorBranch
+#include "CustomBranch.h"
+
+class EXPORT STRUCTDescriptorBranch : public CustomBranch
 {
 public:
-    STRUCTBranch(Compiler* compiler);
-    virtual ~STRUCTBranch();
-    void setStructBodyBranch(std::shared_ptr<BODYBranch> branch);
-    std::shared_ptr<BODYBranch> getStructBodyBranch();
+    STRUCTDescriptorBranch(Compiler* compiler);
+    STRUCTDescriptorBranch(Compiler* compiler, std::string branch_type, std::string branch_value);
+    virtual ~STRUCTDescriptorBranch();
+
+    void setStructNameBranch(std::shared_ptr<Branch> name_branch);
+    std::shared_ptr<Branch> getStructNameBranch();
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
@@ -41,5 +43,5 @@ private:
 
 };
 
-#endif /* STRUCTBRANCH_H */
+#endif /* STRUCTDESCRIPTORBRANCH_H */
 

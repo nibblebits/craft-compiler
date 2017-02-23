@@ -41,6 +41,7 @@
 #include "IFBranch.h"
 #include "ELSEBranch.h"
 #include "PTRBranch.h"
+#include "STRUCTDescriptorBranch.h"
 #include "STRUCTBranch.h"
 #include "STRUCTDEFBranch.h"
 #include "STRUCTAccessBranch.h"

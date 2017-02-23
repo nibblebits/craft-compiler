@@ -92,12 +92,13 @@ private:
     void process_ptr();
     void process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op);
     void process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struct_def=NULL);
+    void process_structure_descriptor();
     void process_structure_access();
     void process_expression(PARSER_EXPRESSION_OPTIONS options=0);
     void process_expression_part(std::shared_ptr<Branch> left=NULL, PARSER_EXPRESSION_OPTIONS=0);
     std::shared_ptr<Branch> process_expression_operand(PARSER_EXPRESSION_OPTIONS options=0);
     std::shared_ptr<Branch> process_expression_operator();
-    void process_function_call(std::shared_ptr<Branch>* func_name_branch, std::shared_ptr<Branch>* func_params_branch);
+    void process_function_call(std::shared_ptr<Branch>* func_name_branch, std::shared_ptr<Branch>* func_params_branch, std::function<void()> handle_func_param);
     void process_function_call();
     void process_if_stmt();
     void process_return_stmt();
