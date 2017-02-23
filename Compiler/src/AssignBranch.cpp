@@ -41,22 +41,28 @@ AssignBranch::~AssignBranch()
 
 void AssignBranch::setVariableToAssignBranch(std::shared_ptr<Branch> var_branch)
 {
-    this->registerBranch("variable_to_assign_branch", var_branch);
+    CustomBranch::registerBranch("variable_to_assign_branch", var_branch);
 }
 
 void AssignBranch::setValueBranch(std::shared_ptr<Branch> value_branch)
 {
-    this->registerBranch("value_to_assign_branch", value_branch);
+    CustomBranch::registerBranch("value_to_assign_branch", value_branch);
 }
 
 std::shared_ptr<Branch> AssignBranch::getVariableToAssignBranch()
 {
-    return this->getRegisteredBranchByName("variable_to_assign_branch");
+    return CustomBranch::getRegisteredBranchByName("variable_to_assign_branch");
 }
 
 std::shared_ptr<Branch> AssignBranch::getValueBranch()
 {
-    return this->getRegisteredBranchByName("value_to_assign_branch");
+    return CustomBranch::getRegisteredBranchByName("value_to_assign_branch");
+}
+
+std::string AssignBranch::getOperator()
+{
+    // Assign operator is simply just the value of this branch
+    return Branch::getValue();
 }
 
 void AssignBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)

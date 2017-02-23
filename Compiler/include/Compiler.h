@@ -77,6 +77,7 @@ public:
     long evaluate(long n1, long n2, std::string op);
     bool isCompareOperator(std::string value);
     bool isLogicalOperator(std::string value);
+    bool isAssignmentOperator(std::string value);
     long getNumberFromString(std::string str, char formatting_symbol);
     long getNumberFromString(std::string str);
 

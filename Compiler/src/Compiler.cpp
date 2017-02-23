@@ -366,6 +366,15 @@ bool Compiler::isLogicalOperator(std::string value)
     return false;
 }
 
+bool Compiler::isAssignmentOperator(std::string value)
+{
+    return value == "=" ||
+            value == "+=" ||
+            value == "-=" ||
+            value == "*=" ||
+            value == "/=";
+}
+
 long Compiler::getNumberFromString(std::string str, char formatting_symbol)
 {
     unsigned long result;

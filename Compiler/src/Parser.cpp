@@ -2009,11 +2009,7 @@ bool Parser::is_peek_identifier(std::string identifier)
 
 bool Parser::is_assignment_operator(std::string op)
 {
-    return op == "=" ||
-            op == "+=" ||
-            op == "-=" ||
-            op == "*=" ||
-            op == "/=";
+    return getCompiler()->isAssignmentOperator(op);
 }
 
 int Parser::get_order_of_operations_priority_for_operator(std::string op)

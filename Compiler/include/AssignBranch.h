@@ -38,6 +38,8 @@ public:
     void setValueBranch(std::shared_ptr<Branch> value_branch);
     std::shared_ptr<Branch> getVariableToAssignBranch();
     std::shared_ptr<Branch> getValueBranch();
+    std::string getOperator();
+    
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
 
