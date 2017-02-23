@@ -1146,29 +1146,47 @@ void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
     std::shared_ptr<Branch> variable_data_type_branch = vdef_branch->getDataTypeBranch();
     std::shared_ptr<Branch> variable_name_branch = variable_iden_branch->getVariableNameBranch();
 
-    // Value branch may only be a number for global variables, the framework will ensure this for us no need to check
-    std::shared_ptr<Branch> value_branch = vdef_branch->getValueExpBranch();
 
+    // E.g "rb", "dw", or "db"
+    std::string data_write_macro;
+    // The value for this e.g "dw VALUE"
+    std::string data_write_macro_value = "0";
+
+    // Value branch may only be a number for global variables, the framework will ensure this for us no need to check
+    std::shared_ptr<Branch> value_branch = NULL;
+    if (vdef_branch->hasValueExpBranch())
+    {
+        value_branch = vdef_branch->getValueExpBranch();
+    }
 
     make_label(variable_name_branch->getValue(), "data");
 
-    // NOTE: STRUCT_DEF'S CAN ALSO BE POINTERS!!!! CHANGE THIS 
-    if (vdef_branch->getType() == "STRUCT_DEF")
+    if (vdef_branch->getType() == "STRUCT_DEF"
+            && !vdef_branch->isPointer())
     {
         int struct_size = getSizeOfVariableBranch(vdef_branch);
-        do_asm("rb " + std::to_string(struct_size), "data");
+        data_write_macro = "rb";
+        data_write_macro_value = std::to_string(struct_size);
     }
     else
     {
         if (vdef_branch->isPointer() || vdef_branch->getDataTypeSize() == 2)
         {
-            do_asm("dw " + value_branch->getValue(), "data");
+            data_write_macro = "dw";
         }
         else
         {
-            do_asm("db " + value_branch->getValue(), "data");
+            data_write_macro = "db";
+        }
+
+        if (value_branch != NULL)
+        {
+            data_write_macro_value = value_branch->getValue();
         }
     }
+
+
+    do_asm(data_write_macro + " " + data_write_macro_value, "data");
 
 }
 
@@ -1405,11 +1423,9 @@ void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> 
 
     // Handle the variable declaration
     std::shared_ptr<Branch> variable_branch = def_branch->getVariableIdentifierBranch();
-    std::shared_ptr<Branch> value_branch = def_branch->getValueExpBranch();
-
-    // Are we assigning it to anything?
-    if (value_branch != NULL)
+    if (def_branch->hasValueExpBranch())
     {
+        std::shared_ptr<Branch> value_branch = def_branch->getValueExpBranch();
         make_var_assignment(variable_branch, value_branch);
     }
 }

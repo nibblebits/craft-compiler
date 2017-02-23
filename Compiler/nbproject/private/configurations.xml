@@ -32,10 +32,10 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -L "test.goblino"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -O</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -codegen 8086CodeGen</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -codegen 8086CodeGen</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}"</runcommand>
+        <runcommand>"${OUTPUT_PATH}" -input test_source.goblin -output test_source.goblino -codegen 8086CodeGen</runcommand>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

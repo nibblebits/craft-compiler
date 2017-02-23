@@ -66,6 +66,7 @@
       <itemPath>include/TreeImprover.h</itemPath>
       <itemPath>include/VDEFBranch.h</itemPath>
       <itemPath>include/VarIdentifierBranch.h</itemPath>
+      <itemPath>include/VariableNotFoundException.h</itemPath>
       <itemPath>include/VirtualObjectFormat.h</itemPath>
       <itemPath>include/VirtualSegment.h</itemPath>
       <itemPath>include/WhileBranch.h</itemPath>
@@ -149,8 +150,20 @@
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
   </logicalFolder>
   <sourceRootList>
+    <Elem>src</Elem>
     <Elem>src</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>

@@ -110,9 +110,10 @@ void Parser::process_top()
             peek(1);
             if (is_peek_type("identifier"))
             {
-                // peek further again to see if their is yet another identifier
+                // peek further again to see if their is yet another identifier or pointer declaration
                 peek(2);
-                if (is_peek_type("identifier"))
+                if (is_peek_type("identifier") 
+                        || (is_peek_operator("*") && is_peek_type("identifier", 1)))
                 {
                     // This is a structure variable declaration so process it
                     process_structure_declaration();
@@ -677,6 +678,7 @@ void Parser::process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Br
 
 
     std::shared_ptr<AssignBranch> assign_branch = std::shared_ptr<AssignBranch>(new AssignBranch(this->getCompiler()));
+    assign_branch->setValue(op->getValue());
     assign_branch->setVariableToAssignBranch(left);
     assign_branch->setValueBranch(right);
 
