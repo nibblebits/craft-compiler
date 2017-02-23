@@ -30,6 +30,7 @@ class EXPORT FuncCallBranch : public CustomBranch
 {
 public:
     FuncCallBranch(Compiler* compiler);
+    FuncCallBranch(Compiler* compiler, std::string branch_name, std::string branch_value);
     virtual ~FuncCallBranch();
 
     void setFuncNameBranch(std::shared_ptr<Branch> branch);

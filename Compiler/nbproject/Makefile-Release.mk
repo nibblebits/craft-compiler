@@ -66,6 +66,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/LogicalNotBranch.o \
 	${OBJECTDIR}/src/MacroDefineBranch.o \
 	${OBJECTDIR}/src/MacroDefinitionIdentifierBranch.o \
+	${OBJECTDIR}/src/MacroFuncCallBranch.o \
 	${OBJECTDIR}/src/MacroIfDefBranch.o \
 	${OBJECTDIR}/src/PTRBranch.o \
 	${OBJECTDIR}/src/Parser.o \
@@ -269,6 +270,11 @@ ${OBJECTDIR}/src/MacroDefinitionIdentifierBranch.o: src/MacroDefinitionIdentifie
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroDefinitionIdentifierBranch.o src/MacroDefinitionIdentifierBranch.cpp
+
+${OBJECTDIR}/src/MacroFuncCallBranch.o: src/MacroFuncCallBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroFuncCallBranch.o src/MacroFuncCallBranch.cpp
 
 ${OBJECTDIR}/src/MacroIfDefBranch.o: src/MacroIfDefBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

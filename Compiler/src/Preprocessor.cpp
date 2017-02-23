@@ -32,7 +32,14 @@
 
 Preprocessor::Preprocessor(Compiler* compiler) : CompilerEntity(compiler)
 {
-
+    // Standard macro functions
+    register_macro_function("sizeof", 1, [](std::shared_ptr<Branch> args) -> int
+    {
+        // Ok we need to get the size of the element
+        std::shared_ptr<VarIdentifierBranch> variable = std::dynamic_pointer_cast<VarIdentifierBranch>(args->getFirstChild());
+        std::shared_ptr<VDEFBranch> vdef_branch = variable->getVariableDefinitionBranch();
+        return vdef_branch->getDataTypeSize();
+    });
 }
 
 Preprocessor::~Preprocessor()
@@ -42,6 +49,49 @@ Preprocessor::~Preprocessor()
 void Preprocessor::setTree(std::shared_ptr<Tree> tree)
 {
     this->tree = tree;
+}
+
+void Preprocessor::register_macro_function(std::string function_name, int max_args, std::function<int(std::shared_ptr<Branch> branch) > function)
+{
+    if (is_macro_function_registered(function_name))
+    {
+        throw Exception("The macro function: " + function_name + " is already registered", "void Preprocessor::register_macro_function(std::string function_name, std::function<int>(std::shared_ptr<Branch> branch))");
+    }
+
+    struct macro_function func;
+    func.func_name = function_name;
+    func.max_args = max_args;
+    func.function = function;
+    this->macro_functions[function_name] = func;
+}
+
+int Preprocessor::invoke_macro_function(std::string function_name, std::shared_ptr<Branch> args)
+{
+    struct macro_function func = get_macro_function(function_name);
+    if (func.max_args != MACRO_FUNCTION_ARGUMENTS_NO_LIMIT 
+                && args->getChildren().size() > func.max_args)
+    {
+        throw Exception("Attempting to apply more arguments than allowed for macro function: " + function_name, "void Preprocessor::invoke_macro_function(std::string function_name, std::shared_ptr<Branch> args)");
+    }
+
+    // Ok this function call it legit lets invoke it
+    int result = func.function(args);
+    return result;
+}
+
+struct macro_function Preprocessor::get_macro_function(std::string function_name)
+{
+    if (!is_macro_function_registered(function_name))
+    {
+        throw Exception("The macro function: " + function_name + " is not registered", "struct macro_function Preprocessor::get_macro_function(std::string function_name)");
+    }
+
+    return this->macro_functions[function_name];
+}
+
+bool Preprocessor::is_macro_function_registered(std::string function_name)
+{
+    return macro_functions.find(function_name) != macro_functions.end();
 }
 
 void Preprocessor::process()
@@ -58,7 +108,8 @@ bool Preprocessor::is_macro(std::string macro_name)
     return (
             macro_name == "MACRO_IFDEF" ||
             macro_name == "MACRO_DEFINE" ||
-            macro_name == "MACRO_DEFINITION_IDENTIFIER"
+            macro_name == "MACRO_DEFINITION_IDENTIFIER" ||
+            macro_name == "MACRO_FUNC_CALL"
             );
 }
 
@@ -114,6 +165,11 @@ void Preprocessor::process_macro(std::shared_ptr<Branch> macro)
         std::shared_ptr<MacroDefinitionIdentifierBranch> macro_def_iden_branch = std::dynamic_pointer_cast<MacroDefinitionIdentifierBranch>(macro);
         process_macro_def_identifier(macro_def_iden_branch);
     }
+    else if (macro->getType() == "MACRO_FUNC_CALL")
+    {
+        std::shared_ptr<MacroFuncCallBranch> macro_func_call = std::dynamic_pointer_cast<MacroFuncCallBranch>(macro);
+        process_macro_func_call(macro_func_call);
+    }
 }
 
 void Preprocessor::process_child(std::shared_ptr<Branch> child)
@@ -140,47 +196,47 @@ void Preprocessor::process_child(std::shared_ptr<Branch> child)
             process_expression(vdef_branch->getValueExpBranch());
         }
     }
-    else if(child_type == "ASSIGN")
+    else if (child_type == "ASSIGN")
     {
         std::shared_ptr<AssignBranch> assign_branch = std::dynamic_pointer_cast<AssignBranch>(child);
         process_child(assign_branch->getVariableToAssignBranch());
         process_expression(assign_branch->getValueBranch());
     }
-    else if(child_type == "VAR_IDENTIFIER")
+    else if (child_type == "VAR_IDENTIFIER")
     {
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(child);
-        if(var_iden_branch->hasRootArrayIndexBranch())
+        if (var_iden_branch->hasRootArrayIndexBranch())
         {
             process_child(var_iden_branch->getRootArrayIndexBranch());
         }
-        
+
         if (var_iden_branch->hasStructureAccessBranch())
         {
             process_child(var_iden_branch->getStructureAccessBranch());
         }
     }
-    else if(child_type == "ARRAY_INDEX")
+    else if (child_type == "ARRAY_INDEX")
     {
         std::shared_ptr<ArrayIndexBranch> array_index_branch = std::dynamic_pointer_cast<ArrayIndexBranch>(child);
         process_expression(array_index_branch->getValueBranch());
-        
+
         // More to go?
         if (array_index_branch->hasNextArrayIndexBranch())
         {
             process_child(array_index_branch->getNextArrayIndexBranch());
         }
     }
-    else if(child_type == "PTR")
+    else if (child_type == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(child);
         process_expression(ptr_branch->getExpressionBranch());
     }
-    else if(child_type == "STRUCT_ACCESS")
+    else if (child_type == "STRUCT_ACCESS")
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(child);
-        process_child(struct_access_branch->getVarIdentifierBranch()); 
+        process_child(struct_access_branch->getVarIdentifierBranch());
     }
-    else if(child_type == "FUNC_CALL")
+    else if (child_type == "FUNC_CALL")
     {
         std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(child);
         for (std::shared_ptr<Branch> branch : func_call_branch->getFuncParamsBranch()->getChildren())
@@ -188,7 +244,7 @@ void Preprocessor::process_child(std::shared_ptr<Branch> child)
             process_expression(branch);
         }
     }
-    
+
 
 }
 
@@ -292,6 +348,17 @@ void Preprocessor::process_macro_def_identifier(std::shared_ptr<MacroDefinitionI
 
     std::shared_ptr<Token> token_to_replace_with = std::shared_ptr<Token>(new Token(token_type, definition.value, iden_token->getPosition()));
     macro_def_iden_branch->replaceSelf(token_to_replace_with);
+}
+
+void Preprocessor::process_macro_func_call(std::shared_ptr<MacroFuncCallBranch> macro_func_call_branch)
+{
+    std::string func_name = macro_func_call_branch->getFuncNameBranch()->getValue();
+    int result = invoke_macro_function(func_name, macro_func_call_branch->getFuncParamsBranch());
+    
+    // We need to get the closest token that we can so we can get the previous token position. In our case it will be the function name
+    std::shared_ptr<Token> token = std::dynamic_pointer_cast<Token>(macro_func_call_branch->getFuncNameBranch());
+    std::shared_ptr<Token> token_to_replace_with = std::shared_ptr<Token>(new Token("number", std::to_string(result), token->getPosition()));
+    macro_func_call_branch->replaceSelf(token_to_replace_with);
 }
 
 std::string Preprocessor::evaluate_expression(std::shared_ptr<Branch> value_branch, PREPROCESSOR_DEF_TYPE* def_type_ptr)

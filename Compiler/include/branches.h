@@ -58,5 +58,6 @@
 #include "MacroIfDefBranch.h"
 #include "MacroDefineBranch.h"
 #include "MacroDefinitionIdentifierBranch.h"
+#include "MacroFuncCallBranch.h"
 #endif /* BRANCHES_H */
 

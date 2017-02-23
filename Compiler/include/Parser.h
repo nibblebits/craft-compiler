@@ -97,6 +97,7 @@ private:
     void process_expression_part(std::shared_ptr<Branch> left=NULL, PARSER_EXPRESSION_OPTIONS=0);
     std::shared_ptr<Branch> process_expression_operand(PARSER_EXPRESSION_OPTIONS options=0);
     std::shared_ptr<Branch> process_expression_operator();
+    void process_function_call(std::shared_ptr<Branch>* func_name_branch, std::shared_ptr<Branch>* func_params_branch);
     void process_function_call();
     void process_if_stmt();
     void process_return_stmt();
@@ -114,6 +115,7 @@ private:
     // Macro processing
     void process_macro_ifdef();
     void process_macro_define();
+    void process_macro_function_call();
     void process_macro_definition_identifier();
     
     void error(std::string message, bool token = true);

@@ -195,7 +195,15 @@ void Parser::process_macro()
     }
     else if (is_peek_type("identifier"))
     {
-        process_macro_definition_identifier();
+        peek(1);
+        if (is_peek_symbol("("))
+        {
+            process_macro_function_call();
+        }
+        else
+        {
+            process_macro_definition_identifier();
+        }
     }
     else
     {
@@ -959,7 +967,7 @@ std::shared_ptr<Branch> Parser::process_expression_operand(PARSER_EXPRESSION_OPT
     {
         process_macro();
         pop_branch();
-        
+
         b = this->branch;
     }
 
@@ -977,9 +985,9 @@ std::shared_ptr<Branch> Parser::process_expression_operator()
     return this->branch;
 }
 
-void Parser::process_function_call()
+void Parser::process_function_call(std::shared_ptr<Branch>* func_name_branch, std::shared_ptr<Branch>* func_params_branch)
 {
-    shift_pop();
+   shift_pop();
     // Check that the branch is an identifier as function calls require them
     if (!is_branch_type("identifier"))
     {
@@ -1024,12 +1032,23 @@ void Parser::process_function_call()
             params->addChild(this->branch);
         }
     }
-
-
+    
+    *func_name_branch = func_name;
+    *func_params_branch = params;
+    
+}
+void Parser::process_function_call()
+{
+    std::shared_ptr<Branch> func_name;
+    std::shared_ptr<Branch> func_params;
+    
+    // Process the function call
+    process_function_call(&func_name, &func_params);
+    
     // We have everything we need now build the function call
     std::shared_ptr<FuncCallBranch> func_call_root = std::shared_ptr<FuncCallBranch>(new FuncCallBranch(this->getCompiler()));
     func_call_root->setFuncNameBranch(func_name);
-    func_call_root->setFuncParamsBranch(params);
+    func_call_root->setFuncParamsBranch(func_params);
     push_branch(func_call_root);
 }
 
@@ -1595,6 +1614,25 @@ void Parser::process_macro_define()
     // Ok finally lets push this to the stack
     push_branch(macro_define_branch);
 
+}
+
+void Parser::process_macro_function_call()
+{
+    std::shared_ptr<Branch> func_name;
+    std::shared_ptr<Branch> func_params;
+    
+    // Process the macro function call
+    process_function_call(&func_name, &func_params);
+    
+    std::shared_ptr<MacroFuncCallBranch> macro_func_call_branch 
+            = std::shared_ptr<MacroFuncCallBranch>(new MacroFuncCallBranch(this->compiler));
+    
+    macro_func_call_branch->setFuncNameBranch(func_name);
+    macro_func_call_branch->setFuncParamsBranch(func_params);
+    
+    // Lets push the result to the stack
+    push_branch(macro_func_call_branch);
+    
 }
 
 void Parser::process_macro_definition_identifier()

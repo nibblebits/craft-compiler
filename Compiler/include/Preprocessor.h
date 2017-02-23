@@ -35,6 +35,7 @@ class Branch;
 class MacroIfDefBranch;
 class MacroDefineBranch;
 class MacroDefinitionIdentifierBranch;
+class MacroFuncCallBranch;
 class BODYBranch;
 class FuncBranch;
 
@@ -42,15 +43,28 @@ enum
 {
     PREPROCESSOR_DEFINITION_TYPE_UNKNOWN,
     PREPROCESSOR_DEFINITION_TYPE_NUMBER,
-    PREPROCESSOR_DEFINITION_TYPE_STRING    
+    PREPROCESSOR_DEFINITION_TYPE_STRING
+};
+
+enum
+{
+    MACRO_FUNCTION_ARGUMENTS_NO_LIMIT = -1
 };
 
 typedef int PREPROCESSOR_DEF_TYPE;
+
 struct preprocessor_def
 {
     std::string name;
     std::string value;
     PREPROCESSOR_DEF_TYPE type;
+};
+
+struct macro_function
+{
+    std::string func_name;
+    int max_args;
+    std::function<int(std::shared_ptr<Branch> args)> function;
 };
 
 class EXPORT Preprocessor : public CompilerEntity
@@ -59,6 +73,10 @@ public:
     Preprocessor(Compiler* compiler);
     virtual ~Preprocessor();
     void setTree(std::shared_ptr<Tree> tree);
+    void register_macro_function(std::string function_name, int max_args, std::function<int(std::shared_ptr<Branch> args) > function);
+    int invoke_macro_function(std::string function_name, std::shared_ptr<Branch> args);
+    struct macro_function get_macro_function(std::string function_name);
+    bool is_macro_function_registered(std::string function_name);
     void process();
     bool is_macro(std::string macro_name);
     bool is_definition_registered(std::string definition_name);
@@ -70,6 +88,8 @@ private:
     void process_macro_ifdef(std::shared_ptr<MacroIfDefBranch> macro_ifdef_branch);
     void process_macro_define(std::shared_ptr<MacroDefineBranch> macro_define_branch);
     void process_macro_def_identifier(std::shared_ptr<MacroDefinitionIdentifierBranch> macro_def_iden_branch);
+    void process_macro_func_call(std::shared_ptr<MacroFuncCallBranch> macro_func_call_branch);
+    
     void process_expression(std::shared_ptr<Branch> child);
     void process_expression_part(std::shared_ptr<Branch> child);
     void process_child(std::shared_ptr<Branch> child);
@@ -80,6 +100,8 @@ private:
     bool is_string_numeric_only(std::string str);
     std::shared_ptr<Tree> tree;
     std::map<std::string, struct preprocessor_def> definitions;
+
+    std::map<std::string, struct macro_function> macro_functions;
 };
 
 #endif /* PREPROCESSOR_H */

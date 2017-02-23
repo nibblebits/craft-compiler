@@ -41,6 +41,7 @@
       <itemPath>include/LogicalNotBranch.h</itemPath>
       <itemPath>include/MacroDefineBranch.h</itemPath>
       <itemPath>include/MacroDefinitionIdentifierBranch.h</itemPath>
+      <itemPath>include/MacroFuncCallBranch.h</itemPath>
       <itemPath>include/MacroIfDefBranch.h</itemPath>
       <itemPath>include/PTRBranch.h</itemPath>
       <itemPath>include/Parser.h</itemPath>
@@ -110,6 +111,7 @@
       <itemPath>src/LogicalNotBranch.cpp</itemPath>
       <itemPath>src/MacroDefineBranch.cpp</itemPath>
       <itemPath>src/MacroDefinitionIdentifierBranch.cpp</itemPath>
+      <itemPath>src/MacroFuncCallBranch.cpp</itemPath>
       <itemPath>src/MacroIfDefBranch.cpp</itemPath>
       <itemPath>src/PTRBranch.cpp</itemPath>
       <itemPath>src/Parser.cpp</itemPath>
@@ -246,6 +248,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="include/MacroFuncCallBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/MacroIfDefBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
@@ -376,6 +380,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="src/MacroFuncCallBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MacroIfDefBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -521,6 +527,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="include/MacroFuncCallBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/MacroIfDefBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
@@ -651,6 +659,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="src/MacroFuncCallBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MacroIfDefBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

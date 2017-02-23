@@ -30,6 +30,11 @@ FuncCallBranch::FuncCallBranch(Compiler* compiler) : CustomBranch(compiler, "FUN
 {
 }
 
+FuncCallBranch::FuncCallBranch(Compiler* compiler, std::string branch_name, std::string branch_value) : CustomBranch(compiler, branch_name, branch_value)
+{
+
+}
+
 FuncCallBranch::~FuncCallBranch()
 {
 }
