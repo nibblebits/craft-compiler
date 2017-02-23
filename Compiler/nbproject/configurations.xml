@@ -40,6 +40,7 @@
       <itemPath>include/Logger.h</itemPath>
       <itemPath>include/LogicalNotBranch.h</itemPath>
       <itemPath>include/MacroDefineBranch.h</itemPath>
+      <itemPath>include/MacroDefinitionIdentifierBranch.h</itemPath>
       <itemPath>include/MacroIfDefBranch.h</itemPath>
       <itemPath>include/PTRBranch.h</itemPath>
       <itemPath>include/Parser.h</itemPath>
@@ -108,6 +109,7 @@
       <itemPath>src/Logger.cpp</itemPath>
       <itemPath>src/LogicalNotBranch.cpp</itemPath>
       <itemPath>src/MacroDefineBranch.cpp</itemPath>
+      <itemPath>src/MacroDefinitionIdentifierBranch.cpp</itemPath>
       <itemPath>src/MacroIfDefBranch.cpp</itemPath>
       <itemPath>src/PTRBranch.cpp</itemPath>
       <itemPath>src/Parser.cpp</itemPath>
@@ -239,6 +241,11 @@
       </item>
       <item path="include/MacroDefineBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/MacroDefinitionIdentifierBranch.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="include/MacroIfDefBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
@@ -364,6 +371,11 @@
       <item path="src/LogicalNotBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MacroDefineBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MacroDefinitionIdentifierBranch.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="src/MacroIfDefBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -504,6 +516,11 @@
       </item>
       <item path="include/MacroDefineBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/MacroDefinitionIdentifierBranch.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="include/MacroIfDefBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
@@ -629,6 +646,11 @@
       <item path="src/LogicalNotBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MacroDefineBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MacroDefinitionIdentifierBranch.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="src/MacroIfDefBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

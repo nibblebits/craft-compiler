@@ -114,6 +114,7 @@ private:
     // Macro processing
     void process_macro_ifdef();
     void process_macro_define();
+    void process_macro_definition_identifier();
     
     void error(std::string message, bool token = true);
     void warn(std::string message, bool token = true);

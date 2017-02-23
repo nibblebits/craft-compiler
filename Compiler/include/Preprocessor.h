@@ -34,6 +34,24 @@ class Tree;
 class Branch;
 class MacroIfDefBranch;
 class MacroDefineBranch;
+class MacroDefinitionIdentifierBranch;
+class BODYBranch;
+class FuncBranch;
+
+enum
+{
+    PREPROCESSOR_DEFINITION_TYPE_UNKNOWN,
+    PREPROCESSOR_DEFINITION_TYPE_NUMBER,
+    PREPROCESSOR_DEFINITION_TYPE_STRING    
+};
+
+typedef int PREPROCESSOR_DEF_TYPE;
+struct preprocessor_def
+{
+    std::string name;
+    std::string value;
+    PREPROCESSOR_DEF_TYPE type;
+};
 
 class EXPORT Preprocessor : public CompilerEntity
 {
@@ -44,17 +62,24 @@ public:
     void process();
     bool is_macro(std::string macro_name);
     bool is_definition_registered(std::string definition_name);
-    void define_definition(std::string definition_name, std::string value);
+    void define_definition(std::string definition_name, std::string value, PREPROCESSOR_DEF_TYPE def_type);
     std::string get_definition_value(std::string definition_name);
+    struct preprocessor_def get_definition(std::string definition_name);
 private:
     void process_macro(std::shared_ptr<Branch> macro);
     void process_macro_ifdef(std::shared_ptr<MacroIfDefBranch> macro_ifdef_branch);
     void process_macro_define(std::shared_ptr<MacroDefineBranch> macro_define_branch);
-    std::string evaluate_expression(std::shared_ptr<Branch> value_branch);
-    std::string evaluate_expression_part(std::shared_ptr<Branch> value_branch);
+    void process_macro_def_identifier(std::shared_ptr<MacroDefinitionIdentifierBranch> macro_def_iden_branch);
+    void process_expression(std::shared_ptr<Branch> child);
+    void process_expression_part(std::shared_ptr<Branch> child);
+    void process_child(std::shared_ptr<Branch> child);
+    void process_func(std::shared_ptr<FuncBranch> func_branch);
+    void process_body(std::shared_ptr<BODYBranch> body_branch);
+    std::string evaluate_expression(std::shared_ptr<Branch> value_branch, PREPROCESSOR_DEF_TYPE* def_type_ptr);
+    std::string evaluate_expression_part(std::shared_ptr<Branch> value_branch, PREPROCESSOR_DEF_TYPE* def_type_ptr);
     bool is_string_numeric_only(std::string str);
     std::shared_ptr<Tree> tree;
-    std::map<std::string, std::string> definitions;
+    std::map<std::string, struct preprocessor_def> definitions;
 };
 
 #endif /* PREPROCESSOR_H */

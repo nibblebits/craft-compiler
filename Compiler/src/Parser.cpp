@@ -193,6 +193,10 @@ void Parser::process_macro()
         // We have a macro define lets process it
         process_macro_define();
     }
+    else if (is_peek_type("identifier"))
+    {
+        process_macro_definition_identifier();
+    }
     else
     {
         error("invalid macro.");
@@ -951,6 +955,13 @@ std::shared_ptr<Branch> Parser::process_expression_operand(PARSER_EXPRESSION_OPT
         shift_pop();
         b = this->branch;
     }
+    else if (is_peek_symbol("#"))
+    {
+        process_macro();
+        pop_branch();
+        
+        b = this->branch;
+    }
 
     return b;
 }
@@ -1387,7 +1398,7 @@ void Parser::process_for_stmt()
 
     // Finish the scope for the "for_stmt"
     finish_local_scope();
-    
+
     // Pop the resulting body from the stack
     pop_branch();
 
@@ -1583,6 +1594,23 @@ void Parser::process_macro_define()
 
     // Ok finally lets push this to the stack
     push_branch(macro_define_branch);
+
+}
+
+void Parser::process_macro_definition_identifier()
+{
+    process_identifier();
+    pop_branch();
+
+    std::shared_ptr<Branch> iden_branch = this->branch;
+
+    // Now lets construct the macro definition identifier branch
+    std::shared_ptr<MacroDefinitionIdentifierBranch> macro_def_iden_branch
+            = std::shared_ptr<MacroDefinitionIdentifierBranch>(new MacroDefinitionIdentifierBranch(getCompiler()));
+
+    macro_def_iden_branch->setIdentifierBranch(iden_branch);
+
+    push_branch(macro_def_iden_branch);
 
 }
 

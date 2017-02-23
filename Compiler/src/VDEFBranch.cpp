@@ -92,12 +92,16 @@ std::shared_ptr<VarIdentifierBranch> VDEFBranch::getVariableIdentifierBranch()
 
 std::shared_ptr<Branch> VDEFBranch::getValueExpBranch()
 {
+    if (!hasValueExpBranch())
+    {
+        throw Exception("No value expression branch exists for this V_DEF branch", "std::shared_ptr<Branch> VDEFBranch::getValueExpBranch()");
+    }
     return this->getRegisteredBranchByName("value_exp_branch");
 }
 
 bool VDEFBranch::hasValueExpBranch()
 {
-    return getValueExpBranch() != NULL;
+    return this->isBranchRegistered("value_exp_branch");
 }
 
 std::shared_ptr<Branch> VDEFBranch::getNameBranch()
