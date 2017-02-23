@@ -1020,7 +1020,33 @@ std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> va
     return var_addr_formatted;
 }
 
-void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value)
+void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::string pos)
+{
+    // Load the old value
+    do_asm("mov " + target_reg + ", [" + pos + "]");
+    if (op == "+=")
+    {
+        do_asm("add " + target_reg + ", ax");
+    }
+    else if (op == "-=")
+    {
+        do_asm("sub " + target_reg + ", ax");
+    }
+    else if (op == "*=")
+    {
+        do_asm("mul " + target_reg + ", ax");
+    }
+    else if (op == "/=")
+    {
+        do_asm("div " + target_reg + ", ax");
+    }
+    else
+    {
+        throw Exception("Appendment operator \"" + op + "\" is not implemented.", "void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::string pos)");
+    }
+}
+
+void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value, std::string op)
 {
     bool is_word;
 
@@ -1029,17 +1055,41 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
         handle_ptr(ptr_branch);
         is_word = is_alone_var_to_be_word(this->pointer_selected_variable, true);
-        make_mem_assignment("bx", value, is_word);
-    }
-    else
-    {
-        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
-        std::shared_ptr<VDEFBranch> vdef_in_question_branch = var_iden_branch->getVariableDefinitionBranch();
 
         // Make the value expression
         make_expression(value);
 
+        // Is this assignment an appendment
+        if (op != "=")
+        {
+            // Ok this is an appendment so we need to adjust the value before setting it again
+            make_appendment("dx", op, "bx");
+            // Overwrite AX with the appended value
+            do_asm("mov ax, dx");
+        }
+
+        make_mem_assignment("bx", NULL, is_word);
+    }
+    else
+    {
+
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
+        std::shared_ptr<VDEFBranch> vdef_in_question_branch = var_iden_branch->getVariableDefinitionBranch();
+
         std::string pos = make_var_access(var_iden_branch);
+
+        // Make the value expression
+        make_expression(value);
+
+        // Is this assignment an appendment
+        if (op != "=")
+        {
+            // Ok this is an appendment so we need to adjust the value before setting it again
+            make_appendment("dx", op, pos);
+            // Overwrite AX with the appended value
+            do_asm("mov ax, dx");
+        }
+
         // This is a primitive type assignment, including pointer assignments
         is_word = is_alone_var_to_be_word(vdef_in_question_branch);
         make_mem_assignment(pos, NULL, is_word, NULL);
@@ -1341,7 +1391,7 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
     std::shared_ptr<Branch> var_to_assign_branch = assign_branch->getVariableToAssignBranch();
     std::shared_ptr<Branch> value = assign_branch->getValueBranch();
 
-    make_var_assignment(var_to_assign_branch, value);
+    make_var_assignment(var_to_assign_branch, value, assign_branch->getOperator());
 
 }
 
@@ -1426,7 +1476,7 @@ void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> 
     if (def_branch->hasValueExpBranch())
     {
         std::shared_ptr<Branch> value_branch = def_branch->getValueExpBranch();
-        make_var_assignment(variable_branch, value_branch);
+        make_var_assignment(variable_branch, value_branch, "=");
     }
 }
 
