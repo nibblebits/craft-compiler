@@ -28,6 +28,7 @@
 #include <map>
 #include "Compiler.h"
 #include "Branch.h"
+#include "CharPos.h"
 
 typedef std::map<std::string, std::shared_ptr<Branch>>::iterator map_it;
 
@@ -43,6 +44,9 @@ public:
 
     void output_registered_branches();
     Compiler* getCompiler();
+    
+    // In the future all branches will be required a position so this wont be required anymore.
+    CharPos getClosestPosition();
 
     virtual void replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch);
 

@@ -81,6 +81,30 @@ Compiler* CustomBranch::getCompiler()
     return this->compiler;
 }
 
+// In the future all branches will be required a position so this wont be required anymore.
+
+CharPos CustomBranch::getClosestPosition()
+{
+    // Are we a token ourself?
+    std::shared_ptr<Token> token = std::dynamic_pointer_cast<Token>(getptr());
+    if (token != NULL)
+    {
+        return token->getPosition();
+    }
+    
+    for (std::shared_ptr<Branch> child : getChildren())
+    {
+        token = std::dynamic_pointer_cast<Token>(child);
+        if (token != NULL)
+        {
+            return token->getPosition();
+        }
+    }
+    
+    // We couldn't find our closest token so lets just throw an exception
+    throw Exception("Could not find closest token position for branch type: " + getType(), "CharPos CustomBranch::getClosestPosition()");
+}
+
 void CustomBranch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)
 {
     Branch::replaceChild(child, new_branch);

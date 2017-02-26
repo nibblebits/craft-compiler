@@ -27,18 +27,21 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include "def.h"
 
+class CustomBranch;
 class EXPORT Logger {
 public:
     Logger();
     virtual ~Logger();
 
-    void error(std::string message);
-    void warn(std::string message);
+    void error(std::string message, std::shared_ptr<CustomBranch> bad_branch=NULL);
+    void warn(std::string message, std::shared_ptr<CustomBranch> bad_branch=NULL);
 
     std::vector<std::string> getLog();
     bool hasAnError();
+    bool hasErrorOrWarning();
 private:
     int total_errors;
     std::vector<std::string> log;

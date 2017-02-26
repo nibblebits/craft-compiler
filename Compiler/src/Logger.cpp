@@ -25,8 +25,8 @@
  */
 
 #include <vector>
-
 #include "Logger.h"
+#include "CustomBranch.h"
 
 Logger::Logger()
 {
@@ -37,16 +37,40 @@ Logger::~Logger()
 {
 }
 
-
-void Logger::error(std::string message)
+void Logger::error(std::string message, std::shared_ptr<CustomBranch> bad_branch)
 {
     message = "error: " + message;
+    if (bad_branch != NULL)
+    {
+        // Adjust the message with the closest char position we can find (if any)
+        try
+        {
+            CharPos position = bad_branch->getClosestPosition();
+            message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
+        }
+        catch (Exception& ex)
+        {
+        }
+    }
+    this->total_errors++;
     this->log.push_back(message);
 }
 
-void Logger::warn(std::string message)
+void Logger::warn(std::string message, std::shared_ptr<CustomBranch> bad_branch)
 {
     message = "warning: " + message;
+    if (bad_branch != NULL)
+    {
+        // Adjust the message with the closest char position we can find (if any)
+        try
+        {
+            CharPos position = bad_branch->getClosestPosition();
+            message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
+        }
+        catch (Exception& ex)
+        {
+        }
+    }
     this->log.push_back(message);
 }
 
@@ -58,4 +82,9 @@ std::vector<std::string> Logger::getLog()
 bool Logger::hasAnError()
 {
     return this->total_errors != 0;
+}
+
+bool Logger::hasErrorOrWarning()
+{
+    return !this->log.empty();
 }
