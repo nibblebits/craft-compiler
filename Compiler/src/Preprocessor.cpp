@@ -32,6 +32,7 @@
 
 Preprocessor::Preprocessor(Compiler* compiler) : CompilerEntity(compiler)
 {
+    this->logger = std::shared_ptr<Logger>(new Logger());
     // Standard macro functions
     register_macro_function("sizeof", 1, [&](std::shared_ptr<Branch> args) -> int
     {
@@ -45,18 +46,18 @@ Preprocessor::Preprocessor(Compiler* compiler) : CompilerEntity(compiler)
                             std::shared_ptr<VDEFBranch> vdef_branch = variable->getVariableDefinitionBranch();
                             result = vdef_branch->getDataTypeSize();
         }
-        else if(argument_type == "STRUCT_DESCRIPTOR")
+        else if (argument_type == "STRUCT_DESCRIPTOR")
         {
-            std::shared_ptr<STRUCTDescriptorBranch> struct_descriptor_branch = std::dynamic_pointer_cast<STRUCTDescriptorBranch>(argument);
-            std::shared_ptr<STRUCTBranch> struct_branch = tree->getGlobalStructureByName(struct_descriptor_branch->getStructNameBranch()->getValue());
-            result = struct_branch->getStructBodyBranch()->getScopeSize();
+                            std::shared_ptr<STRUCTDescriptorBranch> struct_descriptor_branch = std::dynamic_pointer_cast<STRUCTDescriptorBranch>(argument);
+                            std::shared_ptr<STRUCTBranch> struct_branch = tree->getGlobalStructureByName(struct_descriptor_branch->getStructNameBranch()->getValue());
+                            result = struct_branch->getStructBodyBranch()->getScopeSize();
         }
-        else if(argument_type == "keyword")
+        else if (argument_type == "keyword")
         {
-            // Ok this is just a keyword so we will get the primitive type
-            result = getCompiler()->getPrimitiveDataTypeSize(argument->getValue());
+                            // Ok this is just a keyword so we will get the primitive type
+                            result = getCompiler()->getPrimitiveDataTypeSize(argument->getValue());
         }
-        
+
         return result;
     });
 }
@@ -165,6 +166,11 @@ struct preprocessor_def Preprocessor::get_definition(std::string definition_name
     }
 
     return this->definitions[definition_name];
+}
+
+std::shared_ptr<Logger> Preprocessor::getLogger()
+{
+    return this->logger;
 }
 
 void Preprocessor::process_macro(std::shared_ptr<Branch> macro)
@@ -306,6 +312,8 @@ void Preprocessor::process_body(std::shared_ptr<BODYBranch> body_branch)
 
 void Preprocessor::process_macro_ifdef(std::shared_ptr<MacroIfDefBranch> macro_ifdef_branch)
 {
+    this->logger->warn("Macros \"ifdef\" is quite buggy and will likely crash, use it if you can a fix will be made for this soon");
+    
     std::shared_ptr<Branch> req_branch = macro_ifdef_branch->getRequirementBranch();
     std::shared_ptr<BODYBranch> body_branch = macro_ifdef_branch->getBodyBranch();
 

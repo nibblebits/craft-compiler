@@ -29,7 +29,7 @@
 #include <map>
 #include <string>
 #include "CompilerEntity.h"
-
+#include "Logger.h"
 class Tree;
 class Branch;
 class MacroIfDefBranch;
@@ -64,7 +64,7 @@ struct macro_function
 {
     std::string func_name;
     int max_args;
-    std::function<int(std::shared_ptr<Branch> args)> function;
+    std::function<int(std::shared_ptr<Branch> args) > function;
 };
 
 class EXPORT Preprocessor : public CompilerEntity
@@ -83,13 +83,14 @@ public:
     void define_definition(std::string definition_name, std::string value, PREPROCESSOR_DEF_TYPE def_type);
     std::string get_definition_value(std::string definition_name);
     struct preprocessor_def get_definition(std::string definition_name);
+    std::shared_ptr<Logger> getLogger();
 private:
     void process_macro(std::shared_ptr<Branch> macro);
     void process_macro_ifdef(std::shared_ptr<MacroIfDefBranch> macro_ifdef_branch);
     void process_macro_define(std::shared_ptr<MacroDefineBranch> macro_define_branch);
     void process_macro_def_identifier(std::shared_ptr<MacroDefinitionIdentifierBranch> macro_def_iden_branch);
     void process_macro_func_call(std::shared_ptr<MacroFuncCallBranch> macro_func_call_branch);
-    
+
     void process_expression(std::shared_ptr<Branch> child);
     void process_expression_part(std::shared_ptr<Branch> child);
     void process_child(std::shared_ptr<Branch> child);
@@ -100,8 +101,8 @@ private:
     bool is_string_numeric_only(std::string str);
     std::shared_ptr<Tree> tree;
     std::map<std::string, struct preprocessor_def> definitions;
-
     std::map<std::string, struct macro_function> macro_functions;
+    std::shared_ptr<Logger> logger;
 };
 
 #endif /* PREPROCESSOR_H */
