@@ -188,7 +188,7 @@ void Stream::writeStream(Stream* stream, int offset, int total)
     else
     {
         offset = 0;
-        total = getSize();
+        total = stream->getSize();
     }
 
     int old_pos = stream->getPosition();
