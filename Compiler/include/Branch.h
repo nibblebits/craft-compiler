@@ -42,7 +42,7 @@ public:
     Branch(std::string type, std::string value);
     virtual ~Branch();
 
-    void addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of=NULL);
+    void addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of=NULL, bool force_add=false);
     virtual void replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch);
     void replaceSelf(std::shared_ptr<Branch> replacee_branch);
     virtual void removeChild(std::shared_ptr<Branch> child);

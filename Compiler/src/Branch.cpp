@@ -45,7 +45,7 @@ Branch::~Branch()
 
 }
 
-void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of)
+void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of, bool force_add)
 {
     if (branch == NULL)
     {
@@ -57,16 +57,19 @@ void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> ch
         throw Exception("Branch::addChild(std::shared_ptr<Branch> branch): child already has a parent! Try cloning the branch first");
     }
 
-    try
+    if (!force_add)
     {
-        branch->validate_identity_on_tree();
+        try
+        {
+            branch->validate_identity_on_tree();
+        }
+        catch (Exception ex)
+        {
+            ex.setFunctionName("void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of)");
+            throw ex;
+        }
     }
-    catch (Exception ex)
-    {
-        ex.setFunctionName("void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of)");
-        throw ex;
-    }
-
+    
     // Lets let this child know who its parent is
     branch->setParent(this->getptr());
 
@@ -196,7 +199,7 @@ void Branch::replaceWithChildren()
         // Remove the our child as children cannot have multiple parents
         child->removeSelf();
         // Add the child to our parent
-        parent->addChild(child, this->getptr());
+        parent->addChild(child, this->getptr(), true);
     }
 
     // Finally remove ourself
@@ -372,10 +375,10 @@ bool Branch::isChildAheadOfChild(std::shared_ptr<Branch> child1, std::shared_ptr
     {
         if (child == child1)
             return true;
-        else if(child == child2)
+        else if (child == child2)
             return false;
     }
-    
+
     throw Exception("bool Branch::isChildAheadOfChild(std::shared_ptr<Branch> child1, std::shared_ptr<Branch> child2): neither children are children of this branch");
 }
 

@@ -558,6 +558,11 @@ void Parser::process_stmt()
         process_expression();
         process_semicolon();
     }
+    else if(is_peek_symbol("#"))
+    {
+        // This is a macro
+        process_macro();
+    }
     else
     {
         error_unexpected_token();
