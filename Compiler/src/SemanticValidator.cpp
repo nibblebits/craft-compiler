@@ -71,6 +71,14 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
     {
         validate_vdef(std::dynamic_pointer_cast<VDEFBranch>(branch));
     }
+    else if (type == "STRUCT_DEF")
+    {
+        validate_structure_definition(std::dynamic_pointer_cast<STRUCTDEFBranch>(branch));
+    }
+    else if (type == "STRUCT")
+    {
+        validate_structure(std::dynamic_pointer_cast<STRUCTBranch>(branch));
+    }
     else if (type == "VAR_IDENTIFIER")
     {
         validate_var_access(std::dynamic_pointer_cast<VarIdentifierBranch>(branch));
@@ -152,7 +160,7 @@ void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch>
         std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(root_vdef_branch);
         std::string struct_name = struct_def_branch->getDataTypeBranch()->getValue();
         // This is a structure definition so far the root of the structure is valid but its access may not be 
-        
+
         std::shared_ptr<STRUCTBranch> struct_branch = this->tree->getGlobalStructureByName(struct_name);
         std::shared_ptr<VarIdentifierBranch> current = var_iden_branch->getStructureAccessBranch()->getVarIdentifierBranch();
         while (true)
@@ -170,8 +178,8 @@ void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch>
             if (child == NULL)
             {
                 // The variable on the structure does not exist.
-                this->logger->error("The variable \"" + current->getVariableNameBranch()->getValue() 
-                        + "\" does not exist in structure \"" + struct_branch->getStructNameBranch()->getValue() + "\"", current);
+                this->logger->error("The variable \"" + current->getVariableNameBranch()->getValue()
+                                    + "\" does not exist in structure \"" + struct_branch->getStructNameBranch()->getValue() + "\"", current);
                 break;
             }
 
@@ -190,7 +198,7 @@ void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch>
                     // Its declared so assign it for later
                     struct_branch = this->tree->getGlobalStructureByName(struct_name);
                 }
-                
+
                 // Change the current variable in question
                 current = current->getStructureAccessBranch()->getVarIdentifierBranch();
             }
@@ -211,6 +219,41 @@ void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign
 
 }
 
+void SemanticValidator::validate_structure_definition(std::shared_ptr<STRUCTDEFBranch> struct_def_branch)
+{
+    // Validate the structure type
+    std::string struct_data_type = struct_def_branch->getDataTypeBranch()->getValue();
+    if (!this->tree->isGlobalStructureDeclared(struct_data_type))
+    {
+        this->logger->error("The structure variable has an illegal type of \"" + struct_data_type + "\"", struct_def_branch);
+    }
+    // Validate the V_DEF as all STRUCT_DEF's are V_DEF's
+    validate_vdef(struct_def_branch);
+
+}
+
+void SemanticValidator::validate_structure(std::shared_ptr<STRUCTBranch> structure_branch)
+{
+    std::string struct_name = structure_branch->getStructNameBranch()->getValue();
+    if (this->tree->isGlobalStructureDeclared(struct_name))
+    {
+        this->logger->error("The structure \"" + struct_name + "\" has been redeclared", structure_branch);
+    }
+
+    // Validate the structure body
+    validate_body(structure_branch->getStructBodyBranch());
+}
+
+void SemanticValidator::validate_expression(std::shared_ptr<EBranch> e_branch)
+{
+    std::shared_ptr<Branch> left = e_branch->getFirstChild();
+    std::shared_ptr<Branch> right = e_branch->getSecondChild();
+}
+
+    void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, std::string requirement_type)
+    {
+        
+    }
 void SemanticValidator::register_function(std::shared_ptr<FuncDefBranch> func_def_branch)
 {
     // Validate the function

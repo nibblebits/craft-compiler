@@ -40,6 +40,9 @@ class FuncBranch;
 class FuncDefBranch;
 class VarIdentifierBranch;
 class AssignBranch;
+class STRUCTDEFBranch;
+class STRUCTBranch;
+class EBranch;
 
 class EXPORT SemanticValidator : public CompilerEntity
 {
@@ -59,7 +62,10 @@ private:
     void validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch);
     void validate_var_access(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     void validate_assignment(std::shared_ptr<AssignBranch> assign_branch);
-       
+    void validate_structure_definition(std::shared_ptr<STRUCTDEFBranch> struct_def_branch);
+    void validate_structure(std::shared_ptr<STRUCTBranch> structure_branch);
+    void validate_expression(std::shared_ptr<EBranch> e_branch);
+    void validate_value(std::shared_ptr<Branch> branch, std::string requirement_type);
     void register_function(std::shared_ptr<FuncDefBranch> func_branch);
     bool hasFunction(std::string function_name);
     std::shared_ptr<FuncDefBranch> getFunction(std::string function_name);

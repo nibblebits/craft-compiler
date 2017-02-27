@@ -7,41 +7,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/Preprocessor.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/VarIdentifierBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/FuncDefBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/STRUCTBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/STRUCTDescriptorBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/VDEFBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/MacroFuncCallBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/STRUCTBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/AssignBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/STRUCTDescriptorBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/FuncCallBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/MacroFuncCallBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/AssemblerException.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/SourceCodeRelatedException.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/AssignBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/branches.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/TreeImprover.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/FuncArgumentsBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/STRUCTDEFBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/FuncArgumentsBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/Compiler.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/FuncCallBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/Parser.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/Branch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/StandardScopeBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/Scope.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/STRUCTAccessBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/Preprocessor.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/ScopeBranch.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/VariableNotFoundException.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/Tree.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/STRUCTDEFBranch.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/Exception.h</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/Compiler.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/Parser.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/include/SemanticValidator.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.0/Compiler/src/SemanticValidator.cpp</file>
         </group>
     </open-files>
 </project-private>
