@@ -37,40 +37,66 @@ Logger::~Logger()
 {
 }
 
-void Logger::error(std::string message, std::shared_ptr<CustomBranch> bad_branch)
+void Logger::error(std::string message, std::shared_ptr<Branch> bad_branch)
 {
+    CharPos position;
+    std::shared_ptr<CustomBranch> c_bad_branch = std::dynamic_pointer_cast<CustomBranch>(bad_branch);
+    std::shared_ptr<Token> bad_token = std::dynamic_pointer_cast<Token>(bad_branch);
     message = "error: " + message;
-    if (bad_branch != NULL)
+    if (c_bad_branch != NULL)
     {
         // Adjust the message with the closest char position we can find (if any)
         try
         {
-            CharPos position = bad_branch->getClosestPosition();
-            message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
+            position = c_bad_branch->getClosestPosition();
         }
         catch (Exception& ex)
         {
         }
     }
+    else if (bad_token != NULL)
+    {
+        position = bad_token->getPosition();
+    }
+    
+    if (c_bad_branch != NULL 
+            || bad_token != NULL)
+    {
+        message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
+    }
+    
     this->total_errors++;
     this->log.push_back(message);
 }
 
-void Logger::warn(std::string message, std::shared_ptr<CustomBranch> bad_branch)
+void Logger::warn(std::string message, std::shared_ptr<Branch> bad_branch)
 {
+     CharPos position;
+    std::shared_ptr<CustomBranch> c_bad_branch = std::dynamic_pointer_cast<CustomBranch>(bad_branch);
+    std::shared_ptr<Token> bad_token = std::dynamic_pointer_cast<Token>(bad_branch);
     message = "warning: " + message;
-    if (bad_branch != NULL)
+    if (c_bad_branch != NULL)
     {
         // Adjust the message with the closest char position we can find (if any)
         try
         {
-            CharPos position = bad_branch->getClosestPosition();
-            message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
+            position = c_bad_branch->getClosestPosition();
         }
         catch (Exception& ex)
         {
         }
     }
+    else if (bad_token != NULL)
+    {
+        position = bad_token->getPosition();
+    }
+    
+    if (c_bad_branch != NULL 
+            || bad_token != NULL)
+    {
+        message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
+    }
+
     this->log.push_back(message);
 }
 

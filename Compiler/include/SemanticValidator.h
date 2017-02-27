@@ -64,17 +64,17 @@ private:
     void validate_assignment(std::shared_ptr<AssignBranch> assign_branch);
     void validate_structure_definition(std::shared_ptr<STRUCTDEFBranch> struct_def_branch);
     void validate_structure(std::shared_ptr<STRUCTBranch> structure_branch);
-    void validate_expression(std::shared_ptr<EBranch> e_branch);
-    void validate_value(std::shared_ptr<Branch> branch, std::string requirement_type);
+    void validate_expression(std::shared_ptr<EBranch> e_branch, std::string requirement_type, bool requires_pointer);
+    void validate_value(std::shared_ptr<Branch> branch, std::string requirement_type, bool requires_pointer);
     void register_function(std::shared_ptr<FuncDefBranch> func_branch);
     bool hasFunction(std::string function_name);
     std::shared_ptr<FuncDefBranch> getFunction(std::string function_name);
 
-    void critical_error(std::string message, std::shared_ptr<Branch> branch=NULL);
-    
+    void critical_error(std::string message, std::shared_ptr<Branch> branch = NULL);
+
     std::shared_ptr<Tree> tree;
     std::shared_ptr<Logger> logger;
-    
+
     // Map of all functions
     std::map<std::string, std::shared_ptr<FuncDefBranch>> functions;
 };

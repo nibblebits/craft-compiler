@@ -63,6 +63,7 @@ private:
     std::shared_ptr<Tree> tree;
     VARIABLE_TYPE current_var_type;
 
+
 };
 
 #endif /* TREEIMPROVER_H */

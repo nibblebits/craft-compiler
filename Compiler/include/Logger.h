@@ -31,13 +31,14 @@
 #include "def.h"
 
 class CustomBranch;
+class Branch;
 class EXPORT Logger {
 public:
     Logger();
     virtual ~Logger();
 
-    void error(std::string message, std::shared_ptr<CustomBranch> bad_branch=NULL);
-    void warn(std::string message, std::shared_ptr<CustomBranch> bad_branch=NULL);
+    void error(std::string message, std::shared_ptr<Branch> bad_branch=NULL);
+    void warn(std::string message, std::shared_ptr<Branch> bad_branch=NULL);
 
     std::vector<std::string> getLog();
     bool hasAnError();

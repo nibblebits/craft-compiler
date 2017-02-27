@@ -205,6 +205,73 @@ void TreeImprover::improve_body(std::shared_ptr<BODYBranch> body_branch, bool* h
     });
 }
 
+void TreeImprover::improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_iden_branch)
+{
+    if (var_iden_branch->hasStructureAccessBranch())
+    {
+        // Time to set local scopes for the structure access to point to correct structure scope bodys
+        std::shared_ptr<STRUCTAccessBranch> access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_iden_branch->getStructureAccessBranch());
+        std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch(true);
+        std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(vdef_branch);
+        std::shared_ptr<BODYBranch> body_branch = struct_def_branch->getStructBody();
+        std::shared_ptr<VarIdentifierBranch> next_var_iden_branch = access_branch->getVarIdentifierBranch();
+        access_branch->setLocalScope(body_branch);
+        next_var_iden_branch->setLocalScope(body_branch);
+        // Process the VAR_IDENTIFIER below it
+        improve_var_iden(next_var_iden_branch);
+    }
+
+    if (var_iden_branch->hasRootArrayIndexBranch())
+    {
+        std::shared_ptr<ArrayIndexBranch> array_index_branch = var_iden_branch->getRootArrayIndexBranch();
+        improve_branch(array_index_branch->getValueBranch());
+    }
+}
+
+void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch)
+{
+    // Improve the expression of the if statement
+    improve_branch(if_branch->getExpressionBranch());
+
+    // Improve the body of the if statement
+    improve_body(if_branch->getBodyBranch());
+
+    if (if_branch->hasElseIfBranch())
+    {
+        // Improve the body of the else if branch
+        improve_body(if_branch->getElseIfBranch()->getBodyBranch());
+    }
+
+    if (if_branch->hasElseBranch())
+    {
+        // Improve the body of the else branch
+        improve_body(if_branch->getElseBranch()->getBodyBranch());
+    }
+}
+
+void TreeImprover::improve_while(std::shared_ptr<WhileBranch> while_branch)
+{
+    // improve the expression of the while loop
+    improve_branch(while_branch->getExpressionBranch());
+
+    // Improve the body of the while loop
+    improve_body(while_branch->getBodyBranch());
+
+}
+
+void TreeImprover::improve_for(std::shared_ptr<FORBranch> for_branch)
+{
+    improve_branch(for_branch->getInitBranch());
+    improve_branch(for_branch->getCondBranch());
+    improve_branch(for_branch->getLoopBranch());
+    improve_body(for_branch->getBodyBranch());
+}
+
+void TreeImprover::improve_ptr(std::shared_ptr<PTRBranch> ptr_branch)
+{
+    improve_branch(ptr_branch->getExpressionBranch());
+}
+
 void TreeImprover::improve_expression(std::shared_ptr<EBranch> expression_branch, bool is_root)
 {
     std::shared_ptr<Branch> left_branch = expression_branch->getFirstChild();
@@ -307,71 +374,4 @@ void TreeImprover::improve_expression(std::shared_ptr<EBranch> expression_branch
             }
         }
     }
-}
-
-void TreeImprover::improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_iden_branch)
-{
-    if (var_iden_branch->hasStructureAccessBranch())
-    {
-        // Time to set local scopes for the structure access to point to correct structure scope bodys
-        std::shared_ptr<STRUCTAccessBranch> access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_iden_branch->getStructureAccessBranch());
-        std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch(true);
-        std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(vdef_branch);
-        std::shared_ptr<BODYBranch> body_branch = struct_def_branch->getStructBody();
-        std::shared_ptr<VarIdentifierBranch> next_var_iden_branch = access_branch->getVarIdentifierBranch();
-        access_branch->setLocalScope(body_branch);
-        next_var_iden_branch->setLocalScope(body_branch);
-        // Process the VAR_IDENTIFIER below it
-        improve_var_iden(next_var_iden_branch);
-    }
-
-    if (var_iden_branch->hasRootArrayIndexBranch())
-    {
-        std::shared_ptr<ArrayIndexBranch> array_index_branch = var_iden_branch->getRootArrayIndexBranch();
-        improve_branch(array_index_branch->getValueBranch());
-    }
-}
-
-void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch)
-{
-    // Improve the expression of the if statement
-    improve_branch(if_branch->getExpressionBranch());
-
-    // Improve the body of the if statement
-    improve_body(if_branch->getBodyBranch());
-
-    if (if_branch->hasElseIfBranch())
-    {
-        // Improve the body of the else if branch
-        improve_body(if_branch->getElseIfBranch()->getBodyBranch());
-    }
-
-    if (if_branch->hasElseBranch())
-    {
-        // Improve the body of the else branch
-        improve_body(if_branch->getElseBranch()->getBodyBranch());
-    }
-}
-
-void TreeImprover::improve_while(std::shared_ptr<WhileBranch> while_branch)
-{
-    // improve the expression of the while loop
-    improve_branch(while_branch->getExpressionBranch());
-
-    // Improve the body of the while loop
-    improve_body(while_branch->getBodyBranch());
-
-}
-
-void TreeImprover::improve_for(std::shared_ptr<FORBranch> for_branch)
-{
-    improve_branch(for_branch->getInitBranch());
-    improve_branch(for_branch->getCondBranch());
-    improve_branch(for_branch->getLoopBranch());
-    improve_body(for_branch->getBodyBranch());
-}
-
-void TreeImprover::improve_ptr(std::shared_ptr<PTRBranch> ptr_branch)
-{
-    improve_branch(ptr_branch->getExpressionBranch());
 }
