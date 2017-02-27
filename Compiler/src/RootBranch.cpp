@@ -51,6 +51,22 @@ std::shared_ptr<STRUCTBranch> RootBranch::getDeclaredStructureByName(std::string
     throw Exception("The structure: " + name + " could not be found.", "std::shared_ptr<STRUCTBranch> RootBranch::getDeclaredStructureByName(std::string name)");
 }
 
+bool RootBranch::isStructureDeclared(std::string name)
+{
+    for (std::shared_ptr<Branch> child : Branch::getChildren())
+    {
+        if (child->getType() == "STRUCT")
+        {
+            std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(child);
+            std::shared_ptr<Branch> struct_name_branch = struct_branch->getStructNameBranch();
+            if (struct_name_branch->getValue() == name)
+                return true;
+        }
+    }
+    
+    return false;
+}
+
 void RootBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     // Clone all our children

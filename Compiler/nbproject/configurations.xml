@@ -66,7 +66,6 @@
       <itemPath>include/TreeImprover.h</itemPath>
       <itemPath>include/VDEFBranch.h</itemPath>
       <itemPath>include/VarIdentifierBranch.h</itemPath>
-      <itemPath>include/VariableNotFoundException.h</itemPath>
       <itemPath>include/VirtualObjectFormat.h</itemPath>
       <itemPath>include/VirtualSegment.h</itemPath>
       <itemPath>include/WhileBranch.h</itemPath>

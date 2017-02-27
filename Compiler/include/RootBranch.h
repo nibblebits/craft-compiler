@@ -34,7 +34,8 @@ public:
     virtual ~RootBranch();
 
     std::shared_ptr<STRUCTBranch> getDeclaredStructureByName(std::string name);
-
+    bool isStructureDeclared(std::string name);
+    
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
 

@@ -38,6 +38,7 @@ public:
     // The unique cloned structure's body branch unique to this structure definition
     void setStructBody(std::shared_ptr<BODYBranch> struct_body_branch);
     std::shared_ptr<BODYBranch> getStructBody();
+    
     int getBranchType();
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();

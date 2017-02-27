@@ -673,7 +673,7 @@ void Parser::process_ptr()
     push_branch(ptr_branch);
 }
 
-void Parser::process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op)
+void Parser::process_assignment(std::shared_ptr<VarIdentifierBranch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op)
 {
     // Check for a valid assignment, e.g =, +=, -=
     if (!is_assignment_operator(op->getValue()))
@@ -873,7 +873,7 @@ void Parser::process_expression_part(std::shared_ptr<Branch> left, PARSER_EXPRES
         if (is_assignment_operator(op->getValue()))
         {
             // This is an assignment so lets work with it a bit differently
-            process_assignment(left, right, op);
+            process_assignment(std::dynamic_pointer_cast<VarIdentifierBranch>(left), right, op);
             pop_branch();
             exp_root = this->branch;
         }

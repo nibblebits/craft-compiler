@@ -41,3 +41,8 @@ std::shared_ptr<STRUCTBranch> Tree::getGlobalStructureByName(std::string name)
 {
     return this->root->getDeclaredStructureByName(name);
 }
+
+bool Tree::isGlobalStructureDeclared(std::string name)
+{
+    return this->root->isStructureDeclared(name);
+}

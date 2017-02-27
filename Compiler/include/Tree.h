@@ -36,6 +36,7 @@ public:
     
     // Returns a structure based on the structure name
     std::shared_ptr<STRUCTBranch> getGlobalStructureByName(std::string name);
+    bool isGlobalStructureDeclared(std::string name);
     std::shared_ptr<RootBranch> root;
 private:
 

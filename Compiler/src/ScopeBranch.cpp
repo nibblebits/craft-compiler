@@ -49,6 +49,25 @@ bool ScopeBranch::invoke_scope_size_proc_if_possible(std::function<bool(std::sha
             return false;
         }
     }
-    
+
     return true;
+}
+
+std::shared_ptr<VDEFBranch> ScopeBranch::getVariableDefinitionBranchFromChildren(std::shared_ptr<VarIdentifierBranch> var_iden)
+{
+    return getVariableDefinitionBranchFromChildren(var_iden->getVariableNameBranch()->getValue());
+}
+
+std::shared_ptr<VDEFBranch> ScopeBranch::getVariableDefinitionBranchFromChildren(std::string var_name)
+{
+    // Check the children to see if a V_DEF can be found with this name
+    for (std::shared_ptr<Branch> child : this->getChildren())
+    {
+        if (child->getBranchType() == BRANCH_TYPE_VDEF)
+        {
+            std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(child);
+            if (vdef_branch->getVariableIdentifierBranch()->getVariableNameBranch()->getValue() == var_name)
+                return vdef_branch;
+        }
+    }
 }
