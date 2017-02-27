@@ -25,6 +25,7 @@
  */
 
 #include "AssignBranch.h"
+#include "VarIdentifierBranch.h"
 
 AssignBranch::AssignBranch(Compiler* compiler) : CustomBranch(compiler, "ASSIGN", "")
 {
@@ -39,7 +40,7 @@ AssignBranch::~AssignBranch()
 {
 }
 
-void AssignBranch::setVariableToAssignBranch(std::shared_ptr<Branch> var_branch)
+void AssignBranch::setVariableToAssignBranch(std::shared_ptr<VarIdentifierBranch> var_branch)
 {
     CustomBranch::registerBranch("variable_to_assign_branch", var_branch);
 }
@@ -49,9 +50,9 @@ void AssignBranch::setValueBranch(std::shared_ptr<Branch> value_branch)
     CustomBranch::registerBranch("value_to_assign_branch", value_branch);
 }
 
-std::shared_ptr<Branch> AssignBranch::getVariableToAssignBranch()
+std::shared_ptr<VarIdentifierBranch> AssignBranch::getVariableToAssignBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("variable_to_assign_branch");
+    return std::dynamic_pointer_cast<VarIdentifierBranch>(CustomBranch::getRegisteredBranchByName("variable_to_assign_branch"));
 }
 
 std::shared_ptr<Branch> AssignBranch::getValueBranch()
@@ -69,7 +70,7 @@ void AssignBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<AssignBranch> assign_branch_cloned = std::dynamic_pointer_cast<AssignBranch>(cloned_branch);
     assign_branch_cloned->setValueBranch(getValueBranch()->clone());
-    assign_branch_cloned->setVariableToAssignBranch(getVariableToAssignBranch()->clone());
+    assign_branch_cloned->setVariableToAssignBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(getVariableToAssignBranch()->clone()));
 }
 
 std::shared_ptr<Branch> AssignBranch::create_clone()

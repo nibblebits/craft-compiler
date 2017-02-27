@@ -107,6 +107,9 @@ int StandardScopeBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::funct
 
 std::shared_ptr<VDEFBranch> StandardScopeBranch::getVariableDefinitionBranch(std::shared_ptr<VarIdentifierBranch> var_iden, bool lookup_scope, bool no_follow)
 {
+    // Unsure about this
+    std::shared_ptr<Branch> branch_to_stop_in_local_scope = var_iden->getParent();
+    
     std::shared_ptr<VDEFBranch> found_branch = NULL;
     std::shared_ptr<Branch> var_iden_name_branch = var_iden->getVariableNameBranch();
     // Check local scope
@@ -123,6 +126,11 @@ std::shared_ptr<VDEFBranch> StandardScopeBranch::getVariableDefinitionBranch(std
                 found_branch = std::dynamic_pointer_cast<VDEFBranch>(child);
                 break;
             }
+        }
+        else if(branch_to_stop_in_local_scope == child)
+        {  
+            // Definitions wont be below its access so break
+            break;
         }
     }
 

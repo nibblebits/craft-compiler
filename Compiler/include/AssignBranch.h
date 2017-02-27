@@ -27,6 +27,7 @@
 
 #include "CustomBranch.h"
 
+class VarIdentifierBranch;
 class EXPORT AssignBranch : public CustomBranch
 {
 public:
@@ -34,9 +35,9 @@ public:
     AssignBranch(Compiler* compiler, std::string branch_name);
     virtual ~AssignBranch();
 
-    void setVariableToAssignBranch(std::shared_ptr<Branch> var_branch);
+    void setVariableToAssignBranch(std::shared_ptr<VarIdentifierBranch> var_branch);
     void setValueBranch(std::shared_ptr<Branch> value_branch);
-    std::shared_ptr<Branch> getVariableToAssignBranch();
+    std::shared_ptr<VarIdentifierBranch> getVariableToAssignBranch();
     std::shared_ptr<Branch> getValueBranch();
     std::string getOperator();
     

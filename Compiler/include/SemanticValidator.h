@@ -26,17 +26,51 @@
 #define SEMANTICVALIDATOR_H
 
 #include <memory>
+#include <map>
 #include "CompilerEntity.h"
+#include "SemanticValidatorException.h"
+#include "Logger.h"
+
 class Tree;
-class EXPORT SemanticValidator : public CompilerEntity {
+class Branch;
+class RootBranch;
+class VDEFBranch;
+class BODYBranch;
+class FuncBranch;
+class FuncDefBranch;
+class VarIdentifierBranch;
+class AssignBranch;
+
+class EXPORT SemanticValidator : public CompilerEntity
+{
 public:
     SemanticValidator(Compiler* compiler);
     virtual ~SemanticValidator();
-    
+
     void setTree(std::shared_ptr<Tree> tree);
     void validate();
+
+    std::shared_ptr<Logger> getLogger();
 private:
+    void validate_top(std::shared_ptr<RootBranch> root_branch);
+    void validate_part(std::shared_ptr<Branch> branch);
+    void validate_function(std::shared_ptr<FuncBranch> func_branch);
+    void validate_body(std::shared_ptr<BODYBranch> body_branch);
+    void validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch);
+    void validate_var_access(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
+    void validate_assignment(std::shared_ptr<AssignBranch> assign_branch);
+       
+    void register_function(std::shared_ptr<FuncDefBranch> func_branch);
+    bool hasFunction(std::string function_name);
+    std::shared_ptr<FuncDefBranch> getFunction(std::string function_name);
+
+    void critical_error(std::string message, std::shared_ptr<Branch> branch=NULL);
+    
     std::shared_ptr<Tree> tree;
+    std::shared_ptr<Logger> logger;
+    
+    // Map of all functions
+    std::map<std::string, std::shared_ptr<FuncDefBranch>> functions;
 };
 
 #endif /* SEMANTICVALIDATOR_H */
