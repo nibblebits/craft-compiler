@@ -26,6 +26,7 @@
 
 #include "RootBranch.h"
 #include "STRUCTBranch.h"
+#include "FuncDefBranch.h"
 
 RootBranch::RootBranch(Compiler* compiler) : StandardScopeBranch(compiler, "root", "")
 {
@@ -63,7 +64,39 @@ bool RootBranch::isStructureDeclared(std::string name)
                 return true;
         }
     }
-    
+
+    return false;
+}
+
+std::shared_ptr<FuncDefBranch> RootBranch::getDeclaredFunctionDefinitionByName(std::string name)
+{
+    for (std::shared_ptr<Branch> child : Branch::getChildren())
+    {
+        if (child->getType() == "FUNC" || child->getType() == "FUNC_DEF")
+        {
+            std::shared_ptr<FuncDefBranch> func_def_branch = std::dynamic_pointer_cast<FuncDefBranch>(child);
+            std::shared_ptr<Branch> func_def_name_branch = func_def_branch->getNameBranch();
+            if (func_def_name_branch->getValue() == name)
+                return func_def_branch;
+        }
+    }
+
+    return false;
+}
+
+bool RootBranch::isFunctionDefinitionDeclared(std::string name)
+{
+    for (std::shared_ptr<Branch> child : Branch::getChildren())
+    {
+        if (child->getType() == "FUNC" || child->getType() == "FUNC_DEF")
+        {
+            std::shared_ptr<FuncDefBranch> func_def_branch = std::dynamic_pointer_cast<FuncDefBranch>(child);
+            std::shared_ptr<Branch> func_def_name_branch = func_def_branch->getNameBranch();
+            if (func_def_name_branch->getValue() == name)
+                return true;
+        }
+    }
+
     return false;
 }
 

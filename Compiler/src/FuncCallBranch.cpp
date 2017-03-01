@@ -25,6 +25,7 @@
  */
 
 #include "FuncCallBranch.h"
+#include "FuncDefBranch.h"
 
 FuncCallBranch::FuncCallBranch(Compiler* compiler) : CustomBranch(compiler, "FUNC_CALL", "")
 {
@@ -57,6 +58,11 @@ std::shared_ptr<Branch> FuncCallBranch::getFuncNameBranch()
 std::shared_ptr<Branch> FuncCallBranch::getFuncParamsBranch()
 {
     return this->getRegisteredBranchByName("func_params_branch");
+}
+
+std::shared_ptr<FuncDefBranch> FuncCallBranch::getFunctionDefinitionBranch()
+{
+    return getCompiler()->getParser()->getTree()->getGlobalFunctionDefinitionByName(getFuncNameBranch()->getValue());
 }
 
 void FuncCallBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)

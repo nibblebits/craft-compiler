@@ -26,6 +26,7 @@
 
 #include "FuncDefBranch.h"
 #include "FuncArgumentsBranch.h"
+#include "DataTypeBranch.h"
 
 FuncDefBranch::FuncDefBranch(Compiler* compiler) : CustomBranch(compiler, "FUNC_DEF", "")
 {
@@ -40,14 +41,14 @@ FuncDefBranch::~FuncDefBranch()
 {
 }
 
-void FuncDefBranch::setReturnTypeBranch(std::shared_ptr<Branch> returnTypeBranch)
+void FuncDefBranch::setReturnDataTypeBranch(std::shared_ptr<DataTypeBranch> return_data_type_branch)
 {
-    this->registerBranch("func_return_type_branch", returnTypeBranch);
+    CustomBranch::registerBranch("func_return_data_type_branch", return_data_type_branch);
 }
 
 void FuncDefBranch::setNameBranch(std::shared_ptr<Branch> nameBranch)
 {
-    this->registerBranch("func_name_branch", nameBranch);
+    CustomBranch::registerBranch("func_name_branch", nameBranch);
 }
 
 void FuncDefBranch::setArgumentsBranch(std::shared_ptr<FuncArgumentsBranch> argumentsBranch)
@@ -55,14 +56,14 @@ void FuncDefBranch::setArgumentsBranch(std::shared_ptr<FuncArgumentsBranch> argu
     this->registerBranch("func_arguments_branch", argumentsBranch);
 }
 
-std::shared_ptr<Branch> FuncDefBranch::getReturnTypeBranch()
+std::shared_ptr<DataTypeBranch> FuncDefBranch::getReturnDataTypeBranch()
 {
-    return this->getRegisteredBranchByName("func_return_type_branch");
+    return std::dynamic_pointer_cast<DataTypeBranch>(CustomBranch::getRegisteredBranchByName("func_return_data_type_branch"));
 }
 
 std::shared_ptr<Branch> FuncDefBranch::getNameBranch()
 {
-    return this->getRegisteredBranchByName("func_name_branch");
+    return CustomBranch::getRegisteredBranchByName("func_name_branch");
 }
 
 std::shared_ptr<FuncArgumentsBranch> FuncDefBranch::getArgumentsBranch()
@@ -73,7 +74,7 @@ std::shared_ptr<FuncArgumentsBranch> FuncDefBranch::getArgumentsBranch()
 void FuncDefBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<FuncDefBranch> func_branch_cloned = std::dynamic_pointer_cast<FuncDefBranch>(cloned_branch);
-    func_branch_cloned->setReturnTypeBranch(getReturnTypeBranch()->clone());
+    func_branch_cloned->setReturnDataTypeBranch(std::dynamic_pointer_cast<DataTypeBranch>(getReturnDataTypeBranch()->clone()));
     func_branch_cloned->setNameBranch(getNameBranch()->clone());
     func_branch_cloned->setArgumentsBranch(std::dynamic_pointer_cast<FuncArgumentsBranch>(getArgumentsBranch()->clone()));
 }

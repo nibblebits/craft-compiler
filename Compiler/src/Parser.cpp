@@ -400,7 +400,9 @@ void Parser::process_function()
 
     }
 
-    func_dec_branch->setReturnTypeBranch(func_return_type);
+    std::shared_ptr<DataTypeBranch> data_type_branch = std::shared_ptr<DataTypeBranch>(new DataTypeBranch(getCompiler()));
+    data_type_branch->setDataType(func_return_type->getValue());
+    func_dec_branch->setReturnDataTypeBranch(data_type_branch);
     func_dec_branch->setNameBranch(func_name);
     func_dec_branch->setArgumentsBranch(func_arguments);
 

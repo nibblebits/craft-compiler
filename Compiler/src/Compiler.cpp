@@ -264,22 +264,35 @@ std::string Compiler::getTypeFromNumber(int number)
     }
 }
 
-bool Compiler::canCast(std::string type1, std::string type2)
+int Compiler::getSizeFromType(std::string type)
 {
-    if (type1 == "uint8" || type1 == "int8")
+    int size;
+    if (type == "uint8" || type == "int8")
     {
-        if (type2 == "uint8" || type2 == "int8" || type2 == "uint16" || type2 == "int16" || type2 == "uint32" || type2 == "int32")
-        {
-            return true;
-        }
+        size = 1;
     }
-    else if (type1 == "uint16" || type1 == "int16")
+    else if (type == "uint16" || type == "int16")
     {
-        if (type2 == "uint32" || type2 == "int32")
-        {
-            return true;
-        }
+        size = 2;
     }
+    else if (type == "uint32" || type == "int32")
+    {
+        size = 4;
+    }
+    else
+    {
+        throw Exception("Invalid primitive type: " + type, "int Compiler::getSizeFromType(std::string type)");
+    }
+    return size;
+}
+
+bool Compiler::canFit(std::string fit_to, std::string fit_from)
+{
+    int fit_to_size = getSizeFromType(fit_to);
+    int fit_from_size = getSizeFromType(fit_from);
+
+    if (fit_from_size <= fit_to_size)
+        return true;
 
     return false;
 }

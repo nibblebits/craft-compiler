@@ -28,6 +28,7 @@
 #include "CustomBranch.h"
 
 class FuncArgumentsBranch;
+class DataTypeBranch;
 class EXPORT FuncDefBranch : public CustomBranch
 {
 public:
@@ -35,11 +36,11 @@ public:
     FuncDefBranch(Compiler* compiler, std::string type, std::string value);
     virtual ~FuncDefBranch();
 
-    void setReturnTypeBranch(std::shared_ptr<Branch> returnTypeBranch);
+    void setReturnDataTypeBranch(std::shared_ptr<DataTypeBranch> returnTypeBranch);
     void setNameBranch(std::shared_ptr<Branch> nameBranch);
     void setArgumentsBranch(std::shared_ptr<FuncArgumentsBranch> argumentsBranch);
 
-    std::shared_ptr<Branch> getReturnTypeBranch();
+    std::shared_ptr<DataTypeBranch> getReturnDataTypeBranch();
     std::shared_ptr<Branch> getNameBranch();
     std::shared_ptr<FuncArgumentsBranch> getArgumentsBranch();
 

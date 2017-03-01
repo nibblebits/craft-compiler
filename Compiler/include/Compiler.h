@@ -73,7 +73,8 @@ public:
     int getSumOfArrayIndexes(std::shared_ptr<ArrayIndexBranch> root_array_index_branch);
 
     std::string getTypeFromNumber(int number);
-    bool canCast(std::string type1, std::string type2);
+    int getSizeFromType(std::string type);
+    bool canFit(std::string fit_to, std::string fit_from);
     long evaluate(long n1, long n2, std::string op);
     bool isCompareOperator(std::string value);
     bool isLogicalOperator(std::string value);

@@ -29,6 +29,8 @@
 
 class STRUCTBranch;
 class RootBranch;
+class FuncDefBranch;
+
 class Tree {
 public:
     Tree();
@@ -37,6 +39,11 @@ public:
     // Returns a structure based on the structure name
     std::shared_ptr<STRUCTBranch> getGlobalStructureByName(std::string name);
     bool isGlobalStructureDeclared(std::string name);
+    
+    // Returns a function definition based on the function definition name
+    std::shared_ptr<FuncDefBranch> getGlobalFunctionDefinitionByName(std::string name);
+    bool hasGlobalFunctionDefinition(std::string name);
+    
     std::shared_ptr<RootBranch> root;
 private:
 

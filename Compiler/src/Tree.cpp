@@ -27,6 +27,7 @@
 #include "Tree.h"
 #include "STRUCTBranch.h"
 #include "RootBranch.h"
+#include "FuncDefBranch.h"
 
 Tree::Tree()
 {
@@ -45,4 +46,14 @@ std::shared_ptr<STRUCTBranch> Tree::getGlobalStructureByName(std::string name)
 bool Tree::isGlobalStructureDeclared(std::string name)
 {
     return this->root->isStructureDeclared(name);
+}
+
+std::shared_ptr<FuncDefBranch> Tree::getGlobalFunctionDefinitionByName(std::string name)
+{
+    return this->root->getDeclaredFunctionDefinitionByName(name);
+}
+
+bool Tree::hasGlobalFunctionDefinition(std::string name)
+{
+    return this->root->isFunctionDefinitionDeclared(name);
 }

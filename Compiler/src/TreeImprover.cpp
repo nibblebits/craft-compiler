@@ -169,7 +169,7 @@ void TreeImprover::improve_func(std::shared_ptr<FuncBranch> func_branch)
     this->current_var_type = VARIABLE_TYPE_FUNCTION_VARIABLE;
     improve_body(func_body_branch, &has_return_branch);
 
-    if (func_branch->getReturnTypeBranch()->getValue() == "void"
+    if (func_branch->getReturnDataTypeBranch()->getValue() == "void"
             && !has_return_branch)
     {
         // No return branch found for function that returns void so we need to add one
