@@ -51,6 +51,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/CompilerEntity.o \
 	${OBJECTDIR}/src/ContinueBranch.o \
 	${OBJECTDIR}/src/CustomBranch.o \
+	${OBJECTDIR}/src/DataTypeBranch.o \
 	${OBJECTDIR}/src/EBranch.o \
 	${OBJECTDIR}/src/ELSEBranch.o \
 	${OBJECTDIR}/src/FORBranch.o \
@@ -196,6 +197,11 @@ ${OBJECTDIR}/src/CustomBranch.o: src/CustomBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CustomBranch.o src/CustomBranch.cpp
+
+${OBJECTDIR}/src/DataTypeBranch.o: src/DataTypeBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/DataTypeBranch.o src/DataTypeBranch.cpp
 
 ${OBJECTDIR}/src/EBranch.o: src/EBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

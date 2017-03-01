@@ -28,20 +28,20 @@
 #include "CustomBranch.h"
 #include "VarIdentifierBranch.h"
 
+class DataTypeBranch;
 class EXPORT VDEFBranch : public CustomBranch
 {
 public:
     VDEFBranch(Compiler* compiler, std::string branch_name = "V_DEF", std::string branch_value = "");
     virtual ~VDEFBranch();
 
-    void setDataTypeBranch(std::shared_ptr<Branch> branch);
+    void setDataTypeBranch(std::shared_ptr<DataTypeBranch> branch);
     void setVariableIdentifierBranch(std::shared_ptr<Branch> branch);
     void setValueExpBranch(std::shared_ptr<Branch> branch);
     void setPointer(bool is_pointer, int depth = 0);
     void setVariableType(VARIABLE_TYPE var_type);
 
-    void setCustomDataTypeSize(int size);
-    std::shared_ptr<Branch> getDataTypeBranch();
+    std::shared_ptr<DataTypeBranch> getDataTypeBranch();
     std::shared_ptr<VarIdentifierBranch> getVariableIdentifierBranch();
     std::shared_ptr<Branch> getValueExpBranch();
     std::shared_ptr<Branch> getNameBranch();
@@ -58,7 +58,7 @@ public:
     bool isPrimitive();
     bool hasCustomDataTypeSize();
     int getSize();
-    virtual int getDataTypeSize(bool no_pointer = false);
+    
     virtual int getBranchType();
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);

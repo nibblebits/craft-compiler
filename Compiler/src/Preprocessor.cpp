@@ -44,7 +44,7 @@ Preprocessor::Preprocessor(Compiler* compiler) : CompilerEntity(compiler)
         {
                             std::shared_ptr<VarIdentifierBranch> variable = std::dynamic_pointer_cast<VarIdentifierBranch>(argument);
                             std::shared_ptr<VDEFBranch> vdef_branch = variable->getVariableDefinitionBranch();
-                            result = vdef_branch->getDataTypeSize();
+                            result = vdef_branch->getDataTypeBranch()->getDataTypeSize();
         }
         else if (argument_type == "STRUCT_DESCRIPTOR")
         {

@@ -23,6 +23,7 @@
       <itemPath>include/CompilerEntity.h</itemPath>
       <itemPath>include/ContinueBranch.h</itemPath>
       <itemPath>include/CustomBranch.h</itemPath>
+      <itemPath>include/DataTypeBranch.h</itemPath>
       <itemPath>include/EBranch.h</itemPath>
       <itemPath>include/ELSEBranch.h</itemPath>
       <itemPath>include/Exception.h</itemPath>
@@ -97,6 +98,7 @@
       <itemPath>src/CompilerEntity.cpp</itemPath>
       <itemPath>src/ContinueBranch.cpp</itemPath>
       <itemPath>src/CustomBranch.cpp</itemPath>
+      <itemPath>src/DataTypeBranch.cpp</itemPath>
       <itemPath>src/EBranch.cpp</itemPath>
       <itemPath>src/ELSEBranch.cpp</itemPath>
       <itemPath>src/FORBranch.cpp</itemPath>
@@ -222,6 +224,8 @@
       <item path="include/ContinueBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/CustomBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/DataTypeBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/EBranch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -363,6 +367,8 @@
       <item path="src/ContinueBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CustomBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/DataTypeBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/EBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -506,6 +512,8 @@
       </item>
       <item path="include/CustomBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/DataTypeBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/EBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/ELSEBranch.h" ex="false" tool="3" flavor2="0">
@@ -646,6 +654,8 @@
       <item path="src/ContinueBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/CustomBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/DataTypeBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/EBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>

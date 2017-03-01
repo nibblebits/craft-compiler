@@ -580,7 +580,7 @@ void Parser::process_variable_declaration()
     std::shared_ptr<Branch> var_value_branch = NULL;
 
     std::shared_ptr<VDEFBranch> var_root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
-
+    std::shared_ptr<DataTypeBranch> data_type_branch = std::shared_ptr<DataTypeBranch>(new DataTypeBranch(getCompiler()));
     // Shift the keyword of the variable onto the stack
     shift_pop();
     if (!is_branch_type("keyword"))
@@ -596,6 +596,8 @@ void Parser::process_variable_declaration()
 
     var_keyword_branch = this->branch;
 
+    data_type_branch->setDataType(var_keyword_branch->getValue());
+
     // Lets see if we are defining a pointer
     peek();
     if (is_peek_operator("*"))
@@ -605,7 +607,7 @@ void Parser::process_variable_declaration()
 
         // Lets find out how much pointer depth we have here
         int depth = 1 + get_pointer_depth();
-        var_root->setPointer(true, depth);
+        data_type_branch->setPointer(true, depth);
     }
 
     // Process the variable access
@@ -631,7 +633,7 @@ void Parser::process_variable_declaration()
 
 
 
-    var_root->setDataTypeBranch(var_keyword_branch);
+    var_root->setDataTypeBranch(data_type_branch);
     var_root->setVariableIdentifierBranch(identifier_branch);
     var_root->setValueExpBranch(var_value_branch);
 
@@ -1248,6 +1250,8 @@ void Parser::process_structure()
 void Parser::process_structure_declaration()
 {
     std::shared_ptr<STRUCTDEFBranch> struct_declaration = std::shared_ptr<STRUCTDEFBranch>(new STRUCTDEFBranch(compiler));
+    std::shared_ptr<DataTypeBranch> data_type_branch = std::shared_ptr<DataTypeBranch>(new DataTypeBranch(compiler));
+    
     // Shift and pop the token and check that it is a "keyword" equal to "struct"
     shift_pop();
     if (!is_branch_keyword("struct"))
@@ -1264,6 +1268,7 @@ void Parser::process_structure_declaration()
     }
 
     std::shared_ptr<Branch> struct_name_branch = this->branch;
+    data_type_branch->setDataType(struct_name_branch->getValue());
 
     // Lets check to see if this is a pointer declaration
     peek();
@@ -1273,7 +1278,7 @@ void Parser::process_structure_declaration()
         shift_pop();
         // Lets find out how much depth this pointer is
         int depth = 1 + get_pointer_depth();
-        struct_declaration->setPointer(true, depth);
+        data_type_branch->setPointer(true, depth);
     }
 
     // process the variable access
@@ -1306,7 +1311,7 @@ void Parser::process_structure_declaration()
         }
     }
 
-    struct_declaration->setDataTypeBranch(struct_name_branch);
+    struct_declaration->setDataTypeBranch(data_type_branch);
     struct_declaration->setVariableIdentifierBranch(identifier_branch);
     struct_declaration->setValueExpBranch(var_value_branch);
 

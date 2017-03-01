@@ -29,6 +29,7 @@
 #include "VarIdentifierBranch.h"
 #include "ScopeBranch.h"
 #include "ArrayIndexBranch.h"
+#include "DataTypeBranch.h"
 
 VDEFBranch::VDEFBranch(Compiler* compiler, std::string branch_name, std::string branch_value) : CustomBranch(compiler, branch_name, branch_value)
 {
@@ -40,49 +41,30 @@ VDEFBranch::~VDEFBranch()
 {
 }
 
-void VDEFBranch::setDataTypeBranch(std::shared_ptr<Branch> branch)
+void VDEFBranch::setDataTypeBranch(std::shared_ptr<DataTypeBranch> branch)
 {
-    this->registerBranch("data_type_branch", branch);
+    CustomBranch::registerBranch("data_type_branch", branch);
 }
 
 void VDEFBranch::setVariableIdentifierBranch(std::shared_ptr<Branch> branch)
 {
-    this->registerBranch("var_identifier_branch", branch);
+    CustomBranch::registerBranch("var_identifier_branch", branch);
 }
 
 void VDEFBranch::setValueExpBranch(std::shared_ptr<Branch> branch)
 {
-    this->registerBranch("value_exp_branch", branch);
+    CustomBranch::registerBranch("value_exp_branch", branch);
 }
 
-void VDEFBranch::setPointer(bool is_pointer, int depth)
-{
-    if (is_pointer && depth <= 0)
-    {
-        throw Exception("void VDEFBranch::setPointer(bool is_pointer, int depth): specifying VDEFBranch as a pointer but pointer depth is zero or below.");
-    }
-    this->is_pointer = is_pointer;
-    this->ptr_depth = depth;
-}
 
 void VDEFBranch::setVariableType(VARIABLE_TYPE var_type)
 {
     this->var_type = var_type;
 }
 
-void VDEFBranch::setCustomDataTypeSize(int size)
+std::shared_ptr<DataTypeBranch> VDEFBranch::getDataTypeBranch()
 {
-    if (this->isPointer())
-    {
-        throw Exception("void VDEFBranch::setCustomDataTypeSize(int size): it is unsafe to assign a custom data type size for a pointer");
-    }
-    
-    this->custom_data_type_size = size;
-}
-
-std::shared_ptr<Branch> VDEFBranch::getDataTypeBranch()
-{
-    return this->getRegisteredBranchByName("data_type_branch");
+    return std::dynamic_pointer_cast<DataTypeBranch>(this->getRegisteredBranchByName("data_type_branch"));
 }
 
 std::shared_ptr<VarIdentifierBranch> VDEFBranch::getVariableIdentifierBranch()
@@ -208,40 +190,32 @@ int VDEFBranch::getPositionRelZero(POSITION_OPTIONS options)
 
 bool VDEFBranch::isPointer()
 {
-    return this->is_pointer;
+    return getDataTypeBranch()->isPointer();
 }
 
 int VDEFBranch::getPointerDepth()
 {
-    return this->ptr_depth;
+    return getDataTypeBranch()->getPointerDepth();
 }
 
 bool VDEFBranch::isSigned()
 {
-    std::shared_ptr<Branch> data_type_branch = getDataTypeBranch();
-    std::string data_type_value = data_type_branch->getValue();
-    return (
-            data_type_value == "int8" ||
-            data_type_value == "int16" ||
-            data_type_value == "int32" ||
-            data_type_value == "int64"
-            );
+    return getDataTypeBranch()->isSigned();
 }
 
 bool VDEFBranch::isPrimitive()
 {
-    std::shared_ptr<Branch> data_type_branch = getDataTypeBranch();
-    return this->getCompiler()->isPrimitiveDataType(data_type_branch->getValue());
+    return getDataTypeBranch()->isPrimitive();
 }
 
 bool VDEFBranch::hasCustomDataTypeSize()
 {
-    return this->custom_data_type_size != 0;
+    return this->getDataTypeBranch()->hasCustomDataTypeSize();
 }
 
 int VDEFBranch::getSize()
 {
-    int size = getDataTypeSize();
+    int size = getDataTypeBranch()->getDataTypeSize();
     std::shared_ptr<VarIdentifierBranch> var_identifier_branch = getVariableIdentifierBranch();
     if (var_identifier_branch->hasRootArrayIndexBranch())
     {
@@ -265,14 +239,6 @@ int VDEFBranch::getSize()
     return size;
 }
 
-int VDEFBranch::getDataTypeSize(bool no_pointer)
-{
-    if (hasCustomDataTypeSize())
-        return this->custom_data_type_size;
-
-    return this->getCompiler()->getDataTypeSizeFromVarDef(std::dynamic_pointer_cast<VDEFBranch>(this->getptr()), no_pointer);
-}
-
 int VDEFBranch::getBranchType()
 {
     return BRANCH_TYPE_VDEF;
@@ -281,9 +247,8 @@ int VDEFBranch::getBranchType()
 void VDEFBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<VDEFBranch> vdef_branch_clone = std::dynamic_pointer_cast<VDEFBranch>(cloned_branch);
-    vdef_branch_clone->setDataTypeBranch(getDataTypeBranch()->clone());
+    vdef_branch_clone->setDataTypeBranch(std::dynamic_pointer_cast<DataTypeBranch>(getDataTypeBranch()->clone()));
     vdef_branch_clone->setVariableIdentifierBranch(getVariableIdentifierBranch()->clone());
-    vdef_branch_clone->setPointer(isPointer(), getPointerDepth());
     if (hasValueExpBranch())
     {
         vdef_branch_clone->setValueExpBranch(getValueExpBranch()->clone());

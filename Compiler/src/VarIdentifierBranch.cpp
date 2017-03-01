@@ -25,10 +25,7 @@
  */
 
 #include "VarIdentifierBranch.h"
-#include "ScopeBranch.h"
-#include "ArrayIndexBranch.h"
-#include "STRUCTAccessBranch.h"
-#include "VDEFBranch.h"
+#include "branches.h"
 
 VarIdentifierBranch::VarIdentifierBranch(Compiler* compiler) : CustomBranch(compiler, "VAR_IDENTIFIER", "")
 {
@@ -115,7 +112,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
         {
             no_pointer = true;
         }
-        int size = vdef_branch->getDataTypeSize(no_pointer);
+        int size = vdef_branch->getDataTypeBranch()->getDataTypeSize(no_pointer);
         int offset = size;
         getRootArrayIndexBranch()->iterate_array_indexes([&](std::shared_ptr<ArrayIndexBranch> array_index_branch) -> bool
         {

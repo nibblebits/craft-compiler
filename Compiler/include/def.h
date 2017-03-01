@@ -66,8 +66,6 @@ enum
     BRANCH_TYPE_VDEF
 };
 
-typedef unsigned int VARIABLE_TYPE;
-
 enum
 {
     VARIABLE_TYPE_UNKNOWN,
@@ -76,6 +74,7 @@ enum
     VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE
 };
 
+typedef unsigned int VARIABLE_TYPE;
 
 // Options for getting variable offsets
 enum

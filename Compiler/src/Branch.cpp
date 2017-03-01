@@ -256,6 +256,47 @@ void Branch::iterate_children(std::function<void(std::shared_ptr<Branch> child_b
     }
 }
 
+/**
+ * Counts all the children of this branch.
+ * 
+ * Count all children by specifying parameter "type" as "any" or set to the name of the type of branch you are trying to count.
+ * Additionally you may apply a lambda expression to be used as a counter function, branches will be passed return "true" to include
+ * them in the count otherwise false. This allows more customised counting.
+ * 
+ * @param type - The type of children to count, set to "any" for any type of child
+ * @param counter_function - The counter function whose return value determines weather or not the branch is included in the count
+ * @return int - the total children found based on the parameters passed to the function
+ */
+int Branch::count_children(std::string type, std::function<bool(std::shared_ptr<Branch> branch)> counter_function)
+{
+    int total = 0;
+    
+    if (counter_function == NULL)
+    {
+        // We have no counter function so lets make one
+        counter_function = [](std::shared_ptr<Branch> branch) -> bool {
+            // We accept all branches passed to us.
+            return true;
+        };
+    }
+    
+    // Lets loop through all our children and invoke the counter function
+    bool any_type = type == "any";
+    for (std::shared_ptr<Branch> child : getChildren())
+    {
+        if (any_type || child->getType() == type)
+        {
+            if (counter_function(child))
+            {
+                total++;
+            }
+        }
+    }
+    
+    return total;
+    
+}
+
 bool Branch::hasChild(std::shared_ptr<Branch> branch)
 {
     for (int i = 0; i < this->children.size(); i++)
@@ -324,6 +365,7 @@ void Branch::setLocalScope(std::shared_ptr<ScopeBranch> local_scope, bool set_to
     }
 
 }
+
 
 std::shared_ptr<Branch> Branch::getFirstChild()
 {

@@ -26,11 +26,7 @@
 
 #include <sstream>
 #include "Compiler.h"
-#include "VDEFBranch.h"
-#include "STRUCTBranch.h"
-#include "STRUCTDEFBranch.h"
-#include "ArrayIndexBranch.h"
-#include "BODYBranch.h"
+#include "branches.h"
 
 Compiler::Compiler()
 {
@@ -194,34 +190,7 @@ int Compiler::getPrimitiveDataTypeSize(std::string type)
 
 int Compiler::getDataTypeSizeFromVarDef(std::shared_ptr<VDEFBranch> branch, bool no_pointer)
 {
-    std::string type = branch->getType();
-    int size = 0;
-
-    // Sometimes people may want to get the data type size as if the branch was not a pointer.
-    if (!no_pointer)
-    {
-        if (branch->isPointer())
-        {
-            return this->codeGenerator->getPointerSize();
-        }
-    }
-    if (type == "STRUCT_DEF")
-    {
-        std::shared_ptr<Tree> tree = this->parser->getTree();
-        std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(branch);
-        std::shared_ptr<Branch> struct_def_data_type = struct_def_branch->getDataTypeBranch();
-        std::shared_ptr<STRUCTBranch> struct_branch =
-                std::dynamic_pointer_cast<STRUCTBranch>(tree->getGlobalStructureByName(struct_def_data_type->getValue()));
-
-        size = getSizeOfStructure(struct_branch);
-    }
-    else if (type == "V_DEF")
-    {
-        std::shared_ptr<VDEFBranch> vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(branch);
-        size = getPrimitiveDataTypeSize(vdef_branch->getDataTypeBranch()->getValue());
-    }
-
-    return size;
+    return branch->getDataTypeBranch()->getDataTypeSize(no_pointer);
 }
 
 int Compiler::getSizeOfStructure(std::shared_ptr<STRUCTBranch> structure)

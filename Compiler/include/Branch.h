@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
 
 #include "Exception.h"
 #include "def.h"
@@ -42,7 +43,7 @@ public:
     Branch(std::string type, std::string value);
     virtual ~Branch();
 
-    void addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of=NULL, bool force_add=false);
+    void addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> child_to_place_ahead_of = NULL, bool force_add = false);
     virtual void replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch);
     void replaceSelf(std::shared_ptr<Branch> replacee_branch);
     virtual void removeChild(std::shared_ptr<Branch> child);
@@ -51,13 +52,13 @@ public:
     void setRemoved(bool is_removed);
     void setReplaced(std::shared_ptr<Branch> replacee_branch);
     void iterate_children(std::function<void(std::shared_ptr<Branch> child_branch) > iterate_func);
+    int count_children(std::string type = "any", std::function<bool(std::shared_ptr<Branch> branch) > counter_function=NULL);
     void setParent(std::shared_ptr<Branch> branch);
     void setValue(std::string value);
     void setRoot(std::shared_ptr<RootBranch> root_branch);
     void setRootScope(std::shared_ptr<ScopeBranch> root_scope, bool set_to_all_children = false);
     void setLocalScope(std::shared_ptr<ScopeBranch> local_scope, bool set_to_all_children = false);
-    
-    
+
     std::shared_ptr<Branch> getFirstChild();
     std::shared_ptr<Branch> getSecondChild();
     std::shared_ptr<Branch> getThirdChild();
@@ -69,7 +70,7 @@ public:
     bool hasParent();
     bool isChildAheadOfChild(std::shared_ptr<Branch> child1, std::shared_ptr<Branch> child2);
     std::shared_ptr<Branch> getFirstChildOfType(std::string type);
-        bool hasChildOfType(std::string type);
+    bool hasChildOfType(std::string type);
     std::shared_ptr<Branch> lookUpTreeUntilParentTypeFound(std::string parent_type_to_find);
     std::shared_ptr<Branch> lookDownTreeUntilFirstChildOfType(std::string type);
     std::shared_ptr<Branch> lookDownTreeUntilLastChildOfType(std::string type);
