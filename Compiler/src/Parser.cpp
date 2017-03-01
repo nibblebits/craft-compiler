@@ -112,7 +112,7 @@ void Parser::process_top()
             {
                 // peek further again to see if their is yet another identifier or pointer declaration
                 peek(2);
-                if (is_peek_type("identifier") 
+                if (is_peek_type("identifier")
                         || (is_peek_operator("*") && is_peek_type("identifier", 1)))
                 {
                     // This is a structure variable declaration so process it
@@ -156,8 +156,29 @@ void Parser::process_top()
             }
             else if (is_peek_operator("*"))
             {
-                process_variable_declaration();
-                process_semicolon();
+                // Peek ahead until we see no more "*" operators
+                int i = 1;
+                while (true)
+                {
+                    if (!is_peek_operator("*", i))
+                    {
+                        break;
+                    }
+                    i++;
+                }
+
+                // Is this a function?
+                if (is_peek_type("identifier", i) && is_peek_symbol("(", i + 1))
+                {
+                    // Yes it is
+                    process_function();
+                }
+                else
+                {
+                    // No its a variable declaration
+                    process_variable_declaration();
+                    process_semicolon();
+                }
             }
         }
     }
@@ -318,9 +339,12 @@ void Parser::process_inline_asm()
  */
 void Parser::process_function()
 {
-    // Pop the function name and return type from the stack
-    shift_pop();
-    std::shared_ptr<Branch> func_return_type = this->branch;
+    // Get the return data type
+    process_data_type();
+    pop_branch();
+    std::shared_ptr<DataTypeBranch> data_type_branch = std::dynamic_pointer_cast<DataTypeBranch>(this->branch);
+
+    // Shift and pop the funciton name
     shift_pop();
     std::shared_ptr<Branch> func_name = this->branch;
 
@@ -400,8 +424,6 @@ void Parser::process_function()
 
     }
 
-    std::shared_ptr<DataTypeBranch> data_type_branch = std::shared_ptr<DataTypeBranch>(new DataTypeBranch(getCompiler()));
-    data_type_branch->setDataType(func_return_type->getValue());
     func_dec_branch->setReturnDataTypeBranch(data_type_branch);
     func_dec_branch->setNameBranch(func_name);
     func_dec_branch->setArgumentsBranch(func_arguments);
@@ -560,7 +582,7 @@ void Parser::process_stmt()
         process_expression();
         process_semicolon();
     }
-    else if(is_peek_symbol("#"))
+    else if (is_peek_symbol("#"))
     {
         // This is a macro
         process_macro();
@@ -571,17 +593,9 @@ void Parser::process_stmt()
     }
 }
 
-/* 
- * \brief Processes a variable of the input
- * 
- */
-void Parser::process_variable_declaration()
+void Parser::process_data_type()
 {
-    std::shared_ptr<Branch> identifier_branch = NULL;
     std::shared_ptr<Branch> var_keyword_branch = NULL;
-    std::shared_ptr<Branch> var_value_branch = NULL;
-
-    std::shared_ptr<VDEFBranch> var_root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
     std::shared_ptr<DataTypeBranch> data_type_branch = std::shared_ptr<DataTypeBranch>(new DataTypeBranch(getCompiler()));
     // Shift the keyword of the variable onto the stack
     shift_pop();
@@ -611,6 +625,28 @@ void Parser::process_variable_declaration()
         int depth = 1 + get_pointer_depth();
         data_type_branch->setPointer(true, depth);
     }
+
+    // Now push the data type branch to the stack
+    push_branch(data_type_branch);
+}
+
+/* 
+ * \brief Processes a variable of the input
+ * 
+ */
+void Parser::process_variable_declaration()
+{
+    std::shared_ptr<Branch> identifier_branch = NULL;
+    std::shared_ptr<Branch> var_value_branch = NULL;
+
+    std::shared_ptr<VDEFBranch> var_root = std::shared_ptr<VDEFBranch>(new VDEFBranch(this->getCompiler()));
+
+    // Process the data type e.g uint8, uint16*
+    process_data_type();
+    // Pop off the result
+    pop_branch();
+
+    std::shared_ptr<DataTypeBranch> data_type_branch = std::dynamic_pointer_cast<DataTypeBranch>(this->branch);
 
     // Process the variable access
     process_variable_access();
@@ -752,7 +788,7 @@ void Parser::process_structure_descriptor()
     shift_pop();
     std::shared_ptr<Branch> struct_name_branch = this->branch;
 
-    std::shared_ptr<STRUCTDescriptorBranch> struct_desc_branch 
+    std::shared_ptr<STRUCTDescriptorBranch> struct_desc_branch
             = std::shared_ptr<STRUCTDescriptorBranch>(new STRUCTDescriptorBranch(getCompiler()));
     struct_desc_branch->setStructNameBranch(struct_name_branch);
 
@@ -1253,7 +1289,7 @@ void Parser::process_structure_declaration()
 {
     std::shared_ptr<STRUCTDEFBranch> struct_declaration = std::shared_ptr<STRUCTDEFBranch>(new STRUCTDEFBranch(compiler));
     std::shared_ptr<DataTypeBranch> data_type_branch = std::shared_ptr<DataTypeBranch>(new DataTypeBranch(compiler));
-    
+
     // Shift and pop the token and check that it is a "keyword" equal to "struct"
     shift_pop();
     if (!is_branch_keyword("struct"))
@@ -1692,7 +1728,7 @@ void Parser::process_macro_function_call()
                           return;
             }
         }
-        
+
         // Ok nothing has been done so lets just treat it as an expression
         process_expression();
 

@@ -89,6 +89,7 @@ private:
     void process_function();
     void process_body(std::shared_ptr<BODYBranch> body_root = NULL, bool new_scope = true);
     void process_stmt();
+    void process_data_type();
     void process_variable_declaration();
     void process_ptr();
     void process_assignment(std::shared_ptr<VarIdentifierBranch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op);
