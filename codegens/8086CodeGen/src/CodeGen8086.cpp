@@ -482,7 +482,7 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
         {
             if (this->pointer_selected_variable->isPrimitive())
             {
-                if (this->pointer_selected_variable->getDataTypeSize(true) == 2)
+                if (this->pointer_selected_variable->getDataTypeBranch()->getDataTypeSize(true) == 2)
                 {
                     // This is pointing to a word.
                     do_asm("mov " + register_to_store + ", [bx]");
@@ -528,7 +528,7 @@ void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string 
     if (exp->getType() == "VAR_IDENTIFIER")
     {
         std::shared_ptr<VDEFBranch> vdef_branch = getVariable(exp);
-        if (!vdef_branch->isPointer() && vdef_branch->getDataTypeSize() == 1)
+        if (!vdef_branch->isPointer() && vdef_branch->getDataTypeBranch()->getDataTypeSize() == 1)
         {
             do_asm("xor ah, ah");
         }
@@ -567,7 +567,7 @@ void CodeGen8086::make_expression_right(std::shared_ptr<Branch> exp)
         if (exp->getType() == "VAR_IDENTIFIER")
         {
             std::shared_ptr<VDEFBranch> vdef_branch = getVariable(exp);
-            if (vdef_branch->getDataTypeSize() == 1)
+            if (vdef_branch->getDataTypeBranch()->getDataTypeSize() == 1)
             {
                 do_asm("xor ch, ch");
             }
@@ -867,7 +867,7 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
     }
 
     do_asm("; MAKE MOVE REG VARIABLE");
-    if (!vdef_branch->isPointer() && vdef_branch->getDataTypeSize() == 1)
+    if (!vdef_branch->getDataTypeBranch()->isPointer() && vdef_branch->getDataTypeBranch()->getDataTypeSize() == 1)
     {
         // We don't want anything left in the register so lets blank it
         do_asm("xor " + reg + ", " + reg);
@@ -986,7 +986,7 @@ void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> 
 
     if (root_iden_branch->hasRootArrayIndexBranch())
     {
-        make_array_offset_instructions(root_iden_branch->getRootArrayIndexBranch(), root_vdef_branch->getDataTypeSize(true));
+        make_array_offset_instructions(root_iden_branch->getRootArrayIndexBranch(), root_vdef_branch->getDataTypeBranch()->getDataTypeSize(true));
     }
 
 
@@ -1220,7 +1220,7 @@ void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
     }
     else
     {
-        if (vdef_branch->isPointer() || vdef_branch->getDataTypeSize() == 2)
+        if (vdef_branch->getDataTypeBranch()->isPointer() || vdef_branch->getDataTypeBranch()->getDataTypeSize() == 2)
         {
             data_write_macro = "dw";
         }
@@ -1293,7 +1293,7 @@ void CodeGen8086::handle_func_args(std::shared_ptr<Branch> arguments)
         if (!arg_vdef->isPointer())
         {
             // All function arguments are 2 bytes in size.
-            arg_vdef->setCustomDataTypeSize(2);
+            arg_vdef->getDataTypeBranch()->setCustomDataTypeSize(2);
         }
         this->func_arguments.push_back(arg_vdef);
     }
@@ -2160,7 +2160,7 @@ bool CodeGen8086::is_cmp_logic_operator_nothing_or_and()
 
 bool CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VDEFBranch> vdef_branch, bool ignore_pointer)
 {
-    return (!ignore_pointer && vdef_branch->isPointer()) || vdef_branch->getDataTypeSize(ignore_pointer) == 2;
+    return (!ignore_pointer && vdef_branch->getDataTypeBranch()->isPointer()) || vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer) == 2;
 }
 
 bool CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VarIdentifierBranch> var_branch, bool ignore_pointer)
