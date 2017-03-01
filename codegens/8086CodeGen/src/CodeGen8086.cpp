@@ -2073,7 +2073,7 @@ std::shared_ptr<Branch> CodeGen8086::getScopeVariable(std::shared_ptr<Branch> va
                     if (access_parent->getType() == "STRUCT_ACCESS")
                     {
                         std::shared_ptr<STRUCTDEFBranch> struct_def = std::dynamic_pointer_cast<STRUCTDEFBranch>(struct_var);
-                        struct_branch = getStructure(struct_def->getDataTypeBranch()->getValue());
+                        struct_branch = getStructure(struct_def->getDataTypeBranch()->getDataType());
                         access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(access_parent);
                     }
                     else
