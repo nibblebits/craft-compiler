@@ -87,6 +87,10 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
     {
         validate_assignment(std::dynamic_pointer_cast<AssignBranch>(branch));
     }
+    else if (type == "FUNC_CALL")
+    {
+        validate_function_call(std::dynamic_pointer_cast<FuncCallBranch>(branch));
+    }
 }
 
 void SemanticValidator::validate_function(std::shared_ptr<FuncBranch> func_branch)
@@ -141,7 +145,7 @@ void SemanticValidator::validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch)
     // Lets validate the value if one exists
     if (vdef_branch->hasValueExpBranch())
     {
-        validate_value(vdef_branch->getValueExpBranch(), vdef_branch->getDataTypeBranch()->getValue(), vdef_branch->isPointer());
+        validate_value(vdef_branch->getValueExpBranch(), vdef_branch->getDataTypeBranch()->getDataType(), vdef_branch->isPointer(), vdef_branch->getPointerDepth());
     }
 }
 
@@ -159,7 +163,7 @@ void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch>
             && var_iden_branch->hasStructureAccessBranch())
     {
         std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(root_vdef_branch);
-        std::string struct_name = struct_def_branch->getDataTypeBranch()->getValue();
+        std::string struct_name = struct_def_branch->getDataTypeBranch()->getDataType();
         // This is a structure definition so far the root of the structure is valid but its access may not be 
 
         std::shared_ptr<STRUCTBranch> struct_branch = this->tree->getGlobalStructureByName(struct_name);
@@ -187,7 +191,7 @@ void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch>
             if (current->hasStructureAccessBranch())
             {
                 struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(child);
-                std::string struct_name = struct_def_branch->getDataTypeBranch()->getValue();
+                std::string struct_name = struct_def_branch->getDataTypeBranch()->getDataType();
                 // Check that the structure is declared
                 if (!this->tree->isGlobalStructureDeclared(struct_name))
                 {
@@ -218,16 +222,52 @@ void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign
 
     std::shared_ptr<VarIdentifierBranch> var_iden_branch = assign_branch->getVariableToAssignBranch();
     std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
-    std::string data_type = vdef_branch->getDataTypeBranch()->getValue();
+    std::string data_type = vdef_branch->getDataTypeBranch()->getDataType();
 
     // Validate that the value is legal
-    validate_value(assign_branch->getValueBranch(), data_type, vdef_branch->isPointer());
+    validate_value(assign_branch->getValueBranch(), data_type, vdef_branch->isPointer(), vdef_branch->getPointerDepth());
+}
+
+void SemanticValidator::validate_function_call(std::shared_ptr<FuncCallBranch> func_call_branch)
+{
+    std::string func_name = func_call_branch->getFuncNameBranch()->getValue();
+    // Validate the function exists
+    ensure_function_exists(func_name, func_call_branch);
+
+    // Validate that all function call parameters are compatible with the given function
+    std::shared_ptr<FuncDefBranch> func_branch = getFunction(func_name);
+    std::shared_ptr<Branch> func_arguments = func_branch->getArgumentsBranch();
+    std::shared_ptr<Branch> func_call_params = func_call_branch->getFuncParamsBranch();
+    std::vector<std::shared_ptr < Branch>> func_arguments_children = func_arguments->getChildren();
+    std::vector<std::shared_ptr < Branch>> func_call_params_children = func_call_params->getChildren();
+
+    int func_total_args = func_arguments_children.size();
+    int func_call_total_params = func_call_params_children.size();
+    // First we check that the argument lengths are the same
+    if (func_call_total_params != func_total_args)
+    {
+        this->logger->error("Function call to function \"" + func_name + "\" has an invalid number of arguments. Expecting " + std::to_string(func_total_args) + " arguments but " + std::to_string(func_call_total_params) + " was given");
+    }
+    else
+    {
+        // Ok we must check that all function arguments are valid
+        for (int i = 0; i < func_call_total_params; i++)
+        {
+            std::shared_ptr<VDEFBranch> func_argument_vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(func_arguments_children[i]);
+            validate_value(
+                                 func_call_params_children[i],
+                                 func_argument_vdef_branch->getDataTypeBranch()->getDataType(),
+                                 func_argument_vdef_branch->isPointer(),
+                                 func_argument_vdef_branch->getPointerDepth()
+                                 );
+        }
+    }
 }
 
 void SemanticValidator::validate_structure_definition(std::shared_ptr<STRUCTDEFBranch> struct_def_branch)
 {
     // Validate the structure type
-    std::string struct_data_type = struct_def_branch->getDataTypeBranch()->getValue();
+    std::string struct_data_type = struct_def_branch->getDataTypeBranch()->getDataType();
     if (!this->tree->isGlobalStructureDeclared(struct_data_type))
     {
         this->logger->error("The structure variable has an illegal type of \"" + struct_data_type + "\"", struct_def_branch);
@@ -240,7 +280,19 @@ void SemanticValidator::validate_structure_definition(std::shared_ptr<STRUCTDEFB
 void SemanticValidator::validate_structure(std::shared_ptr<STRUCTBranch> structure_branch)
 {
     std::string struct_name = structure_branch->getStructNameBranch()->getValue();
-    if (this->tree->isGlobalStructureDeclared(struct_name))
+    // Lets count all the structures who have the structure name
+    int total = this->tree->root->count_children("STRUCT", [&](std::shared_ptr<Branch> branch) -> bool
+    {
+        std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(branch);
+        if (struct_name == struct_branch->getStructNameBranch()->getValue())
+        {
+                                                 return true;
+        }
+
+        return false;
+    });
+
+    if (total > 1)
     {
         this->logger->error("The structure \"" + struct_name + "\" has been redeclared", structure_branch);
     }
@@ -249,42 +301,42 @@ void SemanticValidator::validate_structure(std::shared_ptr<STRUCTBranch> structu
     validate_body(structure_branch->getStructBodyBranch());
 }
 
-void SemanticValidator::validate_expression(std::shared_ptr<EBranch> e_branch, std::string requirement_type, bool requires_pointer)
+void SemanticValidator::validate_expression(std::shared_ptr<EBranch> e_branch, std::string requirement_type, bool requires_pointer, int pointer_depth)
 {
     std::shared_ptr<Branch> left = e_branch->getFirstChild();
     std::shared_ptr<Branch> right = e_branch->getSecondChild();
     if (left->getType() == "E")
     {
-        validate_expression(std::dynamic_pointer_cast<EBranch>(left), requirement_type, requires_pointer);
+        validate_expression(std::dynamic_pointer_cast<EBranch>(left), requirement_type, requires_pointer, pointer_depth);
     }
     else
     {
-        validate_value(left, requirement_type, requires_pointer);
+        validate_value(left, requirement_type, requires_pointer, pointer_depth);
     }
 
     if (right->getType() == "E")
     {
-        validate_expression(std::dynamic_pointer_cast<EBranch>(right), requirement_type, requires_pointer);
+        validate_expression(std::dynamic_pointer_cast<EBranch>(right), requirement_type, requires_pointer, pointer_depth);
     }
     else
     {
-        validate_value(right, requirement_type, requires_pointer);
+        validate_value(right, requirement_type, requires_pointer, pointer_depth);
     }
 }
 
-void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, std::string requirement_type, bool requires_pointer)
+void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, std::string requirement_type, bool requires_pointer, int pointer_depth)
 {
     std::string branch_type = branch->getType();
     if (branch_type == "E")
     {
-        validate_expression(std::dynamic_pointer_cast<EBranch>(branch), requirement_type, requires_pointer);
+        validate_expression(std::dynamic_pointer_cast<EBranch>(branch), requirement_type, requires_pointer, pointer_depth);
     }
     else if (branch_type == "number")
     {
         if (getCompiler()->isPrimitiveDataType(requirement_type))
         {
             long number = std::stoi(branch->getValue());
-            if (!getCompiler()->canCast(requirement_type, getCompiler()->getTypeFromNumber(number)))
+            if (!getCompiler()->canFit(requirement_type, getCompiler()->getTypeFromNumber(number)))
             {
                 this->logger->warn("Decimal number: \"" + std::to_string(number) + "\" cannot fit into type \"" + requirement_type + "\" and will be capped", branch);
             }
@@ -296,46 +348,78 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, std::stri
     }
     else if (branch_type == "VAR_IDENTIFIER")
     {
-        // Lets get the type of the variable to see if it can fit into our requirement type
+        // Lets first check if the variable exists
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(branch);
-        std::string var_iden_name = var_iden_branch->getVariableNameBranch()->getValue();
-        std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
-        std::string vdef_type = vdef_branch->getDataTypeBranch()->getValue();
-        if (!vdef_branch->isPointer()
-                && requires_pointer)
+        if (ensure_variable_exists(var_iden_branch))
         {
-            this->logger->warn("The variable: \"" + var_iden_name + "\" is not a pointer", branch);
-        }
-        else if (vdef_branch->isPointer()
-                && !requires_pointer)
-        {
-            this->logger->warn("The variable: \"" + var_iden_name + "\" is a pointer but a non pointer type is expected");
-        }
+            // Lets get the type of the variable to see if it can fit into our requirement type
+            std::string var_iden_name = var_iden_branch->getVariableNameBranch()->getValue();
+            std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
+            std::string vdef_type = vdef_branch->getDataTypeBranch()->getDataType();
 
-        if (getCompiler()->isPrimitiveDataType(requirement_type))
-        {
-            if (!getCompiler()->isPrimitiveDataType(vdef_type))
+            if (vdef_branch->isPointer() && requires_pointer
+                    && vdef_branch->getPointerDepth() != pointer_depth)
             {
-                this->logger->error("Expecting a primitive type of type \"" + requirement_type
-                                    + "\" but a non primitive type of type \"" + vdef_type + "\" was provided", branch);
+                this->logger->error("The variable: \"" + var_iden_name + "\" must have a pointer depth of "
+                                    + std::to_string(pointer_depth) + " but its pointer depth is: " + std::to_string(vdef_branch->getPointerDepth()));
             }
-        }
-        else
-        {
-            if (!getCompiler()->isPrimitiveDataType(vdef_type))
+            if (!vdef_branch->isPointer()
+                    && requires_pointer)
             {
-                this->logger->error("Expecting a non-primitive type of type \"" + requirement_type
-                                    + "\" but a primitive type of type \"" + vdef_type + "\" was provided", branch);
+                this->logger->warn("The variable: \"" + var_iden_name + "\" is not a pointer but a pointer was expected", branch);
+            }
+            else if (vdef_branch->isPointer()
+                    && !requires_pointer)
+            {
+                this->logger->warn("The variable: \"" + var_iden_name + "\" is a pointer but a non pointer type is expected");
+            }
+
+            if (getCompiler()->isPrimitiveDataType(requirement_type))
+            {
+                if (!getCompiler()->isPrimitiveDataType(vdef_type))
+                {
+                    this->logger->error("Expecting a primitive type of type \"" + requirement_type
+                                        + "\" but a non primitive type of type \"" + vdef_type + "\" was provided", branch);
+                }
             }
             else
             {
-                // We are checking to see if both structure types match
-                if (requirement_type != vdef_type)
+                if (!getCompiler()->isPrimitiveDataType(vdef_type))
                 {
-                    this->logger->error("Expecting a primitive type whose name is \"" + requirement_type + "\" but type \"" + vdef_type + "\" was provided", branch);
+                    this->logger->error("Expecting a non-primitive type of type \"" + requirement_type
+                                        + "\" but a primitive type of type \"" + vdef_type + "\" was provided", branch);
+                }
+                else
+                {
+                    // We are checking to see if both structure types match
+                    if (requirement_type != vdef_type)
+                    {
+                        this->logger->error("Expecting a primitive type whose name is \"" + requirement_type + "\" but type \"" + vdef_type + "\" was provided", branch);
+                    }
                 }
             }
         }
+    }
+    else if (branch_type == "FUNC_CALL")
+    {
+        std::shared_ptr<FuncCallBranch> func_call_branch = std::dynamic_pointer_cast<FuncCallBranch>(branch);
+        std::string function_name = func_call_branch->getFuncNameBranch()->getValue();
+        std::shared_ptr<FuncDefBranch> func_def_branch = func_call_branch->getFunctionDefinitionBranch();
+        std::shared_ptr<DataTypeBranch> func_def_return_type_branch = func_def_branch->getReturnDataTypeBranch();
+        std::string return_data_type = func_def_return_type_branch->getDataType();
+        // Validate the return type is allowed
+        if (return_data_type == "void")
+        {
+            this->logger->error("Function: \"" + function_name + "\" returns type void this is illegal for expressions", func_call_branch);
+        }
+        else if (!getCompiler()->canFit(requirement_type, return_data_type))
+        {
+            this->logger->warn("Function: \"" + function_name + "\" returns type \"" + return_data_type + "\" but this primitive type cannot fit directly into \"" + requirement_type + "\" data will be lost", func_call_branch);
+        }
+        
+        // Validate the function call
+        validate_function_call(std::dynamic_pointer_cast<FuncCallBranch>(branch));
+       
     }
 }
 
@@ -365,6 +449,39 @@ std::shared_ptr<FuncDefBranch> SemanticValidator::getFunction(std::string functi
     }
 
     return this->functions[function_name];
+}
+
+bool SemanticValidator::ensure_function_exists(std::string func_name, std::shared_ptr<Branch> stmt_branch)
+{
+    if (!hasFunction(func_name))
+    {
+        function_not_declared(func_name, stmt_branch);
+        return false;
+    }
+
+    return true;
+}
+
+bool SemanticValidator::ensure_variable_exists(std::shared_ptr<VarIdentifierBranch> var_iden_branch)
+{
+    if (var_iden_branch->getVariableDefinitionBranch() == NULL)
+    {
+        variable_not_declared(var_iden_branch);
+        return false;
+    }
+
+    return true;
+}
+
+void SemanticValidator::function_not_declared(std::string func_name, std::shared_ptr<Branch> stmt_branch)
+{
+    this->logger->error("The function \"" + func_name + "\" is not declared but you are trying to use it or get its address", stmt_branch);
+}
+
+void SemanticValidator::variable_not_declared(std::shared_ptr<VarIdentifierBranch> var_iden_branch)
+{
+    std::string var_name = var_iden_branch->getVariableNameBranch()->getValue();
+    this->logger->error("The variable \"" + var_name + "\" is not declared", var_iden_branch);
 }
 
 void SemanticValidator::critical_error(std::string message, std::shared_ptr<Branch> branch)

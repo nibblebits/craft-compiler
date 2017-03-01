@@ -38,6 +38,7 @@ class VDEFBranch;
 class BODYBranch;
 class FuncBranch;
 class FuncDefBranch;
+class FuncCallBranch;
 class VarIdentifierBranch;
 class AssignBranch;
 class STRUCTDEFBranch;
@@ -62,14 +63,19 @@ private:
     void validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch);
     void validate_var_access(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     void validate_assignment(std::shared_ptr<AssignBranch> assign_branch);
+    void validate_function_call(std::shared_ptr<FuncCallBranch> func_call_branch);
     void validate_structure_definition(std::shared_ptr<STRUCTDEFBranch> struct_def_branch);
     void validate_structure(std::shared_ptr<STRUCTBranch> structure_branch);
-    void validate_expression(std::shared_ptr<EBranch> e_branch, std::string requirement_type, bool requires_pointer);
-    void validate_value(std::shared_ptr<Branch> branch, std::string requirement_type, bool requires_pointer);
+    void validate_expression(std::shared_ptr<EBranch> e_branch, std::string requirement_type, bool requires_pointer, int pointer_depth);
+    void validate_value(std::shared_ptr<Branch> branch, std::string requirement_type, bool requires_pointer, int pointer_depth);
     void register_function(std::shared_ptr<FuncDefBranch> func_branch);
     bool hasFunction(std::string function_name);
     std::shared_ptr<FuncDefBranch> getFunction(std::string function_name);
 
+    bool ensure_function_exists(std::string func_name, std::shared_ptr<Branch> stmt_branch);
+    bool ensure_variable_exists(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
+    void function_not_declared(std::string func_name, std::shared_ptr<Branch> stmt_branch);
+    void variable_not_declared(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     void critical_error(std::string message, std::shared_ptr<Branch> branch = NULL);
 
     std::shared_ptr<Tree> tree;
