@@ -83,6 +83,10 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
     {
         validate_var_access(std::dynamic_pointer_cast<VarIdentifierBranch>(branch));
     }
+    else if (type == "PTR")
+    {
+        validate_pointer_access(std::dynamic_pointer_cast<PTRBranch>(branch));
+    }
     else if (type == "ASSIGN")
     {
         validate_assignment(std::dynamic_pointer_cast<AssignBranch>(branch));
@@ -215,6 +219,24 @@ void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch>
     }
 }
 
+/**
+ * Attempts to validate the pointer branch
+ * 
+ * @param ptr_branch
+ * @return  Returns true on success and false on failure 
+ */
+bool SemanticValidator::validate_pointer_access(std::shared_ptr<PTRBranch> ptr_branch)
+{
+    // Lets make sure the pointer access is linking to a valid pointer definition
+    if (ptr_branch->getPointerVariableIdentifierBranch() == NULL)
+    {
+        this->logger->error("Attempting to access invalid pointer value, pointer access must use a valid pointer variable", ptr_branch);
+        return false;
+    }
+
+    return true;
+}
+
 void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign_branch)
 {
     // Validate the variable to assign
@@ -225,6 +247,12 @@ void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign
     if (var_to_assign_branch->getType() == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_to_assign_branch);
+        // Lets validate the pointer to make sure its all valid
+        if (!validate_pointer_access(ptr_branch))
+        {
+            return;
+        }
+
         // Ok its a pointer branch so get the pointer variable identifier associated with it.
         var_iden_branch = ptr_branch->getPointerVariableIdentifierBranch();
     }
@@ -232,7 +260,7 @@ void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign
     {
         var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_to_assign_branch);
     }
-    
+
     std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
     std::string data_type = vdef_branch->getDataTypeBranch()->getDataType();
 

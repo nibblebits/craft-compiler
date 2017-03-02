@@ -40,6 +40,7 @@ class FuncBranch;
 class FuncDefBranch;
 class FuncCallBranch;
 class VarIdentifierBranch;
+class PTRBranch;
 class AssignBranch;
 class STRUCTDEFBranch;
 class STRUCTBranch;
@@ -62,6 +63,7 @@ private:
     void validate_body(std::shared_ptr<BODYBranch> body_branch);
     void validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch);
     void validate_var_access(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
+    bool validate_pointer_access(std::shared_ptr<PTRBranch> ptr_branch);
     void validate_assignment(std::shared_ptr<AssignBranch> assign_branch);
     void validate_function_call(std::shared_ptr<FuncCallBranch> func_call_branch);
     void validate_structure_definition(std::shared_ptr<STRUCTDEFBranch> struct_def_branch);
