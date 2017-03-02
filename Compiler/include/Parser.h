@@ -180,6 +180,7 @@ private:
     std::shared_ptr<ScopeBranch> root_scope;
     std::shared_ptr<FuncBranch> current_function;
 
+    bool did_return;
     Compiler* compiler;
     std::shared_ptr<Tree> tree;
 };

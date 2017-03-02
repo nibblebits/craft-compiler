@@ -64,6 +64,7 @@ Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
     this->current_local_scope = NULL;
     this->current_function = NULL;
     this->compiler = compiler;
+    this->did_return = false;
 }
 
 Parser::~Parser()
@@ -339,6 +340,8 @@ void Parser::process_inline_asm()
  */
 void Parser::process_function()
 {
+    this->did_return = false;
+
     // Get the return data type
     process_data_type();
     pop_branch();
@@ -417,6 +420,15 @@ void Parser::process_function()
         // Process the function body
         process_body(body_root);
         this->current_function = NULL;
+
+        // Add a return branch to the bottom of the body if there was no return statement or the data type is void
+        if (!this->did_return || (data_type_branch->getDataType() == "void"))
+        {
+            // There was no return statement for this function so we should add one
+            // Create the return branch
+            std::shared_ptr<ReturnBranch> return_branch = std::shared_ptr<ReturnBranch>(new ReturnBranch(this->compiler));
+            body_root->addChild(return_branch);
+        }
 
         // Pop off the body its no longer needed as we are already aware of
         pop_branch();
@@ -1241,6 +1253,9 @@ void Parser::process_return_stmt()
 
     // Finally push the return branch to the stack
     push_branch(return_branch);
+
+    did_return = true;
+
 }
 
 void Parser::process_structure()
