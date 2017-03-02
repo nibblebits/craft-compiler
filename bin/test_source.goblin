@@ -1,3 +1,52 @@
-__asm("mov ax, 30");
-__asm("segment data");
-__asm("db 'test'")
+__asm("call _main");
+__asm("mov ah, 0x4c");
+__asm("int 0x21");
+
+uint8 strlen(uint8* message)
+{
+	uint8 len = 0;
+	while(1)
+	{
+		uint8 c = *message[len];
+		if(c == 0)
+		{
+			break;
+		}
+		len += 1;
+	}
+	
+	return len;
+}
+
+void print_char(uint8 c)
+{
+	__asm("mov ah, 0x0e");
+	__asm("mov al, [%i]", c);
+	__asm("int 0x10");
+	return;
+}
+
+void print_crlf()
+{
+	print_char(13);
+	print_char(10);
+	return;
+}
+
+void print(uint8* message)
+{
+	uint8 len = strlen(message);
+	for (uint8 i = 0; i < len; i = i +1)
+	{
+		print_char(*message[i]);
+	}
+	return;
+}
+
+
+uint8 main()
+{
+	print("Will load file: ");
+	return 1;
+}
+
