@@ -115,8 +115,8 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
          * Upon cloning we will then let the new structure definition know about it.
          */
         std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(branch);
-        std::shared_ptr<Branch> struct_name_branch = struct_def_branch->getDataTypeBranch();
-        std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(this->tree->root->getDeclaredStructureByName(struct_name_branch->getValue()));
+        std::string struct_name = struct_def_branch->getDataTypeBranch()->getDataType();
+        std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(this->tree->root->getDeclaredStructureByName(struct_name));
         std::shared_ptr<BODYBranch> struct_branch_body = struct_branch->getStructBodyBranch();
         std::shared_ptr<BODYBranch> unique_body = std::dynamic_pointer_cast<BODYBranch>(struct_branch_body->clone());
         struct_def_branch->setStructBody(unique_body);

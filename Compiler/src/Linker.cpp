@@ -37,6 +37,7 @@ Linker::~Linker()
 {
 
 }
+
 void Linker::addObjectFile(std::shared_ptr<VirtualObjectFormat> obj)
 {
     if (hasObjectFile(obj))
@@ -69,7 +70,7 @@ void Linker::link()
 
     /* At this point we should have all external references defined in one object file, 
      * so lets make sure external references can be linked up properly */
-    
+
     for (std::string ext_ref : main_obj->getExternalReferences())
     {
         if (!main_obj->hasGlobalReference(ext_ref))
@@ -77,9 +78,68 @@ void Linker::link()
             throw Exception("Undefined reference: " + ext_ref + ", ensure that you are including all your object files and try again", "void Linker::link()");
         }
     }
-    
+
     // Resolve unknown symbols
     this->resolve(main_obj);
+
+#ifdef DEBUG_MODE
+    std::cout << "Resolved linker Object" << std::endl;
+    debug_virtual_object_format(main_obj);
+#endif
+
+    // Ok we may need to apply an origin for each segment now
+    for (std::shared_ptr<VirtualSegment> segment : main_obj->getSegments())
+    {
+        for (std::shared_ptr<FIXUP> fixup : segment->getFixups())
+        {
+            if (fixup->getType() == FIXUP_TYPE_SEGMENT)
+            {
+                if (fixup->getTarget()->getType() == FIXUP_TARGET_TYPE_SEGMENT)
+                {
+                    std::shared_ptr<FIXUP_TARGET_SEGMENT> fixup_target_segment = std::dynamic_pointer_cast<FIXUP_TARGET_SEGMENT>(fixup->getTarget());
+                    if (fixup_target_segment->getTargetSegment()->hasOrigin())
+                    {
+                        int origin = fixup_target_segment->getTargetSegment()->getOrigin();
+                        int fixup_old_value;
+                        int fixup_new_value;
+                        switch (fixup->getLength())
+                        {
+                        case FIXUP_8BIT:
+                            fixup_old_value = segment->getStream()->peek8(fixup->getOffset());
+                            break;
+                        case FIXUP_16BIT:
+                            fixup_old_value = segment->getStream()->peek16(fixup->getOffset());
+                            break;
+                        case FIXUP_32BIT:
+                            fixup_old_value = segment->getStream()->peek32(fixup->getOffset());
+                            break;
+                        }
+
+
+                        fixup_new_value = fixup_old_value + origin;
+
+                        // Now finally lets overwrite it with the new value
+                        switch (fixup->getLength())
+                        {
+                        case FIXUP_8BIT:
+                            segment->getStream()->overwrite8(fixup->getOffset(), fixup_new_value);
+                            break;
+                        case FIXUP_16BIT:
+                            segment->getStream()->overwrite16(fixup->getOffset(), fixup_new_value);
+                            break;
+                        case FIXUP_32BIT:
+                            segment->getStream()->overwrite32(fixup->getOffset(), fixup_new_value);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // May need to apply origin for external fixups here, really depends not implementing it yet 
+                }
+            }
+        }
+    }
 
 #ifdef DEBUG_MODE
     std::cout << "Final Object" << std::endl;

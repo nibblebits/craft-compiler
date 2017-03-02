@@ -278,7 +278,6 @@ bool VirtualSegment::hasGlobalReference(std::string ref_name)
 
 bool VirtualSegment::hasOrigin()
 {
-
     return this->origin != 0;
 }
 
