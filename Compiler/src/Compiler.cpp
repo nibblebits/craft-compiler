@@ -319,6 +319,14 @@ long Compiler::evaluate(long n1, long n2, std::string op)
         return n1 >> n2;
     else if (op == "<<")
         return n1 << n2;
+    else if(op == "<")
+        return n1 < n2;
+    else if(op == ">")
+        return n1 > n2;
+    else if(op == "<=")
+        return n1 <= n2;
+    else if(op == ">=")
+        return n1 >= n2;
 
 
     throw Exception("long Compiler::evaluate(long n1, long n2, std::string op): do not know how to evaluate for operator: \"" + op + "\"");
