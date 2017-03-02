@@ -101,6 +101,13 @@ CharPos CustomBranch::getClosestPosition()
         }
     }
     
+    std::shared_ptr<Branch> parent = getParent();
+    if (parent != NULL)
+    {
+        std::shared_ptr<CustomBranch> parent_custom = std::dynamic_pointer_cast<CustomBranch>(parent);
+        return parent_custom->getClosestPosition();
+    }
+    
     // We couldn't find our closest token so lets just throw an exception
     throw Exception("Could not find closest token position for branch type: " + getType(), "CharPos CustomBranch::getClosestPosition()");
 }
