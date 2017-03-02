@@ -472,7 +472,7 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, std::stri
         {
             this->logger->error("Function \"" + function_name + "\" is returning a primitive type of type: \"" + return_data_type + "\". Expecting a non-primitive type of type \"" + requirement_type + "\"", func_call_branch);
         }
-        else if (!getCompiler()->canFit(requirement_type, return_data_type))
+        else if (getCompiler()->isPrimitiveDataType(requirement_type) && !getCompiler()->canFit(requirement_type, return_data_type))
         {
             this->logger->warn("Function: \"" + function_name + "\" returns type \"" + return_data_type + "\" but this primitive type cannot fit directly into \"" + requirement_type + "\" data will be lost", func_call_branch);
         }

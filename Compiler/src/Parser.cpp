@@ -113,8 +113,33 @@ void Parser::process_top()
             {
                 // peek further again to see if their is yet another identifier or pointer declaration
                 peek(2);
-                if (is_peek_type("identifier")
-                        || (is_peek_operator("*") && is_peek_type("identifier", 1)))
+                if (is_peek_operator("*"))
+                {
+                    // Peek ahead until we see no more "*" operators
+                    int i = 2;
+                    while (true)
+                    {
+                        if (!is_peek_operator("*", i))
+                        {
+                            break;
+                        }
+                        i++;
+                    }
+
+                    // Is this a function?
+                    if (is_peek_type("identifier", i) && is_peek_symbol("(", i + 1))
+                    {
+                        // This is a function that returns a structure pointer
+                        process_function();
+                    }
+                    else
+                    {
+                        // This is a structure variable declaration so process it
+                        process_structure_declaration();
+                        process_semicolon();
+                    }
+                }
+                else if (is_peek_type("identifier"))
                 {
                     // This is a structure variable declaration so process it
                     process_structure_declaration();
@@ -609,32 +634,53 @@ void Parser::process_data_type()
 {
     std::shared_ptr<Branch> var_keyword_branch = NULL;
     std::shared_ptr<DataTypeBranch> data_type_branch = std::shared_ptr<DataTypeBranch>(new DataTypeBranch(getCompiler()));
-    // Shift the keyword of the variable onto the stack
-    shift_pop();
-    if (!is_branch_type("keyword"))
-    {
-        error_expecting("keyword", this->branch_value);
-    }
 
-    // Check that the keyword is a data type
-    if (!Lexer::isDataTypeKeyword(this->branch_value))
+    std::string data_type;
+
+    // Peek ahead to see if this is a non-primitive structure type
+    peek();
+    if (is_peek_keyword("struct"))
     {
-        error("Expecting a data type keyword for a variable declaration");
+        // Ok shift and pop the struct keyword we don't want it anymore
+        shift_pop();
+
+        // Next we expect an identifier
+        shift_pop();
+        if (!is_branch_type("identifier"))
+        {
+            error_expecting("identifier", this->branch_type);
+        }
+
+        data_type = this->branch->getValue();
+    }
+    else
+    {
+        // Shift the keyword of the variable onto the stack
+        shift_pop();
+        if (!is_branch_type("keyword"))
+        {
+            error_expecting("keyword", this->branch_type);
+        }
+
+        // Check that the keyword is a data type
+        if (!Lexer::isDataTypeKeyword(this->branch_value))
+        {
+            error("Expecting a data type keyword for a variable declaration");
+        }
+
+        data_type = this->branch->getValue();
     }
 
     var_keyword_branch = this->branch;
 
-    data_type_branch->setDataType(var_keyword_branch->getValue());
+    data_type_branch->setDataType(data_type);
 
     // Lets see if we are defining a pointer
     peek();
     if (is_peek_operator("*"))
     {
-        // Shift and pop the pointer operator
-        shift_pop();
-
         // Lets find out how much pointer depth we have here
-        int depth = 1 + get_pointer_depth();
+        int depth = get_pointer_depth();
         data_type_branch->setPointer(true, depth);
     }
 
@@ -711,8 +757,8 @@ void Parser::process_ptr()
         // Pointer expressions stopped working after a recent change to the system, they will be disabled for now
         error("Pointer expressions are broken at the moment, they will be added back into the system soon! Please use non-expression pointer access \"*ptr\"");
         // Process the expression
-   //     process_expression();
-     //   pop_branch();
+        //     process_expression();
+        //   pop_branch();
     }
     else
     {
@@ -1304,37 +1350,19 @@ void Parser::process_structure()
 
 void Parser::process_structure_declaration()
 {
-    std::shared_ptr<STRUCTDEFBranch> struct_declaration = std::shared_ptr<STRUCTDEFBranch>(new STRUCTDEFBranch(compiler));
-    std::shared_ptr<DataTypeBranch> data_type_branch = std::shared_ptr<DataTypeBranch>(new DataTypeBranch(compiler));
-
-    // Shift and pop the token and check that it is a "keyword" equal to "struct"
-    shift_pop();
-    if (!is_branch_keyword("struct"))
+    peek();
+    if (!is_peek_keyword("struct"))
     {
         error_expecting("struct", this->token_value);
     }
 
+    // Process the data type
+    process_data_type();
+    pop_branch();
+    
+    std::shared_ptr<DataTypeBranch> data_type_branch = std::dynamic_pointer_cast<DataTypeBranch>(this->branch);
+    std::shared_ptr<STRUCTDEFBranch> struct_declaration = std::shared_ptr<STRUCTDEFBranch>(new STRUCTDEFBranch(compiler));
 
-    // Shift and pop the token and check that it is an "identifier" this is the structure name
-    shift_pop();
-    if (!is_branch_type("identifier"))
-    {
-        error_expecting("identifier", this->token_value);
-    }
-
-    std::shared_ptr<Branch> struct_name_branch = this->branch;
-    data_type_branch->setDataType(struct_name_branch->getValue());
-
-    // Lets check to see if this is a pointer declaration
-    peek();
-    if (is_peek_operator("*"))
-    {
-        // Shift and pop the operator from the stack as we do not need it anymore
-        shift_pop();
-        // Lets find out how much depth this pointer is
-        int depth = 1 + get_pointer_depth();
-        data_type_branch->setPointer(true, depth);
-    }
 
     // process the variable access
     process_variable_access();

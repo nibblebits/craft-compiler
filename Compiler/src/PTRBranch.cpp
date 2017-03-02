@@ -67,7 +67,8 @@ std::shared_ptr<VarIdentifierBranch> PTRBranch::getPointerVariableIdentifierBran
         else if(branch->getType() == "VAR_IDENTIFIER")
         {
             std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(branch);
-            if (var_iden_branch->getVariableDefinitionBranch()->isPointer())
+            std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch(true);
+            if (vdef_branch->isPointer())
                 ptr_var_iden_branch = var_iden_branch;
         }
     };
