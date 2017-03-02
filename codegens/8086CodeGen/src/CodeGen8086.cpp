@@ -482,7 +482,8 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
         {
             if (this->pointer_selected_variable->isPrimitive())
             {
-                if (this->pointer_selected_variable->getDataTypeBranch()->getDataTypeSize(true) == 2)
+                std::shared_ptr<DataTypeBranch> pointer_selected_var_data_type = this->pointer_selected_variable->getDataTypeBranch();
+                if (ptr_branch->getPointerDepth() < pointer_selected_var_data_type->getPointerDepth() || pointer_selected_var_data_type->getDataTypeSize(true) == 2)
                 {
                     // This is pointing to a word.
                     do_asm("mov " + register_to_store + ", [bx]");
