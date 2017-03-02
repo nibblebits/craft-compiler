@@ -40,7 +40,7 @@ AssignBranch::~AssignBranch()
 {
 }
 
-void AssignBranch::setVariableToAssignBranch(std::shared_ptr<VarIdentifierBranch> var_branch)
+void AssignBranch::setVariableToAssignBranch(std::shared_ptr<Branch> var_branch)
 {
     CustomBranch::registerBranch("variable_to_assign_branch", var_branch);
 }
@@ -50,9 +50,9 @@ void AssignBranch::setValueBranch(std::shared_ptr<Branch> value_branch)
     CustomBranch::registerBranch("value_to_assign_branch", value_branch);
 }
 
-std::shared_ptr<VarIdentifierBranch> AssignBranch::getVariableToAssignBranch()
+std::shared_ptr<Branch> AssignBranch::getVariableToAssignBranch()
 {
-    return std::dynamic_pointer_cast<VarIdentifierBranch>(CustomBranch::getRegisteredBranchByName("variable_to_assign_branch"));
+    return CustomBranch::getRegisteredBranchByName("variable_to_assign_branch");
 }
 
 std::shared_ptr<Branch> AssignBranch::getValueBranch()

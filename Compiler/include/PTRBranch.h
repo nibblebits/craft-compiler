@@ -34,6 +34,8 @@ public:
     virtual ~PTRBranch();
     void setExpressionBranch(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getExpressionBranch();
+    
+    std::shared_ptr<VarIdentifierBranch> getPointerVariableIdentifierBranch();
 
     void setPointerDepth(int depth);
     int getPointerDepth();

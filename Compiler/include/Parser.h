@@ -92,7 +92,7 @@ private:
     void process_data_type();
     void process_variable_declaration();
     void process_ptr();
-    void process_assignment(std::shared_ptr<VarIdentifierBranch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op);
+    void process_assignment(std::shared_ptr<Branch> left, std::shared_ptr<Branch> right, std::shared_ptr<Branch> op);
     void process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struct_def=NULL);
     void process_structure_descriptor();
     void process_structure_access();

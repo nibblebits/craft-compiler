@@ -217,10 +217,22 @@ void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch>
 
 void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign_branch)
 {
-    // Validate the variable access
-    validate_var_access(assign_branch->getVariableToAssignBranch());
+    // Validate the variable to assign
+    validate_part(assign_branch->getVariableToAssignBranch());
 
-    std::shared_ptr<VarIdentifierBranch> var_iden_branch = assign_branch->getVariableToAssignBranch();
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch = NULL;
+    std::shared_ptr<Branch> var_to_assign_branch = assign_branch->getVariableToAssignBranch();
+    if (var_to_assign_branch->getType() == "PTR")
+    {
+        std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_to_assign_branch);
+        // Ok its a pointer branch so get the pointer variable identifier associated with it.
+        var_iden_branch = ptr_branch->getPointerVariableIdentifierBranch();
+    }
+    else
+    {
+        var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_to_assign_branch);
+    }
+    
     std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
     std::string data_type = vdef_branch->getDataTypeBranch()->getDataType();
 

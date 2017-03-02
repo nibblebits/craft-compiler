@@ -25,6 +25,8 @@
  */
 
 #include "PTRBranch.h"
+#include "VarIdentifierBranch.h"
+#include "VDEFBranch.h"
 
 PTRBranch::PTRBranch(Compiler* compiler) : CustomBranch(compiler, "PTR", "")
 {
@@ -42,6 +44,37 @@ void PTRBranch::setExpressionBranch(std::shared_ptr<Branch> var_branch)
 std::shared_ptr<Branch> PTRBranch::getExpressionBranch()
 {
     return CustomBranch::getRegisteredBranchByName("expression_branch");
+}
+
+
+/**
+ * Returns a variable identifier branch for the pointer variable that this pointer is referencing to or returns NULL if no such
+ * pointer variable was found.
+ * 
+ * @return The VarIdentifierBranch object for the pointer variable that this pointer is referencing too
+ */
+std::shared_ptr<VarIdentifierBranch> PTRBranch::getPointerVariableIdentifierBranch()
+{
+    std::shared_ptr<VarIdentifierBranch> ptr_var_iden_branch = NULL;
+    
+    // Search for the pointer variable identifier
+    std::function<void(std::shared_ptr<Branch> branch)> iterate_func = [&](std::shared_ptr<Branch> branch) -> void
+    {
+        if (branch->getType() == "E")
+        {
+            branch->iterate_children(iterate_func);
+        }
+        else if(branch->getType() == "VAR_IDENTIFIER")
+        {
+            std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(branch);
+            if (var_iden_branch->getVariableDefinitionBranch()->isPointer())
+                ptr_var_iden_branch = var_iden_branch;
+        }
+    };
+    
+    Branch::iterate_children(iterate_func);
+    
+    return ptr_var_iden_branch;
 }
 
 void PTRBranch::setPointerDepth(int depth)
