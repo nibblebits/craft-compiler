@@ -694,6 +694,16 @@ void Parser::process_data_type()
  */
 void Parser::process_variable_declaration()
 {
+    
+    peek();
+    if (is_peek_keyword("struct"))
+    {
+        // This is actually a structure declaration
+        process_structure_declaration();
+        return;
+    }
+    
+    
     std::shared_ptr<Branch> identifier_branch = NULL;
     std::shared_ptr<Branch> var_value_branch = NULL;
 
