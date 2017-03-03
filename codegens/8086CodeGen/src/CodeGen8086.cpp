@@ -213,7 +213,7 @@ std::string CodeGen8086::make_string(std::shared_ptr<Branch> string_branch)
 
 // The only supported inline assembly arguments are numbers and variables, you cannot use pointers either.
 
-void CodeGen8086::make_inline_asm(std::shared_ptr<ASMBranch> asm_branch)
+void CodeGen8086::make_inline_asm(struct stmt_info* s_info, std::shared_ptr<ASMBranch> asm_branch)
 {
     std::string asm_str = asm_branch->getInstructionStartStringBranch()->getValue();
     for (std::shared_ptr<Branch> child_branch : asm_branch->getInstructionArgumentsBranch()->getChildren())
@@ -224,7 +224,7 @@ void CodeGen8086::make_inline_asm(std::shared_ptr<ASMBranch> asm_branch)
         if (argument_val_branch->getType() == "VAR_IDENTIFIER")
         {
             std::shared_ptr<VarIdentifierBranch> arg_child_value_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(arg_child_branch->getArgumentValueBranch());
-            op_str = getASMAddressForVariableFormatted(arg_child_value_branch);
+            op_str = getASMAddressForVariableFormatted(s_info, arg_child_value_branch);
         }
         else if (argument_val_branch->getType() == "number")
         {
@@ -287,7 +287,7 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
     }
 }
 
-void CodeGen8086::handle_logical_expression(std::shared_ptr<Branch> exp_branch, bool should_setup)
+void CodeGen8086::handle_logical_expression(std::shared_ptr<Branch> exp_branch, struct stmt_info* s_info, bool should_setup)
 {
     std::shared_ptr<Branch> left = exp_branch->getFirstChild();
     std::shared_ptr<Branch> right = exp_branch->getSecondChild();
@@ -298,7 +298,7 @@ void CodeGen8086::handle_logical_expression(std::shared_ptr<Branch> exp_branch, 
 
     if (left->getType() != "E")
     {
-        make_expression(left);
+        make_expression(left, s_info);
         // We must setup comparing as it would not have been done for this variable.
         make_compare_instruction(">", "ax", "0");
         // If we have an logical OR then we must end the compare expression here
@@ -309,42 +309,36 @@ void CodeGen8086::handle_logical_expression(std::shared_ptr<Branch> exp_branch, 
     }
     else if (compiler->isLogicalOperator(left->getValue()))
     {
-        handle_logical_expression(left, false);
+        handle_logical_expression(left, s_info, false);
     }
     else
     {
-        make_expression(left);
+        make_expression(left, s_info);
     }
 
     if (right->getType() != "E")
     {
-        make_expression(right);
+        make_expression(right, s_info);
         make_compare_instruction(">", "ax", "0");
     }
     else if (compiler->isLogicalOperator(right->getValue()))
     {
-        handle_logical_expression(right, false);
+        handle_logical_expression(right, s_info, false);
     }
     else
     {
-        make_expression(right);
+        make_expression(right, s_info);
     }
 
     handle_compare_expression();
 }
 
-void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func, std::function<void() > exp_end_func, bool postpone_pointer)
+void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, struct stmt_info* s_info, std::function<void() > exp_start_func, std::function<void() > exp_end_func)
 {
 
     std::shared_ptr<Branch> left = NULL;
     std::shared_ptr<Branch> right = NULL;
 
-    // Only if we are currently handling a pointer should we have to postpone it.
-    if (postpone_pointer)
-    {
-        // Postpone any pointer handling going on as its unrelated.
-        //  postpone_pointer_handling();
-    }
 
     // Do we have something we need to notify about starting this expression?
     if (exp_start_func != NULL)
@@ -356,13 +350,13 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
  so we need to make the compare instruction ourself, we will check if the variable is above zero.*/
     if (compiler->isLogicalOperator(exp->getValue()))
     {
-        handle_logical_expression(exp);
+        handle_logical_expression(exp, s_info);
     }
     else
     {
         if (exp->getType() != "E")
         {
-            make_expression_left(exp, "ax");
+            make_expression_left(exp, "ax", s_info);
         }
         else
         {
@@ -371,11 +365,11 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
 
             if (left->getType() == "E")
             {
-                make_expression(left);
+                make_expression(left, s_info, NULL, NULL);
             }
             else if (right->getType() != "E")
             {
-                make_expression_left(left, "ax");
+                make_expression_left(left, "ax", s_info);
             }
 
             // Save the AX register if we need to
@@ -388,15 +382,15 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
 
             if (right->getType() == "E")
             {
-                make_expression(right);
+                make_expression(right, s_info);
                 if (left->getType() != "E")
                 {
-                    make_expression_left(left, "cx");
+                    make_expression_left(left, "cx", s_info);
                 }
             }
             else
             {
-                make_expression_right(right);
+                make_expression_right(right, s_info);
             }
 
             // Restore the AX register if we need to
@@ -434,7 +428,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, std::function<voi
     }
 }
 
-void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store)
+void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store, struct stmt_info* s_info)
 {
     if (exp->getType() == "number")
     {
@@ -447,28 +441,38 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     }
     else if (exp->getType() == "VAR_IDENTIFIER")
     {
-        if (this->is_handling_pointer)
-        {
-            // When handling pointers only addresses should be calculated the value should not be brought back
-            std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(exp);
-            if (this->pointer_selected_variable == NULL)
-            {
-                // No variable yet set, set it to us
-                this->pointer_selected_variable = var_iden_branch->getVariableDefinitionBranch();
-                this->pointer_selected_var_iden = var_iden_branch;
-            }
-            std::string pos = make_var_access(var_iden_branch);
-            do_asm("mov " + register_to_store + ", [" + pos + "]");
-        }
-        else
-        {
-            // This is a variable so set register to store to the value of this variable
-            make_move_reg_variable(register_to_store, std::dynamic_pointer_cast<VarIdentifierBranch>(exp));
-        }
+        std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(exp);
+        std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
+
+        /*
+                if (this->is_handling_pointer)
+                {
+                    // When handling pointers only addresses should be calculated the value should not be brought back
+                    if (this->pointer_selected_variable == NULL)
+                    {
+                        // No variable yet set, set it to us
+                        this->pointer_selected_variable = var_iden_branch->getVariableDefinitionBranch();
+                        this->pointer_selected_var_iden = var_iden_branch;
+                    }
+                    std::string pos = make_var_access(var_iden_branch);
+                    do_asm("mov " + register_to_store + ", [" + pos + "]");
+                }
+                else if ((!var_iden_branch->hasRootArrayIndexBranch()    && vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
+                {
+                    // When accessing arrays without using an index we should just get the address of the array
+                    std::string pos = make_var_access(var_iden_branch);
+                    do_asm("lea " + register_to_store + ", " + pos);
+                }
+                else
+                {
+          }
+         */
+        // This is a variable so set register to store to the value of this variable
+        make_move_reg_variable(register_to_store, var_iden_branch, s_info);
     }
     else if (exp->getType() == "LOGICAL_NOT")
     {
-        make_logical_not(std::dynamic_pointer_cast<LogicalNotBranch>(exp), register_to_store);
+        make_logical_not(std::dynamic_pointer_cast<LogicalNotBranch>(exp), register_to_store, s_info);
     }
     else if (exp->getType() == "PTR")
     {
@@ -510,7 +514,7 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
         // Move the address of the variable to the AX register
         std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(exp);
         std::shared_ptr<VarIdentifierBranch> var_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(address_of_branch->getVariableBranch());
-        make_move_var_addr_to_reg(register_to_store, var_branch);
+        make_move_var_addr_to_reg(s_info, register_to_store, var_branch);
     }
     else if (exp->getType() == "ASSIGN")
     {
@@ -520,7 +524,7 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     }
 }
 
-void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store)
+void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store, struct stmt_info* s_info)
 {
     /* Blank AH ready for 8 bit identifiers.
      * This is required due to data left in the AH register due to previous expressions,
@@ -534,10 +538,10 @@ void CodeGen8086::make_expression_left(std::shared_ptr<Branch> exp, std::string 
             do_asm("xor ah, ah");
         }
     }
-    make_expression_part(exp, register_to_store);
+    make_expression_part(exp, register_to_store, s_info);
 }
 
-void CodeGen8086::make_expression_right(std::shared_ptr<Branch> exp)
+void CodeGen8086::make_expression_right(std::shared_ptr<Branch> exp, struct stmt_info* s_info)
 {
     if (exp->getType() == "FUNC_CALL")
     {
@@ -574,7 +578,7 @@ void CodeGen8086::make_expression_right(std::shared_ptr<Branch> exp)
             }
         }
 
-        make_expression_part(exp, "cx");
+        make_expression_part(exp, "cx", s_info);
     }
 
 }
@@ -857,18 +861,10 @@ void CodeGen8086::make_compare_instruction(std::string op, std::string first_val
     this->do_signed = false;
 }
 
-void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIdentifierBranch> var_branch)
+void CodeGen8086::move_data_to_register(std::string reg, std::string pos, int data_size)
 {
-    std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
-    std::string pos = make_var_access(var_branch);
-    if (vdef_branch->isSigned())
-    {
-        //  This variable is signed so mark it as so, so that signed appropriates will be used with operators.
-        this->do_signed = true;
-    }
-
-    do_asm("; MAKE MOVE REG VARIABLE");
-    if (!vdef_branch->getDataTypeBranch()->isPointer() && vdef_branch->getDataTypeBranch()->getDataTypeSize() == 1)
+    do_asm("; MOVE DATA TO REGISTER");
+    if (data_size == 1)
     {
         // We don't want anything left in the register so lets blank it
         do_asm("xor " + reg + ", " + reg);
@@ -879,16 +875,59 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
     }
 
     do_asm("mov " + reg + ", " + "[" + pos + "]");
+}
+
+void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIdentifierBranch> var_branch, struct stmt_info* s_info)
+{
+    std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
+    std::string pos = make_var_access(s_info, var_branch);
+    if (vdef_branch->isSigned())
+    {
+        //  This variable is signed so mark it as so, so that signed appropriates will be used with operators.
+        this->do_signed = true;
+    }
+
+    // Do we need to append any array elements for a pointer?
+    if (var_branch->hasRootArrayIndexBranch() && vdef_branch->isPointer())
+    {
+        // Load the position into the BX register
+        do_asm("lea bx, " + pos);
+        // Handle any array indexes
+        int offset = var_branch->getPositionRelZeroIgnoreCurrentScope([&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
+        {
+            handle_array_index(s_info, array_index_branch, elem_size);
+            do_asm("add bx, di");
+        }, POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
+        do_asm("add bx, " + std::to_string(offset));
+        // Finally move the value to the register
+        move_data_to_register("ax", "bx", vdef_branch->getDataTypeBranch()->getDataTypeSize(true));
+
+    }
+    else
+    {
+        int data_size;
+
+        if (s_info->assigning_pointer)
+        {
+            data_size = getPointerSize();
+        }
+        else
+        {
+            data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize();
+        }
+
+        move_data_to_register("ax", pos, data_size);
+    }
 
 }
 
-void CodeGen8086::make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch)
+void CodeGen8086::make_move_var_addr_to_reg(struct stmt_info* s_info, std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch)
 {
-    std::string pos = make_var_access(var_branch);
+    std::string pos = make_var_access(s_info, var_branch);
     do_asm("lea " + reg_name + ", [" + pos + "]");
 }
 
-void CodeGen8086::make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem)
+void CodeGen8086::make_array_offset_instructions(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem)
 {
     std::shared_ptr<ArrayIndexBranch> current_branch = array_branch;
 
@@ -897,7 +936,7 @@ void CodeGen8086::make_array_offset_instructions(std::shared_ptr<ArrayIndexBranc
     {
         std::shared_ptr<Branch> value_branch = current_branch->getValueBranch();
         // Make the expression of the array index
-        make_expression(value_branch);
+        make_expression(value_branch, s_info);
 
         c++;
         if (current_branch->hasNextArrayIndexBranch())
@@ -964,7 +1003,7 @@ void CodeGen8086::make_move_mem_to_mem(std::string dest_loc, std::string from_lo
     do_asm("loop " + continue_lbl_name);
 }
 
-void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch, std::string base_reg, std::shared_ptr<STRUCTBranch> current_struct)
+void CodeGen8086::make_var_access_rel_base(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch, std::string base_reg, std::shared_ptr<STRUCTBranch> current_struct)
 {
 
     std::shared_ptr<VarIdentifierBranch> root_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
@@ -987,7 +1026,7 @@ void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> 
 
     if (root_iden_branch->hasRootArrayIndexBranch())
     {
-        make_array_offset_instructions(root_iden_branch->getRootArrayIndexBranch(), root_vdef_branch->getDataTypeBranch()->getDataTypeSize(true));
+        make_array_offset_instructions(s_info, root_iden_branch->getRootArrayIndexBranch(), root_vdef_branch->getDataTypeBranch()->getDataTypeSize(true));
     }
 
 
@@ -1004,6 +1043,7 @@ void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> 
     {
         std::shared_ptr<STRUCTBranch> structure = getStructure(root_vdef_data_type_branch->getValue());
         make_var_access_rel_base(
+                                 s_info,
                                  std::dynamic_pointer_cast<VarIdentifierBranch>(root_iden_branch->getStructureAccessBranch()->getFirstChild()),
                                  vdef_in_question_branch,
                                  var_access_iden_branch,
@@ -1014,10 +1054,9 @@ void CodeGen8086::make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> 
 
 }
 
-std::string CodeGen8086::make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch)
+std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch)
 {
-    std::string var_addr_formatted = getASMAddressForVariableFormatted(var_branch);
-
+    std::string var_addr_formatted = getASMAddressForVariableFormatted(s_info, var_branch);
     return var_addr_formatted;
 }
 
@@ -1049,16 +1088,26 @@ void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::s
 
 void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value, std::string op)
 {
-    bool is_word;
+    struct stmt_info s_info;
+    s_info.is_assignment = true;
 
+    bool is_word;
     if (var_branch->getType() == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
+        std::shared_ptr<VarIdentifierBranch> ptr_branch_var_iden_branch = ptr_branch->getPointerVariableIdentifierBranch();
+        std::shared_ptr<VDEFBranch> ptr_branch_vdef_branch = ptr_branch_var_iden_branch->getVariableDefinitionBranch();
+     
+        // Are we assigning a pointer?
+        if (ptr_branch_vdef_branch->isPointer())
+        {
+            s_info.assigning_pointer = true;
+        }
+        
         handle_ptr(ptr_branch);
         is_word = is_alone_var_to_be_word(this->pointer_selected_variable, true);
-
         // Make the value expression
-        make_expression(value);
+        make_expression(value, &s_info);
 
         // Is this assignment an appendment
         if (op != "=")
@@ -1077,10 +1126,16 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
         std::shared_ptr<VDEFBranch> vdef_in_question_branch = var_iden_branch->getVariableDefinitionBranch();
 
-        std::string pos = make_var_access(var_iden_branch);
+        // Are we assigning a pointer?
+        if (vdef_in_question_branch->isPointer())
+        {
+            s_info.assigning_pointer = true;
+        }
+
+        std::string pos = make_var_access(&s_info, var_iden_branch);
 
         // Make the value expression
-        make_expression(value);
+        make_expression(value, &s_info);
 
         // Is this assignment an appendment
         if (op != "=")
@@ -1098,9 +1153,9 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
     }
 }
 
-void CodeGen8086::make_logical_not(std::shared_ptr<LogicalNotBranch> logical_not_branch, std::string register_to_store)
+void CodeGen8086::make_logical_not(std::shared_ptr<LogicalNotBranch> logical_not_branch, std::string register_to_store, struct stmt_info* s_info)
 {
-    make_expression(logical_not_branch->getSubjectBranch());
+    make_expression(logical_not_branch->getSubjectBranch(), s_info);
     std::string is_zero_lbl = build_unique_label();
     std::string end_label = build_unique_label();
     do_asm("test " + register_to_store + ", " + register_to_store);
@@ -1147,6 +1202,8 @@ void CodeGen8086::reset_scope_size()
 
 void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
 {
+    struct stmt_info s_info;
+
     this->pointer_selected_variable = NULL;
     this->pointer_selected_var_iden = NULL;
     this->is_handling_pointer = true;
@@ -1155,7 +1212,7 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
 
     std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
     // False to prevent postponing of the pointer
-    make_expression(exp_branch, NULL, NULL, false);
+    make_expression(exp_branch, &s_info, NULL, NULL);
     // Memory address in question is stored in AX but we need it in BX so it can be accessed later.
     do_asm("mov bx, ax");
 
@@ -1175,7 +1232,7 @@ void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
         {
             int pos = pointer_selected_var_iden->getPositionRelZeroIgnoreCurrentScope([&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
             {
-                handle_array_index(array_index_branch, elem_size);
+                handle_array_index(&s_info, array_index_branch, elem_size);
                 do_asm("add bx, di");
             }, POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
             do_asm("add bx, " + std::to_string(pos));
@@ -1254,6 +1311,8 @@ void CodeGen8086::handle_function_definition(std::shared_ptr<FuncDefBranch> func
 
 void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
 {
+    struct stmt_info* s_info;
+
     // Clear previous scope variables from other functions
     this->scope_variables.clear();
 
@@ -1280,7 +1339,7 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     handle_func_args(arguments_branch);
 
     // Handle the body
-    handle_body(body_branch);
+    handle_body(s_info, body_branch);
 
 
 }
@@ -1300,18 +1359,18 @@ void CodeGen8086::handle_func_args(std::shared_ptr<Branch> arguments)
     }
 }
 
-void CodeGen8086::handle_body(std::shared_ptr<Branch> body)
+void CodeGen8086::handle_body(struct stmt_info* s_info, std::shared_ptr<Branch> body)
 {
     new_scope(std::dynamic_pointer_cast<StandardScopeBranch>(body));
     // Now we can handle every statement
     for (std::shared_ptr<Branch> stmt : body->getChildren())
     {
-        handle_stmt(stmt);
+        handle_stmt(s_info, stmt);
     }
     end_scope();
 }
 
-void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
+void CodeGen8086::handle_stmt(struct stmt_info* s_info, std::shared_ptr<Branch> branch)
 {
     if (branch->getType() == "ASSIGN")
     {
@@ -1321,7 +1380,7 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
     else if (branch->getType() == "ASM")
     {
         std::shared_ptr<ASMBranch> asm_branch = std::dynamic_pointer_cast<ASMBranch>(branch);
-        make_inline_asm(asm_branch);
+        make_inline_asm(s_info, asm_branch);
     }
     else if (branch->getType() == "FUNC_CALL")
     {
@@ -1330,7 +1389,7 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
     }
     else if (branch->getType() == "RETURN")
     {
-        handle_func_return(std::dynamic_pointer_cast<ReturnBranch>(branch));
+        handle_func_return(s_info, std::dynamic_pointer_cast<ReturnBranch>(branch));
     }
     else if (branch->getType() == "V_DEF" ||
             branch->getType() == "STRUCT_DEF")
@@ -1366,6 +1425,8 @@ void CodeGen8086::handle_stmt(std::shared_ptr<Branch> branch)
 
 void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
 {
+    struct stmt_info s_info;
+
     std::shared_ptr<Branch> func_name_branch = branch->getFuncNameBranch();
     std::shared_ptr<Branch> func_params_branch = branch->getFuncParamsBranch();
 
@@ -1375,7 +1436,7 @@ void CodeGen8086::handle_function_call(std::shared_ptr<FuncCallBranch> branch)
     for (int i = params.size() - 1; i >= 0; i--)
     {
         std::shared_ptr<Branch> param = params.at(i);
-        make_expression(param);
+        make_expression(param, &s_info);
         // Push the expression to the stack as this is a function call
         do_asm("push ax");
     }
@@ -1396,13 +1457,13 @@ void CodeGen8086::handle_scope_assignment(std::shared_ptr<AssignBranch> assign_b
 
 }
 
-void CodeGen8086::handle_func_return(std::shared_ptr<ReturnBranch> return_branch)
+void CodeGen8086::handle_func_return(struct stmt_info* s_info, std::shared_ptr<ReturnBranch> return_branch)
 {
     if (return_branch->hasExpressionBranch())
     {
         // We have something to return
         // AX will be set to the value to return once the expression is complete.
-        make_expression(return_branch->getExpressionBranch());
+        make_expression(return_branch->getExpressionBranch(), s_info);
     }
 
     // Restore the stack pointer
@@ -1483,12 +1544,14 @@ void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> 
 
 void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
 {
+    struct stmt_info s_info;
+
     std::shared_ptr<Branch> exp_branch = branch->getExpressionBranch();
     std::shared_ptr<BODYBranch> body_branch = branch->getBodyBranch();
 
 
     // Process the expression of the "IF" statement
-    make_expression(exp_branch);
+    make_expression(exp_branch, &s_info);
 
     // Handle the compare expression
     handle_compare_expression();
@@ -1506,7 +1569,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
     calculate_scope_size(body_branch);
 
     // Handle the "IF" statements body.
-    handle_body(body_branch);
+    handle_body(&s_info, body_branch);
 
     reset_scope_size();
 
@@ -1533,7 +1596,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
         std::shared_ptr<Branch> else_body_branch = else_branch->getBodyBranch();
 
         // Handle the else's body
-        handle_body(else_body_branch);
+        handle_body(&s_info, else_body_branch);
     }
 
 
@@ -1543,6 +1606,8 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
 
 void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
 {
+    struct stmt_info s_info;
+
     do_asm("; FOR STATEMENT");
     std::shared_ptr<Branch> init_branch = branch->getInitBranch();
     std::shared_ptr<Branch> cond_branch = branch->getCondBranch();
@@ -1565,13 +1630,13 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     calculate_scope_size(std::dynamic_pointer_cast<ScopeBranch>(branch));
 
     // Handle the init branch.
-    handle_stmt(init_branch);
+    handle_stmt(&s_info, init_branch);
 
     // This is the label where it will jump if the expression is true
     make_exact_label(loop_label);
 
     // Make the condition branches expression
-    make_expression(cond_branch);
+    make_expression(cond_branch, &s_info);
 
     // Handle the compare expression
     handle_compare_expression();
@@ -1585,13 +1650,13 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     make_exact_label(true_label);
 
     // Handle the "FOR" statements body.
-    handle_body(body_branch);
+    handle_body(&s_info, body_branch);
 
     // Make the label where the actual loop logic is preformed this is where the variable will be modified
     make_exact_label(loop_part_label);
 
     // Now handle the loop
-    handle_stmt(loop_branch);
+    handle_stmt(&s_info, loop_branch);
 
     do_asm("jmp " + loop_label);
 
@@ -1613,6 +1678,7 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
 
 void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
 {
+    struct stmt_info s_info;
     std::shared_ptr<Branch> exp_branch = branch->getExpressionBranch();
     std::shared_ptr<BODYBranch> body_branch = branch->getBodyBranch();
 
@@ -1629,7 +1695,7 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
     make_exact_label(exp_label);
 
     // Process the expression of the "WHILE" statement
-    make_expression(exp_branch);
+    make_expression(exp_branch, &s_info);
 
     // Handle the compare expression
     handle_compare_expression();
@@ -1645,7 +1711,7 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
     make_exact_label(true_label);
 
     // Handle the "WHILE" statements body.
-    handle_body(body_branch);
+    handle_body(&s_info, body_branch);
 
     reset_scope_size();
 
@@ -1698,7 +1764,7 @@ void CodeGen8086::handle_continue(std::shared_ptr<ContinueBranch> branch)
     do_asm("jmp " + this->continue_label);
 }
 
-void CodeGen8086::handle_array_index(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
+void CodeGen8086::handle_array_index(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
 {
     // The current array index the framework needs us to resolve it at runtime.
     std::shared_ptr<Branch> child = array_index_branch->getValueBranch();
@@ -1707,11 +1773,11 @@ void CodeGen8086::handle_array_index(std::shared_ptr<ArrayIndexBranch> array_ind
     if (child->getType() == "E")
     {
         // This is an expression.
-        make_expression(child);
+        make_expression(child, s_info);
     }
     else
     {
-        make_move_reg_variable("ax", std::dynamic_pointer_cast<VarIdentifierBranch>(child));
+        make_move_reg_variable("ax", std::dynamic_pointer_cast<VarIdentifierBranch>(child), s_info);
     }
     do_asm("mov cx, " + std::to_string(elem_size));
     do_asm("mul cx");
@@ -1974,7 +2040,7 @@ std::string CodeGen8086::convert_full_reg_to_low_reg(std::string reg)
     return reg;
 }
 
-struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<VarIdentifierBranch> var_branch)
+struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch)
 {
     struct VARIABLE_ADDRESS address;
     address.apply_reg = "";
@@ -1984,7 +2050,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Va
 
     std::function<void(std::shared_ptr<ArrayIndexBranch>, int) > unpredictable_func = [&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
     {
-        handle_array_index(array_index_branch, elem_size);
+        handle_array_index(s_info, array_index_branch, elem_size);
         address.apply_reg = "di";
     };
 
@@ -2024,7 +2090,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Va
             address.segment = "bp";
             address.op = "-";
             options = POSITION_OPTION_START_WITH_VARSIZE;
-            if (this->is_handling_pointer)
+            if (this->is_handling_pointer || top_vdef_branch->isPointer())
             {
                 // Root only allows us to prevent *ptr[1] giving address of ptr + 1
                 options |= POSITION_OPTION_STOP_AT_ROOT_VAR;
@@ -2039,9 +2105,9 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(std::shared_ptr<Va
 
 }
 
-std::string CodeGen8086::getASMAddressForVariableFormatted(std::shared_ptr<VarIdentifierBranch> var_branch)
+std::string CodeGen8086::getASMAddressForVariableFormatted(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch)
 {
-    struct VARIABLE_ADDRESS address = getASMAddressForVariable(var_branch);
+    struct VARIABLE_ADDRESS address = getASMAddressForVariable(s_info, var_branch);
     return address.to_string();
 }
 
@@ -2177,6 +2243,9 @@ bool CodeGen8086::is_alone_var_to_be_word(std::shared_ptr<VarIdentifierBranch> v
 
 void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
 {
+    // We don't really take advantage of this statement info here as this is not a statement, but we don't want to pass a NULL 
+    struct stmt_info s_info;
+
     if (branch->getType() == "V_DEF" ||
             branch->getType() == "STRUCT_DEF")
     {
@@ -2196,7 +2265,7 @@ void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
     else if (branch->getType() == "ASM")
     {
         std::shared_ptr<ASMBranch> asm_branch = std::dynamic_pointer_cast<ASMBranch>(branch);
-        make_inline_asm(asm_branch);
+        make_inline_asm(&s_info, asm_branch);
     }
     else if (branch->getType() == "STRUCT")
     {

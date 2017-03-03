@@ -74,6 +74,18 @@ struct COMPARE_EXPRESSION_DESC
     std::string cmp_exp_last_logic_operator;
 };
 
+
+struct stmt_info
+{
+    stmt_info()
+    {
+        is_assignment = false;
+        assigning_pointer = false;
+    }
+    bool is_assignment;
+    bool assigning_pointer;
+};
+
 class FuncBranch;
 class ScopeBranch;
 
@@ -101,27 +113,28 @@ public:
     void end_scope();
 
     std::string make_string(std::shared_ptr<Branch> string_branch);
-    void make_inline_asm(std::shared_ptr<ASMBranch> asm_branch);
+    void make_inline_asm(struct stmt_info* s_info, std::shared_ptr<ASMBranch> asm_branch);
     void make_variable(std::string name, std::string datatype, std::shared_ptr<Branch> value_exp);
     void make_mem_assignment(std::string dest, std::shared_ptr<Branch> value_exp = NULL, bool is_word = false, std::function<void() > assignment_val_processed = NULL);
-    void handle_logical_expression(std::shared_ptr<Branch> exp_branch, bool should_setup = true);
-    void make_expression(std::shared_ptr<Branch> exp, std::function<void() > exp_start_func = NULL, std::function<void() > exp_end_func = NULL, bool postpone_pointer = true);
-    void make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store);
-    void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store);
-    void make_expression_right(std::shared_ptr<Branch> exp);
+    void handle_logical_expression(std::shared_ptr<Branch> exp_branch, struct stmt_info* s_info, bool should_setup = true);
+    void make_expression(std::shared_ptr<Branch> exp, struct stmt_info* info, std::function<void() > exp_start_func = NULL, std::function<void() > exp_end_func = NULL);
+    void make_expression_part(std::shared_ptr<Branch> exp, std::string register_to_store, struct stmt_info* s_info);
+    void make_expression_left(std::shared_ptr<Branch> exp, std::string register_to_store, struct stmt_info* s_info);
+    void make_expression_right(std::shared_ptr<Branch> exp, struct stmt_info* s_info);
     bool is_gen_reg_16_bit(std::string reg);
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_compare_instruction(std::string op, std::string first_value, std::string second_value);
-    void make_move_reg_variable(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
-    void make_move_var_addr_to_reg(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
-    void make_array_offset_instructions(std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem = 1);
+    void move_data_to_register(std::string reg, std::string pos, int data_size);
+    void make_move_reg_variable(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch, struct stmt_info* s_info);
+    void make_move_var_addr_to_reg(struct stmt_info* s_info, std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
+    void make_array_offset_instructions(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem = 1);
     void make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size);
     void make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size);
-    void make_var_access_rel_base(std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch = NULL, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch = NULL, std::string base_reg = "bx", std::shared_ptr<STRUCTBranch> current_struct = NULL);
-    std::string make_var_access(std::shared_ptr<VarIdentifierBranch> var_branch);
+    void make_var_access_rel_base(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch = NULL, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch = NULL, std::string base_reg = "bx", std::shared_ptr<STRUCTBranch> current_struct = NULL);
+    std::string make_var_access(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_appendment(std::string target_reg, std::string op, std::string pos);
     void make_var_assignment(std::shared_ptr<Branch> var_branch, std::shared_ptr<Branch> value, std::string op);
-    void make_logical_not(std::shared_ptr<LogicalNotBranch> logical_not_branch, std::string register_to_store);
+    void make_logical_not(std::shared_ptr<LogicalNotBranch> logical_not_branch, std::string register_to_store, struct stmt_info* s_info);
 
     void calculate_scope_size(std::shared_ptr<ScopeBranch> scope_branch);
     void reset_scope_size();
@@ -132,11 +145,11 @@ public:
     void handle_function_definition(std::shared_ptr<FuncDefBranch> func_def_branch);
     void handle_function(std::shared_ptr<FuncBranch> func_branch);
     void handle_func_args(std::shared_ptr<Branch> arguments);
-    void handle_body(std::shared_ptr<Branch> body);
-    void handle_stmt(std::shared_ptr<Branch> branch);
+    void handle_body(struct stmt_info* s_info, std::shared_ptr<Branch> body);
+    void handle_stmt(struct stmt_info* s_info, std::shared_ptr<Branch> branch);
     void handle_function_call(std::shared_ptr<FuncCallBranch> branch);
     void handle_scope_assignment(std::shared_ptr<AssignBranch> assign_branch);
-    void handle_func_return(std::shared_ptr<ReturnBranch> return_branch);
+    void handle_func_return(struct stmt_info* s_info, std::shared_ptr<ReturnBranch> return_branch);
     void handle_compare_expression();
     void handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> branch);
     void handle_if_stmt(std::shared_ptr<IFBranch> branch);
@@ -144,7 +157,7 @@ public:
     void handle_while_stmt(std::shared_ptr<WhileBranch> branch);
     void handle_break(std::shared_ptr<BreakBranch> branch);
     void handle_continue(std::shared_ptr<ContinueBranch> branch);
-    void handle_array_index(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size);
+    void handle_array_index(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size);
 
     inline bool has_postponed_pointer_handling();
     void postpone_pointer_handling();
@@ -167,8 +180,8 @@ public:
     int getVariableType(std::shared_ptr<Branch> var_branch);
     std::string convert_full_reg_to_low_reg(std::string reg);
 
-    struct VARIABLE_ADDRESS getASMAddressForVariable(std::shared_ptr<VarIdentifierBranch> var_branch);
-    std::string getASMAddressForVariableFormatted(std::shared_ptr<VarIdentifierBranch> var_branch);
+    struct VARIABLE_ADDRESS getASMAddressForVariable(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch);
+    std::string getASMAddressForVariableFormatted(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch);
 
     std::shared_ptr<VDEFBranch> getVariable(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getScopeVariable(std::shared_ptr<Branch> var_branch);
