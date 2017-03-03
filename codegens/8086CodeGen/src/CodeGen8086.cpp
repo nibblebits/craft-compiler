@@ -893,13 +893,6 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
     {
         // Load the position into the BX register
         do_asm("lea bx, [" + pos + "]");
-        // Handle any array indexes
-        int offset = var_branch->getPositionRelZeroIgnoreCurrentScope([&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
-        {
-            handle_array_index(s_info, array_index_branch, elem_size);
-            do_asm("add bx, di");
-        }, POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
-        do_asm("add bx, " + std::to_string(offset));
 
         if (this->is_handling_pointer || vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
         {
@@ -1321,8 +1314,8 @@ void CodeGen8086::handle_function_definition(std::shared_ptr<FuncDefBranch> func
 
 void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
 {
-    struct stmt_info* s_info;
-
+    struct stmt_info s_info;
+    
     // Clear previous scope variables from other functions
     this->scope_variables.clear();
 
@@ -1349,7 +1342,7 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     handle_func_args(arguments_branch);
 
     // Handle the body
-    handle_body(s_info, body_branch);
+    handle_body(&s_info, body_branch);
 
 
 }
@@ -1776,6 +1769,7 @@ void CodeGen8086::handle_continue(std::shared_ptr<ContinueBranch> branch)
 
 void CodeGen8086::handle_array_index(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
 {
+    do_asm("; ARRAY INDEX");
     // The current array index the framework needs us to resolve it at runtime.
     std::shared_ptr<Branch> child = array_index_branch->getValueBranch();
     // Save AX incase previously used
@@ -1789,8 +1783,6 @@ void CodeGen8086::handle_array_index(struct stmt_info* s_info, std::shared_ptr<A
     {
         make_move_reg_variable("ax", std::dynamic_pointer_cast<VarIdentifierBranch>(child), s_info);
     }
-    do_asm("mov cx, " + std::to_string(elem_size));
-    do_asm("mul cx");
     do_asm("mov di, ax");
     // Restore AX
     do_asm("pop ax");
