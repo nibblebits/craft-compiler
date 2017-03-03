@@ -81,9 +81,13 @@ struct stmt_info
     {
         is_assignment = false;
         assigning_pointer = false;
+        is_child_of_pointer = false;
+        pointer_your_child_of = NULL;
     }
     bool is_assignment;
     bool assigning_pointer;
+    bool is_child_of_pointer;
+    std::shared_ptr<PTRBranch> pointer_your_child_of;
 };
 
 class FuncBranch;
@@ -125,6 +129,7 @@ public:
     void make_math_instruction(std::string op, std::string first_reg, std::string second_reg = "");
     void make_compare_instruction(std::string op, std::string first_value, std::string second_value);
     void move_data_to_register(std::string reg, std::string pos, int data_size);
+    void dig_bx_to_address(int depth);
     void make_move_reg_variable(std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch, struct stmt_info* s_info);
     void make_move_var_addr_to_reg(struct stmt_info* s_info, std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch);
     void make_array_offset_instructions(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem = 1);
@@ -158,10 +163,6 @@ public:
     void handle_break(std::shared_ptr<BreakBranch> branch);
     void handle_continue(std::shared_ptr<ContinueBranch> branch);
     void handle_array_index(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size);
-
-    inline bool has_postponed_pointer_handling();
-    void postpone_pointer_handling();
-    void prepone_pointer_handling();
 
     int getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch);
     int getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch);
@@ -222,15 +223,9 @@ private:
 
     bool is_cmp_expression;
     bool do_signed;
-    bool is_handling_pointer;
 
-    std::shared_ptr<VDEFBranch> pointer_selected_variable;
-    std::shared_ptr<VarIdentifierBranch> pointer_selected_var_iden;
+
     std::shared_ptr<VDEFBranch> last_found_var_access_variable;
-
-    /*  Holds pointer handling information for a given pointer 
-     stack is required due to sub expressions that are non pointer related. */
-    std::deque<HANDLING_POINTER> current_pointers_to_handle;
 
     /* Holds current scopes, this is used so nesting of scopes is compatible. */
     std::deque<int> current_scopes_sizes;

@@ -33,11 +33,8 @@ CodeGen8086::CodeGen8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat
     this->current_label_index = 0;
     this->is_cmp_expression = false;
     this->do_signed = false;
-    this->is_handling_pointer = false;
     this->scope_size = 0;
 
-    this->pointer_selected_variable = NULL;
-    this->pointer_selected_var_iden = NULL;
     this->last_found_var_access_variable = NULL;
     this->cur_func = NULL;
     this->cur_func_scope_size = 0;
@@ -443,30 +440,6 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     {
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(exp);
         std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
-
-        /*
-                if (this->is_handling_pointer)
-                {
-                    // When handling pointers only addresses should be calculated the value should not be brought back
-                    if (this->pointer_selected_variable == NULL)
-                    {
-                        // No variable yet set, set it to us
-                        this->pointer_selected_variable = var_iden_branch->getVariableDefinitionBranch();
-                        this->pointer_selected_var_iden = var_iden_branch;
-                    }
-                    std::string pos = make_var_access(var_iden_branch);
-                    do_asm("mov " + register_to_store + ", [" + pos + "]");
-                }
-                else if ((!var_iden_branch->hasRootArrayIndexBranch()    && vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
-                {
-                    // When accessing arrays without using an index we should just get the address of the array
-                    std::string pos = make_var_access(var_iden_branch);
-                    do_asm("lea " + register_to_store + ", " + pos);
-                }
-                else
-                {
-          }
-         */
         // This is a variable so set register to store to the value of this variable
         make_move_reg_variable(register_to_store, var_iden_branch, s_info);
     }
@@ -478,30 +451,6 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(exp);
         handle_ptr(ptr_branch);
-
-        /* If the selected pointer variable is primitive then we should assign AX or AL to the value 
-         * the pointer is pointing to, if its not primitive then we should not do anything as it must be
-         a structure. */
-        if (this->pointer_selected_variable != NULL)
-        {
-            if (this->pointer_selected_variable->isPrimitive())
-            {
-                std::shared_ptr<DataTypeBranch> pointer_selected_var_data_type = this->pointer_selected_variable->getDataTypeBranch();
-                if (ptr_branch->getPointerDepth() < pointer_selected_var_data_type->getPointerDepth() || pointer_selected_var_data_type->getDataTypeSize(true) == 2)
-                {
-                    // This is pointing to a word.
-                    do_asm("mov " + register_to_store + ", [bx]");
-                }
-                else
-                {
-
-                    // This is pointing to a byte 
-                    do_asm("xor " + register_to_store + ", " + register_to_store);
-                    do_asm("mov " + convert_full_reg_to_low_reg(register_to_store) + ", [bx]");
-                }
-            }
-        }
-
     }
     else if (exp->getType() == "FUNC_CALL")
     {
@@ -877,6 +826,14 @@ void CodeGen8086::move_data_to_register(std::string reg, std::string pos, int da
     do_asm("mov " + reg + ", " + "[" + pos + "]");
 }
 
+void CodeGen8086::dig_bx_to_address(int depth)
+{
+    for (int i = 0; i < depth; i++)
+    {
+        do_asm("mov bx, [bx]");
+    }
+}
+
 void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIdentifierBranch> var_branch, struct stmt_info* s_info)
 {
     std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
@@ -906,8 +863,15 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
         pos = make_var_access(s_info, var_branch, true);
 
         // Load the pointer address into the BX register
-        do_asm("; HERE");
+        do_asm("; HANDLING V_DEF POINTER ACCESSED BY ARRAY INDEX");
         do_asm("mov bx, [" + pos + "]");
+
+        // Keep getting the value of each address until we are at the actual value address its pointing to
+        if (s_info->is_child_of_pointer)
+        {
+            int depth = s_info->pointer_your_child_of->getPointerDepth();
+            dig_bx_to_address(depth);
+        }
 
         // The address that the pointer is pointing at is now stored in the BX register, now we should offset the address in "BX" based on the array index
         int rel_pos = var_branch->getPositionRelZeroIgnoreCurrentScope([&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
@@ -919,7 +883,40 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
         data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
         pos = "bx+" + std::to_string(rel_pos);
         move_data_to_register(reg, pos, data_size);
+    }
+    else if (s_info->is_child_of_pointer)
+    {
+        /*
+         * Here we are just accessing a pointer without any array indexes or structures.
+         * For example:
+         * uint8* ptr;
+         * *ptr;
+         */
 
+        // Get the position to the variable start only
+        pos = make_var_access(s_info, var_branch, true);
+
+        // Load the pointer address into the BX register
+        do_asm("; HANDLING V_DEF POINTER WITH ZERO ARRAY INDEXS");
+        do_asm("mov bx, [" + pos + "]");
+
+        int depth = s_info->pointer_your_child_of->getPointerDepth();
+        // If the pointer size equals the pointer depth then we are at the data and should get it and move it to the register
+        if (vdef_branch->getPointerDepth() == depth)
+        {
+            // Keep getting the value of each address until we are at the final address its pointing to, -1 as "move_data_to_register" method will get the final value
+            dig_bx_to_address(depth - 1);
+            data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
+            move_data_to_register(reg, "bx", data_size);
+        }
+        else
+        {
+            // Keep getting the value of each address until we are at the final value its pointing to
+            dig_bx_to_address(depth);
+            
+            // Ok we are not at the physical data we just have another address so lets just move it to AX
+            do_asm("mov ax, bx");
+        }
     }
     else if (vdef_var_iden_branch->hasRootArrayIndexBranch())
     {
@@ -1131,7 +1128,7 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         }
 
         handle_ptr(ptr_branch);
-        is_word = is_alone_var_to_be_word(this->pointer_selected_variable, true);
+        is_word = is_alone_var_to_be_word(ptr_branch_vdef_branch, true);
         // Make the value expression
         make_expression(value, &s_info);
 
@@ -1229,28 +1226,16 @@ void CodeGen8086::reset_scope_size()
 void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
 {
     struct stmt_info s_info;
-
-    this->pointer_selected_variable = NULL;
-    this->pointer_selected_var_iden = NULL;
-    this->is_handling_pointer = true;
-
     do_asm("; POINTER HANDLING ");
 
+    // We need to set the is child of pointer flag ready for any children we are about to process
+    s_info.is_child_of_pointer = true;
+    s_info.pointer_your_child_of = ptr_branch;
+
     std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
-    // False to prevent postponing of the pointer
     make_expression(exp_branch, &s_info, NULL, NULL);
 
-    // At this point we need to move the register AX to BX
-    do_asm("mov ax, bx");
-
-    // Keep getting the value of each address until we are at the actual value its pointing to
-    int depth = ptr_branch->getPointerDepth();
-    for (int i = 0; i < depth - 1; i++)
-    {
-        do_asm("mov bx, [bx]");
-    }
-
-    this->is_handling_pointer = false;
+    s_info.is_child_of_pointer = false;
 }
 
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
@@ -1797,34 +1782,6 @@ void CodeGen8086::handle_array_index(struct stmt_info* s_info, std::shared_ptr<A
     do_asm("pop ax");
 }
 
-bool CodeGen8086::has_postponed_pointer_handling()
-{
-    return !this->current_pointers_to_handle.empty();
-}
-
-void CodeGen8086::postpone_pointer_handling()
-{
-    struct HANDLING_POINTER handling_ptr;
-    handling_ptr.is_handling = this->is_handling_pointer;
-    handling_ptr.pointer_selected_variable = this->pointer_selected_variable;
-    handling_ptr.pointer_selected_var_iden = this->pointer_selected_var_iden;
-    this->current_pointers_to_handle.push_back(handling_ptr);
-
-    // Now reset
-    this->is_handling_pointer = false;
-    this->pointer_selected_variable = NULL;
-    this->pointer_selected_var_iden = NULL;
-}
-
-void CodeGen8086::prepone_pointer_handling()
-{
-    struct HANDLING_POINTER handling_ptr = this->current_pointers_to_handle.back();
-    this->is_handling_pointer = handling_ptr.is_handling;
-    this->pointer_selected_variable = handling_ptr.pointer_selected_variable;
-    this->pointer_selected_var_iden = handling_ptr.pointer_selected_var_iden;
-    this->current_pointers_to_handle.pop_back();
-}
-
 int CodeGen8086::getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch)
 {
     return this->compiler->getSizeOfVarDef(vdef_branch);
@@ -2077,14 +2034,8 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
     case VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE:
         address.segment = "bp";
         address.op = "+";
-        options = 0;
-        if (this->is_handling_pointer)
-        {
-            // Root only allows us to prevent *ptr[1] giving address of ptr + 1
-            options |= POSITION_OPTION_STOP_AT_ROOT_VAR;
-        }
         // + 4 due to return address and new base pointer
-        address.offset = var_branch->getPositionRelZero(unpredictable_func, options) + 4;
+        address.offset = var_branch->getPositionRelZero(unpredictable_func) + 4;
 
         break;
     case VARIABLE_TYPE_FUNCTION_VARIABLE:
@@ -2128,12 +2079,10 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
             address.segment = "bp";
             address.op = "-";
             options = POSITION_OPTION_START_WITH_VARSIZE;
-            if (this->is_handling_pointer || top_vdef_branch->isPointer())
+            if (to_variable_start_only)
             {
-                // Root only allows us to prevent *ptr[1] giving address of ptr + 1
                 options |= POSITION_OPTION_STOP_AT_ROOT_VAR;
             }
-
             address.offset = var_branch->getPositionRelZero(unpredictable_func, options);
         }
         break;
