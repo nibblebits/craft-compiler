@@ -881,6 +881,7 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
 {
     std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
     std::string pos = make_var_access(s_info, var_branch);
+    int data_size;
     if (vdef_branch->isSigned())
     {
         //  This variable is signed so mark it as so, so that signed appropriates will be used with operators.
@@ -891,7 +892,7 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
     if (var_branch->hasRootArrayIndexBranch() && vdef_branch->isPointer())
     {
         // Load the position into the BX register
-        do_asm("lea bx, " + pos);
+        do_asm("lea bx, [" + pos + "]");
         // Handle any array indexes
         int offset = var_branch->getPositionRelZeroIgnoreCurrentScope([&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
         {
@@ -899,14 +900,23 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
             do_asm("add bx, di");
         }, POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
         do_asm("add bx, " + std::to_string(offset));
+
+        if (this->is_handling_pointer || vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
+        {
+            // We are going to be loading an address so the data size should be the pointer size.
+            data_size = getPointerSize();
+        }
+        else
+        {
+            data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
+        }
+
         // Finally move the value to the register
-        move_data_to_register("ax", "bx", vdef_branch->getDataTypeBranch()->getDataTypeSize(true));
+        move_data_to_register("ax", "bx", data_size);
 
     }
     else
     {
-        int data_size;
-
         if (s_info->assigning_pointer)
         {
             data_size = getPointerSize();
@@ -1097,13 +1107,13 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
         std::shared_ptr<VarIdentifierBranch> ptr_branch_var_iden_branch = ptr_branch->getPointerVariableIdentifierBranch();
         std::shared_ptr<VDEFBranch> ptr_branch_vdef_branch = ptr_branch_var_iden_branch->getVariableDefinitionBranch();
-     
+
         // Are we assigning a pointer?
         if (ptr_branch_vdef_branch->isPointer())
         {
             s_info.assigning_pointer = true;
         }
-        
+
         handle_ptr(ptr_branch);
         is_word = is_alone_var_to_be_word(this->pointer_selected_variable, true);
         // Make the value expression
@@ -2077,6 +2087,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
 
         break;
     case VARIABLE_TYPE_FUNCTION_VARIABLE:
+        /* OLD BACKUP 
         if (!top_vdef_branch->isPointer() &&
                 (var_branch->hasStructureAccessBranch() || var_branch->hasRootArrayIndexBranch()))
         {
@@ -2084,6 +2095,32 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
             address.op = "+";
             address.segment = "bp-" + std::to_string(top_vdef_branch->getSize());
             address.offset = var_branch->getPositionRelZero(unpredictable_func);
+        }
+        else
+        {
+            address.segment = "bp";
+            address.op = "-";
+            options = POSITION_OPTION_START_WITH_VARSIZE;
+            if (this->is_handling_pointer || top_vdef_branch->isPointer())
+            {
+                // Root only allows us to prevent *ptr[1] giving address of ptr + 1
+                options |= POSITION_OPTION_STOP_AT_ROOT_VAR;
+            }
+
+            address.offset = var_branch->getPositionRelZero(unpredictable_func, options);
+        }
+         */
+
+        if (var_branch->hasStructureAccessBranch() || var_branch->hasRootArrayIndexBranch())
+        {
+            // Function arrays must start at the end and work their way to the beginning as well as function structures.
+            int position_to_root_elem = var_branch->getPositionRelZero(unpredictable_func, POSITION_OPTION_STOP_AT_ROOT_VAR);
+            int elem_size = top_vdef_branch->getSize();
+            int minus = position_to_root_elem + elem_size;
+            address.op = "+";
+            address.segment = "bp-" + std::to_string(minus);
+            // This will get the position while ignoring the current scope, essentially it is the position relative to the structure or array.
+            address.offset = var_branch->getPositionRelZeroIgnoreCurrentScope(unpredictable_func);
         }
         else
         {
