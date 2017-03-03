@@ -918,7 +918,7 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
             do_asm("mov ax, bx");
         }
     }
-    else if (vdef_var_iden_branch->hasRootArrayIndexBranch())
+    else if (vdef_var_iden_branch->hasRootArrayIndexBranch() && !var_branch->hasRootArrayIndexBranch())
     {
         pos = make_var_access(s_info, var_branch);
 
