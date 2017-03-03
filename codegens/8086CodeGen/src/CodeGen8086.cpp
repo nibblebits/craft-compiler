@@ -1783,6 +1783,9 @@ void CodeGen8086::handle_array_index(struct stmt_info* s_info, std::shared_ptr<A
     {
         make_move_reg_variable("ax", std::dynamic_pointer_cast<VarIdentifierBranch>(child), s_info);
     }
+    // Ok now we need to multiply AX by the element size so that the offset points correctly
+    do_asm("mov cx, 2");
+    do_asm("mul cx");
     do_asm("mov di, ax");
     // Restore AX
     do_asm("pop ax");
