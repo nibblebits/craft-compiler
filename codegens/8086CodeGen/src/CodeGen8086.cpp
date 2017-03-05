@@ -1363,7 +1363,7 @@ void CodeGen8086::handle_func_args(std::shared_ptr<Branch> arguments)
         if (!arg_vdef->isPointer())
         {
             // All function arguments are 2 bytes in size.
-            arg_vdef->getDataTypeBranch()->setCustomDataTypeSize(2);
+            arg_vdef->getDataTypeBranch()->setCustomDataTypeSize(getPointerSize());
         }
         this->func_arguments.push_back(arg_vdef);
     }
