@@ -66,13 +66,20 @@ std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch(boo
     return Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), true, no_follow);
 }
 
-int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > unpredictable_func, POSITION_OPTIONS options)
+int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden) > struct_access_unpredictable_func, POSITION_OPTIONS options)
 {
     std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
-    if (unpredictable_func == NULL)
+    if (array_unpredictable_func == NULL)
     {
-        throw Exception("int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > unpredictable_func, bool loc_start_with_varsize):"
-                        "  You must pass an unpredictable_func so that you can generate appropriate assembly instructions for when the framework cannot calculate the position"
+        throw Exception("int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > array_unpredictable_func,std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden)> struct_access_unpredictable_func, POSITION_OPTIONS options):"
+                        "  You must pass an array_unpredictable_func so that you can generate appropriate assembly instructions for when the framework cannot calculate the position"
+                        "as it is impossible to know at compile time");
+    }
+
+    if (struct_access_unpredictable_func == NULL)
+    {
+        throw Exception("int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > array_unpredictable_func,std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden)> struct_access_unpredictable_func, POSITION_OPTIONS options):"
+                        "  You must pass a struct_access_unpredictable_func so that you can generate appropriate assembly instructions for when the framework cannot calculate the position"
                         "as it is impossible to know at compile time");
     }
 
@@ -80,7 +87,7 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<A
     // We want to stop at the root var so structures and array access should be ignored.
     if (!(options & POSITION_OPTION_STOP_AT_ROOT_VAR))
     {
-        pos = getPositionRelZeroIgnoreCurrentScope(unpredictable_func, options);
+        pos = getPositionRelZeroIgnoreCurrentScope(array_unpredictable_func, struct_access_unpredictable_func, options);
     }
 
     // Now add on the position up to our variable, giving us an absolute address relative to zero.
@@ -88,19 +95,28 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<A
     return pos;
 }
 
-int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > unpredictable_func, POSITION_OPTIONS options)
+int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden) > struct_access_unpredictable_func, POSITION_OPTIONS options)
 {
-    if (unpredictable_func == NULL)
+    if (array_unpredictable_func == NULL)
     {
-        throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > unpredictable_func, bool ignore_structure_access, bool loc_start_with_varsize):"
-                        "  You must pass an unpredictable_func so that you can generate appropriate assembly instructions for when the framework cannot calculate the position"
+        throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden) > struct_access_unpredictable_func, POSITION_OPTIONS options):"
+                        "  You must pass an array_unpredictable_func so that you can generate appropriate assembly instructions for when the framework cannot calculate the position"
                         "as it is impossible to know at compile time");
     }
+
+    if (struct_access_unpredictable_func == NULL)
+    {
+        throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden) > struct_access_unpredictable_func, POSITION_OPTIONS options):"
+                        "  You must pass a struct_access_unpredictable_func so that you can generate appropriate assembly instructions for when the framework cannot calculate the position"
+                        "as it is impossible to know at compile time");
+    }
+
+
 
     std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
     if (vdef_branch == NULL)
     {
-        throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > unpredictable_func, POSITION_OPTIONS options): "
+        throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, POSITION_OPTIONS options): "
                         "could not find appropriate \"VDEFBranch\" for variable identifier with name: \"" + getVariableNameBranch()->getValue() + "\"");
     }
     int pos = 0;
@@ -124,7 +140,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
             else
             {
                 // This array index is not static, we cannot know it at runtime so lets get the programmer to fill in the gaps
-                unpredictable_func(array_index_branch, size);
+                array_unpredictable_func(array_index_branch, size);
             }
             return true;
         });
@@ -139,8 +155,17 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     if (!(options & POSITION_OPTION_IGNORE_STRUCTURE_ACCESS) && hasStructureAccessBranch())
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
-        pos += struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(unpredictable_func, options);
-        pos += struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope(options);
+        if (struct_access_branch->isAccessingAsPointer() && struct_access_branch->getVarIdentifierBranch()->hasStructureAccessBranch())
+        {
+            // We are accessing this structure as a pointer, its impossible to know the address at compile time so we need to invoke the struct_access_unpredictable_func
+            struct_access_unpredictable_func(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), struct_access_branch->getVarIdentifierBranch());
+            pos += struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(array_unpredictable_func, struct_access_unpredictable_func, options);
+        }
+        else
+        {
+            pos += struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(array_unpredictable_func, struct_access_unpredictable_func, options);
+            pos += struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope(options);
+        }
     }
     return pos;
 }

@@ -42,19 +42,29 @@ void STRUCTAccessBranch::setVarIdentifierBranch(std::shared_ptr<VarIdentifierBra
     CustomBranch::registerBranch("var_iden_branch", var_iden_branch);
 }
 
+void STRUCTAccessBranch::setAccessAsPointer(bool access_as_pointer)
+{
+    this->access_as_pointer = access_as_pointer;
+}
+
 void STRUCTAccessBranch::setStructDefBranch(std::shared_ptr<STRUCTDEFBranch> struct_def_branch)
 {
     this->struct_def_branch = struct_def_branch;
 }
 
-std::shared_ptr<STRUCTDEFBranch> STRUCTAccessBranch::getStructDefBranch()
-{
-    return this->struct_def_branch;
-}
-
 std::shared_ptr<VarIdentifierBranch> STRUCTAccessBranch::getVarIdentifierBranch()
 {
     return std::dynamic_pointer_cast<VarIdentifierBranch>(CustomBranch::getRegisteredBranchByName("var_iden_branch"));
+}
+
+bool STRUCTAccessBranch::isAccessingAsPointer()
+{
+    return this->access_as_pointer;
+}
+
+std::shared_ptr<STRUCTDEFBranch> STRUCTAccessBranch::getStructDefBranch()
+{
+    return this->struct_def_branch;
 }
 
 void STRUCTAccessBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)

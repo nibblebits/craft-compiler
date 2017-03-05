@@ -827,7 +827,7 @@ void Parser::process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struc
 
     // peek further to see if there is any structure access
     peek();
-    if (is_peek_symbol("."))
+    if (is_peek_symbol(".") || is_peek_operator("->"))
     {
         process_structure_access();
         pop_branch();
@@ -869,14 +869,20 @@ void Parser::process_structure_access()
 {
     std::shared_ptr<STRUCTAccessBranch> struct_access_root = NULL;
 
+    bool as_pointer = false;
     // Check to see if this structure access is valid
     peek();
-    if (!is_peek_symbol("."))
+    if (!is_peek_symbol(".") && !is_peek_operator("->"))
     {
-        error_expecting(".", this->peek_token_value);
+        error_expecting(". or ->", this->peek_token_value);
+    }
+    
+    if (is_peek_operator("->"))
+    {
+        as_pointer = true;
     }
 
-    // Shift and pop off the "."
+    // Shift and pop off the "." or "->" symbol
     shift_pop();
 
     // Process the variable identifier
@@ -885,6 +891,8 @@ void Parser::process_structure_access()
 
     struct_access_root = std::shared_ptr<STRUCTAccessBranch>(new STRUCTAccessBranch(compiler));
     struct_access_root->setVarIdentifierBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->branch));
+    struct_access_root->setAccessAsPointer(as_pointer);
+    
     push_branch(struct_access_root);
 }
 

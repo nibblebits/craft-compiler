@@ -29,6 +29,7 @@
 
 class STRUCTDEFBranch;
 class VarIdentifierBranch;
+
 class EXPORT STRUCTAccessBranch : public CustomBranch
 {
 public:
@@ -36,15 +37,17 @@ public:
     virtual ~STRUCTAccessBranch();
 
     void setVarIdentifierBranch(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
+    void setAccessAsPointer(bool access_as_pointer);
     void setStructDefBranch(std::shared_ptr<STRUCTDEFBranch> struct_def_branch);
-    std::shared_ptr<STRUCTDEFBranch> getStructDefBranch();
     std::shared_ptr<VarIdentifierBranch> getVarIdentifierBranch();
-
+    bool isAccessingAsPointer();
+    std::shared_ptr<STRUCTDEFBranch> getStructDefBranch();
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();
 
 private:
     std::shared_ptr<STRUCTDEFBranch> struct_def_branch;
+    bool access_as_pointer;
 };
 
 #endif /* STRUCTACCESS_H */
