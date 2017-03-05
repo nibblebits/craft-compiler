@@ -838,110 +838,25 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
 {
     std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
     std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
-    std::string pos = "";
-    int data_size;
     if (vdef_branch->isSigned())
     {
         //  This variable is signed so mark it as so, so that signed appropriates will be used with operators.
         this->do_signed = true;
     }
 
-    if (vdef_branch->isPointer() && var_branch->hasRootArrayIndexBranch())
+    int data_size;
+    std::string pos = make_var_access(s_info, var_branch, &data_size);
+    // When accessing an array without an index then only the address of the array should be moved to the register
+    if (vdef_var_iden_branch->hasRootArrayIndexBranch() && !var_branch->hasRootArrayIndexBranch())
     {
-        /*
-         * We are accessing a pointer as an array e.g
-         * uint8* ptr = array;
-         * ptr[0]
-         * When accessing a pointer as an array it should append array access on the address it has loaded.
-         * 
-         * For example:
-         * Assume the value of our pointer is 0x100 and its name is "ptr".
-         * Now assume: "ptr[1]" this would return the value of address 0x101
-         */
-
-        // Get the position to the variable start only, e.g for an array. "uint8 array[5]" it will return the position for the start of the array.
-        pos = make_var_access(s_info, var_branch, true);
-
-        // Load the pointer address into the BX register
-        do_asm("; HANDLING V_DEF POINTER ACCESSED BY ARRAY INDEX");
-        do_asm("mov bx, [" + pos + "]");
-
-        // Keep getting the value of each address until we are at the actual value address its pointing to
-        if (s_info->is_child_of_pointer)
-        {
-            int depth = s_info->pointer_your_child_of->getPointerDepth();
-            dig_bx_to_address(depth);
-        }
-
-        // The address that the pointer is pointing at is now stored in the BX register, now we should offset the address in "BX" based on the array index
-        int rel_pos = var_branch->getPositionRelZeroIgnoreCurrentScope([&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
-        {
-            handle_array_index(s_info, array_index_branch, elem_size);
-        }, POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
-
-        // Now lets store the value in the register
-        data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
-        pos = "bx+" + std::to_string(rel_pos);
-        move_data_to_register(reg, pos, data_size);
-    }
-    else if (s_info->is_child_of_pointer)
-    {
-        /*
-         * Here we are just accessing a pointer without any array indexes or structures.
-         * For example:
-         * uint8* ptr;
-         * *ptr;
-         */
-
-        // Get the position to the variable start only
-        pos = make_var_access(s_info, var_branch, true);
-
-        // Load the pointer address into the BX register
-        do_asm("; HANDLING V_DEF POINTER WITH ZERO ARRAY INDEXS");
-        do_asm("mov bx, [" + pos + "]");
-
-        int depth = s_info->pointer_your_child_of->getPointerDepth();
-        // If the pointer size equals the pointer depth then we are at the data and should get it and move it to the register
-        if (vdef_branch->getPointerDepth() == depth)
-        {
-            // Keep getting the value of each address until we are at the final address its pointing to, -1 as "move_data_to_register" method will get the final value
-            dig_bx_to_address(depth - 1);
-            data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
-            move_data_to_register(reg, "bx", data_size);
-        }
-        else
-        {
-            // Keep getting the value of each address until we are at the final value its pointing to
-            dig_bx_to_address(depth);
-            
-            // Ok we are not at the physical data we just have another address so lets just move it to AX
-            do_asm("mov ax, bx");
-        }
-    }
-    else if (vdef_var_iden_branch->hasRootArrayIndexBranch() && !var_branch->hasRootArrayIndexBranch())
-    {
-        pos = make_var_access(s_info, var_branch);
-
-        // When accessing arrays without an index its address should be returned
-        do_asm("lea " + reg + ", [" + pos + "]");
+        // Move the position into the register, not the data at the position.
+        do_asm("mov " + reg + ", " + pos);
     }
     else
     {
-        pos = make_var_access(s_info, var_branch);
-
-        // This is a standard assignment
-        if (s_info->assigning_pointer)
-        {
-            data_size = getPointerSize();
-        }
-        else
-        {
-            data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize();
-        }
-
+        // We need to move the data from "pos" into the register
         move_data_to_register(reg, pos, data_size);
     }
-
 }
 
 void CodeGen8086::make_move_var_addr_to_reg(struct stmt_info* s_info, std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch)
@@ -1077,10 +992,111 @@ void CodeGen8086::make_var_access_rel_base(struct stmt_info* s_info, std::shared
 
 }
 
-std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch, bool to_variable_start_only)
+std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch, int* data_size)
 {
-    std::string var_addr_formatted = getASMAddressForVariableFormatted(s_info, var_branch, to_variable_start_only);
-    return var_addr_formatted;
+    std::string pos = "";
+    std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
+    std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
+    if (vdef_branch->isPointer() && var_branch->hasRootArrayIndexBranch())
+    {
+        /*
+         * We are accessing a pointer as an array e.g
+         * uint8* ptr = array;
+         * ptr[0]
+         * When accessing a pointer as an array it should append array access on the address it has loaded.
+         * 
+         * For example:
+         * Assume the value of our pointer is 0x100 and its name is "ptr".
+         * Now assume: "ptr[1]" this would return the value of address 0x101
+         */
+
+        // Get the position to the variable start only, e.g for an array. "uint8 array[5]" it will return the position for the start of the array.
+        pos = getASMAddressForVariableFormatted(s_info, var_branch, true);
+
+        // Load the pointer address into the BX register
+        do_asm("; HANDLING V_DEF POINTER ACCESSED BY ARRAY INDEX");
+        do_asm("mov bx, [" + pos + "]");
+
+        // Keep getting the value of each address until we are at the actual value address its pointing to
+        if (s_info->is_child_of_pointer)
+        {
+            int depth = s_info->pointer_your_child_of->getPointerDepth();
+            dig_bx_to_address(depth);
+        }
+
+        // The address that the pointer is pointing at is now stored in the BX register, now we should offset the address in "BX" based on the array index
+        int rel_pos = var_branch->getPositionRelZeroIgnoreCurrentScope([&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
+        {
+            handle_array_index(s_info, array_index_branch, elem_size);
+        }, POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
+
+        // Now lets store the value in the register
+        if (data_size != NULL)
+            *data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
+        pos = "bx+" + std::to_string(rel_pos);
+    }
+    else if (s_info->is_child_of_pointer)
+    {
+        /*
+         * Here we are just accessing a pointer without any array indexes or structures.
+         * For example:
+         * uint8* ptr;
+         * *ptr;
+         */
+
+        // Get the position to the variable start only
+        pos = getASMAddressForVariableFormatted(s_info, var_branch, true);
+
+        // Load the pointer address into the BX register
+        do_asm("; HANDLING V_DEF POINTER WITH ZERO ARRAY INDEXS");
+        do_asm("mov bx, [" + pos + "]");
+
+        int depth = s_info->pointer_your_child_of->getPointerDepth();
+        // If the pointer size equals the pointer depth then we are at the data
+        if (vdef_branch->getPointerDepth() == depth)
+        {
+            // Keep getting the value of each address until we are at the final address its pointing to, -1 as BX will then point to the final address upon accessing it as memory [bx] will load the value.
+            dig_bx_to_address(depth - 1);
+            if (data_size != NULL)
+                *data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
+        }
+        else
+        {
+            // Keep getting the value of each address until we are at the final value its pointing to
+            dig_bx_to_address(depth);
+            if (data_size != NULL)
+                *data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize();
+        }
+
+        pos = "bx";
+
+    }
+    else if (vdef_var_iden_branch->hasRootArrayIndexBranch() && !var_branch->hasRootArrayIndexBranch())
+    {
+        pos = getASMAddressForVariableFormatted(s_info, var_branch);
+
+        // When accessing arrays without an index its address should be returned
+        do_asm("lea bx, [" + pos + "]");
+        pos = "bx";
+    }
+    else
+    {
+        // This is standard access
+        pos = getASMAddressForVariableFormatted(s_info, var_branch);
+        if (data_size != NULL)
+        {
+            if (s_info->assigning_pointer)
+            {
+                *data_size = getPointerSize();
+            }
+            else
+            {
+                *data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize();
+            }
+        }
+    }
+
+    return pos;
 }
 
 void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::string pos)
@@ -2034,35 +2050,11 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
     case VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE:
         address.segment = "bp";
         address.op = "+";
+        options = POSITION_OPTION_STOP_AT_ROOT_VAR;
         // + 4 due to return address and new base pointer
-        address.offset = var_branch->getPositionRelZero(unpredictable_func) + 4;
-
+        address.offset = var_branch->getPositionRelZero(unpredictable_func, options) + 4;
         break;
     case VARIABLE_TYPE_FUNCTION_VARIABLE:
-        /* OLD BACKUP 
-        if (!top_vdef_branch->isPointer() &&
-                (var_branch->hasStructureAccessBranch() || var_branch->hasRootArrayIndexBranch()))
-        {
-            // Function arrays must start at the end and work their way to the beginning as well as function structures.
-            address.op = "+";
-            address.segment = "bp-" + std::to_string(top_vdef_branch->getSize());
-            address.offset = var_branch->getPositionRelZero(unpredictable_func);
-        }
-        else
-        {
-            address.segment = "bp";
-            address.op = "-";
-            options = POSITION_OPTION_START_WITH_VARSIZE;
-            if (this->is_handling_pointer || top_vdef_branch->isPointer())
-            {
-                // Root only allows us to prevent *ptr[1] giving address of ptr + 1
-                options |= POSITION_OPTION_STOP_AT_ROOT_VAR;
-            }
-
-            address.offset = var_branch->getPositionRelZero(unpredictable_func, options);
-        }
-         */
-
         if (!to_variable_start_only && (var_branch->hasStructureAccessBranch() || var_branch->hasRootArrayIndexBranch()))
         {
             // Function arrays must start at the end and work their way to the beginning as well as function structures.
