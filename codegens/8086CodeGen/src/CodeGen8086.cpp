@@ -1008,10 +1008,10 @@ std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_p
     std::shared_ptr<VDEFBranch> root_vdef_branch = var_branch->getVariableDefinitionBranch(true);
     std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
     std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
-    if (root_vdef_branch->isPointer() && (var_branch->hasRootArrayIndexBranch() || var_branch->hasStructureAccessBranch()))
+    if (root_vdef_branch->isPointer() && (var_branch->hasRootArrayIndexBranch()))
     {
         /*
-         * We are accessing a pointer as an array e.g
+         * We are accessing a pointer as an array or as a structure e.g
          * uint8* ptr = array;
          * ptr[0]
          * When accessing a pointer as an array it should append array access on the address it has loaded.
@@ -1049,14 +1049,19 @@ std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_p
     else if (s_info->is_child_of_pointer)
     {
         /*
-         * Here we are just accessing a pointer without any array indexes or structures.
+         * Here we are just accessing a pointer
          * For example:
          * uint8* ptr;
          * *ptr;
          */
 
-        // Get the position to the variable start only
-        pos = getASMAddressForVariableFormatted(s_info, var_branch, true);
+        bool to_var_start_only = true;
+        if (var_branch->hasStructureAccessBranch())
+        {
+            // Ok we are accessing this as a structure so the position returned should be the absolute position
+            to_var_start_only = false;
+        }
+        pos = getASMAddressForVariableFormatted(s_info, var_branch, to_var_start_only);
 
         // Load the pointer address into the BX register
         do_asm("; HANDLING V_DEF POINTER WITH ZERO ARRAY INDEXS");
