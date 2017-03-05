@@ -1005,9 +1005,10 @@ void CodeGen8086::make_var_access_rel_base(struct stmt_info* s_info, std::shared
 std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch, int* data_size)
 {
     std::string pos = "";
+    std::shared_ptr<VDEFBranch> root_vdef_branch = var_branch->getVariableDefinitionBranch(true);
     std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
     std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
-    if (vdef_branch->isPointer() && var_branch->hasRootArrayIndexBranch())
+    if (root_vdef_branch->isPointer() && (var_branch->hasRootArrayIndexBranch() || var_branch->hasStructureAccessBranch()))
     {
         /*
          * We are accessing a pointer as an array e.g
