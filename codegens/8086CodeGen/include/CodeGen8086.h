@@ -81,13 +81,19 @@ struct stmt_info
     stmt_info()
     {
         is_assignment = false;
-        assigning_pointer = false;
+        is_assigning_pointer = false;
         is_child_of_pointer = false;
+        is_assignment_variable = false;
+        assignment_data_size = -1;
+        pointer_var_position = "";
         pointer_your_child_of = NULL;
     }
     bool is_assignment;
-    bool assigning_pointer;
+    bool is_assigning_pointer;
     bool is_child_of_pointer;
+    bool is_assignment_variable;
+    int assignment_data_size;
+    std::string pointer_var_position;
     std::shared_ptr<PTRBranch> pointer_your_child_of;
 };
 
@@ -145,7 +151,7 @@ public:
     void calculate_scope_size(std::shared_ptr<ScopeBranch> scope_branch);
     void reset_scope_size();
 
-    void handle_ptr(std::shared_ptr<PTRBranch> ptr_branch);
+    void handle_ptr(struct stmt_info* s_info, std::shared_ptr<PTRBranch> ptr_branch);
     void handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch);
     void handle_structure(std::shared_ptr<STRUCTBranch> struct_branch);
     void handle_function_definition(std::shared_ptr<FuncDefBranch> func_def_branch);

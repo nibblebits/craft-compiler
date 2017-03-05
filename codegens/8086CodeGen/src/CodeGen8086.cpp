@@ -439,9 +439,19 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     else if (exp->getType() == "VAR_IDENTIFIER")
     {
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(exp);
-        std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
-        // This is a variable so set register to store to the value of this variable
-        make_move_reg_variable(register_to_store, var_iden_branch, s_info);
+        if (s_info->is_assigning_pointer && s_info->is_assignment_variable)
+        {
+            /* We don't really want to move the variable into a register as this is the pointer assignment part of the statement 
+             * its address is what we care about */
+
+            // After the call to "make_var_access" the "BX" register should hold the address to the variable
+            make_var_access(s_info, var_iden_branch);
+        }
+        else
+        {
+            // This is a variable so set register to store to the value of this variable
+            make_move_reg_variable(register_to_store, var_iden_branch, s_info);
+        }
     }
     else if (exp->getType() == "LOGICAL_NOT")
     {
@@ -450,7 +460,7 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     else if (exp->getType() == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(exp);
-        handle_ptr(ptr_branch);
+        handle_ptr(s_info, ptr_branch);
     }
     else if (exp->getType() == "FUNC_CALL")
     {
@@ -1085,17 +1095,23 @@ std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_p
         pos = getASMAddressForVariableFormatted(s_info, var_branch);
         if (data_size != NULL)
         {
-            if (s_info->assigning_pointer)
-            {
-                *data_size = getPointerSize();
-            }
-            else
-            {
-                *data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize();
-            }
+            *data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize();
         }
     }
 
+
+    // If this is an assignment variable we should set the assignment data size so it can be passed backup the tree
+    if (s_info->is_assignment_variable)
+    {
+        if (data_size != NULL)
+            s_info->assignment_data_size = *data_size;
+    }
+
+    if (s_info->is_assigning_pointer && s_info->is_assignment_variable)
+    {
+        // We should set the position of the pointer variable so it can be passed backup the tree
+        s_info->pointer_var_position = pos;
+    }
     return pos;
 }
 
@@ -1131,20 +1147,18 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
     s_info.is_assignment = true;
 
     bool is_word;
+    std::string pos;
     if (var_branch->getType() == "PTR")
     {
         std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_branch);
-        std::shared_ptr<VarIdentifierBranch> ptr_branch_var_iden_branch = ptr_branch->getPointerVariableIdentifierBranch();
-        std::shared_ptr<VDEFBranch> ptr_branch_vdef_branch = ptr_branch_var_iden_branch->getVariableDefinitionBranch();
+        s_info.is_assigning_pointer = true;
 
-        // Are we assigning a pointer?
-        if (ptr_branch_vdef_branch->isPointer())
-        {
-            s_info.assigning_pointer = true;
-        }
+        s_info.is_assignment_variable = true;
+        handle_ptr(&s_info, ptr_branch);
+        is_word = s_info.assignment_data_size == 2;
+        pos = s_info.pointer_var_position;
+        s_info.is_assignment_variable = false;
 
-        handle_ptr(ptr_branch);
-        is_word = is_alone_var_to_be_word(ptr_branch_vdef_branch, true);
         // Make the value expression
         make_expression(value, &s_info);
 
@@ -1157,7 +1171,7 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
             do_asm("mov ax, dx");
         }
 
-        make_mem_assignment("bx", NULL, is_word);
+        make_mem_assignment(pos, NULL, is_word, NULL);
     }
     else
     {
@@ -1168,10 +1182,15 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         // Are we assigning a pointer?
         if (vdef_in_question_branch->isPointer())
         {
-            s_info.assigning_pointer = true;
+            s_info.is_assigning_pointer = true;
         }
 
-        std::string pos = make_var_access(&s_info, var_iden_branch);
+        int data_size;
+        s_info.is_assignment_variable = true;
+        pos = make_var_access(&s_info, var_iden_branch, &data_size);
+        s_info.is_assignment_variable = false;
+
+        is_word = data_size == 2;
 
         // Make the value expression
         make_expression(value, &s_info);
@@ -1186,7 +1205,7 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
         }
 
         // This is a primitive type assignment, including pointer assignments
-        is_word = is_alone_var_to_be_word(vdef_in_question_branch);
+
         make_mem_assignment(pos, NULL, is_word, NULL);
 
     }
@@ -1239,19 +1258,18 @@ void CodeGen8086::reset_scope_size()
     }
 }
 
-void CodeGen8086::handle_ptr(std::shared_ptr<PTRBranch> ptr_branch)
+void CodeGen8086::handle_ptr(struct stmt_info* s_info, std::shared_ptr<PTRBranch> ptr_branch)
 {
-    struct stmt_info s_info;
     do_asm("; POINTER HANDLING ");
 
     // We need to set the is child of pointer flag ready for any children we are about to process
-    s_info.is_child_of_pointer = true;
-    s_info.pointer_your_child_of = ptr_branch;
+    s_info->is_child_of_pointer = true;
+    s_info->pointer_your_child_of = ptr_branch;
 
     std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
-    make_expression(exp_branch, &s_info, NULL, NULL);
+    make_expression(exp_branch, s_info, NULL, NULL);
 
-    s_info.is_child_of_pointer = false;
+    s_info->is_child_of_pointer = false;
 }
 
 void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
@@ -2255,7 +2273,6 @@ void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
 
 void CodeGen8086::assemble(std::string assembly)
 {
-    std::cout << assembly << std::endl;
     Assembler8086 assembler(getCompiler(), getObjectFormat());
     assembler.setInput(assembly);
     assembler.run();
