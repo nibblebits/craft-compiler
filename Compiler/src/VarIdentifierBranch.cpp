@@ -179,12 +179,10 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
             {
                 has_static_array = false;
                 // We are at something impossible to know at compile time so lets invoke the absolute generation function so that it can handle anything previously done
-                if (offset != 0)
-                {
-                    abs_gen_func(*pos + offset, std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), is_root_var);
-                    is_root_var = false;
-                    offset = 0;
-                }
+                abs_gen_func(*pos + offset, std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), is_root_var);
+                is_root_var = false;
+                offset = 0;
+
                 // This array index is not static, we cannot know it at compile time so lets get the programmer to fill in the gaps
                 array_unpredictable_func(array_index_branch, size);
             }
@@ -200,27 +198,68 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     // Ok lets get the next variable identifier(if any) and only if we are not ignoring structures
     if (!(options & POSITION_OPTION_IGNORE_STRUCTURE_ACCESS) && hasStructureAccessBranch())
     {
+        // When accessing a structure we should not start with the variable size
+        options &= ~POSITION_OPTION_START_WITH_VARSIZE;
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
         if (struct_access_branch->isAccessingAsPointer())
         {
-            if (*pos != 0)
+            // We should generate any absolute position we are aware of
+            abs_gen_func(*pos, std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), is_root_var);
+            *pos = 0;
+
+
+            // It may be possible for this to have an absolute position if it is the last struct access, lets find out.
+            if (!struct_access_branch->getVarIdentifierBranch()->hasStructureAccessBranch())
             {
-                // We should generate any absolute position we are aware of
-                abs_gen_func(*pos, std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), is_root_var);
-                *pos = 0;
+                // Ok we are all good we can make this an absolute position
+                *pos = struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope();
             }
-            // We are accessing this structure as a pointer, its impossible to know the address at compile time so we need to invoke the struct_access_unpredictable_func
-            struct_access_unpredictable_func(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), struct_access_branch->getVarIdentifierBranch());
-            *pos = struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, false);
+            else
+            {
+                // We are accessing this structure as a pointer, its impossible to know the address at compile time so we need to invoke the struct_access_unpredictable_func
+                struct_access_unpredictable_func(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), struct_access_branch->getVarIdentifierBranch());
+                *pos = struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, false);
+            }
         }
         else
         {
-            *pos += struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope(options);
+            *pos = struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope(options);
             *pos = struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, is_root_var);
         }
     }
 
     return *pos;
+}
+
+bool VarIdentifierBranch::isPositionStatic()
+{
+    bool is_static = true;
+
+    // Check structure access branches
+    if (hasStructureAccessBranch())
+    {
+        std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
+        if (struct_access_branch->isAccessingAsPointer())
+        {
+            is_static = false;
+        }
+        else
+        {
+            // Lets check further if we can
+            is_static = struct_access_branch->getVarIdentifierBranch()->isPositionStatic();
+        }
+    }
+
+    if (is_static)
+    {
+        // We are still static so lets check the array indexes
+        if (hasRootArrayIndexBranch())
+        {
+            is_static = getRootArrayIndexBranch()->areAllStatic();
+        }
+    }
+
+    return is_static;
 }
 
 bool VarIdentifierBranch::hasStructureAccessBranch()
