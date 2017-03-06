@@ -189,8 +189,8 @@ public:
     int getVariableType(std::shared_ptr<Branch> var_branch);
     std::string convert_full_reg_to_low_reg(std::string reg);
 
-    struct VARIABLE_ADDRESS getASMAddressForVariable(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch, bool to_variable_start_only=false);
-    std::string getASMAddressForVariableFormatted(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch, bool to_variable_start_only=false);
+    struct VARIABLE_ADDRESS getASMAddressForVariable(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> root_var_branch, bool to_variable_start_only=false);
+    std::string getASMAddressForVariableFormatted(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> root_var_branch, bool to_variable_start_only=false);
 
     std::shared_ptr<VDEFBranch> getVariable(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getScopeVariable(std::shared_ptr<Branch> var_branch);
