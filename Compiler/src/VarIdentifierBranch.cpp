@@ -178,11 +178,14 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
             else
             {
                 has_static_array = false;
-                // We are at something impossible to know at compile time so lets invoke the absolute generation function so that it can handle anything previously done
-                abs_gen_func(*pos + offset, std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), is_root_var);
-                is_root_var = false;
-                offset = 0;
-
+                if (*pos + offset != 0)
+                {
+                    // We are at something impossible to know at compile time so lets invoke the absolute generation function so that it can handle anything previously done
+                    //   abs_gen_func(*pos + offset, std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), is_root_var);
+                    //   is_root_var = false;
+                    //   *pos = 0;
+                    //   offset = 0;
+                }
                 // This array index is not static, we cannot know it at compile time so lets get the programmer to fill in the gaps
                 array_unpredictable_func(array_index_branch, size);
             }
@@ -198,15 +201,15 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     // Ok lets get the next variable identifier(if any) and only if we are not ignoring structures
     if (!(options & POSITION_OPTION_IGNORE_STRUCTURE_ACCESS) && hasStructureAccessBranch())
     {
-        // When accessing a structure we should not start with the variable size
-        options &= ~POSITION_OPTION_START_WITH_VARSIZE;
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
         if (struct_access_branch->isAccessingAsPointer())
         {
-            // We should generate any absolute position we are aware of
-            abs_gen_func(*pos, std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), is_root_var);
-            *pos = 0;
-
+            if (*pos != 0)
+            {
+                // We should generate any absolute position we are aware of
+                abs_gen_func(*pos, std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), is_root_var);
+                *pos = 0;
+            }
 
             // It may be possible for this to have an absolute position if it is the last struct access, lets find out.
             if (!struct_access_branch->getVarIdentifierBranch()->hasStructureAccessBranch())
@@ -218,8 +221,8 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
             {
                 // We are accessing this structure as a pointer, its impossible to know the address at compile time so we need to invoke the struct_access_unpredictable_func
                 struct_access_unpredictable_func(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), struct_access_branch->getVarIdentifierBranch());
-                *pos = struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, false);
             }
+            *pos = struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, false);
         }
         else
         {
@@ -233,8 +236,26 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
 
 bool VarIdentifierBranch::isPositionStatic()
 {
-    bool is_static = true;
+    bool is_static = isAllStructureAccessStatic();
+    if (is_static)
+    {
+        is_static = isAllArrayAccessStatic();
+    }
 
+    return is_static;
+}
+
+bool VarIdentifierBranch::isAllArrayAccessStatic()
+{
+    if (hasRootArrayIndexBranch())
+    {
+        return getRootArrayIndexBranch()->areAllStatic();
+    }
+}
+
+bool VarIdentifierBranch::isAllStructureAccessStatic()
+{
+    bool is_static = true;
     // Check structure access branches
     if (hasStructureAccessBranch())
     {
@@ -246,16 +267,7 @@ bool VarIdentifierBranch::isPositionStatic()
         else
         {
             // Lets check further if we can
-            is_static = struct_access_branch->getVarIdentifierBranch()->isPositionStatic();
-        }
-    }
-
-    if (is_static)
-    {
-        // We are still static so lets check the array indexes
-        if (hasRootArrayIndexBranch())
-        {
-            is_static = getRootArrayIndexBranch()->areAllStatic();
+            is_static = struct_access_branch->getVarIdentifierBranch()->isAllStructureAccessStatic();
         }
     }
 
