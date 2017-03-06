@@ -42,8 +42,9 @@ public:
     std::shared_ptr<STRUCTAccessBranch> getStructureAccessBranch();
     std::shared_ptr<ArrayIndexBranch> getRootArrayIndexBranch();
     std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(bool no_follow=false);
-    int getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden)> struct_access_unpredictable_func, POSITION_OPTIONS options=0);
-    int getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden)> struct_access_unpredictable_func, POSITION_OPTIONS options=0);
+    int getRootPositionRelZero(POSITION_OPTIONS options);
+    int getPositionRelZero(std::function<void(int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var)> abs_gen_func, std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden)> struct_access_unpredictable_func, POSITION_OPTIONS options=0);
+    int getPositionRelZeroIgnoreCurrentScope(std::function<void(int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var)> abs_gen_func, std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden)> struct_access_unpredictable_func, POSITION_OPTIONS options=0, int* pos=NULL, bool is_root_var=true);
     bool hasRootArrayIndexBranch();
     bool hasStructureAccessBranch();
     bool isVariableAlone();
