@@ -856,17 +856,9 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
 
     int data_size;
     std::string pos = make_var_access(s_info, var_branch, &data_size);
-    // When accessing an array without an index then only the address of the array should be moved to the register
-    if (vdef_var_iden_branch->hasRootArrayIndexBranch() && !var_branch->hasRootArrayIndexBranch())
-    {
-        // Move the position into the register, not the data at the position.
-        do_asm("lea " + reg + ", " + pos);
-    }
-    else
-    {
-        // We need to move the data from "pos" into the register
-        move_data_to_register(reg, pos, data_size);
-    }
+    // We need to move the data from "pos" into the register
+    move_data_to_register(reg, pos, data_size);
+
 }
 
 void CodeGen8086::make_move_var_addr_to_reg(struct stmt_info* s_info, std::string reg_name, std::shared_ptr<VarIdentifierBranch> var_branch)
@@ -2114,10 +2106,9 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
         }
     };
 
-    if (root_var_branch->isPositionStatic())
+    if (root_var_branch->isAllStructureAccessStatic())
     {
         // We have a static position so this variable position can be calculated at compile time
-
         switch (var_type)
         {
         case VARIABLE_TYPE_FUNCTION_VARIABLE:
