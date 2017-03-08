@@ -98,6 +98,7 @@ void BinLinker::resolve_segment(std::shared_ptr<VirtualObjectFormat> final_obj, 
                 diff = distance_to_target_segment;
             }
 
+
             switch (fixup->getLength())
             {
             case FIXUP_8BIT:

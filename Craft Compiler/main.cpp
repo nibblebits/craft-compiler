@@ -189,7 +189,38 @@ bool handle_parser_errors_and_warnings()
     }
 
     return true;
+}
 
+bool handle_preprocessor_errors_and_warnings()
+{
+    std::shared_ptr<Logger> logger = preprocessor->getLogger();
+    std::vector<std::string> log = logger->getLog();
+    for (std::string message : log)
+    {
+        std::cout << message << std::endl;
+    }
+
+    if (logger->hasAnError())
+    {
+        return false;
+    }
+    return true;
+}
+
+bool handle_semantic_validation_errors_and_warnings()
+{
+    std::shared_ptr<Logger> logger = semanticValidator->getLogger();
+    std::vector<std::string> log = logger->getLog();
+    for (std::string message : log)
+    {
+        std::cout << message << std::endl;
+    }
+
+    if (logger->hasAnError())
+    {
+        return false;
+    }
+    return true;
 }
 
 /*
@@ -340,17 +371,15 @@ int GenerateMode()
         return ERROR_WITH_PREPROCESSOR;
     }
 
-    // Ensure the input is semantically correct
-    try
+    // handle any errors relating to branches.
+    if (!handle_preprocessor_errors_and_warnings())
     {
-        semanticValidator->setTree(parser->getTree());
-        semanticValidator->validate();
+        return ERROR_WITH_PREPROCESSOR;
     }
-    catch (Exception ex)
-    {
-        std::cout << "Error with validation: " << ex.getMessage() << std::endl;
-        return ERROR_WITH_SEMANTIC_VALIDATION;
-    }
+
+#ifdef DEBUG_MODE
+    debug_output_branch(parser->getTree()->root);
+#endif 
 
     // Improve the tree
     try
@@ -362,6 +391,25 @@ int GenerateMode()
     {
         std::cout << "Error with improving the tree: " << ex.getMessage() << std::endl;
         return ERROR_WITH_TREE_IMPROVER;
+    }
+
+    // Ensure the input is semantically correct
+    try
+    {
+        semanticValidator->setTree(parser->getTree());
+        semanticValidator->validate();
+    }
+    catch (Exception ex)
+    {
+        std::cout << "Error with validation: " << ex.getMessage() << std::endl;
+        handle_semantic_validation_errors_and_warnings();
+        return ERROR_WITH_SEMANTIC_VALIDATION;
+    }
+
+    // Handle any errors and warnings relating to the input
+    if (!handle_semantic_validation_errors_and_warnings())
+    {
+        return ERROR_WITH_SEMANTIC_VALIDATION;
     }
 
 #ifdef DEBUG_MODE
@@ -506,8 +554,21 @@ int LinkMode()
     return 0;
 }
 
+struct test
+{
+ 	int a;
+	int b;
+	int* c; 
+};
+
 int main(int argc, char** argv)
 {
+    
+    struct test t;
+    int a = 50;
+    t.c = &a;
+    
+  
     arguments = GoblinArgumentParser_GetArguments(argc, argv);
 
     std::cout << COMPILER_FULLNAME << std::endl;
