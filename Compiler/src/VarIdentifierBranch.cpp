@@ -194,6 +194,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     if (!(options & POSITION_OPTION_IGNORE_STRUCTURE_ACCESS) && hasStructureAccessBranch())
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
+        std::shared_ptr<VarIdentifierBranch> struct_access_var_iden_branch = struct_access_branch->getVarIdentifierBranch();
         if (struct_access_branch->isAccessingAsPointer())
         {
             if (*pos != 0)
@@ -204,22 +205,26 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
             }
 
             // It may be possible for this to have an absolute position if it is the last struct access, lets find out.
-            if (!struct_access_branch->getVarIdentifierBranch()->hasStructureAccessBranch())
+            if (!struct_access_var_iden_branch->hasStructureAccessBranch() ||
+                    !struct_access_var_iden_branch->getStructureAccessBranch()->isAccessingAsPointer())
             {
                 // Ok we are all good we can make this an absolute position
-                *pos = struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope();
+                *pos += struct_access_var_iden_branch->getVariableDefinitionBranch(true)->getPositionRelScope();
+                options &= ~POSITION_OPTION_START_WITH_VARSIZE;
             }
             else
             {
                 // We are accessing this structure as a pointer, its impossible to know the address at compile time so we need to invoke the struct_access_unpredictable_func
                 struct_access_unpredictable_func(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), struct_access_branch->getVarIdentifierBranch());
             }
-            *pos = struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, false);
+
+            *pos = struct_access_var_iden_branch->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, false);
+
         }
         else
         {
-            *pos += struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope(options);
-            *pos = struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, is_root_var); 
+            *pos += struct_access_var_iden_branch->getVariableDefinitionBranch(true)->getPositionRelScope(options);
+            *pos = struct_access_var_iden_branch->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, is_root_var);
         }
     }
 
