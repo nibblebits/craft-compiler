@@ -178,14 +178,6 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
             else
             {
                 has_static_array = false;
-                if (*pos + offset != 0)
-                {
-                    // We are at something impossible to know at compile time so lets invoke the absolute generation function so that it can handle anything previously done
-                    //   abs_gen_func(*pos + offset, std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), is_root_var);
-                    //   is_root_var = false;
-                    //   *pos = 0;
-                    //   offset = 0;
-                }
                 // This array index is not static, we cannot know it at compile time so lets get the programmer to fill in the gaps
                 array_unpredictable_func(array_index_branch, size);
             }
@@ -226,8 +218,8 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
         }
         else
         {
-            *pos = struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope(options);
-            *pos = struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, is_root_var);
+            *pos += struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope(options);
+            *pos = struct_access_branch->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, is_root_var); 
         }
     }
 

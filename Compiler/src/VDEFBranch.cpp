@@ -101,7 +101,6 @@ VARIABLE_TYPE VDEFBranch::getVariableType()
 int VDEFBranch::getPositionRelScope(POSITION_OPTIONS options)
 {
     std::shared_ptr<ScopeBranch> scope_branch = getLocalScope();
-
     std::shared_ptr<Branch> target_branch = this->getptr();
     std::function<bool(std::shared_ptr<Branch> branch) > kill_proc = [&](std::shared_ptr<Branch> branch) -> bool
     {
