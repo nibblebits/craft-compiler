@@ -441,7 +441,7 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(exp);
         if (s_info->is_assigning_pointer && s_info->is_assignment_variable)
         {
-            /* We don't really want to move the variable into a register as this is the pointer assignment part of the statement 
+            /* We don't really want to move the variable data into a register as this is the pointer assignment part of the statement 
              * its address is what we care about */
 
             // After the call to "make_var_access" the "BX" register should hold the address to the variable
@@ -856,8 +856,17 @@ void CodeGen8086::make_move_reg_variable(std::string reg, std::shared_ptr<VarIde
 
     int data_size;
     std::string pos = make_var_access(s_info, var_branch, &data_size);
-    // We need to move the data from "pos" into the register
-    move_data_to_register(reg, pos, data_size);
+
+    // When accessing arrays without an index its address should be returned
+    if (vdef_var_iden_branch->hasRootArrayIndexBranch() && !var_branch->hasRootArrayIndexBranch())
+    {
+        do_asm("lea " + reg + ", [" + pos + "]");
+    }
+    else
+    {
+        // We need to move the data from "pos" into the register
+        move_data_to_register(reg, pos, data_size);
+    }
 
 }
 
@@ -1007,124 +1016,6 @@ std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_p
     if (data_size != NULL)
         *data_size = var_branch->getVariableDefinitionBranch()->getDataTypeBranch()->getDataTypeSize();
 
-    return pos;
-    std::shared_ptr<VDEFBranch> root_vdef_branch = var_branch->getVariableDefinitionBranch(true);
-    std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
-    std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
-    if (root_vdef_branch->isPointer() && (var_branch->hasRootArrayIndexBranch() || var_branch->hasStructureAccessBranch()))
-    {
-        /*
-         * We are accessing a pointer as an array or as a structure e.g
-         * uint8* ptr = array;
-         * ptr[0]
-         * When accessing a pointer as an array it should append array access on the address it has loaded.
-         * 
-         * For example:
-         * Assume the value of our pointer is 0x100 and its name is "ptr".
-         * Now assume: "ptr[1]" this would return the value of address 0x101
-         */
-
-        // Get the position to the variable start only, e.g for an array. "uint8 array[5]" it will return the position for the start of the array.
-        pos = getASMAddressForVariableFormatted(s_info, var_branch, true);
-
-        // Load the pointer address into the BX register
-        do_asm("; HANDLING V_DEF POINTER ACCESSED BY ARRAY INDEX OR STRUCTURE ACCESS");
-        do_asm("mov bx, [" + pos + "]");
-        // Keep getting the value of each address until we are at the actual value address its pointing to
-        if (s_info->is_child_of_pointer)
-        {
-            int depth = s_info->pointer_your_child_of->getPointerDepth();
-            dig_bx_to_address(depth);
-        }
-
-        bool use_di = false;
-        // The address that the pointer is pointing at is now stored in the BX register, now we should offset the address in "BX" based on the array index
-        int rel_pos = var_branch->getPositionRelZeroIgnoreCurrentScope(
-                                                                       [&](int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var)
-                                                                       {
-                                                                           // Add the offset on
-                                                                           do_asm("add bx, " + std::to_string(pos));
-                                                                       },
-                                                                       [&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
-                                                                       {
-                                                                           handle_array_index(s_info, array_index_branch, elem_size);
-                                                                           use_di = true;
-                                                                       }, [&](std::shared_ptr<VarIdentifierBranch> left_branch, std::shared_ptr<VarIdentifierBranch> right_branch)
-                                                                       {
-                                                                           handle_struct_access(s_info, left_branch, right_branch);
-                                                                       }, POSITION_OPTION_TREAT_AS_IF_NOT_POINTER);
-
-        // Now lets store the value in the register
-        if (data_size != NULL)
-            *data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
-        pos = "bx+" + std::to_string(rel_pos) + ((use_di) ? "+di" : "");
-    }
-    else if (s_info->is_child_of_pointer)
-    {
-        /*
-         * Here we are just accessing a pointer
-         * For example:
-         * uint8* ptr;
-         * *ptr;
-         */
-
-        pos = getASMAddressForVariableFormatted(s_info, var_branch, true);
-
-        // Load the pointer address into the BX register
-        do_asm("; HANDLING V_DEF POINTER WITH ZERO ARRAY INDEXS");
-        do_asm("mov bx, [" + pos + "]");
-
-        int depth = s_info->pointer_your_child_of->getPointerDepth();
-        // If the pointer size equals the pointer depth then we are at the data
-        if (vdef_branch->getPointerDepth() == depth)
-        {
-            // Keep getting the value of each address until we are at the final address its pointing to, -1 as BX will then point to the final address upon accessing it as memory [bx] will load the value.
-            dig_bx_to_address(depth - 1);
-            if (data_size != NULL)
-                *data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
-        }
-        else
-        {
-            // Keep getting the value of each address until we are at the final value its pointing to
-            dig_bx_to_address(depth);
-            if (data_size != NULL)
-                *data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize();
-        }
-
-        pos = "bx";
-
-    }
-    else if (vdef_var_iden_branch->hasRootArrayIndexBranch() && !var_branch->hasRootArrayIndexBranch())
-    {
-        pos = getASMAddressForVariableFormatted(s_info, var_branch);
-
-        // When accessing arrays without an index its address should be returned
-        do_asm("lea bx, [" + pos + "]");
-        pos = "bx";
-    }
-    else
-    {
-        // This is standard access
-        pos = getASMAddressForVariableFormatted(s_info, var_branch);
-        if (data_size != NULL)
-        {
-            *data_size = vdef_branch->getDataTypeBranch()->getDataTypeSize();
-        }
-    }
-
-
-    // If this is an assignment variable we should set the assignment data size so it can be passed backup the tree
-    if (s_info->is_assignment_variable)
-    {
-        if (data_size != NULL)
-            s_info->assignment_data_size = *data_size;
-    }
-
-    if (s_info->is_assigning_pointer && s_info->is_assignment_variable)
-    {
-        // We should set the position of the pointer variable so it can be passed backup the tree
-        s_info->pointer_var_position = pos;
-    }
     return pos;
 }
 
@@ -2082,22 +1973,20 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
     {
         if (is_root_var)
         {
-            // This is the root variable so lets get the first element
-            switch (var_type)
+            /* The framework is not aware that for scope variables who are structures or arrays we should minus root position and climb forward. 
+             * so we will have to do it manually.*/
+            VARIABLE_ADDRESS address = getASMAddressForVariable(s_info, root_var_branch, true);
+            int climb = pos - address.offset;
+            std::string pos_str = address.to_string() + "+" + std::to_string(climb);
+
+            // Load the pointer address into the BX register
+            do_asm("; HANDLING V_DEF POINTER");
+            do_asm("mov bx, [" + pos_str + "]");
+            // Keep getting the value of each address until we are at the actual value address its pointing to
+            if (s_info->is_child_of_pointer)
             {
-            case VARIABLE_TYPE_FUNCTION_VARIABLE:
-                if (root_var_branch->getVariableDefinitionBranch(true)->isPointer())
-                {
-                    do_asm("mov bx, [bp-" + std::to_string(pos) + "]");
-                }
-                else
-                {
-                    // Function arrays must start at the end and work their way to the beginning as well as function structures.
-                    int rel_pos = var_iden_branch->getVariableDefinitionBranch(true)->getPositionRelScope();
-                    // This is a scope variable so load its address
-                    do_asm("mov bx, [bp-" + std::to_string(pos) + "+" + std::to_string(rel_pos) + "]");
-                }
-                break;
+                int depth = s_info->pointer_your_child_of->getPointerDepth();
+                dig_bx_to_address(depth);
             }
         }
         else
@@ -2106,7 +1995,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
         }
     };
 
-    if (root_var_branch->isAllStructureAccessStatic())
+    if (root_var_branch->isAllStructureAccessStatic() || to_variable_start_only)
     {
         // We have a static position so this variable position can be calculated at compile time
         switch (var_type)
@@ -2127,7 +2016,12 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
             {
                 address.segment = "bp";
                 address.op = "-";
-                address.offset = root_var_branch->getPositionRelZero(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, POSITION_OPTION_START_WITH_VARSIZE);
+                options = POSITION_OPTION_START_WITH_VARSIZE;
+                if (to_variable_start_only)
+                {
+                    options |= POSITION_OPTION_STOP_AT_ROOT_VAR;
+                }
+                address.offset = root_var_branch->getPositionRelZero(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options);
             }
             break;
         }
