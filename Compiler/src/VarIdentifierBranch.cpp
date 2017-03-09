@@ -66,6 +66,17 @@ std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch(boo
     return Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), true, no_follow);
 }
 
+std::shared_ptr<VarIdentifierBranch> VarIdentifierBranch::getFinalVarIdentifierBranch()
+{
+    // Recursive until we find the final variable identifier branch
+    if (hasStructureAccessBranch())
+    {
+        return getStructureAccessBranch()->getVarIdentifierBranch()->getFinalVarIdentifierBranch();
+    }
+
+    return std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr());
+}
+
 int VarIdentifierBranch::getRootPositionRelZero(POSITION_OPTIONS options)
 {
     return getPositionRelZero([&](int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var) -> void

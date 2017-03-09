@@ -89,9 +89,5 @@ void CodeGenerator::do_asm(std::string asm_ins, std::string segment)
     asm_str += asm_ins + "\n";
 
     this->assembly[segment] = asm_str;
-    
-#ifdef DEBUG_MODE
-    // Output the assembly instruction if debug mode is enabled.
-    std::cout << asm_ins << std::endl;
-#endif
+   
 }
