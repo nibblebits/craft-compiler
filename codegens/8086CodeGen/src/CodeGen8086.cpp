@@ -1993,7 +1993,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
     };
 
     // Absolute function for handling absolute positions for scopes that cant maintain absolution.
-  std::function<void(int, std::shared_ptr<VarIdentifierBranch>, bool) > scope_abs_gen_func = [&](int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var)
+    std::function<void(int, std::shared_ptr<VarIdentifierBranch>, bool) > scope_abs_gen_func = [&](int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var)
     {
         if (is_root_var)
         {
@@ -2024,17 +2024,12 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
     {
         if (is_root_var)
         {
-            /* The framework is not aware that for scope argument variables who are structures or arrays we should minus root position and climb forward. 
-             * so we will have to do it manually.*/
             VARIABLE_ADDRESS address = getASMAddressForVariable(s_info, root_var_branch, true);
-            // Add 4 as this is a function argument
-            //address.offset += 4;
-            int climb = pos - address.offset;
-            std::string pos_str = address.to_string() + "+" + std::to_string(climb);
-
+            // + 4 to get to function arguments
+            address.offset += 4;
             // Load the pointer address into the BX register
-            do_asm("; HANDLING V_DEF POINTER");
-            do_asm("mov bx, [" + pos_str + "]");
+            do_asm("; HANDLING FUNCTION ARGUMENT V_DEF POINTER");
+            do_asm("mov bx, [" + address.to_string() + "]");
             // Keep getting the value of each address until we are at the actual value address its pointing to
             if (s_info->is_child_of_pointer)
             {
@@ -2096,15 +2091,19 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
     }
     else
     {
+        // Ok the position is non-static we will need to deal with it at run time
+        address.segment = "bx";
+        address.op = "+";
         switch (var_type)
         {
         case VARIABLE_TYPE_GLOBAL_VARIABLE:
+            address.offset = root_var_branch->getPositionRelZero(global_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, POSITION_OPTION_START_WITH_VARSIZE);
+            break;
         case VARIABLE_TYPE_FUNCTION_VARIABLE:
-        case VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE:
-            // Ok the position is non-static we will need to deal with it at run time
-            address.segment = "bx";
-            address.op = "+";
             address.offset = root_var_branch->getPositionRelZero(scope_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, POSITION_OPTION_START_WITH_VARSIZE);
+            break;
+        case VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE:
+            address.offset = root_var_branch->getPositionRelZero(func_args_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, POSITION_OPTION_START_WITH_VARSIZE);
             break;
 
         }
