@@ -72,7 +72,7 @@ unsigned char ins_map[] = {
     0x80, 0x81, 0x28, 0x29, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
     0x80, 0x81, 0x80, 0x81, 0xf6, 0xf7, 0xf6, 0xf7, 0xf6, 0xf7,
     0xf6, 0xf7, 0xe9, 0xe8, 0x70, 0x70, 0x70, 0x70, 0x70, 0x70,
-    0x70, 0x70, 0x70, 0x70, 0x50, 0x58, 0xc3, 0x30, 0x31, 0x30, 
+    0x70, 0x70, 0x70, 0x70, 0x50, 0x58, 0xc3, 0x30, 0x31, 0x30,
     0x31, 0x32, 0x33, 0x34, 0x35, 0x80, 0x81, 0x80, 0x81, 0x08,
     0x09, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x80, 0x81, 0x80,
     0x81, 0x20, 0x21, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x80,
@@ -382,6 +382,7 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addKeyword("word");
     Assembler::addKeyword("db");
     Assembler::addKeyword("dw");
+    Assembler::addKeyword("rb");
 
     Assembler::addRegister("ax");
     Assembler::addRegister("ah");
@@ -919,9 +920,13 @@ void Assembler8086::parse_data(DATA_BRANCH_TYPE data_branch_type)
         {
             data_branch_type = DATA_BRANCH_TYPE_DATA_BYTE;
         }
-        else
+        else if (data_keyword_value == "dw")
         {
             data_branch_type = DATA_BRANCH_TYPE_DATA_WORD;
+        }
+        else if (data_keyword_value == "rb")
+        {
+            data_branch_type = DATA_BRANCH_TYPE_DATA_RESERVE_BYTE;
         }
     }
 
@@ -1017,7 +1022,7 @@ bool Assembler8086::is_next_extern()
 bool Assembler8086::is_next_data()
 {
     peek();
-    return is_peek_keyword("db") || is_peek_keyword("dw");
+    return is_peek_keyword("db") || is_peek_keyword("dw") || is_peek_keyword("rb");
 }
 
 bool Assembler8086::is_next_newline()
@@ -1149,42 +1154,60 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
     else if (branch->getType() == "DATA")
     {
         std::shared_ptr<DataBranch> data_branch = std::dynamic_pointer_cast<DataBranch>(branch);
-        do
+        std::shared_ptr<Branch> d_branch = data_branch->getData();
+        DATA_BRANCH_TYPE data_branch_type = data_branch->getDataBranchType();
+        int size;
+        if (data_branch_type == DATA_BRANCH_TYPE_DATA_RESERVE_BYTE)
         {
             data_branch->setOffset(this->cur_offset);
-            // We need to get the size of the data branches data
-            int size = 0;
-            std::shared_ptr<Branch> d_branch = data_branch->getData();
-            DATA_BRANCH_TYPE data_branch_type = data_branch->getDataBranchType();
-            if (d_branch->getType() == "string")
+            // We are reserving bytes so all we really want is a number
+            if (d_branch->getType() != "number")
             {
-                size = d_branch->getValue().length();
-                if (data_branch_type == DATA_BRANCH_TYPE_DATA_WORD)
+                throw Exception("Expecting a \"number\" for assembler data \"rb\" keyword but a \"" + d_branch->getType() + "\" keyword was provided");
+            }
+            int total_to_reserve = std::stoi(d_branch->getValue());
+            size = total_to_reserve;
+            this->cur_offset += size;
+        }
+        else
+        {
+            do
+            {
+                data_branch->setOffset(this->cur_offset);
+                // We need to get the size of the data branches data
+                size = 0;
+                d_branch = data_branch->getData();
+                data_branch_type = data_branch->getDataBranchType();
+                if (d_branch->getType() == "string")
                 {
-                    // Maybe this exception is more appropriate somewhere else?
-                    throw Exception("void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch): wide strings are not supported by this assembler.");
+                    size = d_branch->getValue().length();
+                    if (data_branch_type == DATA_BRANCH_TYPE_DATA_WORD)
+                    {
+                        // Maybe this exception is more appropriate somewhere else?
+                        throw Exception("void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch): wide strings are not supported by this assembler.");
+                    }
+                }
+                else
+                {
+                    // Ok this must be a number, so just set the size based on weather its a byte or a word
+                    size = (data_branch_type == DATA_BRANCH_TYPE_DATA_BYTE ? 1 : 2);
+                }
+
+                // We have successfully calculated the size lets adjust the offset
+                this->cur_offset += size;
+
+                // Do we have nested data branches?
+                if (data_branch->hasNextDataBranch())
+                {
+                    data_branch = data_branch->getNextDataBranch();
+                }
+                else
+                {
+                    break;
                 }
             }
-            else
-            {
-                // Ok this must be a number, so just set the size based on weather its a byte or a word
-                size = (data_branch_type == DATA_BRANCH_TYPE_DATA_BYTE ? 1 : 2);
-            }
-
-            // We have successfully calculated the size lets adjust the offset
-            this->cur_offset += size;
-
-            // Do we have nested data branches?
-            if (data_branch->hasNextDataBranch())
-            {
-                data_branch = data_branch->getNextDataBranch();
-            }
-            else
-            {
-                break;
-            }
+            while (true);
         }
-        while (true);
     }
     else
     {
@@ -1292,7 +1315,6 @@ void Assembler8086::handle_mustfits_for_label_branch(std::shared_ptr<LabelBranch
         }
     }
 }
-
 
 void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm)
 {
@@ -1711,7 +1733,8 @@ void Assembler8086::generate_instruction(std::shared_ptr<InstructionBranch> inst
 void Assembler8086::generate_data(std::shared_ptr<DataBranch> data_branch)
 {
     std::shared_ptr<Branch> d_branch = data_branch->getData();
-    if (data_branch->getDataBranchType() == DATA_BRANCH_TYPE_DATA_BYTE)
+    DATA_BRANCH_TYPE data_branch_type = data_branch->getDataBranchType();
+    if (data_branch_type == DATA_BRANCH_TYPE_DATA_BYTE)
     {
         if (d_branch->getType() == "string")
         {
@@ -1722,6 +1745,15 @@ void Assembler8086::generate_data(std::shared_ptr<DataBranch> data_branch)
         {
             // This data is a byte so write it.
             this->sstream->write8(std::stoi(d_branch->getValue()));
+        }
+    }
+    else if (data_branch_type == DATA_BRANCH_TYPE_DATA_RESERVE_BYTE)
+    {
+        // Ok we are reserving bytes here so we should just write NULL's for how many bytes their are to reserve
+        int total_to_null = std::stoi(d_branch->getValue());
+        for (int i = 0; i < total_to_null; i++)
+        {
+            this->sstream->write8(0);
         }
     }
     else
