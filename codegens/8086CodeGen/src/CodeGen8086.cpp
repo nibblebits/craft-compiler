@@ -1666,6 +1666,7 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
 
 void CodeGen8086::handle_break(std::shared_ptr<BreakBranch> branch)
 {
+    do_asm("; BREAK");
     // Looks like we are breaking out of this
     std::shared_ptr<Branch> branch_to_stop = this->breakable_branch_to_stop_reset;
     do_asm("add sp, " + std::to_string(branch->getLocalScope()->getScopeSize(GET_SCOPE_SIZE_INCLUDE_PARENT_SCOPES, NULL,
@@ -2044,7 +2045,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
     };
 
 
-    if (root_var_branch->isAllStructureAccessStatic() || to_variable_start_only)
+    if (!(vdef_branch->isPointer() && root_var_branch->hasRootArrayIndexBranch() || root_var_branch->hasStructureAccessBranch()) && root_var_branch->isAllStructureAccessStatic() || to_variable_start_only)
     {
         // We have a static position so this variable position can be calculated at compile time
         switch (var_type)
@@ -2091,19 +2092,35 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
     }
     else
     {
+
         // Ok the position is non-static we will need to deal with it at run time
         address.segment = "bx";
         address.op = "+";
         switch (var_type)
         {
         case VARIABLE_TYPE_GLOBAL_VARIABLE:
-            address.offset = root_var_branch->getPositionRelZero(global_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, POSITION_OPTION_START_WITH_VARSIZE);
+            if (vdef_branch->isPointer() && root_var_branch->hasRootArrayIndexBranch() && !root_var_branch->hasStructureAccessBranch())
+            {
+                do_asm("mov bx, [_data+" + std::to_string(root_var_branch->getRootPositionRelZero()) + "]");
+                options = POSITION_OPTION_TREAT_AS_IF_NOT_POINTER;
+            }
+            address.offset = root_var_branch->getPositionRelZero(global_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options);
             break;
         case VARIABLE_TYPE_FUNCTION_VARIABLE:
-            address.offset = root_var_branch->getPositionRelZero(scope_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, POSITION_OPTION_START_WITH_VARSIZE);
+            if (vdef_branch->isPointer() && root_var_branch->hasRootArrayIndexBranch() && !root_var_branch->hasStructureAccessBranch())
+            {
+                do_asm("mov bx, [bp-" + std::to_string(root_var_branch->getRootPositionRelZero(POSITION_OPTION_START_WITH_VARSIZE)) + "]");
+                options = POSITION_OPTION_TREAT_AS_IF_NOT_POINTER;
+            }
+            address.offset = root_var_branch->getPositionRelZero(scope_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options);
             break;
         case VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE:
-            address.offset = root_var_branch->getPositionRelZero(func_args_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, POSITION_OPTION_START_WITH_VARSIZE);
+            if (vdef_branch->isPointer() && root_var_branch->hasRootArrayIndexBranch() && !root_var_branch->hasStructureAccessBranch())
+            {
+                do_asm("mov bx, [bp+" + std::to_string(root_var_branch->getRootPositionRelZero() + 4) + "]");
+               options = POSITION_OPTION_TREAT_AS_IF_NOT_POINTER;
+            }
+            address.offset = root_var_branch->getPositionRelZero(func_args_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options);
             break;
 
         }
