@@ -79,81 +79,77 @@ std::shared_ptr<VarIdentifierBranch> VarIdentifierBranch::getFinalVarIdentifierB
 
 int VarIdentifierBranch::getRootPositionRelZero(POSITION_OPTIONS options)
 {
-    return getPositionRelZero([&](int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var) -> void
+    return getPositionRelZero([&](int root_var_pos, bool* should_clear) -> void
     {
-        throw Exception("Something went wrong calculating an absolute root position", "int VarIdentifierBranch::getRootPositionRelZero()");
-    },
-                              [&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by)
-                              {
-                              }, [&](std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden) -> void
-                              {
-                              }, options | POSITION_OPTION_STOP_AT_ROOT_VAR);
+    }, [&](struct position_info* pos_info) -> void
+    {
+        throw Exception("Something went wrong.", "int VarIdentifierBranch::getRootPositionRelZero(POSITION_OPTIONS options)");
+    }, options | POSITION_OPTION_STOP_AT_ROOT_VAR);
 }
 
-/**
- * Gets the position of this variable related to zero and where it cannot get the position at compile time as it is not possible
- * invokes the "abs_gen_func", and will also invoke the "array_unpredictable_func" or the "struct_access_unpredictable_func" function depending
- * on the type of position that could not be calculated.
- * 
- * The "abs_gen_func" will be called when ever it is not possible to calculate the position at compile time.
- * Once invoked you will have access to two arguments one argument being the current absolute position and the other being the current VarIdentifierBranch.
- * After calling the "abs_gen_func" the absolute position will be reset to zero.
- * 
- * Only the last absolute position is returned. The "abs_gen_func" will not be called for the last absolute position and will only be called
- * when it is no longer possible to maintain an absolute position. 
- * 
- * <b>This method is a method to assist the code generator in resolving positions for variables</b>
- * 
- * @param abs_gen_func - The function that should be called to handle the current absolute position
- * @param array_unpredictable_func - The function that should handle array access that cannot be handled at compile time
- * @param struct_access_unpredictable_func - The function that should handle structure access that cannot be handled at compile time
- * @param options - The options for this operation
- * @return The last absolute position for this operation.
- */
-int VarIdentifierBranch::getPositionRelZero(std::function<void(int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var) > abs_gen_func, std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden) > struct_access_unpredictable_func, POSITION_OPTIONS options)
+int VarIdentifierBranch::getPositionRelZero(std::function<void(int root_var_pos, bool* should_clear) > root_var_start_func, std::function<void(struct position_info* pos_info) > handle_func, POSITION_OPTIONS options)
 {
     std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
-    if (array_unpredictable_func == NULL)
+
+    if (!(options & POSITION_OPTION_POSITION_STATIC_IGNORE_HANDLE_FUNCTION))
     {
-        throw Exception("int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > array_unpredictable_func,std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden)> struct_access_unpredictable_func, POSITION_OPTIONS options):"
-                        "  You must pass an array_unpredictable_func so that you can generate appropriate assembly instructions for when the framework cannot calculate the position"
-                        "as it is impossible to know at compile time");
+        if (handle_func == NULL)
+        {
+            throw Exception("expecting handle_func.", "int VarIdentifierBranch::getPositionRelZero(std::function<void(struct position_info pos_info)> handle_func, POSITION_OPTIONS options)");
+        }
     }
 
-    if (struct_access_unpredictable_func == NULL)
-    {
-        throw Exception("int VarIdentifierBranch::getPositionRelZero(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int mul_by) > array_unpredictable_func,std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden)> struct_access_unpredictable_func, POSITION_OPTIONS options):"
-                        "  You must pass a struct_access_unpredictable_func so that you can generate appropriate assembly instructions for when the framework cannot calculate the position"
-                        "as it is impossible to know at compile time");
-    }
 
     // Generate the position up to our variable
     int pos = vdef_branch->getPositionRelZero(options);
+    if (root_var_start_func != NULL)
+    {
+        bool should_clear = false;
+        // Invoke the root start function
+        root_var_start_func(pos, &should_clear);
+        
+        if (should_clear)
+        {
+            pos = 0;
+        }
+    }
 
     // We want to stop at the root var so structures and array access should be ignored.
     if (!(options & POSITION_OPTION_STOP_AT_ROOT_VAR))
     {
-        pos = getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, &pos, true);
+        pos = getPositionRelZeroIgnoreCurrentScope(handle_func, options, &pos);
     }
 
     return pos;
 }
 
-int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var) > abs_gen_func, std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden) > struct_access_unpredictable_func, POSITION_OPTIONS options, int* pos, bool is_root_var)
+int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, POSITION_OPTIONS options, int* pos)
 {
-    if (array_unpredictable_func == NULL)
+    struct position_info p_info;
+    p_info.is_last_group = !hasStructureAccessBranch();
+    if (!p_info.is_last_group)
     {
-        throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden) > struct_access_unpredictable_func, POSITION_OPTIONS options):"
-                        "  You must pass an array_unpredictable_func so that you can generate appropriate assembly instructions for when the framework cannot calculate the position"
-                        "as it is impossible to know at compile time");
+        p_info.is_last_group = !getStructureAccessBranch()->getVarIdentifierBranch()->hasStructureAccessBranch();
+    }
+    p_info.var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr());
+    if (handle_func == NULL)
+    {
+        if ((options & POSITION_OPTION_POSITION_STATIC_IGNORE_HANDLE_FUNCTION))
+        {
+            handle_func = [&](struct position_info* pos_info) -> void
+            {
+                if ((pos_info->has_array_access && !pos_info->array_access_static) || (pos_info->has_struct_access && !pos_info->struct_access_static))
+                {
+                    throw Exception("The option POSITION_OPTION_POSITION_STATIC_IGNORE_HANDLE_FUNCTION was passed but the position is not static", "int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info pos_info) > handle_func, POSITION_OPTIONS options, int* pos)");
+                }
+            };
+        }
+        else
+        {
+            throw Exception("expecting handle_func.", "int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(int root_var_pos)> root_var_start_func, std::function<void(struct position_info pos_info)> handle_func, POSITION_OPTIONS options, int* pos)");
+        }
     }
 
-    if (struct_access_unpredictable_func == NULL)
-    {
-        throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden) > struct_access_unpredictable_func, POSITION_OPTIONS options):"
-                        "  You must pass a struct_access_unpredictable_func so that you can generate appropriate assembly instructions for when the framework cannot calculate the position"
-                        "as it is impossible to know at compile time");
-    }
 
     int custom_pos = 0;
     if (pos == NULL)
@@ -166,12 +162,13 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
     if (vdef_branch == NULL)
     {
-        throw Exception("int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, POSITION_OPTIONS options): "
-                        "could not find appropriate \"VDEFBranch\" for variable identifier with name: \"" + getVariableNameBranch()->getValue() + "\"");
+        throw Exception("could not find appropriate \"VDEFBranch\" for variable identifier with name: \"" + getVariableNameBranch()->getValue() + "\"", "int VarIdentifierBranch::getPositionRelZero(std::function<void(struct position_info pos_info)> handle_func, POSITION_OPTIONS options)");
     }
+
     if (hasRootArrayIndexBranch())
     {
-        bool has_static_array = false;
+        p_info.has_array_access = true;
+        p_info.array_access_static = false;
         bool no_pointer = false;
         if (options & POSITION_OPTION_TREAT_AS_IF_NOT_POINTER)
         {
@@ -184,21 +181,22 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
             if (array_index_branch->isStatic())
             {
                 offset *= std::stoi(array_index_branch->getValueBranch()->getValue());
-                has_static_array = true;
+                p_info.array_access_static = true;
             }
             else
             {
-                has_static_array = false;
-                // This array index is not static, we cannot know it at compile time so lets get the programmer to fill in the gaps
-                array_unpredictable_func(array_index_branch, size);
+                p_info.array_access_static = false;
             }
             return true;
         });
 
-        if (has_static_array)
+        if (p_info.array_access_static)
         {
             *pos += offset;
+            p_info.array_access_offset = offset;
         }
+
+        p_info.array_index_branch = getRootArrayIndexBranch();
     }
 
     // Ok lets get the next variable identifier(if any) and only if we are not ignoring structures
@@ -206,36 +204,53 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
         std::shared_ptr<VarIdentifierBranch> struct_access_var_iden_branch = struct_access_branch->getVarIdentifierBranch();
-        if (struct_access_branch->isAccessingAsPointer())
+        // If it is the last group then the structure access is static regardless if accessing as a pointer
+        if (!p_info.is_last_group && struct_access_branch->isAccessingAsPointer())
         {
-            if (*pos != 0)
-            {
-                // We should generate any absolute position we are aware of
-                abs_gen_func(*pos, std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), is_root_var);
-                *pos = 0;
-            }
-
-            // It may be possible for this to have an absolute position if it is the last struct access, lets find out.
-            if (!struct_access_var_iden_branch->hasStructureAccessBranch() ||
-                    !struct_access_var_iden_branch->getStructureAccessBranch()->isAccessingAsPointer())
-            {
-                // Ok we are all good we can make this an absolute position
-                *pos += struct_access_var_iden_branch->getVariableDefinitionBranch(true)->getPositionRelScope();
-                options &= ~POSITION_OPTION_START_WITH_VARSIZE;
-            }
-            else
-            {
-                // We are accessing this structure as a pointer, its impossible to know the address at compile time so we need to invoke the struct_access_unpredictable_func
-                struct_access_unpredictable_func(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), struct_access_branch->getVarIdentifierBranch());
-            }
-
-            *pos = struct_access_var_iden_branch->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, false);
-
+            p_info.struct_access_static = false;
         }
         else
         {
-            *pos += struct_access_var_iden_branch->getVariableDefinitionBranch(true)->getPositionRelScope(options);
-            *pos = struct_access_var_iden_branch->getPositionRelZeroIgnoreCurrentScope(abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options, pos, is_root_var);
+            p_info.struct_access_static = true;
+            p_info.struct_access_offset = struct_access_var_iden_branch->getVariableDefinitionBranch(true)->getPositionRelScope();
+            *pos += p_info.struct_access_offset;
+        }
+        p_info.has_struct_access = true;
+        p_info.struct_access_branch = struct_access_branch;
+    }
+
+    if (!p_info.has_struct_access)
+    {
+        // This is the last element.
+        p_info.is_last = true;
+    }
+
+    p_info.abs_pos = *pos;
+    
+    // Ok lets invoke the handle function
+    handle_func(&p_info);
+
+    // Caller wants us to clear the absolute position
+    if (p_info.clear_abs_pos)
+    {
+        *pos = 0;
+    }
+
+    if ((p_info.has_struct_access && !p_info.struct_access_static) ||
+            (p_info.has_array_access && !p_info.array_access_static))
+    {
+        // Struct access or array access was not static so reset the absolute position
+        *pos = 0;
+    }
+
+    // Can we go further?
+    if (p_info.has_struct_access)
+    {
+        std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
+        std::shared_ptr<VarIdentifierBranch> struct_access_var_iden_branch = struct_access_branch->getVarIdentifierBranch();
+        if (struct_access_var_iden_branch->hasStructureAccessBranch())
+        {
+            *pos = struct_access_var_iden_branch->getStructureAccessBranch()->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(handle_func, options, pos);
         }
     }
 
@@ -259,6 +274,8 @@ bool VarIdentifierBranch::isAllArrayAccessStatic()
     {
         return getRootArrayIndexBranch()->areAllStatic();
     }
+
+    return true;
 }
 
 bool VarIdentifierBranch::isAllStructureAccessStatic()

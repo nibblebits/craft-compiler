@@ -28,6 +28,40 @@
 #include "CustomBranch.h"
 class ArrayIndexBranch;
 class STRUCTAccessBranch;
+
+struct position_info
+{
+    position_info()
+    {
+        has_array_access = false;
+        has_struct_access = false;
+        array_access_static = false;
+        struct_access_static = false;
+        is_last = false;
+        is_last_group = false;
+        clear_abs_pos = false;
+        array_access_offset = 0;
+        struct_access_offset = 0;
+        abs_pos = 0;
+        var_iden_branch = NULL;
+        struct_access_branch = NULL;
+        array_index_branch = NULL;
+    }
+    bool has_array_access;
+    bool has_struct_access;
+    bool array_access_static;
+    bool struct_access_static;
+    bool is_last;
+    bool is_last_group;
+    bool clear_abs_pos;
+    int array_access_offset;
+    int struct_access_offset;
+    int abs_pos;
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch;
+    std::shared_ptr<STRUCTAccessBranch> struct_access_branch;
+    std::shared_ptr<ArrayIndexBranch> array_index_branch;
+};
+
 class EXPORT VarIdentifierBranch : public CustomBranch
 {
 public:
@@ -41,11 +75,11 @@ public:
     std::shared_ptr<Branch> getVariableNameBranch();
     std::shared_ptr<STRUCTAccessBranch> getStructureAccessBranch();
     std::shared_ptr<ArrayIndexBranch> getRootArrayIndexBranch();
-    std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(bool no_follow=false);
+    std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(bool no_follow = false);
     std::shared_ptr<VarIdentifierBranch> getFinalVarIdentifierBranch();
-    int getRootPositionRelZero(POSITION_OPTIONS options);
-    int getPositionRelZero(std::function<void(int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var)> abs_gen_func, std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden)> struct_access_unpredictable_func, POSITION_OPTIONS options=0);
-    int getPositionRelZeroIgnoreCurrentScope(std::function<void(int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var)> abs_gen_func, std::function<void(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size) > array_unpredictable_func, std::function<void( std::shared_ptr<VarIdentifierBranch> left_var_iden, std::shared_ptr<VarIdentifierBranch> right_var_iden)> struct_access_unpredictable_func, POSITION_OPTIONS options=0, int* pos=NULL, bool is_root_var=true);
+    int getRootPositionRelZero(POSITION_OPTIONS options = 0);
+    int getPositionRelZero(std::function<void(int root_var_pos, bool* should_clear)> root_var_start_func, std::function<void(struct position_info* pos_info)> handle_func, POSITION_OPTIONS options = 0);
+    int getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info)> handle_func, POSITION_OPTIONS options = 0, int* pos = NULL);
     bool isPositionStatic();
     bool isAllArrayAccessStatic();
     bool isAllStructureAccessStatic();
