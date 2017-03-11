@@ -253,6 +253,12 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
         std::shared_ptr<VarIdentifierBranch> struct_access_var_iden_branch = struct_access_branch->getVarIdentifierBranch();
+        
+        if (!p_info.struct_access_static && struct_access_var_iden_branch->hasStructureAccessBranch() && !struct_access_var_iden_branch->getStructureAccessBranch()->isAccessingAsPointer())
+        {
+            // We are soon accessing a structure statically to the right of us because of this we need to add the current scope size to the position
+            *pos += struct_access_var_iden_branch->getVariableDefinitionBranch(true)->getPositionRelScope();
+        }
         *pos = struct_access_var_iden_branch->getPositionRelZeroIgnoreCurrentScope(handle_func, options, pos);
     }
 
