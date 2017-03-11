@@ -40,6 +40,8 @@ struct position_info
         is_last = false;
         is_last_group = false;
         clear_abs_pos = false;
+        clear_array_abs_pos = false;
+        clear_struct_abs_pos = false;
         array_access_offset = 0;
         struct_access_offset = 0;
         abs_pos = 0;
@@ -54,6 +56,8 @@ struct position_info
     bool is_last;
     bool is_last_group;
     bool clear_abs_pos;
+    bool clear_array_abs_pos;
+    bool clear_struct_abs_pos;
     int array_access_offset;
     int struct_access_offset;
     int abs_pos;

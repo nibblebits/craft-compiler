@@ -81,7 +81,7 @@ int VarIdentifierBranch::getRootPositionRelZero(POSITION_OPTIONS options)
 {
     return getPositionRelZero([&](int root_var_pos, bool* should_clear) -> void
     {
-    }, [&](struct position_info* pos_info) -> void
+    }, [&](struct position_info * pos_info) -> void
     {
         throw Exception("Something went wrong.", "int VarIdentifierBranch::getRootPositionRelZero(POSITION_OPTIONS options)");
     }, options | POSITION_OPTION_STOP_AT_ROOT_VAR);
@@ -107,7 +107,7 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(int root_var_pos,
         bool should_clear = false;
         // Invoke the root start function
         root_var_start_func(pos, &should_clear);
-        
+
         if (should_clear)
         {
             pos = 0;
@@ -136,7 +136,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     {
         if ((options & POSITION_OPTION_POSITION_STATIC_IGNORE_HANDLE_FUNCTION))
         {
-            handle_func = [&](struct position_info* pos_info) -> void
+            handle_func = [&](struct position_info * pos_info) -> void
             {
                 if ((pos_info->has_array_access && !pos_info->array_access_static) || (pos_info->has_struct_access && !pos_info->struct_access_static))
                 {
@@ -226,7 +226,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     }
 
     p_info.abs_pos = *pos;
-    
+
     // Ok lets invoke the handle function
     handle_func(&p_info);
 
@@ -235,12 +235,17 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     {
         *pos = 0;
     }
-
-    if ((p_info.has_struct_access && !p_info.struct_access_static) ||
-            (p_info.has_array_access && !p_info.array_access_static))
+    else
     {
-        // Struct access or array access was not static so reset the absolute position
-        *pos = 0;
+        if (p_info.clear_array_abs_pos && p_info.has_array_access && p_info.array_access_static)
+        {
+            *pos -= p_info.array_access_offset;
+        }
+
+        if (p_info.clear_struct_abs_pos && p_info.has_struct_access && p_info.struct_access_static)
+        {
+            *pos -= p_info.struct_access_static;
+        }
     }
 
     // Can we go further?
@@ -248,10 +253,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
         std::shared_ptr<VarIdentifierBranch> struct_access_var_iden_branch = struct_access_branch->getVarIdentifierBranch();
-        if (struct_access_var_iden_branch->hasStructureAccessBranch())
-        {
-            *pos = struct_access_var_iden_branch->getStructureAccessBranch()->getVarIdentifierBranch()->getPositionRelZeroIgnoreCurrentScope(handle_func, options, pos);
-        }
+        *pos = struct_access_var_iden_branch->getPositionRelZeroIgnoreCurrentScope(handle_func, options, pos);
     }
 
     return *pos;
