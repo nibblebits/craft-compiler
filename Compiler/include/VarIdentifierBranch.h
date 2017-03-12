@@ -31,42 +31,25 @@ class STRUCTAccessBranch;
 
 struct position_info
 {
+
     position_info()
     {
-        has_array_access = false;
-        has_struct_access = false;
-        array_access_static = false;
-        struct_access_static = false;
-        group_is_static = false;
+        is_root = false;
         is_last = false;
-        is_last_group = false;
-        clear_abs_pos = false;
-        clear_array_abs_pos = false;
-        clear_struct_abs_pos = false;
-        point_before_access = false;
+        has_array_access = false;
+        array_access_static = false;
         array_access_offset = 0;
-        struct_access_offset = 0;
         abs_pos = 0;
         var_iden_branch = NULL;
-        struct_access_branch = NULL;
-        array_index_branch = NULL;
     }
-    bool has_array_access;
-    bool has_struct_access;
-    bool array_access_static;
-    bool struct_access_static;
-    bool group_is_static;
+    bool is_root;
     bool is_last;
-    bool is_last_group;
-    bool clear_abs_pos;
-    bool clear_array_abs_pos;
-    bool clear_struct_abs_pos;
-    bool point_before_access;
-    int array_access_offset;
-    int struct_access_offset;
+    bool has_array_access;
+    bool array_access_static;
+    bool array_access_offset;
     int abs_pos;
+    
     std::shared_ptr<VarIdentifierBranch> var_iden_branch;
-    std::shared_ptr<STRUCTAccessBranch> struct_access_branch;
     std::shared_ptr<ArrayIndexBranch> array_index_branch;
 };
 
@@ -86,8 +69,8 @@ public:
     std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(bool no_follow = false);
     std::shared_ptr<VarIdentifierBranch> getFinalVarIdentifierBranch();
     int getRootPositionRelZero(POSITION_OPTIONS options = 0);
-    int getPositionRelZero(std::function<void(int root_var_pos, bool* should_clear)> root_var_start_func, std::function<void(struct position_info* pos_info)> handle_func, POSITION_OPTIONS options = 0);
-    int getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info)> handle_func, POSITION_OPTIONS options = 0, int* pos = NULL);
+    int getPositionRelZero(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position)> point_func, POSITION_OPTIONS options = 0);
+    int getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position)> point_func, POSITION_OPTIONS options = 0, bool is_root=true, bool ignore_self_offset=true, int* pos = NULL);
     bool isPositionStatic();
     bool isAllArrayAccessStatic();
     bool isAllStructureAccessStatic();

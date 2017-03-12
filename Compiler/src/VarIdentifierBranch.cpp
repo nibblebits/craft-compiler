@@ -79,15 +79,13 @@ std::shared_ptr<VarIdentifierBranch> VarIdentifierBranch::getFinalVarIdentifierB
 
 int VarIdentifierBranch::getRootPositionRelZero(POSITION_OPTIONS options)
 {
-    return getPositionRelZero([&](int root_var_pos, bool* should_clear) -> void
-    {
-    }, [&](struct position_info * pos_info) -> void
+    return getPositionRelZero([&](struct position_info * pos_info) -> void
     {
         throw Exception("Something went wrong.", "int VarIdentifierBranch::getRootPositionRelZero(POSITION_OPTIONS options)");
-    }, options | POSITION_OPTION_STOP_AT_ROOT_VAR);
+    }, NULL, options | POSITION_OPTION_STOP_AT_ROOT_VAR);
 }
 
-int VarIdentifierBranch::getPositionRelZero(std::function<void(int root_var_pos, bool* should_clear) > root_var_start_func, std::function<void(struct position_info* pos_info) > handle_func, POSITION_OPTIONS options)
+int VarIdentifierBranch::getPositionRelZero(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options)
 {
     std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
 
@@ -102,54 +100,22 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(int root_var_pos,
 
     // Generate the position up to our variable
     int pos = vdef_branch->getPositionRelZero(options);
-    if (root_var_start_func != NULL)
-    {
-        bool should_clear = false;
-        // Invoke the root start function
-        root_var_start_func(pos, &should_clear);
-
-        if (should_clear)
-        {
-            pos = 0;
-        }
-    }
 
     // We want to stop at the root var so structures and array access should be ignored.
     if (!(options & POSITION_OPTION_STOP_AT_ROOT_VAR))
     {
-        pos = getPositionRelZeroIgnoreCurrentScope(handle_func, options, &pos);
+        pos = getPositionRelZeroIgnoreCurrentScope(handle_func, point_func, options, true, true, &pos);
     }
 
     return pos;
 }
 
-int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, POSITION_OPTIONS options, int* pos)
+int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options, bool is_root, bool ignore_self_offset, int* pos)
 {
     struct position_info p_info;
-    p_info.is_last_group = !hasStructureAccessBranch();
-    if (!p_info.is_last_group)
-    {
-        p_info.is_last_group = !getStructureAccessBranch()->getVarIdentifierBranch()->hasStructureAccessBranch();
-    }
+    p_info.is_root = is_root;
+    p_info.is_last = !hasStructureAccessBranch();
     p_info.var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr());
-    if (handle_func == NULL)
-    {
-        if ((options & POSITION_OPTION_POSITION_STATIC_IGNORE_HANDLE_FUNCTION))
-        {
-            handle_func = [&](struct position_info * pos_info) -> void
-            {
-                if ((pos_info->has_array_access && !pos_info->array_access_static) || (pos_info->has_struct_access && !pos_info->struct_access_static))
-                {
-                    throw Exception("The option POSITION_OPTION_POSITION_STATIC_IGNORE_HANDLE_FUNCTION was passed but the position is not static", "int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info pos_info) > handle_func, POSITION_OPTIONS options, int* pos)");
-                }
-            };
-        }
-        else
-        {
-            throw Exception("expecting handle_func.", "int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(int root_var_pos)> root_var_start_func, std::function<void(struct position_info pos_info)> handle_func, POSITION_OPTIONS options, int* pos)");
-        }
-    }
-
 
     int custom_pos = 0;
     if (pos == NULL)
@@ -165,6 +131,15 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
         throw Exception("could not find appropriate \"VDEFBranch\" for variable identifier with name: \"" + getVariableNameBranch()->getValue() + "\"", "int VarIdentifierBranch::getPositionRelZero(std::function<void(struct position_info pos_info)> handle_func, POSITION_OPTIONS options)");
     }
 
+    int self_offset = 0;
+
+    if (!ignore_self_offset)
+    {
+        self_offset = getVariableDefinitionBranch(true)->getPositionRelScope();
+    }
+
+    *pos += self_offset;
+
     if (hasRootArrayIndexBranch())
     {
         p_info.has_array_access = true;
@@ -177,7 +152,6 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
         // When accessing pointer variables who are not arrays as arrays the position cannot be static
         if (vdef_branch->isPointer() && !vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
         {
-            p_info.point_before_access = true;
             no_pointer = true;
         }
         int size = vdef_branch->getDataTypeBranch()->getDataTypeSize(no_pointer);
@@ -205,77 +179,36 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
         p_info.array_index_branch = getRootArrayIndexBranch();
     }
 
-    // Ok lets get the next variable identifier(if any) and only if we are not ignoring structures
-    if (!(options & POSITION_OPTION_IGNORE_STRUCTURE_ACCESS) && hasStructureAccessBranch())
+    int struct_offset = 0;
+    if (hasStructureAccessBranch())
     {
-        std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
-        std::shared_ptr<VarIdentifierBranch> struct_access_var_iden_branch = struct_access_branch->getVarIdentifierBranch();
-        // If it is the last group then the structure access is static regardless if accessing as a pointer
-        if (!p_info.is_last_group && struct_access_branch->isAccessingAsPointer())
-        {
-            p_info.struct_access_static = false;
-        }
-        else
-        {
-            p_info.struct_access_static = true;
-            p_info.struct_access_offset = struct_access_var_iden_branch->getVariableDefinitionBranch(true)->getPositionRelScope();
-            *pos += p_info.struct_access_offset;
-        }
-        p_info.has_struct_access = true;
-        p_info.struct_access_branch = struct_access_branch;
-    }
-
-    if (!p_info.has_struct_access)
-    {
-        // This is the last element.
-        p_info.is_last = true;
+        struct_offset = getStructureAccessBranch()->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope();
     }
 
     p_info.abs_pos = *pos;
 
-    // Is this group entirely static
-    p_info.group_is_static = true;
-    if (p_info.has_array_access)
+    // Ok lets invoke the handle function if we need to
+    if ((is_root && hasStructureAccessBranch() && getStructureAccessBranch()->isAccessingAsPointer()) || (p_info.has_array_access && !p_info.array_access_static))
     {
-        p_info.group_is_static = p_info.array_access_static;
-    }
-    if (p_info.group_is_static && p_info.has_struct_access)
-    {
-        p_info.group_is_static = p_info.struct_access_static;
-    }
-    // Ok lets invoke the handle function
-    handle_func(&p_info);
-
-    // Caller wants us to clear the absolute position
-    if (p_info.clear_abs_pos)
-    {
+        handle_func(&p_info);
         *pos = 0;
-    }
-    else
-    {
-        if (p_info.clear_array_abs_pos && p_info.has_array_access && p_info.array_access_static)
-        {
-            *pos -= p_info.array_access_offset;
-        }
-
-        if (p_info.clear_struct_abs_pos && p_info.has_struct_access && p_info.struct_access_static)
-        {
-            *pos -= p_info.struct_access_offset;
-        }
     }
 
     // Can we go further?
-    if (p_info.has_struct_access)
+    if (hasStructureAccessBranch())
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
         std::shared_ptr<VarIdentifierBranch> struct_access_var_iden_branch = struct_access_branch->getVarIdentifierBranch();
-
-        if (!p_info.struct_access_static && struct_access_var_iden_branch->hasStructureAccessBranch() && !struct_access_var_iden_branch->getStructureAccessBranch()->isAccessingAsPointer())
+        if (struct_access_branch->isAccessingAsPointer())
         {
-            // We are soon accessing a structure statically to the right of us because of this we need to add the current scope size to the position
-            *pos += struct_access_var_iden_branch->getVariableDefinitionBranch(true)->getPositionRelScope();
+            if (!is_root)
+            {
+                point_func(*pos);
+                *pos = 0;
+            }
         }
-        *pos = struct_access_var_iden_branch->getPositionRelZeroIgnoreCurrentScope(handle_func, options, pos);
+
+        *pos = struct_access_var_iden_branch->getPositionRelZeroIgnoreCurrentScope(handle_func, point_func, options, false, false, pos);
     }
 
     return *pos;
