@@ -1006,9 +1006,9 @@ void CodeGen8086::make_var_access_rel_base(struct stmt_info* s_info, std::shared
 
 }
 
-void CodeGen8086::handle_struct_access(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> left_branch, std::shared_ptr<VarIdentifierBranch> right_branch)
+void CodeGen8086::handle_struct_access(struct stmt_info* s_info, std::shared_ptr<STRUCTAccessBranch> struct_access_branch)
 {
-    std::string pos = std::to_string(right_branch->getVariableDefinitionBranch(true)->getPositionRelScope());
+    std::string pos = std::to_string(struct_access_branch->getVarIdentifierBranch()->getVariableDefinitionBranch(true)->getPositionRelScope());
     do_asm("mov bx, [bx+" + pos + "]");
 }
 
@@ -1950,6 +1950,14 @@ std::string CodeGen8086::convert_full_reg_to_low_reg(std::string reg)
     return reg;
 }
 
+void CodeGen8086::scope_handle_func(struct stmt_info* s_info, struct position_info* pos_info)
+{
+    if (pos_info->is_root)
+    {
+        do_asm("mov bx, [bp-" + std::to_string(pos_info->abs_pos) + "]");
+    }
+}
+
 struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> root_var_branch, bool to_variable_start_only)
 {
     struct VARIABLE_ADDRESS address;
@@ -1960,123 +1968,42 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
 
     POSITION_OPTIONS options = 0;
 
-    std::function<void(std::shared_ptr<ArrayIndexBranch>, int) > array_unpredictable_func = [&](std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
+
+    if (root_var_branch->isPositionStatic() || to_variable_start_only)
     {
-        handle_array_index(s_info, array_index_branch, elem_size);
-        address.apply_reg = "di";
-    };
+        // The position is guaranteed to be static as we have checked for it so we won't need to pass a handle function.
+        options |= POSITION_OPTION_POSITION_STATIC_IGNORE_HANDLE_FUNCTION;
 
-    std::function<void(std::shared_ptr<VarIdentifierBranch>, std::shared_ptr<VarIdentifierBranch>) > struct_access_unpredictable_func = [&](std::shared_ptr<VarIdentifierBranch> left_branch, std::shared_ptr<VarIdentifierBranch> right_branch)
-    {
-        handle_struct_access(s_info, left_branch, right_branch);
-        address.apply_reg = "bx";
-    };
-
-    // Absolute function for handling absolute positions for the global scope that cant maintain absolution.
-    std::function<void(int, std::shared_ptr<VarIdentifierBranch>, bool) > global_abs_gen_func = [&](int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var)
-    {
-        if (is_root_var)
-        {
-            // Load the pointer address into the BX register
-            do_asm("; HANDLING V_DEF POINTER");
-            do_asm("mov bx, [_data+" + std::to_string(pos) + "]");
-            // Keep getting the value of each address until we are at the actual value address its pointing to
-            if (s_info->is_child_of_pointer)
-            {
-                int depth = s_info->pointer_your_child_of->getPointerDepth();
-                dig_bx_to_address(depth);
-            }
-        }
-        else
-        {
-            do_asm("mov bx, [bx+" + std::to_string(pos) + "]");
-        }
-    };
-
-    // Absolute function for handling absolute positions for scopes that cant maintain absolution.
-    std::function<void(int, std::shared_ptr<VarIdentifierBranch>, bool) > scope_abs_gen_func = [&](int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var)
-    {
-        if (is_root_var)
-        {
-            /* The framework is not aware that for scope variables who are structures or arrays we should minus root position and climb forward. 
-             * so we will have to do it manually.*/
-            VARIABLE_ADDRESS address = getASMAddressForVariable(s_info, root_var_branch, true);
-            int climb = pos - address.offset;
-            std::string pos_str = address.to_string() + "+" + std::to_string(climb);
-
-            // Load the pointer address into the BX register
-            do_asm("; HANDLING V_DEF POINTER");
-            do_asm("mov bx, [" + pos_str + "]");
-            // Keep getting the value of each address until we are at the actual value address its pointing to
-            if (s_info->is_child_of_pointer)
-            {
-                int depth = s_info->pointer_your_child_of->getPointerDepth();
-                dig_bx_to_address(depth);
-            }
-        }
-        else
-        {
-            do_asm("mov bx, [bx+" + std::to_string(pos) + "]");
-        }
-    };
-
-    // Absolute function for handling function argument positions that cant maintain absolution
-    std::function<void(int, std::shared_ptr<VarIdentifierBranch>, bool) > func_args_abs_gen_func = [&](int pos, std::shared_ptr<VarIdentifierBranch> var_iden_branch, bool is_root_var)
-    {
-        if (is_root_var)
-        {
-            VARIABLE_ADDRESS address = getASMAddressForVariable(s_info, root_var_branch, true);
-            // + 4 to get to function arguments
-            address.offset += 4;
-            // Load the pointer address into the BX register
-            do_asm("; HANDLING FUNCTION ARGUMENT V_DEF POINTER");
-            do_asm("mov bx, [" + address.to_string() + "]");
-            // Keep getting the value of each address until we are at the actual value address its pointing to
-            if (s_info->is_child_of_pointer)
-            {
-                int depth = s_info->pointer_your_child_of->getPointerDepth();
-                dig_bx_to_address(depth);
-            }
-        }
-        else
-        {
-            do_asm("mov bx, [bx+" + std::to_string(pos) + "]");
-        }
-    };
-
-
-    if (!(vdef_branch->isPointer() && root_var_branch->hasRootArrayIndexBranch() || root_var_branch->hasStructureAccessBranch()) && root_var_branch->isAllStructureAccessStatic() || to_variable_start_only)
-    {
         // We have a static position so this variable position can be calculated at compile time
         switch (var_type)
         {
         case VARIABLE_TYPE_GLOBAL_VARIABLE:
             address.segment = "_data";
             address.op = "+";
-            address.offset = root_var_branch->getPositionRelZero(global_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func);
+            address.offset = root_var_branch->getPositionRelZero(NULL, NULL);
             break;
         case VARIABLE_TYPE_FUNCTION_VARIABLE:
             if (!to_variable_start_only && (root_var_branch->hasStructureAccessBranch() || root_var_branch->hasRootArrayIndexBranch()))
             {
                 // Function arrays must start at the end and work their way to the beginning as well as function structures.
-                int position_to_root_elem = root_var_branch->getRootPositionRelZero(POSITION_OPTION_STOP_AT_ROOT_VAR);
+                int position_to_root_elem = root_var_branch->getRootPositionRelZero(options | POSITION_OPTION_STOP_AT_ROOT_VAR);
                 int elem_size = top_vdef_branch->getSize();
                 int minus = position_to_root_elem + elem_size;
                 address.op = "+";
                 address.segment = "bp-" + std::to_string(minus);
                 // This will get the position while ignoring the current scope, essentially it is the position relative to the structure or array.
-                address.offset = root_var_branch->getPositionRelZeroIgnoreCurrentScope(scope_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func);
+                address.offset = root_var_branch->getPositionRelZeroIgnoreCurrentScope(NULL, NULL, options);
             }
             else
             {
                 address.segment = "bp";
                 address.op = "-";
-                options = POSITION_OPTION_START_WITH_VARSIZE;
+                options |= POSITION_OPTION_START_WITH_VARSIZE;
                 if (to_variable_start_only)
                 {
                     options |= POSITION_OPTION_STOP_AT_ROOT_VAR;
                 }
-                address.offset = root_var_branch->getPositionRelZero(scope_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options);
+                address.offset = root_var_branch->getPositionRelZero(NULL, NULL, options);
             }
             break;
 
@@ -2085,7 +2012,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
             address.op = "+";
             options = POSITION_OPTION_STOP_AT_ROOT_VAR;
             // + 4 due to return address and new base pointer
-            address.offset = root_var_branch->getPositionRelZero(func_args_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options) + 4;
+            address.offset = root_var_branch->getPositionRelZero(NULL, NULL, options) + 4;
             break;
 
         }
@@ -2096,31 +2023,30 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
         // Ok the position is non-static we will need to deal with it at run time
         address.segment = "bx";
         address.op = "+";
+        options = POSITION_OPTION_START_WITH_VARSIZE;
         switch (var_type)
         {
         case VARIABLE_TYPE_GLOBAL_VARIABLE:
-            if (vdef_branch->isPointer() && root_var_branch->hasRootArrayIndexBranch() && !root_var_branch->hasStructureAccessBranch())
-            {
-                do_asm("mov bx, [_data+" + std::to_string(root_var_branch->getRootPositionRelZero()) + "]");
-                options = POSITION_OPTION_TREAT_AS_IF_NOT_POINTER;
-            }
-            address.offset = root_var_branch->getPositionRelZero(global_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options);
+        {
+
+        }
             break;
         case VARIABLE_TYPE_FUNCTION_VARIABLE:
-            if (vdef_branch->isPointer() && root_var_branch->hasRootArrayIndexBranch() && !root_var_branch->hasStructureAccessBranch())
-            {
-                do_asm("mov bx, [bp-" + std::to_string(root_var_branch->getRootPositionRelZero(POSITION_OPTION_START_WITH_VARSIZE)) + "]");
-                options = POSITION_OPTION_TREAT_AS_IF_NOT_POINTER;
-            }
-            address.offset = root_var_branch->getPositionRelZero(scope_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options);
+        {
+            address.offset = root_var_branch->getPositionRelZero([&](struct position_info * pos_info) -> void
+                                                                 {
+                                                                     scope_handle_func(s_info, pos_info);
+                                                                 },
+                                                                 [&](int rel_position) -> void
+                                                                 {
+                                                                     do_asm("mov bx, [bx+" + std::to_string(rel_position) + "]");
+                                                                 }, options);
+        }
             break;
         case VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE:
-            if (vdef_branch->isPointer() && root_var_branch->hasRootArrayIndexBranch() && !root_var_branch->hasStructureAccessBranch())
-            {
-                do_asm("mov bx, [bp+" + std::to_string(root_var_branch->getRootPositionRelZero() + 4) + "]");
-               options = POSITION_OPTION_TREAT_AS_IF_NOT_POINTER;
-            }
-            address.offset = root_var_branch->getPositionRelZero(func_args_abs_gen_func, array_unpredictable_func, struct_access_unpredictable_func, options);
+        {
+
+        }
             break;
 
         }
@@ -2348,6 +2274,9 @@ void CodeGen8086::generate_global_branch(std::shared_ptr<Branch> branch)
 
 void CodeGen8086::assemble(std::string assembly)
 {
+#ifdef DEBUG_MODE
+    std::cout << "FINAL ASSEMBLY" << std::endl;
+#endif
     std::cout << assembly << std::endl;
     Assembler8086 assembler(getCompiler(), getObjectFormat());
     assembler.setInput(assembly);
