@@ -37,11 +37,13 @@ struct position_info
         has_struct_access = false;
         array_access_static = false;
         struct_access_static = false;
+        group_is_static = false;
         is_last = false;
         is_last_group = false;
         clear_abs_pos = false;
         clear_array_abs_pos = false;
         clear_struct_abs_pos = false;
+        point_before_access = false;
         array_access_offset = 0;
         struct_access_offset = 0;
         abs_pos = 0;
@@ -53,11 +55,13 @@ struct position_info
     bool has_struct_access;
     bool array_access_static;
     bool struct_access_static;
+    bool group_is_static;
     bool is_last;
     bool is_last_group;
     bool clear_abs_pos;
     bool clear_array_abs_pos;
     bool clear_struct_abs_pos;
+    bool point_before_access;
     int array_access_offset;
     int struct_access_offset;
     int abs_pos;

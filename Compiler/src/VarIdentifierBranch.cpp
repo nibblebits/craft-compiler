@@ -174,6 +174,12 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
         {
             no_pointer = true;
         }
+        // When accessing pointer variables who are not arrays as arrays the position cannot be static
+        if (vdef_branch->isPointer() && !vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
+        {
+            p_info.point_before_access = true;
+            no_pointer = true;
+        }
         int size = vdef_branch->getDataTypeBranch()->getDataTypeSize(no_pointer);
         int offset = size;
         getRootArrayIndexBranch()->iterate_array_indexes([&](std::shared_ptr<ArrayIndexBranch> array_index_branch) -> bool
@@ -227,6 +233,16 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
 
     p_info.abs_pos = *pos;
 
+    // Is this group entirely static
+    p_info.group_is_static = true;
+    if (p_info.has_array_access)
+    {
+        p_info.group_is_static = p_info.array_access_static;
+    }
+    if (p_info.group_is_static && p_info.has_struct_access)
+    {
+        p_info.group_is_static = p_info.struct_access_static;
+    }
     // Ok lets invoke the handle function
     handle_func(&p_info);
 
@@ -244,7 +260,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
 
         if (p_info.clear_struct_abs_pos && p_info.has_struct_access && p_info.struct_access_static)
         {
-            *pos -= p_info.struct_access_static;
+            *pos -= p_info.struct_access_offset;
         }
     }
 
@@ -253,7 +269,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     {
         std::shared_ptr<STRUCTAccessBranch> struct_access_branch = getStructureAccessBranch();
         std::shared_ptr<VarIdentifierBranch> struct_access_var_iden_branch = struct_access_branch->getVarIdentifierBranch();
-        
+
         if (!p_info.struct_access_static && struct_access_var_iden_branch->hasStructureAccessBranch() && !struct_access_var_iden_branch->getStructureAccessBranch()->isAccessingAsPointer())
         {
             // We are soon accessing a structure statically to the right of us because of this we need to add the current scope size to the position
@@ -267,6 +283,16 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
 
 bool VarIdentifierBranch::isPositionStatic()
 {
+    // When accessing pointer variables who are not arrays as arrays the position cannot be static
+    if (hasRootArrayIndexBranch())
+    {
+        std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
+        if (vdef_branch->isPointer() && !vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
+        {
+            return false;
+        }
+    }
+
     bool is_static = isAllStructureAccessStatic();
     if (is_static)
     {
