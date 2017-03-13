@@ -114,15 +114,21 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(struct position_i
 
 int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options, struct position_info* p_info)
 {
+    // We can't continue as their is no structure access branch or array index branch
+    if (!hasStructureAccessBranch() && !hasRootArrayIndexBranch())
+    {
+        p_info->abs_pos = p_info->abs_start_pos + p_info->rel_offset_from_start_pos;
+        return p_info->abs_pos;
+    }
     std::shared_ptr<VarIdentifierBranch> var_to_process = std::dynamic_pointer_cast<VarIdentifierBranch>(getptr());
     if (hasStructureAccessBranch())
     {
         // We are ignoring the current scope remember.
         var_to_process = getStructureAccessBranch()->getVarIdentifierBranch();
     }
-    
+
     return var_to_process->getPositionRelZeroFromThis(handle_func, point_func, options, true, p_info);
-            
+
 }
 
 int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options, bool is_root, struct position_info* p_info)
