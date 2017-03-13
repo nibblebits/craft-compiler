@@ -1954,13 +1954,49 @@ void CodeGen8086::scope_handle_func(struct stmt_info* s_info, struct position_in
 {
     if (pos_info->is_root)
     {
-        if (pos_info->has_array_access && pos_info->should_handle_array_access)
+        if (!pos_info->is_single)
         {
-            do_asm("mov bx, [bp-" + std::to_string(pos_info->pos_without_array_offset) + "+" + std::to_string(pos_info->array_access_offset) + "]");
+            if (pos_info->has_array_access && !pos_info->array_access_static)
+            {
+                // Do we have array access?
+                handle_array_index(s_info, pos_info->array_index_branch, pos_info->data_type_size);
+                if (pos_info->is_last || (pos_info->var_iden_branch->hasStructureAccessBranch() && !pos_info->var_iden_branch->getStructureAccessBranch()->isAccessingAsPointer()))
+                {
+                    do_asm("lea bx, [bp-" + std::to_string(pos_info->abs_start_pos) + "+" + std::to_string(pos_info->rel_offset_from_start_pos) + "+di]");
+                }
+                else
+                {
+                    do_asm("mov bx, [bp-" + std::to_string(pos_info->abs_start_pos) + "+" + std::to_string(pos_info->rel_offset_from_start_pos) + "+di]");
+                }
+            }
+            else
+            {
+                do_asm("mov bx, [bp-" + std::to_string(pos_info->abs_start_pos) + "+" + std::to_string(pos_info->rel_offset_from_start_pos) + "]");
+            }
         }
         else
         {
             do_asm("mov bx, [bp-" + std::to_string(pos_info->abs_pos) + "]");
+        }
+    }
+    else
+    {
+        if (pos_info->has_array_access && !pos_info->array_access_static)
+        {
+            // Do we have array access
+            handle_array_index(s_info, pos_info->array_index_branch, pos_info->data_type_size);
+            if (pos_info->is_last || (pos_info->var_iden_branch->hasStructureAccessBranch() && !pos_info->var_iden_branch->getStructureAccessBranch()->isAccessingAsPointer()))
+            {
+                do_asm("lea bx, [bx+" + std::to_string(pos_info->abs_pos) + "+di]");
+            }
+            else
+            {
+                do_asm("mov bx, [bx+" + std::to_string(pos_info->abs_pos) + "+di]");
+            }
+        }
+        else
+        {
+            do_asm("mov bx, [bx+" + std::to_string(pos_info->abs_pos) + "]");
         }
     }
 }
