@@ -34,29 +34,53 @@ struct position_info
 
     position_info()
     {
+        reset();
+    }
+
+    bool has_absolution()
+    {
+        return this->abs_pos != -1;
+    }
+
+    void start_absolution(int abs_pos)
+    {
+        this->abs_start_pos = abs_pos;
+        this->rel_offset_from_start_pos = 0;
+    }
+
+    void end_absolution()
+    {
+        this->abs_start_pos = -1;
+        this->rel_offset_from_start_pos = 0;
+    }
+
+    void reset()
+    {
         is_root = false;
         is_last = false;
+        is_single = true;
         has_array_access = false;
-        should_handle_array_access = false;
         array_access_static = false;
-        array_access_offset = 0;
         abs_pos = 0;
-        pos_without_array_offset = 0;
+        abs_start_pos = -1;
+        rel_offset_from_start_pos = 0;
         var_iden_branch = NULL;
     }
+
     /* The root is the first absolute position, its called the root as it is processed first and is different from all other processes 
      * root example: take the expression: "a.b.e->e" in that expression "a.b.e" is the root as it has to be accessed completely differently as its the first group
      * that can be loaded from an absolute position.
      */
     bool is_root;
     bool is_last;
+    bool is_single;
     bool has_array_access;
-    bool should_handle_array_access;
     bool array_access_static;
-    int array_access_offset;
+
     int abs_pos;
-    int pos_without_array_offset;
-    
+    int abs_start_pos;
+    int rel_offset_from_start_pos;
+
     std::shared_ptr<VarIdentifierBranch> var_iden_branch;
     std::shared_ptr<ArrayIndexBranch> array_index_branch;
 };
@@ -77,8 +101,9 @@ public:
     std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(bool no_follow = false);
     std::shared_ptr<VarIdentifierBranch> getFinalVarIdentifierBranch();
     int getRootPositionRelZero(POSITION_OPTIONS options = 0);
-    int getPositionRelZero(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position)> point_func, POSITION_OPTIONS options = 0);
-    int getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position)> point_func, POSITION_OPTIONS options = 0, bool is_root=true, bool ignore_self_offset=true, int* pos = NULL);
+    int getPositionRelZero(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options = 0);
+    int getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options = 0, struct position_info* p_info = NULL);
+    int getPositionRelZeroFromThis(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options = 0, bool is_root = true, struct position_info* p_info = NULL);
     bool isPositionStatic();
     bool isAllArrayAccessStatic();
     bool isAllStructureAccessStatic();
