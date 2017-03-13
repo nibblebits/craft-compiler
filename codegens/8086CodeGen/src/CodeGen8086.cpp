@@ -1954,7 +1954,14 @@ void CodeGen8086::scope_handle_func(struct stmt_info* s_info, struct position_in
 {
     if (pos_info->is_root)
     {
-        do_asm("mov bx, [bp-" + std::to_string(pos_info->abs_pos) + "]");
+        if (pos_info->has_array_access && pos_info->should_handle_array_access)
+        {
+            do_asm("mov bx, [bp-" + std::to_string(pos_info->pos_without_array_offset) + "+" + std::to_string(pos_info->array_access_offset) + "]");
+        }
+        else
+        {
+            do_asm("mov bx, [bp-" + std::to_string(pos_info->abs_pos) + "]");
+        }
     }
 }
 
@@ -2034,9 +2041,9 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
         case VARIABLE_TYPE_FUNCTION_VARIABLE:
         {
             address.offset = root_var_branch->getPositionRelZero([&](struct position_info * pos_info) -> void
-                                                                 {
-                                                                     scope_handle_func(s_info, pos_info);
-                                                                 },
+            {
+                scope_handle_func(s_info, pos_info);
+            },
                                                                  [&](int rel_position) -> void
                                                                  {
                                                                      do_asm("mov bx, [bx+" + std::to_string(rel_position) + "]");

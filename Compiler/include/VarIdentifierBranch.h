@@ -37,17 +37,25 @@ struct position_info
         is_root = false;
         is_last = false;
         has_array_access = false;
+        should_handle_array_access = false;
         array_access_static = false;
         array_access_offset = 0;
         abs_pos = 0;
+        pos_without_array_offset = 0;
         var_iden_branch = NULL;
     }
+    /* The root is the first absolute position, its called the root as it is processed first and is different from all other processes 
+     * root example: take the expression: "a.b.e->e" in that expression "a.b.e" is the root as it has to be accessed completely differently as its the first group
+     * that can be loaded from an absolute position.
+     */
     bool is_root;
     bool is_last;
     bool has_array_access;
+    bool should_handle_array_access;
     bool array_access_static;
-    bool array_access_offset;
+    int array_access_offset;
     int abs_pos;
+    int pos_without_array_offset;
     
     std::shared_ptr<VarIdentifierBranch> var_iden_branch;
     std::shared_ptr<ArrayIndexBranch> array_index_branch;
