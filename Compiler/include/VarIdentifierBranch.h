@@ -52,6 +52,7 @@ struct position_info
     {
         this->abs_start_pos = -1;
         this->rel_offset_from_start_pos = 0;
+        this->abs_pos = 0;
     }
 
     void reset()
@@ -64,6 +65,7 @@ struct position_info
         abs_pos = 0;
         abs_start_pos = -1;
         rel_offset_from_start_pos = 0;
+        data_type_size = 0;
         var_iden_branch = NULL;
     }
 
@@ -80,6 +82,7 @@ struct position_info
     int abs_pos;
     int abs_start_pos;
     int rel_offset_from_start_pos;
+    int data_type_size;
 
     std::shared_ptr<VarIdentifierBranch> var_iden_branch;
     std::shared_ptr<ArrayIndexBranch> array_index_branch;

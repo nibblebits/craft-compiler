@@ -153,7 +153,6 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
     }
 
     int self_offset = getVariableDefinitionBranch(true)->getPositionRelScope();
-    std::cout << getVariableDefinitionBranch(true)->getVariableIdentifierBranch()->getVariableNameBranch()->getValue() << ": " << self_offset << std::endl;
     if (old_abs_start_pos == -1)
     {
         p_info->start_absolution(self_offset);
@@ -192,6 +191,7 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
         throw Exception("could not find appropriate \"VDEFBranch\" for variable identifier with name: \"" + getVariableNameBranch()->getValue() + "\"", "int VarIdentifierBranch::getPositionRelZero(std::function<void(struct position_info pos_info)> handle_func, POSITION_OPTIONS options)");
     }
 
+    p_info->data_type_size = vdef_branch->getDataTypeBranch()->getDataTypeSize();
     bool must_call_handle_func = false;
     if (hasRootArrayIndexBranch())
     {
@@ -208,8 +208,9 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
         {
             no_pointer = true;
             must_call_handle_func = true;
+            p_info->data_type_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(no_pointer);
         }
-        int size = vdef_branch->getDataTypeBranch()->getDataTypeSize(no_pointer);
+        int size = p_info->data_type_size;
         int offset = size;
         getRootArrayIndexBranch()->iterate_array_indexes([&](std::shared_ptr<ArrayIndexBranch> array_index_branch) -> bool
         {
@@ -235,7 +236,7 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
 
     if (is_root)
     {
-        if (hasStructureAccessBranch() && !getStructureAccessBranch()->isAccessingAsPointer())
+        if (hasStructureAccessBranch() && !getStructureAccessBranch()->isAccessingAsPointer() && (!hasRootArrayIndexBranch() || getRootArrayIndexBranch()->areAllStatic()))
         {
             keep_root = true;
         }
@@ -307,12 +308,20 @@ bool VarIdentifierBranch::isPositionStatic()
 
 bool VarIdentifierBranch::isAllArrayAccessStatic()
 {
+    bool is_static = true;
     if (hasRootArrayIndexBranch())
     {
-        return getRootArrayIndexBranch()->areAllStatic();
+        is_static = getRootArrayIndexBranch()->areAllStatic();
     }
 
-    return true;
+    if (is_static)
+    {
+        if (hasStructureAccessBranch())
+        {
+            is_static = getStructureAccessBranch()->getVarIdentifierBranch()->isAllArrayAccessStatic();
+        }
+    }
+    return is_static;
 }
 
 bool VarIdentifierBranch::isAllStructureAccessStatic()
