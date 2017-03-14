@@ -161,6 +161,7 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
     {
         p_info->abs_start_pos = old_abs_start_pos;
         p_info->rel_offset_from_start_pos = old_rel_offset_from_start_pos + self_offset;
+        p_info->rel_offset_from_start_pos_excluding_array_access = p_info->rel_offset_from_start_pos;
     }
 
     p_info->is_root = is_root;
@@ -172,7 +173,7 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
     {
         handle_func = [](struct position_info * pos_info) -> void
         {
-
+            throw Exception("Handle function provided was NULL but was required", "int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options, bool is_root, struct position_info* p_info)");
         };
     }
 
@@ -181,7 +182,7 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
     {
         point_func = [](int rel_position) -> void
         {
-
+            throw Exception("pointer function provided was NULL but was required", "int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options, bool is_root, struct position_info* p_info)");
         };
     }
 
@@ -192,6 +193,7 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
     }
 
     p_info->data_type_size = vdef_branch->getDataTypeBranch()->getDataTypeSize();
+    int array_offset = 0;
     bool must_call_handle_func = false;
     if (hasRootArrayIndexBranch())
     {
@@ -208,7 +210,9 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
         {
             no_pointer = true;
             must_call_handle_func = true;
+            p_info->point_before_array_access = true;
             p_info->data_type_size = vdef_branch->getDataTypeBranch()->getDataTypeSize(no_pointer);
+
         }
         int size = p_info->data_type_size;
         int offset = size;
@@ -228,11 +232,23 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
 
         if (p_info->array_access_static)
         {
-            p_info->rel_offset_from_start_pos += offset;
+            array_offset += offset;
+        }
+
+
+        if (p_info->point_before_array_access && p_info->array_access_static)
+        {
+            // We will handle this array offset later
+            p_info->has_array_access = false;
+        }
+        else if (p_info->array_access_static)
+        {
+            p_info->rel_offset_from_start_pos += array_offset;
         }
 
         p_info->array_index_branch = getRootArrayIndexBranch();
     }
+
 
     if (is_root)
     {
@@ -265,6 +281,14 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
         handle_func(p_info);
         p_info->end_absolution();
     }
+
+    /* If we should point before array access and the "has_array_access" flag was "false" as we didn't want the code generator to deal
+     * with it, we do actually have array access if the "point_before_array_access" flag is true */
+    if (p_info->point_before_array_access && !p_info->has_array_access)
+    {
+        p_info->start_absolution(array_offset);
+    }
+
     // Can we go further?
     if (hasStructureAccessBranch())
     {
@@ -287,16 +311,6 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
 
 bool VarIdentifierBranch::isPositionStatic()
 {
-    // When accessing pointer variables who are not arrays as arrays the position cannot be static
-    if (hasRootArrayIndexBranch())
-    {
-        std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
-        if (vdef_branch->isPointer() && !vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
-        {
-            return false;
-        }
-    }
-
     bool is_static = isAllStructureAccessStatic();
     if (is_static)
     {
@@ -308,6 +322,17 @@ bool VarIdentifierBranch::isPositionStatic()
 
 bool VarIdentifierBranch::isAllArrayAccessStatic()
 {
+
+    // When accessing pointer variables who are not arrays as arrays the position cannot be static
+    if (hasRootArrayIndexBranch())
+    {
+        std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
+        if (vdef_branch->isPointer() && !vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
+        {
+            return false;
+        }
+    }
+
     bool is_static = true;
     if (hasRootArrayIndexBranch())
     {

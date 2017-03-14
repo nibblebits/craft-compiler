@@ -45,6 +45,7 @@ struct position_info
     void start_absolution(int abs_pos)
     {
         this->abs_start_pos = abs_pos;
+        this->abs_pos = abs_pos;
         this->rel_offset_from_start_pos = 0;
     }
 
@@ -62,9 +63,11 @@ struct position_info
         is_single = true;
         has_array_access = false;
         array_access_static = false;
+        point_before_array_access = false;
         abs_pos = 0;
         abs_start_pos = -1;
         rel_offset_from_start_pos = 0;
+        rel_offset_from_start_pos_excluding_array_access = 0;
         data_type_size = 0;
         var_iden_branch = NULL;
     }
@@ -78,10 +81,12 @@ struct position_info
     bool is_single;
     bool has_array_access;
     bool array_access_static;
+    bool point_before_array_access;
 
     int abs_pos;
     int abs_start_pos;
     int rel_offset_from_start_pos;
+    int rel_offset_from_start_pos_excluding_array_access;
     int data_type_size;
 
     std::shared_ptr<VarIdentifierBranch> var_iden_branch;
