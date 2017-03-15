@@ -2008,20 +2008,49 @@ void CodeGen8086::scope_handle_func(struct stmt_info* s_info, struct position_in
 
 void CodeGen8086::handle_next_access(struct stmt_info* s_info, struct VARIABLE_ADDRESS* address, std::shared_ptr<VarIdentifierBranch> next_var_iden)
 {
+    address->apply_reg = "";
     struct position position;
     std::shared_ptr<VarIdentifierBranch> failed_var_iden = NULL;
+    std::shared_ptr<VDEFBranch> failed_vdef_branch = NULL;
     next_var_iden->getPositionAsFarAsPossible(&position, &failed_var_iden);
+    failed_vdef_branch = failed_var_iden->getVariableDefinitionBranch(true);
 
     if (failed_var_iden != NULL)
     {
         if (failed_var_iden->hasRootArrayIndexBranch())
         {
-            handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_var_iden->getVariableDefinitionBranch(true)->getDataTypeBranch()->getDataTypeSize());
+            bool ignore_pointer = false;
+            bool finished = false;
+            bool is_static = failed_var_iden->getRootArrayIndexBranch()->isStatic();
+            /* We may be accessing a pointer as an array even though no array index is defined on the definition 
+             * this is commonly used for character arrays, e.g
+             * uint8* message = "Hello World";
+             * return message[4];
+             */
+            if (failed_vdef_branch->isPointer() && !failed_vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
+            {
+                // Ok lets point
+                do_asm("mov bx, [bx+" + std::to_string(position.abs) + "]");
+                position.abs = 0;
+                ignore_pointer = true;
+            }
+            if (!is_static)
+            {
+                handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_var_iden->getVariableDefinitionBranch(true)->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
+            }
+            else
+            {
+                int elem_size = failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer);
+                position.abs = elem_size * failed_var_iden->getRootArrayIndexBranch()->getStaticSum();
+            }
             if (!failed_var_iden->hasStructureAccessBranch())
             {
-                // We wont be continuing any more so set the offset and apply "di"
+                // We wont be continuing any more so set the offset and maybe apply "di"
                 address->offset = position.abs;
-                address->apply_reg = "di";
+                if (!is_static)
+                {
+                    address->apply_reg = "di";
+                }
             }
             else
             {
@@ -2031,22 +2060,27 @@ void CodeGen8086::handle_next_access(struct stmt_info* s_info, struct VARIABLE_A
                     int old_pos = position.abs;
                     failed_var_iden->getStructureAccessBranch()->getVarIdentifierBranch()->getPositionAsFarAsPossible(&position, &failed_var_iden);
                     int sum = old_pos + position.abs;
-
+                    position.abs = sum;
                     // Is there no more variables?
                     if (failed_var_iden == NULL)
                     {
                         // Ok apply final offset
-                        address->offset = sum;
+                        address->offset = position.abs;
                         address->apply_reg = "di";
+                        finished = true;
+                    }
+                }
+
+                if (!finished)
+                {
+                    if (!is_static)
+                    {
+                        do_asm("mov bx, [bx+" + std::to_string(position.abs) + "+di]");
                     }
                     else
                     {
-                        do_asm("mov bx, [bx+" + std::to_string(sum) + "+di]");
+                        do_asm("mov bx, [bx+" + std::to_string(position.abs) + "]");
                     }
-                }
-                else
-                {
-                    do_asm("mov bx, [bx+" + std::to_string(position.abs) + "+di]");
                 }
             }
         }
@@ -2061,6 +2095,9 @@ void CodeGen8086::handle_next_access(struct stmt_info* s_info, struct VARIABLE_A
     }
     else
     {
+        // By even getting to this method the BX register would have to be used.
+        address->segment = "bx";
+        address->op = "+";
         address->offset = position.abs;
     }
 
@@ -2170,12 +2207,14 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                  * 
                  * That would return "e"
                  */
+                bool ignore_pointer = false;
                 if (failed_vdef_branch->isPointer() && !failed_vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
                 {
                     // Lets load the pointer value
                     do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
                     position.abs = 0;
                     do_point_first = true;
+                    ignore_pointer = true;
                 }
 
                 bool static_access = true;
@@ -2183,13 +2222,13 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                 {
                     static_access = false;
                     // We need to handle a non-static array index, the "di" register will be set with the result
-                    handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize());
+                    handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
                     address.apply_reg = "di";
                 }
                 else if (do_point_first)
                 {
                     // Lets adjust the position as this is absolute access
-                    int elem_size = failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
+                    int elem_size = failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer);
                     position.abs = elem_size * failed_var_iden->getRootArrayIndexBranch()->getStaticSum();
                 }
 
