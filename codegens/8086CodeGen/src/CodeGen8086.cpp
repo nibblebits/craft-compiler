@@ -1031,6 +1031,30 @@ std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_p
         {
             no_pointer = true;
         }
+        else if (s_info->is_child_of_pointer)
+        {
+            /*
+             * It is also possible that you could be accessing something as a pointer and depending on the depth will determine the data size.
+             * For example:
+             * uint8 a = 50;
+             * uint8* ptr = &a;
+             * uint8** pptr = &ptr;
+             * 
+             * return *ptr - Data size is one byte
+             * return *pptr - Data size is two bytes
+             * return **pptr - Data size is one byte as we are getting the value of "a"
+             * 
+             * The algorithm for this is quite simple essentially if the pointer depth is equal to the pointer depth
+             * of the pointer variable then we should get the size as if its not a pointer.
+             * If it is not equal then it means it is accessing another address so it must be the size of a pointer.
+             */
+            
+            int vdef_pointer_depth = vdef_branch->getPointerDepth();
+            if (vdef_pointer_depth == s_info->pointer_your_child_of->getPointerDepth())
+            {
+                no_pointer = true;
+            } 
+        }
         *data_size = var_branch->getVariableDefinitionBranch()->getDataTypeBranch()->getDataTypeSize(no_pointer);
     }
     return pos;
@@ -2102,7 +2126,9 @@ void CodeGen8086::handle_next_access(struct stmt_info* s_info, struct VARIABLE_A
         {
             do_asm("mov bx, [bx+" + std::to_string(position.abs) + "]");
         }
-        if (failed_var_iden != NULL && failed_var_iden->hasStructureAccessBranch())
+
+
+        if (failed_var_iden->hasStructureAccessBranch())
         {
             handle_next_access(s_info, address, failed_var_iden->getStructureAccessBranch()->getVarIdentifierBranch());
         }
@@ -2114,7 +2140,6 @@ void CodeGen8086::handle_next_access(struct stmt_info* s_info, struct VARIABLE_A
         address->op = "+";
         address->offset = position.abs;
     }
-
 
 }
 
@@ -2128,8 +2153,8 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
 
     POSITION_OPTIONS options = 0;
 
-
-    if (root_var_branch->isPositionStatic() || to_variable_start_only)
+    // If we are a child of a pointer then we cannot treat it as static
+    if ((root_var_branch->isPositionStatic() && !s_info->is_child_of_pointer) || to_variable_start_only)
     {
         // The position is guaranteed to be static as we have checked for it so we won't need to pass a handle function.
         options |= POSITION_OPTION_POSITION_STATIC_IGNORE_HANDLE_FUNCTION;
@@ -2200,85 +2225,109 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
             struct position position;
             // Get the root position
             root_var_branch->getPositionAsFarAsPossible(&position, &failed_var_iden, POSITION_OPTION_START_WITH_VARSIZE);
-            failed_vdef_branch = failed_var_iden->getVariableDefinitionBranch(true);
 
-            if (failed_var_iden->hasRootArrayIndexBranch())
+            if (failed_var_iden != NULL)
             {
+                failed_vdef_branch = failed_var_iden->getVariableDefinitionBranch(true);
+                if (failed_var_iden->hasRootArrayIndexBranch())
+                {
 
-                bool is_last = true;
-                bool do_point_first = false;
+                    bool is_last = true;
+                    bool do_point_first = false;
+                    if (failed_var_iden->hasStructureAccessBranch())
+                    {
+                        is_last = failed_var_iden->getStructureAccessBranch()->getVarIdentifierBranch()->isPositionStatic();
+                    }
+
+                    /* Do we need to point then deal with array access? This is the case with pointers accessed as an array 
+                     * whose definitions have no array indexes. A great example of this is character arrays.
+                     * For example:
+                     * 
+                     * uint8* message = "Hello World!";
+                     * return message[1];
+                     * 
+                     * That would return "e"
+                     */
+                    bool ignore_pointer = false;
+                    if (failed_vdef_branch->isPointer() && !failed_vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
+                    {
+                        // Lets load the pointer value
+                        do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                        position.abs = 0;
+                        do_point_first = true;
+                        ignore_pointer = true;
+                    }
+
+                    bool static_access = true;
+                    if (!failed_var_iden->getRootArrayIndexBranch()->isStatic())
+                    {
+                        static_access = false;
+                        // We need to handle a non-static array index, the "di" register will be set with the result
+                        handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
+                        address.apply_reg = "di";
+                    }
+                    else if (do_point_first)
+                    {
+                        // Lets adjust the position as this is absolute access
+                        int elem_size = failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer);
+                        position.abs = elem_size * failed_var_iden->getRootArrayIndexBranch()->getStaticSum();
+                    }
+
+                    // Are we last?
+                    if (is_last)
+                    {
+                        // Looks like we are
+                        if (do_point_first)
+                        {
+                            // We pointed first so lets use BX
+                            address.segment = "bx";
+                            address.op = "+";
+                            address.offset = position.abs;
+                        }
+                        else
+                        {
+                            address.segment = "bp";
+                            address.op = "-";
+                            address.offset = position.abs;
+                        }
+                    }
+
+                }
+
                 if (failed_var_iden->hasStructureAccessBranch())
                 {
-                    is_last = failed_var_iden->getStructureAccessBranch()->getVarIdentifierBranch()->isPositionStatic();
-                }
-
-                /* Do we need to point then deal with array access? This is the case with pointers accessed as an array 
-                 * whose definitions have no array indexes. A great example of this is character arrays.
-                 * For example:
-                 * 
-                 * uint8* message = "Hello World!";
-                 * return message[1];
-                 * 
-                 * That would return "e"
-                 */
-                bool ignore_pointer = false;
-                if (failed_vdef_branch->isPointer() && !failed_vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
-                {
-                    // Lets load the pointer value
-                    do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
-                    position.abs = 0;
-                    do_point_first = true;
-                    ignore_pointer = true;
-                }
-
-                bool static_access = true;
-                if (!failed_var_iden->getRootArrayIndexBranch()->isStatic())
-                {
-                    static_access = false;
-                    // We need to handle a non-static array index, the "di" register will be set with the result
-                    handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
-                    address.apply_reg = "di";
-                }
-                else if (do_point_first)
-                {
-                    // Lets adjust the position as this is absolute access
-                    int elem_size = failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer);
-                    position.abs = elem_size * failed_var_iden->getRootArrayIndexBranch()->getStaticSum();
-                }
-
-                // Are we last?
-                if (is_last)
-                {
-                    // Looks like we are
-                    if (do_point_first)
+                    if (address.apply_reg != "")
                     {
-                        // We pointed first so lets use BX
-                        address.segment = "bx";
-                        address.op = "+";
-                        address.offset = position.abs;
+                        do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
+                        address.apply_reg = "";
                     }
                     else
                     {
-                        address.segment = "bp";
-                        address.op = "-";
-                        address.offset = position.abs;
+                        do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
                     }
                 }
-
+            }
+            else
+            {
+                // There was no failed branch
+                do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
             }
 
-            if (failed_var_iden->hasStructureAccessBranch())
+            // Is this access being accessed as a pointer? e.g *var[3].b If so we need to dig down
+            if (s_info->is_child_of_pointer)
             {
-                if (address.apply_reg != "")
+                int depth = s_info->pointer_your_child_of->getPointerDepth();
+                // Because of the assembly we have already generated if the variable is alone then we need to -1 on the depth
+                if (root_var_branch->isVariableAlone())
                 {
-                    do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
-                    address.apply_reg = "";
+                    depth = depth -1;
                 }
-                else
-                {
-                    do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
-                }
+                dig_bx_to_address(depth);
+            }
 
+            if (failed_var_iden != NULL && failed_var_iden->hasStructureAccessBranch())
+            {
+                // Handle the next array access.
                 handle_next_access(s_info, &address, failed_var_iden->getStructureAccessBranch()->getVarIdentifierBranch());
             }
 
