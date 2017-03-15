@@ -1017,8 +1017,22 @@ std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_p
     std::string pos = "";
     pos = getASMAddressForVariableFormatted(s_info, var_branch);
     if (data_size != NULL)
-        *data_size = var_branch->getVariableDefinitionBranch()->getDataTypeBranch()->getDataTypeSize();
-
+    {
+        std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
+        bool no_pointer = false;
+        /*
+         * When accessing pointers with an array index whose definition has no array index
+         * then we should get the size as if it was not a pointer as we are accessing an array pointed to by a pointer such as a character
+         * array, e.g
+         * uint8* message = "Hello World";
+         * return message[3];
+         */
+        if (var_branch->getFinalVarIdentifierBranch()->hasRootArrayIndexBranch() && vdef_branch->isPointer() && !vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
+        {
+            no_pointer = true;
+        }
+        *data_size = var_branch->getVariableDefinitionBranch()->getDataTypeBranch()->getDataTypeSize(no_pointer);
+    }
     return pos;
 }
 
