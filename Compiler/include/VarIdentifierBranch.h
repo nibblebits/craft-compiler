@@ -29,6 +29,31 @@
 class ArrayIndexBranch;
 class STRUCTAccessBranch;
 
+struct position
+{
+    position()
+    {
+        reset();
+    }
+    
+    void reset()
+    {
+        start = 0;
+        end = 0;
+        abs = 0;
+        do_new_start = true;
+    }
+    
+    void calc_abs()
+    {
+        abs = start + end;
+    }
+    
+    int start;
+    int end;
+    int abs;
+    bool do_new_start;
+};
 struct position_info
 {
 
@@ -112,6 +137,7 @@ public:
     int getPositionRelZero(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options = 0);
     int getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options = 0, struct position_info* p_info = NULL);
     int getPositionRelZeroFromThis(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options = 0, bool is_root = true, struct position_info* p_info = NULL);
+    void getPositionAsFarAsPossible(struct position* position, std::shared_ptr<VarIdentifierBranch>* failed_var_iden_branch, POSITION_OPTIONS options = 0, bool zero_position=true);
     bool isPositionStatic();
     bool isAllArrayAccessStatic();
     bool isAllStructureAccessStatic();

@@ -72,6 +72,35 @@ bool ArrayIndexBranch::areAllStatic()
     return are_all_static;
 }
 
+int ArrayIndexBranch::getStaticSum()
+{
+    if (!isStatic())
+    {
+        throw Exception("First index is not static", "int ArrayIndexBranch::getStaticSum()");
+    }
+
+    int sum = std::stoi(getValueBranch()->getValue());
+
+    if (hasNextArrayIndexBranch())
+    {
+        getNextArrayIndexBranch()->iterate_array_indexes([&](std::shared_ptr<ArrayIndexBranch> array_index_branch) -> bool
+        {
+            if (array_index_branch->isStatic())
+            {
+                sum *= std::stoi(array_index_branch->getValueBranch()->getValue());
+            }
+            else
+            {
+                throw Exception("Not all indexes are static", "int ArrayIndexBranch::getStaticSum()");
+            }
+            return true;
+        });
+    }
+
+
+    return sum;
+}
+
 void ArrayIndexBranch::setValueBranch(std::shared_ptr<Branch> value_branch)
 {
     CustomBranch::registerBranch("value_branch", value_branch);

@@ -37,6 +37,8 @@ public:
     bool isStatic();
     bool areAllStatic();
     
+    int getStaticSum();
+    
     void setValueBranch(std::shared_ptr<Branch> value_branch);
     void setNextArrayIndexBranch(std::shared_ptr<ArrayIndexBranch> next_array_index_branch);
     std::shared_ptr<Branch> getValueBranch();

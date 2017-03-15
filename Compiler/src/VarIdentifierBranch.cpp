@@ -309,6 +309,62 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
     return p_info->abs_pos;
 }
 
+void VarIdentifierBranch::getPositionAsFarAsPossible(struct position* position, std::shared_ptr<VarIdentifierBranch>* failed_var_iden_branch, POSITION_OPTIONS options, bool zero_position)
+{
+    if (zero_position)
+    {
+        position->reset();
+    }
+
+    *failed_var_iden_branch = NULL;
+    std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
+    std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
+    int self_offset = vdef_branch->getPositionRelScope();
+    if (options & POSITION_OPTION_START_WITH_VARSIZE)
+    {
+        self_offset += vdef_branch->getSize();
+    }
+
+    if (position->do_new_start)
+    {
+        position->reset();
+        position->start = self_offset;
+        position->do_new_start  = false;
+    }
+    else
+    {
+        position->end += self_offset;
+    }
+
+    position->calc_abs();
+
+    // Check for situations that cannot be handled at compile time
+    if ((hasStructureAccessBranch() && getStructureAccessBranch()->isAccessingAsPointer()) ||
+            (hasRootArrayIndexBranch() && !getRootArrayIndexBranch()->isStatic()) ||
+            (hasRootArrayIndexBranch() && vdef_branch->isPointer() && !vdef_var_iden_branch->hasRootArrayIndexBranch()))
+    {
+        *failed_var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(getptr());
+    }
+    else
+    {
+        // Do we have any array access to adjust for?
+        if (hasRootArrayIndexBranch())
+        {
+            // We already know its static
+            position->end += vdef_branch->getDataTypeBranch()->getDataTypeSize() * getRootArrayIndexBranch()->getStaticSum();
+        }
+        
+        position->calc_abs();
+
+        // We should de-toggle to flag to start with variable sizes
+        options &= ~POSITION_OPTION_START_WITH_VARSIZE;
+        if (hasStructureAccessBranch())
+        {
+            getStructureAccessBranch()->getVarIdentifierBranch()->getPositionAsFarAsPossible(position, failed_var_iden_branch, options, false);
+        }
+    }
+}
+
 bool VarIdentifierBranch::isPositionStatic()
 {
     bool is_static = isAllStructureAccessStatic();
