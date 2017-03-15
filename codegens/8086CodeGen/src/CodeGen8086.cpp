@@ -2006,6 +2006,67 @@ void CodeGen8086::scope_handle_func(struct stmt_info* s_info, struct position_in
     }
 }
 
+void CodeGen8086::handle_next_access(struct stmt_info* s_info, struct VARIABLE_ADDRESS* address, std::shared_ptr<VarIdentifierBranch> next_var_iden)
+{
+    struct position position;
+    std::shared_ptr<VarIdentifierBranch> failed_var_iden = NULL;
+    next_var_iden->getPositionAsFarAsPossible(&position, &failed_var_iden);
+
+    if (failed_var_iden != NULL)
+    {
+        if (failed_var_iden->hasRootArrayIndexBranch())
+        {
+            handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_var_iden->getVariableDefinitionBranch(true)->getDataTypeBranch()->getDataTypeSize());
+            if (!failed_var_iden->hasStructureAccessBranch())
+            {
+                // We wont be continuing any more so set the offset and apply "di"
+                address->offset = position.abs;
+                address->apply_reg = "di";
+            }
+            else
+            {
+                // If the structure access is static then we need to get the next absolute position and sum the two positions together
+                if (!failed_var_iden->getStructureAccessBranch()->isAccessingAsPointer())
+                {
+                    int old_pos = position.abs;
+                    failed_var_iden->getStructureAccessBranch()->getVarIdentifierBranch()->getPositionAsFarAsPossible(&position, &failed_var_iden);
+                    int sum = old_pos + position.abs;
+
+                    // Is there no more variables?
+                    if (failed_var_iden == NULL)
+                    {
+                        // Ok apply final offset
+                        address->offset = sum;
+                        address->apply_reg = "di";
+                    }
+                    else
+                    {
+                        do_asm("mov bx, [bx+" + std::to_string(sum) + "+di]");
+                    }
+                }
+                else
+                {
+                    do_asm("mov bx, [bx+" + std::to_string(position.abs) + "+di]");
+                }
+            }
+        }
+        else
+        {
+            do_asm("mov bx, [bx+" + std::to_string(position.abs) + "]");
+        }
+        if (failed_var_iden != NULL && failed_var_iden->hasStructureAccessBranch())
+        {
+            handle_next_access(s_info, address, failed_var_iden->getStructureAccessBranch()->getVarIdentifierBranch());
+        }
+    }
+    else
+    {
+        address->offset = position.abs;
+    }
+
+
+}
+
 struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> root_var_branch, bool to_variable_start_only)
 {
     struct VARIABLE_ADDRESS address;
@@ -2071,6 +2132,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
         // Ok the position is non-static we will need to deal with it at run time
         address.segment = "bx";
         address.op = "+";
+        address.offset = 0;
         options = POSITION_OPTION_START_WITH_VARSIZE;
         switch (var_type)
         {
@@ -2081,14 +2143,92 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
             break;
         case VARIABLE_TYPE_FUNCTION_VARIABLE:
         {
-            address.offset = root_var_branch->getPositionRelZero([&](struct position_info * pos_info) -> void
+            std::shared_ptr<VarIdentifierBranch> failed_var_iden = NULL;
+            std::shared_ptr<VDEFBranch> failed_vdef_branch = NULL;
+            std::shared_ptr<VarIdentifierBranch> next_var_iden = NULL;
+            struct position position;
+            // Get the root position
+            root_var_branch->getPositionAsFarAsPossible(&position, &failed_var_iden, POSITION_OPTION_START_WITH_VARSIZE);
+            failed_vdef_branch = failed_var_iden->getVariableDefinitionBranch(true);
+
+            if (failed_var_iden->hasRootArrayIndexBranch())
             {
-                scope_handle_func(s_info, pos_info);
-            },
-                                                                 [&](int rel_position) -> void
-                                                                 {
-                                                                     do_asm("mov bx, [bx+" + std::to_string(rel_position) + "]");
-                                                                 }, options);
+
+                bool is_last = true;
+                bool do_point_first = false;
+                if (failed_var_iden->hasStructureAccessBranch())
+                {
+                    is_last = failed_var_iden->getStructureAccessBranch()->getVarIdentifierBranch()->isPositionStatic();
+                }
+
+                /* Do we need to point then deal with array access? This is the case with pointers accessed as an array 
+                 * whose definitions have no array indexes. A great example of this is character arrays.
+                 * For example:
+                 * 
+                 * uint8* message = "Hello World!";
+                 * return message[1];
+                 * 
+                 * That would return "e"
+                 */
+                if (failed_vdef_branch->isPointer() && !failed_vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
+                {
+                    // Lets load the pointer value
+                    do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                    position.abs = 0;
+                    do_point_first = true;
+                }
+
+                bool static_access = true;
+                if (!failed_var_iden->getRootArrayIndexBranch()->isStatic())
+                {
+                    static_access = false;
+                    // We need to handle a non-static array index, the "di" register will be set with the result
+                    handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize());
+                    address.apply_reg = "di";
+                }
+                else if (do_point_first)
+                {
+                    // Lets adjust the position as this is absolute access
+                    int elem_size = failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(true);
+                    position.abs = elem_size * failed_var_iden->getRootArrayIndexBranch()->getStaticSum();
+                }
+
+                // Are we last?
+                if (is_last)
+                {
+                    // Looks like we are
+                    if (do_point_first)
+                    {
+                        // We pointed first so lets use BX
+                        address.segment = "bx";
+                        address.op = "+";
+                        address.offset = position.abs;
+                    }
+                    else
+                    {
+                        address.segment = "bp";
+                        address.op = "-";
+                        address.offset = position.abs;
+                    }
+                }
+
+            }
+
+            if (failed_var_iden->hasStructureAccessBranch())
+            {
+                if (address.apply_reg != "")
+                {
+                    do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
+                    address.apply_reg = "";
+                }
+                else
+                {
+                    do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                }
+
+                handle_next_access(s_info, &address, failed_var_iden->getStructureAccessBranch()->getVarIdentifierBranch());
+            }
+
         }
             break;
         case VARIABLE_TYPE_FUNCTION_ARGUMENT_VARIABLE:

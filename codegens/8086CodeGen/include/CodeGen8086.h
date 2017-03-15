@@ -60,7 +60,8 @@ struct VARIABLE_ADDRESS
         std::string result = segment + op + std::to_string(offset);
         if (apply_reg != "")
         {
-            result += op + apply_reg;
+            // Second operator is always addition
+            result += "+" + apply_reg;
         }
 
         return result;
@@ -190,7 +191,9 @@ public:
     int getVariableType(std::shared_ptr<Branch> var_branch);
     std::string convert_full_reg_to_low_reg(std::string reg);
 
+    // scope_handle_func is deprecated
     void scope_handle_func(struct stmt_info* s_info, struct position_info* pos_info);
+    void handle_next_access(struct stmt_info* s_info, struct VARIABLE_ADDRESS* address, std::shared_ptr<VarIdentifierBranch> next_var_iden);
     struct VARIABLE_ADDRESS getASMAddressForVariable(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> root_var_branch, bool to_variable_start_only=false);
     std::string getASMAddressForVariableFormatted(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> root_var_branch, bool to_variable_start_only=false);
 
