@@ -121,13 +121,17 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
         return p_info->abs_pos;
     }
     std::shared_ptr<VarIdentifierBranch> var_to_process = std::dynamic_pointer_cast<VarIdentifierBranch>(getptr());
-    if (hasStructureAccessBranch())
-    {
-        // We are ignoring the current scope remember.
-        var_to_process = getStructureAccessBranch()->getVarIdentifierBranch();
-    }
 
-    return var_to_process->getPositionRelZeroFromThis(handle_func, point_func, options, true, p_info);
+    if (!var_to_process->isPositionStatic())
+    {
+        throw Exception("Expecting a static position", "nt VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options, struct position_info* p_info)");
+    }
+    
+    struct position position;
+    std::shared_ptr<VarIdentifierBranch> failed_var_iden;
+    var_to_process->getPositionAsFarAsPossible(&position, &failed_var_iden, options);
+    
+    return position.end;
 
 }
 
@@ -329,11 +333,22 @@ void VarIdentifierBranch::getPositionAsFarAsPossible(struct position* position, 
     {
         position->reset();
         position->start = self_offset;
-        position->do_new_start  = false;
+        position->do_new_start = false;
     }
     else
     {
         position->end += self_offset;
+    }
+
+
+    /* Do we have any array access to adjust for? 
+     * We also shouldn't apply a static position if we are accessing a pointer variable as an array
+     * where the pointer variable definition has no index.
+     * This is because we should then point first therefore it cannot be applied as an absolute offset. */
+    if (hasRootArrayIndexBranch() && getRootArrayIndexBranch()->isStatic() && !(hasRootArrayIndexBranch() && vdef_branch->isPointer() && !vdef_var_iden_branch->hasRootArrayIndexBranch()))
+    {
+        // We already know its static
+        position->end += vdef_branch->getDataTypeBranch()->getDataTypeSize() * getRootArrayIndexBranch()->getStaticSum();
     }
 
     position->calc_abs();
@@ -347,15 +362,6 @@ void VarIdentifierBranch::getPositionAsFarAsPossible(struct position* position, 
     }
     else
     {
-        // Do we have any array access to adjust for?
-        if (hasRootArrayIndexBranch())
-        {
-            // We already know its static
-            position->end += vdef_branch->getDataTypeBranch()->getDataTypeSize() * getRootArrayIndexBranch()->getStaticSum();
-        }
-        
-        position->calc_abs();
-
         // We should de-toggle to flag to start with variable sizes
         options &= ~POSITION_OPTION_START_WITH_VARSIZE;
         if (hasStructureAccessBranch())
