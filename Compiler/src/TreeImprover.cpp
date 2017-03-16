@@ -64,6 +64,10 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch)
     {
         improve_func(std::dynamic_pointer_cast<FuncBranch>(branch));
     }
+    else if (branch->getType() == "FUNC_CALL")
+    {
+        improve_func_call(std::dynamic_pointer_cast<FuncCallBranch>(branch));
+    }
     else if (branch->getType() == "E")
     {
         improve_expression(std::dynamic_pointer_cast<EBranch>(branch));
@@ -181,6 +185,15 @@ void TreeImprover::improve_func(std::shared_ptr<FuncBranch> func_branch)
 void TreeImprover::improve_func_arguments(std::shared_ptr<Branch> func_args_branch)
 {
     func_args_branch->iterate_children([&](std::shared_ptr<Branch> child_branch)
+    {
+        improve_branch(child_branch);
+    });
+}
+
+void TreeImprover::improve_func_call(std::shared_ptr<FuncCallBranch> func_call_branch)
+{
+    // We need to improve this function call
+    func_call_branch->getFuncParamsBranch()->iterate_children([&](std::shared_ptr<Branch> child_branch)
     {
         improve_branch(child_branch);
     });

@@ -119,7 +119,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     }
     
     struct position position;
-    std::shared_ptr<VarIdentifierBranch> failed_var_iden;
+    std::shared_ptr<VarIdentifierBranch> failed_var_iden = NULL;
     var_to_process->getPositionAsFarAsPossible(&position, &failed_var_iden, options);
     
     return position.end;
