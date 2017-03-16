@@ -89,15 +89,6 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(struct position_i
 {
     std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
 
-    if (!(options & POSITION_OPTION_POSITION_STATIC_IGNORE_HANDLE_FUNCTION))
-    {
-        if (handle_func == NULL)
-        {
-            throw Exception("expecting handle_func.", "int VarIdentifierBranch::getPositionRelZero(std::function<void(struct position_info pos_info)> handle_func, POSITION_OPTIONS options)");
-        }
-    }
-
-
     // Generate the position up to our variable
     int pos = vdef_branch->getPositionRelZero(options);
 
