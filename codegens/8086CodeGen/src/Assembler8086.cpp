@@ -1063,7 +1063,6 @@ void Assembler8086::generate()
     else
     {
         std::cout << "The instructions summed ins_sizes do not match the size of the stream. If this stream contains only instructions and only one segment then the ins_sizes array is invalid" << std::endl;
-        std::cout << "The stream size is: " << (int) this->sstream->getSize() + " and the instruction sizes are: " << this->cur_ins_sizes << std::endl;
     }
 #endif
 
@@ -1108,7 +1107,7 @@ void Assembler8086::assembler_pass_1()
         }
         else
         {
-            throw new AssemblerException("void Assembler8086::generate(): branch requires a segment.");
+            throw new Exception("branch requires a segment.", "void Assembler8086::generate()");
         }
     }
 }
