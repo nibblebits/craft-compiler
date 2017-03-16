@@ -579,14 +579,14 @@ std::shared_ptr<Branch> Assembler8086::get_identifier_branch_from_exp(std::share
     return result_branch;
 }
 
-std::shared_ptr<Branch> Assembler8086::get_register_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found)
+std::vector<std::shared_ptr<Branch>> Assembler8086::get_register_branches_from_exp(std::shared_ptr<Branch> branch)
 {
-    std::shared_ptr<Branch> result_branch = NULL;
+    std::vector<std::shared_ptr < Branch>> result;
     if (branch->getType() != "E")
     {
         if (branch->getType() == "register")
         {
-            result_branch = branch;
+            result.push_back(branch);
         }
     }
     else
@@ -596,24 +596,17 @@ std::shared_ptr<Branch> Assembler8086::get_register_branch_from_exp(std::shared_
         {
             if (left_branch->getType() == "register")
             {
-                result_branch = left_branch;
+                result.push_back(left_branch);
             }
-            else if (right_branch->getType() == "register")
+
+            if (right_branch->getType() == "register")
             {
-                result_branch = right_branch;
+                result.push_back(right_branch);
             }
         });
     }
 
-    if (remove_once_found)
-    {
-        if (result_branch != NULL)
-        {
-            result_branch->removeSelf();
-        }
-    }
-
-    return result_branch;
+    return result;
 }
 
 std::shared_ptr<Branch> Assembler8086::get_number_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found)
@@ -662,19 +655,34 @@ void Assembler8086::handle_operand_exp(std::shared_ptr<OperandBranch> operand_br
     std::shared_ptr<Branch> r_exp = sum_expression(getPoppedBranch());
 
     std::shared_ptr<Branch> number_branch = get_number_branch_from_exp(r_exp);
-    std::shared_ptr<Branch> register_branch = get_register_branch_from_exp(r_exp);
+    std::vector<std::shared_ptr<Branch>> register_branches = get_register_branches_from_exp(r_exp);
     std::shared_ptr<Branch> identifier_branch = get_identifier_branch_from_exp(r_exp);
 
+    std::shared_ptr<Branch> first_reg_branch = NULL;
+    std::shared_ptr<Branch> second_reg_branch = NULL;
+    
     // We clone because the framework does not allow the child to have two parents.
     if (number_branch != NULL)
         number_branch = number_branch->clone();
-    if (register_branch != NULL)
-        register_branch = register_branch->clone();
+    
+    if (register_branches.size() > 2)
+    {
+         throw Exception("Maximum 2 registers are allowed to be present", "void Assembler8086::handle_operand_exp(std::shared_ptr<OperandBranch> operand_branch)");
+    }
+    if (register_branches.size() > 0)
+    {
+        first_reg_branch = register_branches[0]->clone();
+        if (register_branches.size() == 2)
+        {
+            second_reg_branch = register_branches[1]->clone();
+        }
+    }
     if (identifier_branch != NULL)
         identifier_branch = identifier_branch->clone();
 
     operand_branch->setNumberBranch(number_branch);
-    operand_branch->setRegisterBranch(register_branch);
+    operand_branch->setFirstRegisterBranch(first_reg_branch);
+    operand_branch->setSecondRegisterBranch(second_reg_branch);
     operand_branch->setIdentifierBranch(identifier_branch);
 }
 
@@ -1055,6 +1063,7 @@ void Assembler8086::generate()
     else
     {
         std::cout << "The instructions summed ins_sizes do not match the size of the stream. If this stream contains only instructions and only one segment then the ins_sizes array is invalid" << std::endl;
+        std::cout << "The stream size is: " << (int) this->sstream->getSize() + " and the instruction sizes are: " << this->cur_ins_sizes << std::endl;
     }
 #endif
 
@@ -1327,22 +1336,40 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
     unsigned int number;
     left = zero_operand_branch;
     right = zero_operand_branch;
+    std::string left_reg_first_value = "";
+    std::string left_reg_second_value = "";
+    std::string right_reg_first_value = "";
+    std::string right_reg_second_value = "";
 
     if (ins_branch->hasLeftBranch())
     {
         left = ins_branch->getLeftBranch();
-        if (left->hasRegisterBranch())
+        if (left->hasFirstRegisterBranch())
         {
-            left_reg = left->getRegisterBranch();
+            left_reg_first = left->getFirstRegisterBranch();
+            left_reg_first_value = left_reg_first->getValue();
+        }
+        
+        if (left->hasSecondRegisterBranch())
+        {
+            left_reg_second = left->getSecondRegisterBranch();
+            left_reg_second_value = left_reg_second->getValue();
         }
     }
 
     if (ins_branch->hasRightBranch())
     {
         right = ins_branch->getRightBranch();
-        if (right->hasRegisterBranch())
+        if (right->hasFirstRegisterBranch())
         {
-            right_reg = right->getRegisterBranch();
+            right_reg_first = right->getFirstRegisterBranch();
+            right_reg_first_value = right_reg_first->getValue();
+        }
+        
+        if (right->hasSecondRegisterBranch())
+        {
+            right_reg_second = right->getSecondRegisterBranch();
+            right_reg_second_value = right_reg_second->getValue();
         }
     }
 
@@ -1445,7 +1472,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
     {
         if (left->isAccessingMemory())
         {
-            *mmm = get_mmm(left_reg->getValue());
+            *mmm = get_mmm(left_reg_first_value, left_reg_second_value);
         }
         else
         {
@@ -1453,11 +1480,11 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
                     *oo == DISPLACEMENT_8BIT_FOLLOW ||
                     *oo == DISPLACEMENT_16BIT_FOLLOW)
             {
-                *rrr = get_reg(left_reg->getValue());
+                *rrr = get_reg(left_reg_first_value);
             }
             else
             {
-                *mmm = get_reg(left_reg->getValue());
+                *mmm = get_reg(left_reg_first_value);
             }
 
         }
@@ -1471,16 +1498,16 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
                     *oo == DISPLACEMENT_8BIT_FOLLOW ||
                     *oo == DISPLACEMENT_16BIT_FOLLOW)
             {
-                *mmm = get_mmm(right_reg->getValue());
+                *mmm = get_mmm(right_reg_first_value, right_reg_second_value);
             }
             else
             {
-                *rrr = get_mmm(right_reg->getValue());
+                *rrr = get_mmm(right_reg_first_value, right_reg_second_value);
             }
         }
         else
         {
-            *rrr = get_reg(right_reg->getValue());
+            *rrr = get_reg(right_reg_first_value);
         }
     }
 
@@ -1563,11 +1590,11 @@ void Assembler8086::handle_rrr(int* opcode, INSTRUCTION_INFO info, std::shared_p
     std::shared_ptr<Branch> selected_reg = NULL;
     if (info & HAS_REG_USE_LEFT)
     {
-        selected_reg = ins_branch->getLeftBranch()->getRegisterBranch();
+        selected_reg = ins_branch->getLeftBranch()->getFirstRegisterBranch();
     }
     else if (info & HAS_REG_USE_RIGHT)
     {
-        selected_reg = ins_branch->getRightBranch()->getRegisterBranch();
+        selected_reg = ins_branch->getRightBranch()->getFirstRegisterBranch();
     }
     else
     {
@@ -2083,7 +2110,7 @@ OPERAND_INFO Assembler8086::get_operand_info(std::shared_ptr<OperandBranch> op_b
     std::shared_ptr<Branch> reg_branch = NULL;
     if (op_branch->isOnlyRegister())
     {
-        reg_branch = op_branch->getRegisterBranch();
+        reg_branch = op_branch->getFirstRegisterBranch();
         if (is_accumulator_and_not_ah(reg_branch->getValue()))
         {
             if (is_reg_16_bit(reg_branch->getValue()))
@@ -2267,11 +2294,11 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
 
     if (left->isOnlyRegister())
     {
-        left_reg = left->getRegisterBranch();
+        left_reg_first = left->getFirstRegisterBranch();
         if (right->isOnlyRegister())
         {
             // Register to register assignment "mov reg, reg", 8 bit or 16 bit assignment?
-            if (is_reg_16_bit(left_reg->getValue()))
+            if (is_reg_16_bit(left_reg_first->getValue()))
             {
                 // 16 bit assignment here
                 return MOV_REG_TO_REG_W1;
@@ -2285,7 +2312,7 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
         else if (right->isOnlyImmediate())
         {
             // Register to register assignment, 8 bit or 16 bit assignment?
-            if (is_reg_16_bit(left_reg->getValue()))
+            if (is_reg_16_bit(left_reg_first->getValue()))
             {
                 // 16 bit assignment here
                 return MOV_IMM_TO_REG_W1;
@@ -2298,7 +2325,7 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
         }
         else if (right->isAccessingMemory())
         {
-            if (is_reg_16_bit(left_reg->getValue()))
+            if (is_reg_16_bit(left_reg_first->getValue()))
             {
                 return MOV_MEM_TO_REG_W1;
             }
@@ -2314,9 +2341,9 @@ INSTRUCTION_TYPE Assembler8086::get_mov_ins_type(std::shared_ptr<InstructionBran
         // Memory assignment.
         if (right->isOnlyRegister())
         {
-            right_reg = right->getRegisterBranch();
+            right_reg_first = right->getFirstRegisterBranch();
             // mov mem, reg
-            if (is_reg_16_bit(right_reg->getValue()))
+            if (is_reg_16_bit(right_reg_first->getValue()))
             {
                 return MOV_REG_TO_MEM_W1;
             }
@@ -2348,10 +2375,10 @@ INSTRUCTION_TYPE Assembler8086::get_add_ins_type(std::shared_ptr<InstructionBran
 
     if (left->isOnlyRegister())
     {
-        left_reg = left->getRegisterBranch();
+        left_reg_first = left->getFirstRegisterBranch();
         if (right->isOnlyRegister())
         {
-            if (is_reg_16_bit(left_reg->getValue()))
+            if (is_reg_16_bit(left_reg_first->getValue()))
             {
                 return ADD_REG_WITH_REG_W1;
             }
@@ -2362,7 +2389,7 @@ INSTRUCTION_TYPE Assembler8086::get_add_ins_type(std::shared_ptr<InstructionBran
         }
         else if (right->isAccessingMemory())
         {
-            if (is_reg_16_bit(left_reg->getValue()))
+            if (is_reg_16_bit(left_reg_first->getValue()))
             {
                 return ADD_REG_WITH_MEM_W1;
             }
@@ -2374,12 +2401,12 @@ INSTRUCTION_TYPE Assembler8086::get_add_ins_type(std::shared_ptr<InstructionBran
     }
     else if (right->isOnlyRegister())
     {
-        right_reg = right->getRegisterBranch();
+        right_reg_first = right->getFirstRegisterBranch();
         if (left->isAccessingMemory())
         {
             if (right->isOnlyRegister())
             {
-                if (is_reg_16_bit(right_reg->getValue()))
+                if (is_reg_16_bit(right_reg_first->getValue()))
                 {
                     return ADD_MEM_WITH_REG_W1;
                 }
@@ -2437,7 +2464,7 @@ void Assembler8086::calculate_data_size_for_operand(std::shared_ptr<OperandBranc
     OPERAND_DATA_SIZE size = OPERAND_DATA_SIZE_UNKNOWN;
     if (branch->hasRegisterBranch())
     {
-        size = get_data_size_for_reg(branch->getRegisterBranch()->getValue());
+        size = get_data_size_for_reg(branch->getFirstRegisterBranch()->getValue());
     }
     else if (branch->hasIdentifierBranch())
     {
@@ -2500,7 +2527,7 @@ void Assembler8086::calculate_operand_sizes_for_instruction(std::shared_ptr<Inst
     if (instruction_branch->hasLeftBranch()
             && left->isOnlyRegister() && left->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN)
     {
-        data_size = get_data_size_for_reg(left->getRegisterBranch()->getValue());
+        data_size = get_data_size_for_reg(left->getFirstRegisterBranch()->getValue());
         left->setDataSize(data_size);
         if (instruction_branch->hasRightBranch()
                 && right->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN && !right->isAccessingMemory())
@@ -2514,7 +2541,7 @@ void Assembler8086::calculate_operand_sizes_for_instruction(std::shared_ptr<Inst
     if (instruction_branch->hasRightBranch()
             && right->isOnlyRegister() && right->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN)
     {
-        data_size = get_data_size_for_reg(right->getRegisterBranch()->getValue());
+        data_size = get_data_size_for_reg(right->getFirstRegisterBranch()->getValue());
         right->setDataSize(data_size);
         if (instruction_branch->hasLeftBranch()
                 && left->getDataSize() == OPERAND_DATA_SIZE_UNKNOWN && !left->isAccessingMemory())
@@ -2631,19 +2658,19 @@ bool Assembler8086::is_mmm(std::string _register, std::string second_reg)
 
 char Assembler8086::get_mmm(std::string _register, std::string second_reg)
 {
-    if (_register == "bx" && second_reg == "si")
+    if (_register == "bx" && second_reg == "si" || _register == "si" && second_reg == "bx")
     {
         return 0;
     }
-    else if (_register == "bx" && second_reg == "di")
+    else if (_register == "bx" && second_reg == "di" || _register == "di" && second_reg == "bx")
     {
         return 1;
     }
-    else if (_register == "bp" && second_reg == "si")
+    else if (_register == "bp" && second_reg == "si" || _register == "si" && second_reg == "bp")
     {
         return 2;
     }
-    else if (_register == "bp" && second_reg == "di")
+    else if (_register == "bp" && second_reg == "di" || _register == "di" && second_reg == "bp")
     {
         return 3;
     }

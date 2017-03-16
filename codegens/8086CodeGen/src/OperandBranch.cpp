@@ -37,14 +37,24 @@ OperandBranch::~OperandBranch()
 {
 }
 
-void OperandBranch::setRegisterBranch(std::shared_ptr<Branch> register_branch)
+void OperandBranch::setFirstRegisterBranch(std::shared_ptr<Branch> register_branch)
 {
-    CustomBranch::registerBranch("register_branch", register_branch);
+    CustomBranch::registerBranch("first_register_branch", register_branch);
 }
 
-std::shared_ptr<Branch> OperandBranch::getRegisterBranch()
+std::shared_ptr<Branch> OperandBranch::getFirstRegisterBranch()
 {
-    return CustomBranch::getRegisteredBranchByName("register_branch");
+    return CustomBranch::getRegisteredBranchByName("first_register_branch");
+}
+
+void OperandBranch::setSecondRegisterBranch(std::shared_ptr<Branch> register_branch)
+{
+    CustomBranch::registerBranch("second_register_branch", register_branch);
+}
+
+std::shared_ptr<Branch> OperandBranch::getSecondRegisterBranch()
+{
+    return CustomBranch::getRegisteredBranchByName("second_register_branch");
 }
 
 void OperandBranch::setNumberBranch(std::shared_ptr<Branch> imm_branch)
@@ -84,7 +94,17 @@ void OperandBranch::setDataSize(OPERAND_DATA_SIZE size)
 
 bool OperandBranch::hasRegisterBranch()
 {
-    return CustomBranch::isBranchRegistered("register_branch");
+    return hasFirstRegisterBranch() || hasSecondRegisterBranch();
+}
+
+bool OperandBranch::hasFirstRegisterBranch()
+{
+    return CustomBranch::isBranchRegistered("first_register_branch");
+}
+
+bool OperandBranch::hasSecondRegisterBranch()
+{
+    return CustomBranch::isBranchRegistered("second_register_branch");
 }
 
 bool OperandBranch::hasNumberBranch()
@@ -129,7 +149,7 @@ OPERAND_DATA_SIZE OperandBranch::getDataSize()
 void OperandBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<OperandBranch> op_branch = std::dynamic_pointer_cast<OperandBranch>(cloned_branch);
-    op_branch->setRegisterBranch(getRegisterBranch()->clone());
+    op_branch->setFirstRegisterBranch(getFirstRegisterBranch()->clone());
     op_branch->setNumberBranch(getNumberBranch()->clone());
     op_branch->setIdentifierBranch(getIdentifierBranch()->clone());
     op_branch->setMemoryAccess(isAccessingMemory());

@@ -29,6 +29,7 @@
 #include "Assembler8086.h"
 
 class InstructionBranch;
+
 class OperandBranch : public ChildOfSegment
 {
 public:
@@ -36,29 +37,35 @@ public:
     virtual ~OperandBranch();
 
 
-    void setRegisterBranch(std::shared_ptr<Branch> register_branch);
-    std::shared_ptr<Branch> getRegisterBranch();
+    void setFirstRegisterBranch(std::shared_ptr<Branch> register_branch);
+    std::shared_ptr<Branch> getFirstRegisterBranch();
+    
+    void setSecondRegisterBranch(std::shared_ptr<Branch> register_branch);
+    std::shared_ptr<Branch> getSecondRegisterBranch();
+
 
     void setNumberBranch(std::shared_ptr<Branch> imm_branch);
     std::shared_ptr<Branch> getNumberBranch();
-    
+
     void setIdentifierBranch(std::shared_ptr<Branch> label_branch);
     std::shared_ptr<Branch> getIdentifierBranch();
-    
+
     std::shared_ptr<InstructionBranch> getInstructionBranch();
 
     void setMemoryAccess(bool is_memory_access);
     void setDataSize(OPERAND_DATA_SIZE size);
     bool isAccessingMemory();
     OPERAND_DATA_SIZE getDataSize();
-    
+
     bool hasRegisterBranch();
+    bool hasFirstRegisterBranch();
+    bool hasSecondRegisterBranch();
     bool hasNumberBranch();
     bool hasIdentifierBranch();
-    
+
     bool isOnlyRegister();
     bool isOnlyImmediate();
-    
+
     bool hasImmediate();
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);

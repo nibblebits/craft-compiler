@@ -404,7 +404,7 @@ private:
     void parse_part();
 
     std::shared_ptr<Branch> get_number_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
-    std::shared_ptr<Branch> get_register_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
+    std::vector<std::shared_ptr<Branch>> get_register_branches_from_exp(std::shared_ptr<Branch> branch);
     std::shared_ptr<Branch> get_identifier_branch_from_exp(std::shared_ptr<Branch> branch, bool remove_once_found = false);
     void handle_operand_exp(std::shared_ptr<OperandBranch> operand_branch);
     void parse_operand(OPERAND_DATA_SIZE data_size = OPERAND_DATA_SIZE_UNKNOWN);
@@ -435,9 +435,11 @@ private:
 
     std::shared_ptr<Stream> sstream;
     std::shared_ptr<OperandBranch> left;
-    std::shared_ptr<Branch> left_reg;
+    std::shared_ptr<Branch> left_reg_first;
+    std::shared_ptr<Branch> left_reg_second;
     std::shared_ptr<OperandBranch> right;
-    std::shared_ptr<Branch> right_reg;
+    std::shared_ptr<Branch> right_reg_first;
+    std::shared_ptr<Branch> right_reg_second;
 
     std::shared_ptr<OffsetableBranch> last_offsetable_branch;
 
@@ -451,7 +453,6 @@ private:
     int cur_ins_sizes;
 #endif
     std::shared_ptr<OperandBranch> zero_operand_branch;
-
 
 };
 
