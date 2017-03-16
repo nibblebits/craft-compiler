@@ -559,10 +559,16 @@ std::shared_ptr<Branch> Assembler::sum_expression(std::shared_ptr<Branch> expres
 
     // Shorten the expression branch.
     int sum = 0;
+    bool has_number = false;
     std::shared_ptr<EBranch> e_branch = std::dynamic_pointer_cast<EBranch>(expression_branch);
     e_branch->iterate_expressions([&](std::shared_ptr<EBranch> root_e, std::shared_ptr<Branch> left_branch, std::shared_ptr<Branch> right_branch) -> void
     {
         op = root_e->getValue();
+        // Do we have a number?
+        if (left_branch->getType() == "number" || right_branch->getType() == "number")
+        {
+                                  has_number = true;
+        }
         if (left_branch->getType() == "number"
                                   && right_branch->getType() == "number")
         {
@@ -598,6 +604,12 @@ std::shared_ptr<Branch> Assembler::sum_expression(std::shared_ptr<Branch> expres
         }
     });
 
+    if (!has_number)
+    {
+        // No number? then just return the branch passed to us as we did nothing.
+        return expression_branch;
+    }
+    
     // Finally we now need to create a new branch for the sum and add it on
     std::shared_ptr<Token> summed_branch = std::shared_ptr<Token>(new Token("number", std::to_string(sum), last_char_pos));
     if (new_branch->getChildren().size() == 0)
