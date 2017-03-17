@@ -151,7 +151,6 @@ void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)
             {
                 VirtualObjectFormat::registerGlobalReference(segment, current_iden->name_str, current_iden->p_offset);
                 current_iden = current_iden->next;
-                break;
             }
         }
             break;
