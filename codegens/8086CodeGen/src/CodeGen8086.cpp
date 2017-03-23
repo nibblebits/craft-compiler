@@ -1242,27 +1242,35 @@ void CodeGen8086::handle_global_var_def(std::shared_ptr<VDEFBranch> vdef_branch)
 
     make_label(variable_name_branch->getValue(), "data");
 
-    if (vdef_branch->getType() == "STRUCT_DEF"
-            && !vdef_branch->isPointer())
+    if (variable_iden_branch->hasRootArrayIndexBranch())
     {
-        int struct_size = getSizeOfVariableBranch(vdef_branch);
         data_write_macro = "rb";
-        data_write_macro_value = std::to_string(struct_size);
+        data_write_macro_value = std::to_string(vdef_branch->getSize());
     }
     else
     {
-        if (vdef_branch->getDataTypeBranch()->isPointer() || vdef_branch->getDataTypeBranch()->getDataTypeSize() == 2)
+        if (vdef_branch->getType() == "STRUCT_DEF"
+                && !vdef_branch->isPointer())
         {
-            data_write_macro = "dw";
+            int struct_size = getSizeOfVariableBranch(vdef_branch);
+            data_write_macro = "rb";
+            data_write_macro_value = std::to_string(struct_size);
         }
         else
         {
-            data_write_macro = "db";
-        }
+            if (vdef_branch->getDataTypeBranch()->isPointer() || vdef_branch->getDataTypeBranch()->getDataTypeSize() == 2)
+            {
+                data_write_macro = "dw";
+            }
+            else
+            {
+                data_write_macro = "db";
+            }
 
-        if (value_branch != NULL)
-        {
-            data_write_macro_value = value_branch->getValue();
+            if (value_branch != NULL)
+            {
+                data_write_macro_value = value_branch->getValue();
+            }
         }
     }
 
@@ -2216,6 +2224,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
         {
             std::shared_ptr<VarIdentifierBranch> failed_var_iden = NULL;
             std::shared_ptr<VDEFBranch> failed_vdef_branch = NULL;
+            bool do_lea = false;
             struct position position;
             // Get the root position
             root_var_branch->getPositionAsFarAsPossible(&position, &failed_var_iden, POSITION_OPTION_START_WITH_VARSIZE);
@@ -2267,6 +2276,18 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                         position.abs = elem_size * failed_var_iden->getRootArrayIndexBranch()->getStaticSum();
                     }
 
+                    /*
+                     * While accessing non-pointer structure arrays its important to load the effective address.
+                     * 
+                     *   struct test pool[5];
+                     *   uint8 i;
+                     *   pool[i].b = 25;
+                     */
+                    if (!failed_vdef_branch->isPointer() && !failed_vdef_branch->isPrimitive())
+                    {
+                        do_lea = true;
+                    }
+
                     // Are we last?
                     if (is_last)
                     {
@@ -2292,12 +2313,26 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                 {
                     if (address.apply_reg != "")
                     {
-                        do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
+                        if (do_lea)
+                        {
+                            do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
+                        }
+                        else
+                        {
+                            do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
+                        }
                         address.apply_reg = "";
                     }
                     else
                     {
-                        do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                        if (do_lea)
+                        {
+                            do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                        }
+                        else
+                        {
+                            do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                        }
                     }
                 }
             }
@@ -2330,6 +2365,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
         {
             std::shared_ptr<VarIdentifierBranch> failed_var_iden = NULL;
             std::shared_ptr<VDEFBranch> failed_vdef_branch = NULL;
+            bool do_lea = false;
             struct position position;
             // Get the root position
             root_var_branch->getPositionAsFarAsPossible(&position, &failed_var_iden, POSITION_OPTION_START_WITH_VARSIZE);
@@ -2381,6 +2417,18 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                         position.abs = elem_size * failed_var_iden->getRootArrayIndexBranch()->getStaticSum();
                     }
 
+                    /*
+                     * While accessing non-pointer structure arrays its important to load the effective address.
+                     * 
+                     *   struct test pool[5];
+                     *   uint8 i;
+                     *   pool[i].b = 25;
+                     */
+                    if (!failed_vdef_branch->isPointer() && !failed_vdef_branch->isPrimitive())
+                    {
+                        do_lea = true;
+                    }
+
                     // Are we last?
                     if (is_last)
                     {
@@ -2406,12 +2454,27 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                 {
                     if (address.apply_reg != "")
                     {
-                        do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
+                        if (do_lea)
+                        {
+                            do_asm("lea bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
+                        }
+                        else
+                        {
+                            do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
+                        }
+
                         address.apply_reg = "";
                     }
                     else
                     {
-                        do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                        if (do_lea)
+                        {
+                            do_asm("lea bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                        }
+                        else
+                        {
+                            do_asm("mov bx, [bp-" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                        }
                     }
                 }
             }
