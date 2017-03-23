@@ -26,8 +26,8 @@
 #define TREEIMPROVER_H
 
 #include <memory>
+#include <vector>
 #include "CompilerEntity.h"
-
 class Tree;
 class Branch;
 class FuncBranch;
@@ -39,6 +39,20 @@ class IFBranch;
 class WhileBranch;
 class FORBranch;
 class PTRBranch;
+class STRUCTDEFBranch;
+
+struct improvement
+{
+    bool is_in_struct;
+    std::vector<std::shared_ptr<STRUCTDEFBranch>> nested_struct_branches_im_in;
+    
+    improvement();
+    virtual ~improvement();
+    void push_struct_def_branch(std::shared_ptr<STRUCTDEFBranch> struct_def_branch);
+    std::shared_ptr<STRUCTDEFBranch> pop_struct_def_branch();
+    bool isInStruct(std::string struct_name);
+    std::shared_ptr<STRUCTDEFBranch> getStructDefFromStack(std::string struct_def_name);
+};
 
 class EXPORT TreeImprover : public CompilerEntity
 {
@@ -48,19 +62,19 @@ public:
 
     void setTree(std::shared_ptr<Tree> tree);
     void improve();
-    void improve_expression(std::shared_ptr<EBranch> expression_branch, bool is_root = true);
+    void improve_expression(std::shared_ptr<EBranch> expression_branch, struct improvement* improvement, bool is_root = true);
 private:
-    void improve_top();
-    void improve_branch(std::shared_ptr<Branch> branch);
-    void improve_func(std::shared_ptr<FuncBranch> func_branch);
-    void improve_func_arguments(std::shared_ptr<Branch> func_args_branch);
-    void improve_func_call(std::shared_ptr<FuncCallBranch> func_call_branch);
-    void improve_body(std::shared_ptr<BODYBranch> body_branch, bool* has_return_branch = NULL);
-    void improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
-    void improve_if(std::shared_ptr<IFBranch> if_branch);
-    void improve_while(std::shared_ptr<WhileBranch> while_branch);
-    void improve_for(std::shared_ptr<FORBranch> for_branch);
-    void improve_ptr(std::shared_ptr<PTRBranch> ptr_branch);
+    void improve_top(struct improvement* improvement);
+    void improve_branch(std::shared_ptr<Branch> branch, struct improvement* improvement);
+    void improve_func(std::shared_ptr<FuncBranch> func_branch, struct improvement* improvement);
+    void improve_func_arguments(std::shared_ptr<Branch> func_args_branch, struct improvement* improvement);
+    void improve_func_call(std::shared_ptr<FuncCallBranch> func_call_branch, struct improvement* improvement);
+    void improve_body(std::shared_ptr<BODYBranch> body_branch,struct improvement* improvement, bool* has_return_branch = NULL);
+    void improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_iden_branch, struct improvement* improvement);
+    void improve_if(std::shared_ptr<IFBranch> if_branch, struct improvement* improvement);
+    void improve_while(std::shared_ptr<WhileBranch> while_branch, struct improvement* improvement);
+    void improve_for(std::shared_ptr<FORBranch> for_branch, struct improvement* improvement);
+    void improve_ptr(std::shared_ptr<PTRBranch> ptr_branch, struct improvement* improvement);
 
     std::shared_ptr<Tree> tree;
     VARIABLE_TYPE current_var_type;
