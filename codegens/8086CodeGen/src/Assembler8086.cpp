@@ -81,20 +81,20 @@ unsigned char ins_map[] = {
     0x80, 0x81, 0x80, 0x81, 0x8d
 };
 
-// Full instruction size, related to opcode on the ins_map + what ever else is required for the instruction type
+// instruction size excluding OOMMM and OORRRMMM rules that change the size (you should still include the OOMMM and OORRRMMM byte)
 unsigned char ins_sizes[] = {
-    2, 2, 2, 3, 5, 6, 2, 2, 2, 2,
+    2, 2, 2, 3, 3, 4, 2, 2, 2, 2,
     2, 2, 2, 2, 2, 2, 2, 3, 3, 4,
-    5, 6, 2, 2, 2, 2, 2, 2, 2, 3,
-    3, 4, 5, 6, 2, 2, 2, 2, 2, 2,
+    3, 4, 2, 2, 2, 2, 2, 2, 2, 3,
+    3, 4, 3, 4, 2, 2, 2, 2, 2, 2,
     2, 2, 3, 3, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 1, 1, 1, 2, 2, 4,
-    4, 4, 4, 2, 3, 3, 4, 5, 6, 2,
-    2, 4, 4, 4, 4, 2, 3, 3, 4, 5,
-    6, 2, 2, 4, 4, 4, 4, 2, 3, 3,
-    4, 5, 6, 3, 4, 5, 5, 3, 3, 5,
-    5, 2, 2, 2, 4, 4, 4, 4, 2, 3,
-    3, 4, 5, 6, 2
+    2, 2, 2, 2, 1, 1, 1, 2, 2, 2,
+    2, 2, 2, 2, 3, 3, 4, 3, 4, 2,
+    2, 4, 4, 4, 4, 2, 3, 3, 4, 3,
+    4, 2, 2, 4, 4, 4, 4, 2, 3, 3,
+    4, 3, 4, 3, 4, 3, 3, 3, 3, 3,
+    3, 2, 2, 2, 2, 2, 2, 2, 2, 3,
+    3, 4, 3, 4, 2
 };
 
 
