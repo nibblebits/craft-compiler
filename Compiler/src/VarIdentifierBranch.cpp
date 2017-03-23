@@ -63,7 +63,11 @@ bool VarIdentifierBranch::hasRootArrayIndexBranch()
 
 std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch(bool no_follow)
 {
-    return Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), true, no_follow);
+    std::shared_ptr<VDEFBranch> vdef_branch = Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), true, no_follow);
+    if (vdef_branch == NULL)
+        throw Exception("VarIdentifierBranch has no VDEFBranch associated with it", "std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch(bool no_follow)");
+    
+    return vdef_branch;
 }
 
 std::shared_ptr<VarIdentifierBranch> VarIdentifierBranch::getFinalVarIdentifierBranch()

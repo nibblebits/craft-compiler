@@ -29,6 +29,7 @@
 
 STRUCTDEFBranch::STRUCTDEFBranch(Compiler* compiler) : VDEFBranch(compiler, "STRUCT_DEF")
 {
+    this->unique_struct_body_branch = NULL;
 }
 
 STRUCTDEFBranch::~STRUCTDEFBranch()
@@ -42,6 +43,9 @@ void STRUCTDEFBranch::setStructBody(std::shared_ptr<BODYBranch> struct_body_bran
 
 std::shared_ptr<BODYBranch> STRUCTDEFBranch::getStructBody()
 {
+    if (this->unique_struct_body_branch == NULL)
+        throw Exception("Struct body was never set for STRUCTDEF branch", "std::shared_ptr<BODYBranch> STRUCTDEFBranch::getStructBody()");
+    
     return this->unique_struct_body_branch;
 }
 

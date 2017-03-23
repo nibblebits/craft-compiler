@@ -69,7 +69,7 @@ void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> ch
             throw ex;
         }
     }
-    
+
     // Lets let this child know who its parent is
     branch->setParent(this->getptr());
 
@@ -116,6 +116,16 @@ void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> ch
 
 void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)
 {
+    if (child == NULL)
+    {
+        throw Exception("The child provided is NULL", "void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)");
+    }
+    
+    if (new_branch == NULL)
+    {
+        throw Exception("The new_branch is NULL", "void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)");
+    }
+    
     try
     {
         validate_identity_on_tree();
@@ -267,19 +277,20 @@ void Branch::iterate_children(std::function<void(std::shared_ptr<Branch> child_b
  * @param counter_function - The counter function whose return value determines weather or not the branch is included in the count
  * @return int - the total children found based on the parameters passed to the function
  */
-int Branch::count_children(std::string type, std::function<bool(std::shared_ptr<Branch> branch)> counter_function)
+int Branch::count_children(std::string type, std::function<bool(std::shared_ptr<Branch> branch) > counter_function)
 {
     int total = 0;
-    
+
     if (counter_function == NULL)
     {
         // We have no counter function so lets make one
-        counter_function = [](std::shared_ptr<Branch> branch) -> bool {
+        counter_function = [](std::shared_ptr<Branch> branch) -> bool
+        {
             // We accept all branches passed to us.
             return true;
         };
     }
-    
+
     // Lets loop through all our children and invoke the counter function
     bool any_type = type == "any";
     for (std::shared_ptr<Branch> child : getChildren())
@@ -292,9 +303,9 @@ int Branch::count_children(std::string type, std::function<bool(std::shared_ptr<
             }
         }
     }
-    
+
     return total;
-    
+
 }
 
 bool Branch::hasChild(std::shared_ptr<Branch> branch)
@@ -365,7 +376,6 @@ void Branch::setLocalScope(std::shared_ptr<ScopeBranch> local_scope, bool set_to
     }
 
 }
-
 
 std::shared_ptr<Branch> Branch::getFirstChild()
 {

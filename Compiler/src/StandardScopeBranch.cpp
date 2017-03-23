@@ -84,6 +84,7 @@ int StandardScopeBranch::getScopeSize(GET_SCOPE_SIZE_OPTIONS options, std::funct
     }
 
 
+    
     // Lets invoke the end proc for this scope
     if(!invoke_scope_size_proc_if_possible(elem_proc_end, this->getptr(), should_stop))
     {
