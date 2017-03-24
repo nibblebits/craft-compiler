@@ -1055,6 +1055,8 @@ void Assembler8086::generate()
     assembler_pass_4();
 
 #ifdef TEST_MODE
+    // Switch to the code segment
+    switch_to_segment("code");
     // Test mode is defined so lets just check that the size of the stream matches the stream length
     if (this->sstream->getSize() == this->cur_ins_sizes)
     {
@@ -1062,7 +1064,7 @@ void Assembler8086::generate()
     }
     else
     {
-        std::cout << "The instructions summed ins_sizes do not match the size of the stream. If this stream contains only instructions and only one segment then the ins_sizes array is invalid" << std::endl;
+        std::cout << "The instructions summed ins_sizes do not match the size of the stream." << std::endl;
     }
 #endif
 
