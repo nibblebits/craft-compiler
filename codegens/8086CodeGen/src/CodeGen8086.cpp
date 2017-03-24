@@ -2227,7 +2227,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
             bool do_lea = false;
             struct position position;
             // Get the root position
-            root_var_branch->getPositionAsFarAsPossible(&position, &failed_var_iden, POSITION_OPTION_START_WITH_VARSIZE);
+            root_var_branch->getPositionAsFarAsPossible(&position, &failed_var_iden);
 
             if (failed_var_iden != NULL)
             {
@@ -2255,7 +2255,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                     if (failed_vdef_branch->isPointer() && !failed_vdef_branch->getVariableIdentifierBranch()->hasRootArrayIndexBranch())
                     {
                         // Lets load the pointer value
-                        do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                        do_asm("mov bx, [_data+" + std::to_string(position.abs) + "]");
                         position.abs = 0;
                         do_point_first = true;
                         ignore_pointer = true;
@@ -2315,11 +2315,11 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                     {
                         if (do_lea)
                         {
-                            do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
+                            do_asm("lea bx, [_data+" + std::to_string(position.abs) + "+" + address.apply_reg + "]");
                         }
                         else
                         {
-                            do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "+" + address.apply_reg + "]");
+                            do_asm("mov bx, [_data+" + std::to_string(position.abs) + "+" + address.apply_reg + "]");
                         }
                         address.apply_reg = "";
                     }
@@ -2327,11 +2327,11 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                     {
                         if (do_lea)
                         {
-                            do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                            do_asm("lea bx, [_data+" + std::to_string(position.abs) + "]");
                         }
                         else
                         {
-                            do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                            do_asm("mov bx, [_data+" + std::to_string(position.abs) + "]");
                         }
                     }
                 }
@@ -2339,7 +2339,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
             else
             {
                 // There was no failed branch
-                do_asm("mov bx, [_data+" + std::to_string(position.start) + "+" + std::to_string(position.end) + "]");
+                do_asm("mov bx, [_data+" + std::to_string(position.abs) + "]");
             }
 
             // Is this access being accessed as a pointer? e.g *var[3].b If so we need to dig down
