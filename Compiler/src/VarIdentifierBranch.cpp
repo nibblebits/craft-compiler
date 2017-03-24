@@ -100,7 +100,7 @@ int VarIdentifierBranch::getPositionRelZero(std::function<void(struct position_i
     if (!(options & POSITION_OPTION_STOP_AT_ROOT_VAR))
     {
         struct position_info pos_info;
-        pos_info.abs_start_pos = pos;
+        pos_info.start_absolution(pos);
         pos = getPositionRelZeroIgnoreCurrentScope(handle_func, point_func, options, &pos_info);
     }
 
@@ -126,7 +126,7 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     std::shared_ptr<VarIdentifierBranch> failed_var_iden = NULL;
     var_to_process->getPositionAsFarAsPossible(&position, &failed_var_iden, options);
     
-    return position.end;
+    return p_info->abs_pos + position.end;
 
 }
 
