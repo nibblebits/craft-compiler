@@ -126,7 +126,10 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     std::shared_ptr<VarIdentifierBranch> failed_var_iden = NULL;
     var_to_process->getPositionAsFarAsPossible(&position, &failed_var_iden, options);
     
-    return p_info->abs_pos + position.end;
+    if (p_info != NULL && p_info->abs_pos != -1)
+        return p_info->abs_pos + position.end;
+    
+    return position.end;
 
 }
 
