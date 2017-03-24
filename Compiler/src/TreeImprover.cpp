@@ -322,8 +322,8 @@ void TreeImprover::improve_if(std::shared_ptr<IFBranch> if_branch, struct improv
 
     if (if_branch->hasElseIfBranch())
     {
-        // Improve the body of the else if branch
-        improve_body(if_branch->getElseIfBranch()->getBodyBranch(), improvement);
+        // Improve the else if branch
+        improve_if(if_branch->getElseIfBranch(), improvement);
     }
 
     if (if_branch->hasElseBranch())
