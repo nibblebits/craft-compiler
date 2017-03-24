@@ -118,8 +118,12 @@ void BinLinker::resolve_segment(std::shared_ptr<VirtualObjectFormat> final_obj, 
         else if (target->getType() == FIXUP_TARGET_TYPE_EXTERN)
         {
             std::shared_ptr<FIXUP_TARGET_EXTERN> fixup_target_extern = std::dynamic_pointer_cast<FIXUP_TARGET_EXTERN>(target);
-
-            std::shared_ptr<GLOBAL_REF> global_ref = final_obj->getGlobalReferenceByName(fixup_target_extern->getExternalName());
+            std::string reference_name = fixup_target_extern->getExternalName();
+            std::shared_ptr<GLOBAL_REF> global_ref = final_obj->getGlobalReferenceByName(reference_name);
+            if (global_ref == NULL)
+            {
+                throw Exception("The reference: " + reference_name + " could not be resolved");
+            }
             int global_ref_seg_abs_pos = countStreamSizesStopAtSegment(final_obj, global_ref->getSegment());
             int global_ref_abs_pos = global_ref_seg_abs_pos + global_ref->getOffset();
             int new_pos;

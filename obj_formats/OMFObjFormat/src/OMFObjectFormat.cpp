@@ -191,13 +191,13 @@ void OMFObjectFormat::read(std::shared_ptr<Stream> input_stream)
                     if (subrecord->target_type == FIXUPP_TARGET_TYPE_EXTIDX)
                     {
                         // External fixup
-                        target_segment->register_fixup_target_extern(fixup_type, subrecord->relating_extdef->name_str, subrecord->data_record_offset, length);
+                        target_segment->register_fixup_target_extern(fixup_type, subrecord->relating_extdef->name_str, subrecord->abs_data_record_offset, length);
                     }
                     else if (subrecord->target_type == FIXUPP_TARGET_TYPE_SEGIDX)
                     {
                         // Internal fixup
                         std::shared_ptr<VirtualSegment> relating_segment = VirtualObjectFormat::getSegment(subrecord->relating_data->SEGDEF_16_record->class_name_str);
-                        target_segment->register_fixup_target_segment(fixup_type, relating_segment, subrecord->data_record_offset, length);
+                        target_segment->register_fixup_target_segment(fixup_type, relating_segment, subrecord->abs_data_record_offset, length);
                     }
                 }
                 fixup_16_desc = fixup_16_desc->next_subrecord_descriptor;
@@ -289,15 +289,15 @@ void OMFObjectFormat::finalize()
         for (std::shared_ptr<FIXUP> fixup : segment->getFixups())
         {
             // We should solve the below problem as soon as possible
-            if (fixup->getLength() >= 2 
-                    && fixup->getOffset() == MAX_LEDATA_SIZE-1)
+            if (fixup->getLength() >= 2
+                    && fixup->getOffset() == MAX_LEDATA_SIZE - 1)
             {
-                throw Exception("Fixup offset is " + std::to_string(MAX_LEDATA_SIZE-1)
-                        + " and has a length of 2 bytes. This is impossible to resolve as a LEDATA's maximum size is " + std::to_string(MAX_LEDATA_SIZE)
-                        + " in the future the OMF(Object Module Format) library will push the data to another LEDATA record but for now this is unimplemented."
-                        + " just re-adjust your code so that the fixup will be at a different position.", "void OMFObjectFormat::finalize()");
+                throw Exception("Fixup offset is " + std::to_string(MAX_LEDATA_SIZE - 1)
+                                + " and has a length of 2 bytes. This is impossible to resolve as a LEDATA's maximum size is " + std::to_string(MAX_LEDATA_SIZE)
+                                + " in the future the OMF(Object Module Format) library will push the data to another LEDATA record but for now this is unimplemented."
+                                + " just re-adjust your code so that the fixup will be at a different position.", "void OMFObjectFormat::finalize()");
             }
-            
+
             // Calculate the index in the fixup_chunks vector where this fixup should be pushed to
             int fixup_index = fixup->getOffset() / MAX_LEDATA_SIZE;
             // We must now readjust the fixup offset
@@ -310,13 +310,14 @@ void OMFObjectFormat::finalize()
             fixup_chunks[fixup_index].push_back(fixup);
         }
 
+        int ledatas_pos = 0;
         for (int i = 0; i < stream_chunks.size(); i++)
         {
             std::shared_ptr<Stream> chunk_stream = stream_chunks[i];
-            // We want to save the chunk stream so it is not released at the end of this scope, this is a bit hacky I think
+            // We want to save the chunk stream so it is not released at the end of this scope, this is a bit hacky I should change it soon
             all_chunks.push_back(chunk_stream);
 
-            MagicOMFAddLEDATA16(handle, segment->getName().c_str(), 0, chunk_stream->getSize(), chunk_stream->getBuf());
+            MagicOMFAddLEDATA16(handle, segment->getName().c_str(), ledatas_pos, chunk_stream->getSize(), chunk_stream->getBuf());
             // Do we have any fixups for this LEDATA?
             if (!fixup_chunks[i].empty())
             {
@@ -336,6 +337,8 @@ void OMFObjectFormat::finalize()
                 }
                 MagicOMFFinishFIXUP16(record);
             }
+
+            ledatas_pos += chunk_stream->getSize();
         }
     }
 
