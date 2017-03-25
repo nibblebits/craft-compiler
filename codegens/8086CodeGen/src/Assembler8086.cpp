@@ -1964,6 +1964,7 @@ int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch,
             break;
         case IDENTIFIER_TYPE_SEGMENT:
             // Nothing to do with segments yet
+            throw Exception("Offsets from segments are not supported.", "int Assembler8086::get_static_from_branch(std::shared_ptr<OperandBranch> branch, bool short_or_near_possible, std::shared_ptr<InstructionBranch> ins_branch)");
             break;
         }
 
