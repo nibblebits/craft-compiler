@@ -1130,15 +1130,16 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
             s_info.is_assigning_pointer = true;
         }
 
+
+        // Make the value expression
+        make_expression(value, &s_info);
+        
         int data_size;
         s_info.is_assignment_variable = true;
         pos = make_var_access(&s_info, var_iden_branch, &data_size);
         s_info.is_assignment_variable = false;
-
         is_word = data_size == 2;
-
-        // Make the value expression
-        make_expression(value, &s_info);
+        
 
         // Is this assignment an appendment
         if (op != "=")
@@ -2751,24 +2752,6 @@ std::shared_ptr<VDEFBranch> CodeGen8086::getVariable(std::shared_ptr<Branch> var
 {
     std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(var_branch);
     return var_iden_branch->getVariableDefinitionBranch();
-    /*
-    std::shared_ptr<Branch> variable_branch = NULL;
-    int var_type = getVariableType(var_branch);
-    switch (var_type)
-    {
-    case ARGUMENT_VARIABLE:
-        variable_branch = getFunctionArgumentVariable(var_branch);
-        break;
-    case SCOPE_VARIABLE:
-        variable_branch = getScopeVariable(var_branch);
-        break;
-    case GLOBAL_VARIABLE:
-        variable_branch = getGlobalVariable(var_branch);
-        break;
-    }
-
-    return std::dynamic_pointer_cast<VDEFBranch>(variable_branch);
-     */
 }
 
 std::shared_ptr<Branch> CodeGen8086::getFunctionArgumentVariable(std::shared_ptr<Branch> var_branch)
