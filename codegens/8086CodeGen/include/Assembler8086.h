@@ -111,6 +111,7 @@ enum
 {
     REG8,
     REG16,
+    CL,
     AL,
     AX,
     MEM8,
@@ -145,6 +146,8 @@ enum
     REG16_ALONE = (REG16 << OPERAND_BIT_SIZE | ALONE),
     AL_ALONE = (AL << OPERAND_BIT_SIZE | ALONE),
     AX_ALONE = (AX << OPERAND_BIT_SIZE | ALONE),
+    REG8_CL = (REG8 << OPERAND_BIT_SIZE | CL),
+    REG16_CL = (REG16 << OPERAND_BIT_SIZE | CL),
     ALONE_ALONE = (ALONE << OPERAND_BIT_SIZE | ALONE)
 };
 
@@ -290,7 +293,9 @@ enum
     CMP_MEM_WITH_IMM_W0,
     CMP_MEM_WITH_IMM_W1,
     
-    LEA_REGWORD_MEM
+    LEA_REGWORD_MEM,
+    RCR_REG_CL_W0,
+    RCR_REG_CL_W1
 };
 
 struct ins_syntax_def

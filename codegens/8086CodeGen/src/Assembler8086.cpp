@@ -78,7 +78,7 @@ unsigned char ins_map[] = {
     0x81, 0x20, 0x21, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x80,
     0x81, 0x80, 0x81, 0xc0, 0xc1, 0xc0, 0xc1, 0xc0, 0xc1, 0xc0,
     0xc1, 0xcd, 0x38, 0x39, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d,
-    0x80, 0x81, 0x80, 0x81, 0x8d
+    0x80, 0x81, 0x80, 0x81, 0x8d, 0xd2, 0xd3
 };
 
 // instruction size excluding OOMMM and OORRRMMM rules that change the size (you should still include the OOMMM and OORRRMMM byte)
@@ -94,7 +94,7 @@ unsigned char ins_sizes[] = {
     4, 2, 2, 2, 2, 2, 2, 2, 3, 3,
     4, 3, 4, 3, 4, 3, 3, 3, 3, 3,
     3, 2, 2, 2, 2, 2, 2, 2, 2, 3,
-    3, 4, 3, 4, 2
+    3, 4, 3, 4, 2, 2, 2
 };
 
 
@@ -112,7 +112,7 @@ unsigned char static_rrr[] = {
     1, 0, 0, 0, 0, 0, 0, 0, 0, 4,
     4, 4, 4, 2, 2, 2, 2, 3, 3, 3,
     3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    7, 7, 7, 7, 0
+    7, 7, 7, 7, 0, 3, 3
 };
 
 /* Describes information relating to an instruction 
@@ -237,6 +237,8 @@ INSTRUCTION_INFO ins_info[] = {
     HAS_OOMMM | HAS_IMM_USE_RIGHT, // cmp mem, imm8
     USE_W | HAS_OOMMM | HAS_IMM_USE_RIGHT, // cmp mem, imm16
     USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT, // lea reg16, mem
+    HAS_OOMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // rcr reg8, cl
+    USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // rcr reg16, cl
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -354,7 +356,9 @@ struct ins_syntax_def ins_syntax[] = {
     "cmp", CMP_REG_WITH_IMM_W1, REG16_IMM16,
     "cmp", CMP_MEM_WITH_IMM_W0, MEM16_IMM8,
     "cmp", CMP_MEM_WITH_IMM_W1, MEM16_IMM16,
-    "lea", LEA_REGWORD_MEM, REG16_MEM16
+    "lea", LEA_REGWORD_MEM, REG16_MEM16,
+    "rcr", RCR_REG_CL_W0, REG8_CL,
+    "rcr", RCR_REG_CL_W1, REG16_CL
 };
 
 /* Certain instructions have condition codes that specify a particular event.
@@ -655,19 +659,19 @@ void Assembler8086::handle_operand_exp(std::shared_ptr<OperandBranch> operand_br
     std::shared_ptr<Branch> r_exp = sum_expression(getPoppedBranch());
 
     std::shared_ptr<Branch> number_branch = get_number_branch_from_exp(r_exp);
-    std::vector<std::shared_ptr<Branch>> register_branches = get_register_branches_from_exp(r_exp);
+    std::vector<std::shared_ptr < Branch>> register_branches = get_register_branches_from_exp(r_exp);
     std::shared_ptr<Branch> identifier_branch = get_identifier_branch_from_exp(r_exp);
 
     std::shared_ptr<Branch> first_reg_branch = NULL;
     std::shared_ptr<Branch> second_reg_branch = NULL;
-    
+
     // We clone because the framework does not allow the child to have two parents.
     if (number_branch != NULL)
         number_branch = number_branch->clone();
-    
+
     if (register_branches.size() > 2)
     {
-         throw Exception("Maximum 2 registers are allowed to be present", "void Assembler8086::handle_operand_exp(std::shared_ptr<OperandBranch> operand_branch)");
+        throw Exception("Maximum 2 registers are allowed to be present", "void Assembler8086::handle_operand_exp(std::shared_ptr<OperandBranch> operand_branch)");
     }
     if (register_branches.size() > 0)
     {
@@ -1350,7 +1354,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
             left_reg_first = left->getFirstRegisterBranch();
             left_reg_first_value = left_reg_first->getValue();
         }
-        
+
         if (left->hasSecondRegisterBranch())
         {
             left_reg_second = left->getSecondRegisterBranch();
@@ -1366,7 +1370,7 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
             right_reg_first = right->getFirstRegisterBranch();
             right_reg_first_value = right_reg_first->getValue();
         }
-        
+
         if (right->hasSecondRegisterBranch())
         {
             right_reg_second = right->getSecondRegisterBranch();
@@ -1477,9 +1481,9 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
         }
         else
         {
-            if (*oo == DISPLACEMENT_IF_MMM_110 ||
+            if (*rrr == -1 && (*oo == DISPLACEMENT_IF_MMM_110 ||
                     *oo == DISPLACEMENT_8BIT_FOLLOW ||
-                    *oo == DISPLACEMENT_16BIT_FOLLOW)
+                    *oo == DISPLACEMENT_16BIT_FOLLOW))
             {
                 *rrr = get_reg(left_reg_first_value);
             }
@@ -1503,12 +1507,18 @@ void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch
             }
             else
             {
+                if (*rrr != -1)
+                {
+                    throw Exception("rrr already set, not sure what to do next...", "void Assembler8086::get_modrm_from_instruction(std::shared_ptr<InstructionBranch> ins_branch, char* oo, char* rrr, char* mmm)");
+                }
                 *rrr = get_mmm(right_reg_first_value, right_reg_second_value);
             }
         }
         else
         {
-            *rrr = get_reg(right_reg_first_value);
+            // rrr may already be set.
+            if (*rrr == -1)
+                *rrr = get_reg(right_reg_first_value);
         }
     }
 
@@ -2124,6 +2134,10 @@ OPERAND_INFO Assembler8086::get_operand_info(std::shared_ptr<OperandBranch> op_b
                 info = AL;
             }
         }
+        else if (reg_branch->getValue() == "cl")
+        {
+            info = CL;
+        }
         else
         {
             if (is_reg_16_bit(reg_branch->getValue()))
@@ -2249,9 +2263,9 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<Instruction
     ins_type = get_instruction_type_by_name_and_syntax(instruction_name, syntax_info);
     if (ins_type == -1)
     {
-        /* We couldn't find an instruction, perhaps the syntax is using AL or AX rather than REG8 and REG16 
+        /* We couldn't find an instruction, perhaps the syntax is using AL, AX or CL rather than REG8 and REG16 
          * and no appropriate instruction exists for it, lets check and if so change to REG8 or REG16 and try again*/
-        if (left_op == AL)
+        if (left_op == AL || left_op == CL)
         {
             left_op = REG8;
         }
@@ -2260,7 +2274,7 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<Instruction
             left_op = REG16;
         }
 
-        if (right_op == AL)
+        if (right_op == AL || left_op == CL)
         {
             right_op = REG8;
         }
