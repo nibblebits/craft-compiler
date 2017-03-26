@@ -70,11 +70,11 @@ std::shared_ptr<STRUCTDEFBranch> STRUCTAccessBranch::getStructDefBranch()
 void STRUCTAccessBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<STRUCTAccessBranch> s_access_branch_cloned = std::dynamic_pointer_cast<STRUCTAccessBranch>(cloned_branch);
-    // Clone all our children
-    for (std::shared_ptr<Branch> child : cloned_branch->getChildren())
-    {
-        cloned_branch->addChild(child->clone());
-    }
+    s_access_branch_cloned->setVarIdentifierBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(getVarIdentifierBranch()->clone()));
+    s_access_branch_cloned->setAccessAsPointer(isAccessingAsPointer());
+    
+    if (struct_def_branch != NULL)
+        s_access_branch_cloned->setStructDefBranch(getStructDefBranch());
 
 }
 
