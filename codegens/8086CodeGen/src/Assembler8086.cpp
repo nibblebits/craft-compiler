@@ -79,7 +79,7 @@ unsigned char ins_map[] = {
     0x81, 0x80, 0x81, 0xc0, 0xc1, 0xc0, 0xc1, 0xc0, 0xc1, 0xc0,
     0xc1, 0xcd, 0x38, 0x39, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d,
     0x80, 0x81, 0x80, 0x81, 0x8d, 0xd2, 0xd3, 0xd2, 0xd3, 0xf6,
-    0xf7
+    0xf7, 0xf6, 0xf7
 };
 
 // instruction size excluding OOMMM and OORRRMMM rules that change the size (you should still include the OOMMM and OORRRMMM byte)
@@ -96,7 +96,7 @@ unsigned char ins_sizes[] = {
     4, 3, 4, 3, 4, 3, 3, 3, 3, 3,
     3, 2, 2, 2, 2, 2, 2, 2, 2, 3,
     3, 4, 3, 4, 2, 2, 2, 2, 2, 2,
-    2
+    2, 2, 2
 };
 
 
@@ -115,7 +115,7 @@ unsigned char static_rrr[] = {
     4, 4, 4, 2, 2, 2, 2, 3, 3, 3,
     3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     7, 7, 7, 7, 0, 3, 3, 2, 2, 5,
-    5
+    5, 7, 7
 };
 
 /* Describes information relating to an instruction 
@@ -246,6 +246,8 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OOMMM | HAS_REG_USE_LEFT | HAS_REG_USE_RIGHT, // rcl reg16, cl
     HAS_OOMMM | HAS_REG_USE_LEFT, // imul reg8
     USE_W | HAS_OOMMM | HAS_REG_USE_LEFT, // imul reg16
+    HAS_OOMMM | HAS_REG_USE_LEFT, // idiv reg8
+    USE_W | HAS_OOMMM | HAS_REG_USE_LEFT, // idiv reg16
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -369,7 +371,9 @@ struct ins_syntax_def ins_syntax[] = {
     "rcl", RCL_REG_CL_W0, REG8_CL,
     "rcl", RCL_REG_CL_W1, REG16_CL,
     "imul", IMUL_WITH_REG_W0, REG8_ALONE,
-    "imul", IMUL_WITH_REG_W1, REG16_ALONE
+    "imul", IMUL_WITH_REG_W1, REG16_ALONE,
+    "idiv", IDIV_WITH_REG_W0, REG8_ALONE,
+    "idiv", IDIV_WITH_REG_W1, REG16_ALONE
 };
 
 /* Certain instructions have condition codes that specify a particular event.
@@ -426,6 +430,7 @@ Assembler8086::Assembler8086(Compiler* compiler, std::shared_ptr<VirtualObjectFo
     Assembler::addInstruction("mul");
     Assembler::addInstruction("imul");
     Assembler::addInstruction("div");
+    Assembler::addInstruction("idiv");
     Assembler::addInstruction("xor");
     Assembler::addInstruction("and");
     Assembler::addInstruction("or");

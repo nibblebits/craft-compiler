@@ -300,7 +300,10 @@ enum
     RCL_REG_CL_W1,
     
     IMUL_WITH_REG_W0,
-    IMUL_WITH_REG_W1
+    IMUL_WITH_REG_W1,
+    
+    IDIV_WITH_REG_W0,
+    IDIV_WITH_REG_W1
 };
 
 struct ins_syntax_def
