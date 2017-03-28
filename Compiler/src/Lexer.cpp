@@ -70,7 +70,43 @@ void Lexer::tokenize()
     for (it = this->input.begin(); it < this->input.end(); it++)
     {
         char c = *it;
-        if (isCharacter(c))
+        if (isComment())
+        {
+            if (isLineComment())
+            {
+                ignore_line();
+            }
+            else
+            {
+                /* This must be a multi-line comment 
+                 * lets ignore the first two bytes as they are
+                 * "/*" */
+                it += 2;
+                // Now we need to ignore until we see "*/"
+                std::string dummyValue = "";
+                bool op_found = false;
+                fillTokenWhile([&](char c) -> bool
+                {
+                    if (op_found)
+                    {
+                        if (c == '/')
+                        {
+                            // Ok we are at the end
+                            return false;
+                        }
+                    }
+                    else if (c == '*')
+                    {
+                        op_found = true;
+                    }
+                    
+                    return true;
+                }, &dummyValue);
+                // Ok finally lets ignore the last "*/"
+                it += 2;
+            }
+        }
+        else if (isCharacter(c))
         {
             fillTokenWhile([](char c) -> bool
             {
@@ -116,17 +152,18 @@ void Lexer::tokenize()
                 // Ok there is formatting so this is a hex or binary number
                 fillTokenWhile([](char c) -> bool
                 {
-                    return isNumber(c) 
+                    return isNumber(c)
                             || isCharacter(c);
                 });
 
                 try
                 {
-                // Ok we now have the formatted string so lets convert it to a decimal value as a string and assign it as the token value
-                tokenValue = std::to_string(getCompiler()->getNumberFromString(tokenValue, c2));
-                } catch(Exception &ex)
+                    // Ok we now have the formatted string so lets convert it to a decimal value as a string and assign it as the token value
+                    tokenValue = std::to_string(getCompiler()->getNumberFromString(tokenValue, c2));
+                }
+                catch (Exception &ex)
                 {
-                     throw LexerException(position, "a problem occurred while formatting your number: " + ex.getMessage());
+                    throw LexerException(position, "a problem occurred while formatting your number: " + ex.getMessage());
                 }
 
             }
@@ -188,20 +225,25 @@ void Lexer::tokenize()
 
 std::vector<std::shared_ptr<Token>> Lexer::getTokens()
 {
-
     return this->tokens;
 }
 
-void Lexer::fillTokenWhile(std::function<bool(char c) > callback)
+void Lexer::fillTokenWhile(std::function<bool(char c) > callback, std::string* custom_tokenValue)
 {
+    if (custom_tokenValue == NULL)
+    {
+        // No custom token value was provided so lets default to the default token value
+        custom_tokenValue = &this->tokenValue;
+    }
+
     char c;
-    tokenValue = "";
+    *custom_tokenValue = "";
     do
     {
         c = *it;
         if (callback(c))
         {
-            tokenValue += c;
+            *custom_tokenValue += c;
             position.col_pos++;
             it++;
         }
@@ -213,6 +255,44 @@ void Lexer::fillTokenWhile(std::function<bool(char c) > callback)
     }
 
     while (true);
+}
+
+void Lexer::ignore_line()
+{
+    std::string dummy_value;
+    // Ignore all characters until a new line is found.
+    fillTokenWhile([](char c) -> bool
+    {
+        return c != 10;
+    }, &dummy_value);
+
+    // We don't really want a new line terminator left for us so lets ignore it too
+    it++;
+}
+
+bool Lexer::isComment()
+{
+    return isLineComment() || isMultiLineComment();
+}
+
+bool Lexer::isLineComment()
+{
+    std::string::iterator it_b = it;
+    if (*it_b == '/' && *(it_b + 1) == '/')
+    {
+        return true;
+    }
+    return false;
+}
+
+bool Lexer::isMultiLineComment()
+{
+    std::string::iterator it_b = it;
+    if (*it_b == '/' && *(it_b + 1) == '*')
+    {
+        return true;
+    }
+    return false;
 }
 
 bool Lexer::isOperator(char op)
@@ -256,7 +336,6 @@ bool Lexer::isNumber(char op)
 
 bool Lexer::isWhitespace(char op)
 {
-
     return (op < 33);
 }
 
