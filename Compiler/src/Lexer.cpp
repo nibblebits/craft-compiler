@@ -66,7 +66,6 @@ void Lexer::tokenize()
     position.line_no = 1;
     position.col_pos = 1;
 
-
     for (it = this->input.begin(); it < this->input.end(); it++)
     {
         char c = *it;
@@ -99,7 +98,7 @@ void Lexer::tokenize()
                     {
                         op_found = true;
                     }
-                    
+
                     return true;
                 }, &dummyValue);
                 // Ok finally lets ignore the last "*/"
@@ -240,7 +239,7 @@ void Lexer::fillTokenWhile(std::function<bool(char c) > callback, std::string* c
     *custom_tokenValue = "";
     do
     {
-        c = *it;
+        c = PeekNextChar(&it);
         if (callback(c))
         {
             *custom_tokenValue += c;
@@ -257,6 +256,32 @@ void Lexer::fillTokenWhile(std::function<bool(char c) > callback, std::string* c
     while (true);
 }
 
+char Lexer::PeekNextChar(std::string::iterator* custom_iterator)
+{
+    if (*custom_iterator < this->input.end())
+    {
+        char v = **custom_iterator;
+        return v;
+    }
+
+    throw Exception("No more input ensure comments are closed (if_any).", "char Lexer::PeekNextChar(std::string::iterator* custom_iterator)");
+}
+
+/**
+ * Attempts to read a character from the custom_iterator
+ * then increments the custom_iterator
+ * 
+ * @param custom_iterator
+ * @throws Throws an exception if out of bounds
+ * @return the next character for the custom_iterator
+ */
+char Lexer::ReadNextChar(std::string::iterator* custom_iterator)
+{
+    char c = PeekNextChar(custom_iterator);
+    *custom_iterator++;
+    return c;
+}
+
 void Lexer::ignore_line()
 {
     std::string dummy_value;
@@ -267,7 +292,7 @@ void Lexer::ignore_line()
     }, &dummy_value);
 
     // We don't really want a new line terminator left for us so lets ignore it too
-    it++;
+    ReadNextChar(&it);
 }
 
 bool Lexer::isComment()

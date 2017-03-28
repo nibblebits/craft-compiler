@@ -51,13 +51,19 @@ private:
     std::string tokenValue;
     CharPos position;
     std::string::iterator it;
+
+    void fillTokenWhile(std::function<bool(char c) > callback, std::string* custom_tokenValue = NULL);
+
+    char PeekNextChar(std::string::iterator* custom_iterator);
+    // Reads the next character from the input string but also checks bounds against the iterator
+    char ReadNextChar(std::string::iterator* custom_iterator);
+
     void ignore_line();
-    void fillTokenWhile(std::function<bool(char c)> callback, std::string* custom_tokenValue=NULL);
 
     bool isComment();
     bool isLineComment();
     bool isMultiLineComment();
-    
+
     static bool isOperator(char op);
     static bool isSymbol(char op);
     static bool isCharacter(char op);
