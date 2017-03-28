@@ -502,7 +502,22 @@ std::shared_ptr<Branch> Assembler8086::parse()
 
 void Assembler8086::exp_handler()
 {
-    shift();
+    peek();
+    if (is_peek_operator("-"))
+    {
+        // This is a negative number, pop off the negative operator
+        shift_pop();
+        // Shift and pop the number
+        shift_pop();
+        std::shared_ptr<Branch> branch = Assembler::getPoppedBranch();
+        // Make it negative
+        branch->setValue("-" + branch->getValue());
+        push_branch(branch);
+    }
+    else
+    {
+        shift();
+    }
 }
 
 void Assembler8086::left_exp_handler()
