@@ -1303,8 +1303,7 @@ void CodeGen8086::handle_function(std::shared_ptr<FuncBranch> func_branch)
     std::shared_ptr<BODYBranch> body_branch = func_branch->getBodyBranch();
 
     // Make the function global.
-    // Commented for now as assembly simulator does not support it
-    do_asm(";global " + name_branch->getValue());
+    do_asm("global _" + name_branch->getValue());
 
     // Make the function label
     make_label(name_branch->getValue());

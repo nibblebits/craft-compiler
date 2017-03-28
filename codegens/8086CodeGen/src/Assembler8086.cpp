@@ -1156,6 +1156,8 @@ void Assembler8086::pass_1_segment(std::shared_ptr<SegmentBranch> segment_branch
     this->cur_offset = 0;
     // Register the segment
     register_segment(segment_branch);
+    // Switch to the new segment we created
+    switch_to_segment(segment_branch->getSegmentNameBranch()->getValue());
     // Now we need to pass through the children
     for (std::shared_ptr<Branch> child : segment_branch->getContentsBranch()->getChildren())
     {
@@ -1190,7 +1192,8 @@ void Assembler8086::pass_1_part(std::shared_ptr<Branch> branch)
     }
     else if (branch->getType() == "GLOBAL")
     {
-
+        std::shared_ptr<GlobalBranch> global_branch = std::dynamic_pointer_cast<GlobalBranch>(branch);
+        getObjectFormat()->registerGlobalReference(this->segment, global_branch->getLabelNameBranch()->getValue(), this->cur_offset);
     }
     else if (branch->getType() == "EXTERN")
     {
