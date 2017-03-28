@@ -694,7 +694,7 @@ void Parser::process_data_type()
  */
 void Parser::process_variable_declaration()
 {
-    
+
     peek();
     if (is_peek_keyword("struct"))
     {
@@ -702,8 +702,8 @@ void Parser::process_variable_declaration()
         process_structure_declaration();
         return;
     }
-    
-    
+
+
     std::shared_ptr<Branch> identifier_branch = NULL;
     std::shared_ptr<Branch> var_value_branch = NULL;
 
@@ -876,7 +876,7 @@ void Parser::process_structure_access()
     {
         error_expecting(". or ->", this->peek_token_value);
     }
-    
+
     if (is_peek_operator("->"))
     {
         as_pointer = true;
@@ -892,7 +892,7 @@ void Parser::process_structure_access()
     struct_access_root = std::shared_ptr<STRUCTAccessBranch>(new STRUCTAccessBranch(compiler));
     struct_access_root->setVarIdentifierBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->branch));
     struct_access_root->setAccessAsPointer(as_pointer);
-    
+
     push_branch(struct_access_root);
 }
 
@@ -1377,7 +1377,7 @@ void Parser::process_structure_declaration()
     // Process the data type
     process_data_type();
     pop_branch();
-    
+
     std::shared_ptr<DataTypeBranch> data_type_branch = std::dynamic_pointer_cast<DataTypeBranch>(this->branch);
     std::shared_ptr<STRUCTDEFBranch> struct_declaration = std::shared_ptr<STRUCTDEFBranch>(new STRUCTDEFBranch(compiler));
 
@@ -1396,20 +1396,13 @@ void Parser::process_structure_declaration()
         // Ok their is an equal sign so we must be assigning this declaration
         // Shift and pop the equal sign we no longer need it
         shift_pop();
+        
+        // Process the expression we are setting this variable too
+        process_expression();
+        // Pop the expression from the stack
+        pop_branch();
+        var_value_branch = this->branch;
 
-        // peek further to check if we have an identifier
-        peek();
-        if (is_peek_type("identifier"))
-        {
-            // Shift and pop the identifier from the stack
-            shift_pop();
-            var_value_branch = this->branch;
-        }
-        else
-        {
-
-            error_expecting("identifier", this->peek_token_value);
-        }
     }
 
     struct_declaration->setDataTypeBranch(data_type_branch);
