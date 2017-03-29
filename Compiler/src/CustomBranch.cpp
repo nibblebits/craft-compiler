@@ -68,7 +68,9 @@ bool CustomBranch::isBranchRegistered(std::string name)
 
 void CustomBranch::output_registered_branches()
 {
+#ifdef DEBUG_MODE
     debug_output_branch(this->getptr());
+#endif
     for (map_it iterator = this->registered_branches.begin();
             iterator != this->registered_branches.end(); iterator++)
     {
