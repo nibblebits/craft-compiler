@@ -31,6 +31,18 @@
 #include "SemanticValidatorException.h"
 #include "Logger.h"
 
+struct semantic_value_information
+{
+    std::string requirement_type;
+    bool requires_pointer; 
+    int pointer_depth;
+};
+
+struct semantic_information
+{
+    struct semantic_value_information sv_info;
+};
+
 class Tree;
 class Branch;
 class RootBranch;
@@ -68,8 +80,8 @@ private:
     void validate_function_call(std::shared_ptr<FuncCallBranch> func_call_branch);
     void validate_structure_definition(std::shared_ptr<STRUCTDEFBranch> struct_def_branch);
     void validate_structure(std::shared_ptr<STRUCTBranch> structure_branch);
-    void validate_expression(std::shared_ptr<EBranch> e_branch, std::string requirement_type, bool requires_pointer, int pointer_depth);
-    void validate_value(std::shared_ptr<Branch> branch, std::string requirement_type, bool requires_pointer, int pointer_depth);
+    void validate_expression(std::shared_ptr<EBranch> e_branch, struct semantic_information* s_info);
+    void validate_value(std::shared_ptr<Branch> branch, struct semantic_information* s_info);
     void register_function(std::shared_ptr<FuncDefBranch> func_branch);
     bool hasFunction(std::string function_name);
     std::shared_ptr<FuncDefBranch> getFunction(std::string function_name);

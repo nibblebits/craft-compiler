@@ -149,7 +149,12 @@ void SemanticValidator::validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch)
     // Lets validate the value if one exists
     if (vdef_branch->hasValueExpBranch())
     {
-        validate_value(vdef_branch->getValueExpBranch(), vdef_branch->getDataTypeBranch()->getDataType(), vdef_branch->isPointer(), vdef_branch->getPointerDepth());
+        struct semantic_information s_info;
+        s_info.sv_info.requirement_type = vdef_branch->getDataTypeBranch()->getDataType();
+        s_info.sv_info.requires_pointer = vdef_branch->isPointer();
+        s_info.sv_info.pointer_depth = vdef_branch->getPointerDepth();
+
+        validate_value(vdef_branch->getValueExpBranch(), &s_info);
     }
 }
 
@@ -265,7 +270,11 @@ void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign
     std::string data_type = vdef_branch->getDataTypeBranch()->getDataType();
 
     // Validate that the value is legal
-    validate_value(assign_branch->getValueBranch(), data_type, vdef_branch->isPointer(), vdef_branch->getPointerDepth());
+    struct semantic_information s_info;
+    s_info.sv_info.requirement_type = data_type;
+    s_info.sv_info.requires_pointer = vdef_branch->isPointer();
+    s_info.sv_info.pointer_depth = vdef_branch->getPointerDepth();
+    validate_value(assign_branch->getValueBranch(), &s_info);
 }
 
 void SemanticValidator::validate_function_call(std::shared_ptr<FuncCallBranch> func_call_branch)
@@ -294,12 +303,12 @@ void SemanticValidator::validate_function_call(std::shared_ptr<FuncCallBranch> f
         for (int i = 0; i < func_call_total_params; i++)
         {
             std::shared_ptr<VDEFBranch> func_argument_vdef_branch = std::dynamic_pointer_cast<VDEFBranch>(func_arguments_children[i]);
-            validate_value(
-                           func_call_params_children[i],
-                           func_argument_vdef_branch->getDataTypeBranch()->getDataType(),
-                           func_argument_vdef_branch->isPointer(),
-                           func_argument_vdef_branch->getPointerDepth()
-                           );
+
+            struct semantic_information s_info;
+            s_info.sv_info.requirement_type = func_argument_vdef_branch->getDataTypeBranch()->getDataType();
+            s_info.sv_info.requires_pointer = func_argument_vdef_branch->isPointer();
+            s_info.sv_info.pointer_depth = func_argument_vdef_branch->getPointerDepth();
+            validate_value(func_call_params_children[i], &s_info);
         }
     }
 }
@@ -341,49 +350,50 @@ void SemanticValidator::validate_structure(std::shared_ptr<STRUCTBranch> structu
     validate_body(structure_branch->getStructBodyBranch());
 }
 
-void SemanticValidator::validate_expression(std::shared_ptr<EBranch> e_branch, std::string requirement_type, bool requires_pointer, int pointer_depth)
+void SemanticValidator::validate_expression(std::shared_ptr<EBranch> e_branch, struct semantic_information* s_info)
 {
     std::shared_ptr<Branch> left = e_branch->getFirstChild();
     std::shared_ptr<Branch> right = e_branch->getSecondChild();
     if (left->getType() == "E")
     {
-        validate_expression(std::dynamic_pointer_cast<EBranch>(left), requirement_type, requires_pointer, pointer_depth);
+        validate_expression(std::dynamic_pointer_cast<EBranch>(left), s_info);
     }
     else
     {
-        validate_value(left, requirement_type, requires_pointer, pointer_depth);
+        validate_value(left, s_info);
     }
 
     if (right->getType() == "E")
     {
-        validate_expression(std::dynamic_pointer_cast<EBranch>(right), requirement_type, requires_pointer, pointer_depth);
+        validate_expression(std::dynamic_pointer_cast<EBranch>(right), s_info);
     }
     else
     {
-        validate_value(right, requirement_type, requires_pointer, pointer_depth);
+        validate_value(right, s_info);
     }
 }
 
-void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, std::string requirement_type, bool requires_pointer, int pointer_depth)
+void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct semantic_information* s_info)
 {
     std::string branch_type = branch->getType();
     if (branch_type == "E")
     {
-        validate_expression(std::dynamic_pointer_cast<EBranch>(branch), requirement_type, requires_pointer, pointer_depth);
+        validate_expression(std::dynamic_pointer_cast<EBranch>(branch), s_info);
     }
     else if (branch_type == "number")
     {
-        if (getCompiler()->isPrimitiveDataType(requirement_type))
+        // If we are primitive or we require a pointer then a number is valid input, numbers pass for pointers they are legal input.
+        if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) || s_info->sv_info.requires_pointer)
         {
             long number = std::stoi(branch->getValue());
-            if (!getCompiler()->canFit(requirement_type, getCompiler()->getTypeFromNumber(number)))
+            if (!getCompiler()->canFit(s_info->sv_info.requirement_type, getCompiler()->getTypeFromNumber(number)))
             {
-                this->logger->warn("Decimal number: \"" + std::to_string(number) + "\" cannot fit into type \"" + requirement_type + "\" and will be capped", branch);
+                this->logger->warn("Decimal number: \"" + std::to_string(number) + "\" cannot fit into type \"" + s_info->sv_info.requirement_type + "\" and will be capped", branch);
             }
         }
         else
         {
-            this->logger->error("The type: \"" + requirement_type + "\" is not a primitive type so cannot have a value of a number", branch);
+            this->logger->error("The type: \"" + s_info->sv_info.requirement_type + "\" is not a primitive type so cannot have a value of a number", branch);
         }
     }
     else if (branch_type == "VAR_IDENTIFIER")
@@ -397,44 +407,48 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, std::stri
             std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
             std::string vdef_type = vdef_branch->getDataTypeBranch()->getDataType();
 
-            if (vdef_branch->isPointer() && requires_pointer
-                    && vdef_branch->getPointerDepth() != pointer_depth)
+            if (vdef_branch->isPointer() && s_info->sv_info.requires_pointer
+                    && vdef_branch->getPointerDepth() != s_info->sv_info.pointer_depth)
             {
                 this->logger->error("The variable: \"" + var_iden_name + "\" must have a pointer depth of "
-                                    + std::to_string(pointer_depth) + " but its pointer depth is: " + std::to_string(vdef_branch->getPointerDepth()));
+                                    + std::to_string(s_info->sv_info.pointer_depth) + " but its pointer depth is: " + std::to_string(vdef_branch->getPointerDepth()));
             }
             if (!vdef_branch->isPointer()
-                    && requires_pointer)
+                    && s_info->sv_info.requires_pointer)
             {
                 this->logger->warn("The variable: \"" + var_iden_name + "\" is not a pointer but a pointer was expected", branch);
             }
             else if (vdef_branch->isPointer()
-                    && !requires_pointer)
+                    && !s_info->sv_info.requires_pointer)
             {
                 this->logger->warn("The variable: \"" + var_iden_name + "\" is a pointer but a non pointer type is expected");
             }
+            else if(!vdef_branch->isPrimitive() && !vdef_branch->getDataTypeBranch()->isPointer())
+            {
+                this->logger->error("Non-primitive types that are not pointers cannot be referenced directly, variable in question: \"" + var_iden_name + "\"", branch);
+            }
 
-            if (getCompiler()->isPrimitiveDataType(requirement_type))
+            if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type))
             {
                 if (!getCompiler()->isPrimitiveDataType(vdef_type))
                 {
-                    this->logger->error("Expecting a primitive type of type \"" + requirement_type
+                    this->logger->error("Expecting a primitive type of type \"" + s_info->sv_info.requirement_type
                                         + "\" but a non primitive type of type \"" + vdef_type + "\" was provided", branch);
                 }
             }
             else
             {
-                if (!getCompiler()->isPrimitiveDataType(vdef_type))
+                if (getCompiler()->isPrimitiveDataType(vdef_type))
                 {
-                    this->logger->error("Expecting a non-primitive type of type \"" + requirement_type
+                    this->logger->error("Expecting a non-primitive type of type \"" + s_info->sv_info.requirement_type
                                         + "\" but a primitive type of type \"" + vdef_type + "\" was provided", branch);
                 }
                 else
                 {
                     // We are checking to see if both structure types match
-                    if (requirement_type != vdef_type)
+                    if (s_info->sv_info.requirement_type != vdef_type)
                     {
-                        this->logger->error("Expecting a primitive type whose name is \"" + requirement_type + "\" but type \"" + vdef_type + "\" was provided", branch);
+                        this->logger->error("Expecting a primitive type whose name is \"" + s_info->sv_info.requirement_type + "\" but type \"" + vdef_type + "\" was provided", branch);
                     }
                 }
             }
@@ -447,34 +461,46 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, std::stri
         std::shared_ptr<FuncDefBranch> func_def_branch = func_call_branch->getFunctionDefinitionBranch();
         std::shared_ptr<DataTypeBranch> func_def_return_type_branch = func_def_branch->getReturnDataTypeBranch();
         std::string return_data_type = func_def_return_type_branch->getDataType();
+        std::string formatted_return_data_type = func_def_return_type_branch->getDataTypeFormatted();
+        
         // Validate the return type is allowed
-        if (return_data_type == "void")
+        if (return_data_type == "void"
+                && (!func_def_return_type_branch->isPointer() || !s_info->sv_info.requires_pointer
+                || s_info->sv_info.pointer_depth != func_def_return_type_branch->getPointerDepth())
+                )
         {
-            this->logger->error("Function: \"" + function_name + "\" returns type void this is illegal for expressions", func_call_branch);
+            if (func_def_return_type_branch->isPointer())
+            {
+                this->logger->error("Function: \"" + function_name + "\" returns type \"" + formatted_return_data_type + "\" but the function caller is expecting a pointer depth of: " + std::to_string(s_info->sv_info.pointer_depth), func_call_branch);
+            }
+            else
+            {
+                this->logger->error("Function: \"" + function_name + "\" returns type void this is illegal for expressions", func_call_branch);
+            }
         }
-        else if (requires_pointer && (!func_def_return_type_branch->isPointer() || return_data_type != requirement_type))
+        else if (s_info->sv_info.requires_pointer && (!func_def_return_type_branch->isPointer() || (return_data_type != s_info->sv_info.requirement_type && return_data_type != "void")))
         {
-            this->logger->error("Function: \"" + function_name + "\" does not return a pointer of type \"" + requirement_type + "\"", func_call_branch);
+            this->logger->error("Function: \"" + function_name + "\" does not return a pointer of type \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
         }
-        else if (!requires_pointer && func_def_return_type_branch->isPointer())
+        else if (!s_info->sv_info.requires_pointer && func_def_return_type_branch->isPointer())
         {
-            this->logger->error("Function \"" + function_name + "\" returns a pointer of type \"" + requirement_type + "\" but we are expecting a non pointer type of \"" + requirement_type + "\"", func_call_branch);
+            this->logger->error("Function \"" + function_name + "\" returns a pointer of type \"" + s_info->sv_info.requirement_type + "\" but we are expecting a non pointer type of \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
         }
-        else if (requires_pointer && func_def_return_type_branch->isPointer() && pointer_depth != func_def_return_type_branch->getPointerDepth())
+        else if (s_info->sv_info.requires_pointer && func_def_return_type_branch->isPointer() && s_info->sv_info.pointer_depth != func_def_return_type_branch->getPointerDepth())
         {
-            this->logger->error("Function \"" + function_name + "\" returns a pointer of type \"" + requirement_type + "\" with a pointer depth of " + std::to_string(func_def_return_type_branch->getPointerDepth()) + " but we are expecting a pointer depth of " + std::to_string(pointer_depth), func_call_branch);
+            this->logger->error("Function \"" + function_name + "\" returns a pointer of type \"" + s_info->sv_info.requirement_type + "\" with a pointer depth of " + std::to_string(func_def_return_type_branch->getPointerDepth()) + " but we are expecting a pointer depth of " + std::to_string(s_info->sv_info.pointer_depth), func_call_branch);
         }
-        else if (getCompiler()->isPrimitiveDataType(requirement_type) && !getCompiler()->isPrimitiveDataType(return_data_type))
+        else if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) && !getCompiler()->isPrimitiveDataType(return_data_type))
         {
-            this->logger->error("Function \"" + function_name + "\" is returning a non-primitive type of type: \"" + return_data_type + "\". Expecting a primitive type of type \"" + requirement_type + "\"", func_call_branch);
+            this->logger->error("Function \"" + function_name + "\" is returning a non-primitive type of type: \"" + return_data_type + "\". Expecting a primitive type of type \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
         }
-        else if (!getCompiler()->isPrimitiveDataType(requirement_type) && getCompiler()->isPrimitiveDataType(return_data_type))
+        else if (!getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) && getCompiler()->isPrimitiveDataType(return_data_type))
         {
-            this->logger->error("Function \"" + function_name + "\" is returning a primitive type of type: \"" + return_data_type + "\". Expecting a non-primitive type of type \"" + requirement_type + "\"", func_call_branch);
+            this->logger->error("Function \"" + function_name + "\" is returning a primitive type of type: \"" + return_data_type + "\". Expecting a non-primitive type of type \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
         }
-        else if (getCompiler()->isPrimitiveDataType(requirement_type) && !getCompiler()->canFit(requirement_type, return_data_type))
+        else if (return_data_type != "void" && getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) && !getCompiler()->canFit(s_info->sv_info.requirement_type, return_data_type))
         {
-            this->logger->warn("Function: \"" + function_name + "\" returns type \"" + return_data_type + "\" but this primitive type cannot fit directly into \"" + requirement_type + "\" data will be lost", func_call_branch);
+            this->logger->warn("Function: \"" + function_name + "\" returns type \"" + return_data_type + "\" but this primitive type cannot fit directly into \"" + s_info->sv_info.requirement_type + "\" data will be lost", func_call_branch);
         }
 
 
