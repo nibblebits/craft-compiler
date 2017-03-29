@@ -47,6 +47,27 @@ std::string DataTypeBranch::getDataType()
     return this->data_type;
 }
 
+/**
+ * Returns a formatted version of the data type.
+ * 
+ * For example: The data type branch has a type of "uint8" and has a pointer depth of 2.
+ * This method would return "uint8**"
+ * 
+ * @return A formatted data type
+ */
+std::string DataTypeBranch::getDataTypeFormatted()
+{
+    std::string formatted_str = getDataType();
+
+    for (int i = 0; i < getPointerDepth(); i++)
+    {
+        formatted_str += "*";
+    }
+
+
+    return formatted_str;
+}
+
 void DataTypeBranch::setPointer(bool is_pointer, int depth)
 {
     this->is_pointer = is_pointer;

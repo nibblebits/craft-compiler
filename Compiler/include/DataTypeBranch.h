@@ -35,7 +35,7 @@ public:
 
     void setDataType(std::string keyword);
     std::string getDataType();
-
+    std::string getDataTypeFormatted();
     void setPointer(bool is_pointer, int depth = 0);
     void setCustomDataTypeSize(int size);
     bool hasCustomDataTypeSize();
