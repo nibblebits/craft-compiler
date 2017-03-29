@@ -53,7 +53,8 @@ private:
     std::string::iterator it;
 
     void fillTokenWhile(std::function<bool(char c) > callback, std::string* custom_tokenValue = NULL);
-
+    char HandleEscapeSequence(char c);
+    
     char PeekNextChar(std::string::iterator* custom_iterator);
     // Reads the next character from the input string but also checks bounds against the iterator
     char ReadNextChar(std::string::iterator* custom_iterator);

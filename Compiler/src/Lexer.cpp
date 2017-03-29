@@ -110,6 +110,7 @@ void Lexer::tokenize()
             fillTokenWhile([](char c) -> bool
             {
                 return isCharacter(c) || isNumber(c);
+                
             });
 
             if (isKeyword(tokenValue))
@@ -189,9 +190,15 @@ void Lexer::tokenize()
             do
             {
                 it++;
-                c = *it;
+                c = ReadNextChar(&it);
                 if (c != '"')
                 {
+                    if (c == '\\')
+                    {
+                        it++;
+                        c = ReadNextChar(&it);
+                        c = HandleEscapeSequence(c);
+                    }
                     tokenValue += c;
                     position.col_pos++;
                 }
@@ -227,6 +234,38 @@ std::vector<std::shared_ptr<Token>> Lexer::getTokens()
     return this->tokens;
 }
 
+char Lexer::HandleEscapeSequence(char c)
+{ 
+    switch(c)
+    {
+    case 'n':
+        c = '\n';
+        break;
+    case 't':
+        c = '\t';
+        break;
+        break;
+    case 'f':
+        c = '\f';
+        break;
+    case 'b':
+        c = '\b';
+        break;
+    case 'r':
+        c = '\r';
+        break;
+    case '"':
+        c  = '"';
+        break;
+    case '\\':
+        c = '\\';    
+        break;
+    default:
+        throw Exception("Invalid escape sequence character \"" + std::to_string(c) + "\"");
+    }
+    
+    return c;
+}
 void Lexer::fillTokenWhile(std::function<bool(char c) > callback, std::string* custom_tokenValue)
 {
     if (custom_tokenValue == NULL)
