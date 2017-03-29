@@ -71,6 +71,7 @@ public:
 private:
     void validate_top(std::shared_ptr<RootBranch> root_branch);
     void validate_part(std::shared_ptr<Branch> branch);
+    void validate_function_definition(std::shared_ptr<FuncDefBranch> func_def_branch);
     void validate_function(std::shared_ptr<FuncBranch> func_branch);
     void validate_body(std::shared_ptr<BODYBranch> body_branch);
     void validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch);
@@ -84,6 +85,7 @@ private:
     void validate_value(std::shared_ptr<Branch> branch, struct semantic_information* s_info);
     void register_function(std::shared_ptr<FuncDefBranch> func_branch);
     bool hasFunction(std::string function_name);
+    bool hasFunctionDeclaration(std::string function_name);
     std::shared_ptr<FuncDefBranch> getFunction(std::string function_name);
 
     bool ensure_function_exists(std::string func_name, std::shared_ptr<Branch> stmt_branch);

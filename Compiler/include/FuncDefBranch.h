@@ -43,6 +43,8 @@ public:
     std::shared_ptr<DataTypeBranch> getReturnDataTypeBranch();
     std::shared_ptr<Branch> getNameBranch();
     std::shared_ptr<FuncArgumentsBranch> getArgumentsBranch();
+    
+    virtual bool isOnlyDefinition();
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();

@@ -291,7 +291,6 @@ void Lexer::fillTokenWhile(std::function<bool(char c) > callback, std::string* c
             break;
         }
     }
-
     while (true);
 }
 

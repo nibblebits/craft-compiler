@@ -40,19 +40,24 @@ void FuncBranch::setBodyBranch(std::shared_ptr<BODYBranch> bodyBranch)
     this->registerBranch("func_body_branch", bodyBranch);
 }
 
-
 std::shared_ptr<BODYBranch> FuncBranch::getBodyBranch()
 {
     return std::dynamic_pointer_cast<BODYBranch>(this->getRegisteredBranchByName("func_body_branch"));
 }
 
+bool FuncBranch::isOnlyDefinition()
+{
+    return false;
+}
+
 void FuncBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     FuncDefBranch::imp_clone(cloned_branch);
-    
+
     std::shared_ptr<FuncBranch> func_branch_cloned = std::dynamic_pointer_cast<FuncBranch>(cloned_branch);
     func_branch_cloned->setBodyBranch(std::dynamic_pointer_cast<BODYBranch>(getBodyBranch()->clone()));
 }
+
 std::shared_ptr<Branch> FuncBranch::create_clone()
 {
     return std::shared_ptr<Branch>(new FuncBranch(getCompiler()));

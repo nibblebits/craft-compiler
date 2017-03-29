@@ -71,6 +71,11 @@ std::shared_ptr<FuncArgumentsBranch> FuncDefBranch::getArgumentsBranch()
     return std::dynamic_pointer_cast<FuncArgumentsBranch>(this->getRegisteredBranchByName("func_arguments_branch"));
 }
 
+bool FuncDefBranch::isOnlyDefinition()
+{
+    return true;
+}
+
 void FuncDefBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<FuncDefBranch> func_branch_cloned = std::dynamic_pointer_cast<FuncDefBranch>(cloned_branch);

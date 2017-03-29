@@ -63,6 +63,10 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
     {
         validate_function(std::dynamic_pointer_cast<FuncBranch>(branch));
     }
+    else if (type == "FUNC_DEF")
+    {
+        validate_function_definition(std::dynamic_pointer_cast<FuncDefBranch>(branch));
+    }
     else if (type == "BODY")
     {
         validate_body(std::dynamic_pointer_cast<BODYBranch>(branch));
@@ -97,17 +101,23 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
     }
 }
 
-void SemanticValidator::validate_function(std::shared_ptr<FuncBranch> func_branch)
+void SemanticValidator::validate_function_definition(std::shared_ptr<FuncDefBranch> func_def_branch)
 {
     // Register the function error logged if function is already registered
-    register_function(func_branch);
+    register_function(func_def_branch);
 
     // Validate the function arguments
-    for (std::shared_ptr<Branch> func_arg_child : func_branch->getArgumentsBranch()->getChildren())
+    for (std::shared_ptr<Branch> func_arg_child : func_def_branch->getArgumentsBranch()->getChildren())
     {
         validate_part(func_arg_child);
     }
 
+}
+
+void SemanticValidator::validate_function(std::shared_ptr<FuncBranch> func_branch)
+{
+    // Validate the definition of this function
+    validate_function_definition(func_branch);
 
     // Validate the function body
     validate_part(func_branch->getBodyBranch());
@@ -281,7 +291,8 @@ void SemanticValidator::validate_function_call(std::shared_ptr<FuncCallBranch> f
 {
     std::string func_name = func_call_branch->getFuncNameBranch()->getValue();
     // Validate the function exists
-    ensure_function_exists(func_name, func_call_branch);
+    if (!ensure_function_exists(func_name, func_call_branch))
+        return;
 
     // Validate that all function call parameters are compatible with the given function
     std::shared_ptr<FuncDefBranch> func_branch = getFunction(func_name);
@@ -382,18 +393,22 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
     }
     else if (branch_type == "number")
     {
-        // If we are primitive or we require a pointer then a number is valid input, numbers pass for pointers they are legal input.
-        if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) || s_info->sv_info.requires_pointer)
+        // Numbers pass as pointers
+        if (!s_info->sv_info.requires_pointer)
         {
-            long number = std::stoi(branch->getValue());
-            if (!getCompiler()->canFit(s_info->sv_info.requirement_type, getCompiler()->getTypeFromNumber(number)))
+            // If we are primitive or we require a pointer then a number is valid input
+            if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type))
             {
-                this->logger->warn("Decimal number: \"" + std::to_string(number) + "\" cannot fit into type \"" + s_info->sv_info.requirement_type + "\" and will be capped", branch);
+                long number = std::stoi(branch->getValue());
+                if (!getCompiler()->canFit(s_info->sv_info.requirement_type, getCompiler()->getTypeFromNumber(number)))
+                {
+                    this->logger->warn("Decimal number: \"" + std::to_string(number) + "\" cannot fit into type \"" + s_info->sv_info.requirement_type + "\" and will be capped", branch);
+                }
             }
-        }
-        else
-        {
-            this->logger->error("The type: \"" + s_info->sv_info.requirement_type + "\" is not a primitive type so cannot have a value of a number", branch);
+            else
+            {
+                this->logger->error("The type: \"" + s_info->sv_info.requirement_type + "\" is not a primitive type so cannot have a value of a number", branch);
+            }
         }
     }
     else if (branch_type == "VAR_IDENTIFIER")
@@ -423,7 +438,7 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
             {
                 this->logger->warn("The variable: \"" + var_iden_name + "\" is a pointer but a non pointer type is expected");
             }
-            else if(!vdef_branch->isPrimitive() && !vdef_branch->getDataTypeBranch()->isPointer())
+            else if (!vdef_branch->isPrimitive() && !vdef_branch->getDataTypeBranch()->isPointer())
             {
                 this->logger->error("Non-primitive types that are not pointers cannot be referenced directly, variable in question: \"" + var_iden_name + "\"", branch);
             }
@@ -462,7 +477,7 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
         std::shared_ptr<DataTypeBranch> func_def_return_type_branch = func_def_branch->getReturnDataTypeBranch();
         std::string return_data_type = func_def_return_type_branch->getDataType();
         std::string formatted_return_data_type = func_def_return_type_branch->getDataTypeFormatted();
-        
+
         // Validate the return type is allowed
         if (return_data_type == "void"
                 && (!func_def_return_type_branch->isPointer() || !s_info->sv_info.requires_pointer
@@ -514,18 +529,36 @@ void SemanticValidator::register_function(std::shared_ptr<FuncDefBranch> func_de
 {
     // Validate the function
     std::string func_name = func_def_branch->getNameBranch()->getValue();
-    if (hasFunction(func_name))
+    if (hasFunctionDeclaration(func_name))
     {
-        critical_error("The function: \"" + func_name + "\" has already been declared but you are attempting to redeclare it", func_def_branch);
+        if (!func_def_branch->isOnlyDefinition())
+        {
+            critical_error("The function: \"" + func_name + "\" has already been declared but you are attempting to redeclare it", func_def_branch);
+        }
     }
-
-    // Register it
-    this->functions[func_name] = func_def_branch;
+    else
+    {
+        // Register it
+        this->functions[func_name] = func_def_branch;
+    }
 }
 
 bool SemanticValidator::hasFunction(std::string function_name)
 {
     return this->functions.find(function_name) != this->functions.end();
+}
+
+bool SemanticValidator::hasFunctionDeclaration(std::string function_name)
+{
+    if (hasFunction(function_name))
+    {
+        std::shared_ptr<FuncDefBranch> func_def_branch = getFunction(function_name);
+        if (!func_def_branch->isOnlyDefinition())
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 std::shared_ptr<FuncDefBranch> SemanticValidator::getFunction(std::string function_name)
