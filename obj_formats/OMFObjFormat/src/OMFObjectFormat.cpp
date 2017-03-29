@@ -304,7 +304,7 @@ void OMFObjectFormat::finalize()
             int offset_to_remove = 0;
             for (int i = 0; i < fixup_index; i++)
             {
-                offset_to_remove = stream_chunks[i]->getSize();
+                offset_to_remove += stream_chunks[i]->getSize();
             }
             fixup->setOffset(fixup->getOffset() - offset_to_remove);
             fixup_chunks[fixup_index].push_back(fixup);
