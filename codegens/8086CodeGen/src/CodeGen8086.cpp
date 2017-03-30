@@ -338,7 +338,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, struct stmt_info*
 
     std::shared_ptr<Branch> left = NULL;
     std::shared_ptr<Branch> right = NULL;
-
+    std::string op = exp->getValue();
 
     // Do we have something we need to notify about starting this expression?
     if (exp_start_func != NULL)
@@ -346,7 +346,12 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, struct stmt_info*
         exp_start_func();
     }
 
-    /* In cases where this happens "a && b" "a" and "b" have no operators of there own
+    if (getCompiler()->isCompareOperator(op))
+    {
+        s_info->exp_info.StartCompareExpression();
+    }
+
+    /* In cases where this happens "a && b" have no operators of there own
  so we need to make the compare instruction ourself, we will check if the variable is above zero.*/
     if (compiler->isLogicalOperator(exp->getValue()))
     {
@@ -415,8 +420,21 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, struct stmt_info*
                 }
             }
 
+            std::string left_reg = "ax";
+            std::string right_reg = "cx";
 
-            make_math_instruction(exp->getValue(), "ax", "cx");
+            if (getCompiler()->isCompareOperator(op))
+            {
+                if (s_info->exp_info.last_compare_exp_info->use_low_reg)
+                {
+                    left_reg = "al";
+                    right_reg = "cl";
+                    this->do_signed = true;
+                }
+                s_info->exp_info.EndCompareExpression();
+            }
+
+            make_math_instruction(op, left_reg, right_reg);
 
         }
 
@@ -1019,6 +1037,15 @@ std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_p
     if (data_size != NULL)
     {
         std::shared_ptr<VDEFBranch> vdef_branch = var_branch->getVariableDefinitionBranch();
+        // Expressions should use a lower register for compare expressions if this variable fits into a byte
+        if (vdef_branch->getDataTypeBranch()->getDataTypeSize() == 1)
+        {
+            if (s_info->exp_info.last_compare_exp_info != NULL)
+            {
+                s_info->exp_info.last_compare_exp_info->use_low_reg = true;
+            }
+        }
+
         bool no_pointer = false;
         /*
          * When accessing pointers with an array index whose definition has no array index
@@ -1133,13 +1160,13 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
 
         // Make the value expression
         make_expression(value, &s_info);
-        
+
         int data_size;
         s_info.is_assignment_variable = true;
         pos = make_var_access(&s_info, var_iden_branch, &data_size);
         s_info.is_assignment_variable = false;
         is_word = data_size == 2;
-        
+
 
         // Is this assignment an appendment
         if (op != "=")
