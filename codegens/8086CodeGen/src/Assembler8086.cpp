@@ -2309,7 +2309,7 @@ INSTRUCTION_TYPE Assembler8086::get_instruction_type(std::shared_ptr<Instruction
             left_op = REG16;
         }
 
-        if (right_op == AL || left_op == CL)
+        if (right_op == AL || right_op == CL)
         {
             right_op = REG8;
         }

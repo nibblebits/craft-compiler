@@ -303,7 +303,8 @@ enum
     IMUL_WITH_REG_W1,
     
     IDIV_WITH_REG_W0,
-    IDIV_WITH_REG_W1
+    IDIV_WITH_REG_W1,
+   
 };
 
 struct ins_syntax_def
