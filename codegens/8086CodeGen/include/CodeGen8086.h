@@ -80,26 +80,29 @@ struct COMPARE_EXPRESSION_DESC
 
 struct exp_compare_info
 {
+
     exp_compare_info()
     {
         use_low_reg = false;
     }
     bool use_low_reg;
 };
+
 struct exp_info
 {
+
     void StartCompareExpression()
     {
         std::shared_ptr<struct exp_compare_info> exp_compare_info = std::shared_ptr<struct exp_compare_info>(new struct exp_compare_info());
         last_compare_exp_info = exp_compare_info;
         exp_compares.push_back(exp_compare_info);
     }
-    
+
     void EndCompareExpression()
     {
-        exp_compares.pop_back();
         if (!exp_compares.empty())
         {
+            exp_compares.pop_back();
             last_compare_exp_info = exp_compares.back();
         }
         else
@@ -259,7 +262,7 @@ private:
     std::string cmp_exp_end_label_name;
     std::string cmp_exp_last_logic_operator;
     bool cmp_exp_handle_if_all_false_follow_through;
-    
+
     std::string breakable_label;
     std::string continue_label;
 
