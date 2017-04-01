@@ -203,6 +203,7 @@ public:
     void handle_func_return(struct stmt_info* s_info, std::shared_ptr<ReturnBranch> return_branch);
     void handle_compare_expression();
     void handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> branch);
+    void compare_single();
     void handle_if_stmt(std::shared_ptr<IFBranch> branch);
     void handle_for_stmt(std::shared_ptr<FORBranch> branch);
     void handle_while_stmt(std::shared_ptr<WhileBranch> branch);
@@ -257,6 +258,8 @@ private:
     std::string cmp_exp_false_label_name;
     std::string cmp_exp_end_label_name;
     std::string cmp_exp_last_logic_operator;
+    bool cmp_exp_handle_if_all_false_follow_through;
+    
     std::string breakable_label;
     std::string continue_label;
 

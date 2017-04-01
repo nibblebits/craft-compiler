@@ -81,6 +81,10 @@ std::string CodeGen8086::build_unique_label()
 
 void CodeGen8086::setup_comparing()
 {
+    if (is_cmp_expression)
+    {
+        throw Exception("Already comparing, handle the previous one.", "void CodeGen8086::setup_comparing()");
+    }
     this->cmp_exp_false_label_name = build_unique_label();
     this->cmp_exp_end_label_name = build_unique_label();
     this->cmp_exp_true_label_name = build_unique_label();
@@ -270,12 +274,6 @@ void CodeGen8086::make_mem_assignment(std::string dest, std::shared_ptr<Branch> 
         make_expression(value_exp, NULL, assignment_val_processed);
     }
 
-    // Handle any compare expression if any
-    if (this->is_cmp_expression)
-    {
-        handle_compare_expression();
-    }
-
     // Now we must assign the variable with the expression result`
     if (is_word)
     {
@@ -291,46 +289,38 @@ void CodeGen8086::handle_logical_expression(std::shared_ptr<Branch> exp_branch, 
 {
     std::shared_ptr<Branch> left = exp_branch->getFirstChild();
     std::shared_ptr<Branch> right = exp_branch->getSecondChild();
+    std::string op = exp_branch->getValue();
 
-    if (should_setup)
+    this->cmp_exp_last_logic_operator = exp_branch->getValue();
+
+    bool should_handle = false;
+    if (!this->is_cmp_expression)
+    {
         setup_comparing();
-
-
-    if (left->getType() != "E")
-    {
-        make_expression(left, s_info);
-        // We must setup comparing as it would not have been done for this variable.
-        make_compare_instruction(">", "ax", "0");
-        // If we have an logical OR then we must end the compare expression here
-        if (exp_branch->getValue() == "||")
-        {
-            handle_compare_expression();
-        }
-    }
-    else if (compiler->isLogicalOperator(left->getValue()))
-    {
-        handle_logical_expression(left, s_info, false);
-    }
-    else
-    {
-        make_expression(left, s_info);
+        should_handle = true;
     }
 
-    if (right->getType() != "E")
+    make_expression(left, s_info);
+    make_expression(right, s_info);
+
+    // Due to the way the assembly is generated, if the operator is "&&" we should do a logical jump to the true label
+    if (op == "&&")
     {
-        make_expression(right, s_info);
-        make_compare_instruction(">", "ax", "0");
-    }
-    else if (compiler->isLogicalOperator(right->getValue()))
-    {
-        handle_logical_expression(right, s_info, false);
-    }
-    else
-    {
-        make_expression(right, s_info);
+        do_asm("jmp " + this->cmp_exp_true_label_name);
     }
 
-    handle_compare_expression();
+    if (should_handle)
+    {
+        // Handle any compare expression if any
+        make_exact_label(this->cmp_exp_false_label_name);
+        do_asm("mov ax, 0");
+        do_asm("jmp " + this->cmp_exp_end_label_name);
+        make_exact_label(this->cmp_exp_true_label_name);
+        do_asm("mov ax, 1");
+        make_exact_label(this->cmp_exp_end_label_name);
+        this->is_cmp_expression = false;
+    }
+
 }
 
 void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, struct stmt_info* s_info, std::function<void() > exp_start_func, std::function<void() > exp_end_func)
@@ -406,12 +396,7 @@ void CodeGen8086::make_expression(std::shared_ptr<Branch> exp, struct stmt_info*
             }
 
 
-            std::string exp_val = exp->getValue();
-            if (compiler->isLogicalOperator(exp_val))
-            {
-                this->cmp_exp_last_logic_operator = exp_val;
-            }
-            else if (compiler->isCompareOperator(exp_val))
+            if (compiler->isCompareOperator(op))
             {
                 // Setup compare labels
                 if (!this->is_cmp_expression)
@@ -1495,44 +1480,8 @@ void CodeGen8086::handle_func_return(struct stmt_info* s_info, std::shared_ptr<R
 
 void CodeGen8086::handle_compare_expression()
 {
-    /* We must first check that this is not a single compare, if a single value is passed with no operator 
-     * then it will evaluate to true if the value is above zero otherwise false.*/
-    if (!this->is_cmp_expression)
-    {
-        setup_comparing();
-        do_asm("cmp ax, 0");
-        do_asm("je " + this->cmp_exp_false_label_name);
-    }
 
 
-    /* Do a jmp to the true label here only if the logic operator is nothing or "&&". 
-     * This is required as the following expression: 10 == 10 || 13 == 13 && 12 == 12
-      will cause the system to roll onto the false label should all be true*/
-
-    if (is_cmp_logic_operator_nothing_or_and())
-    {
-        do_asm("jmp " + this->cmp_exp_true_label_name);
-    }
-
-    // Generate false label
-    make_exact_label(this->cmp_exp_false_label_name);
-
-    // Move zero to AX as this is false
-    do_asm("mov ax, 0");
-    // Jump to the end so it does not change to true
-    do_asm("jmp " + this->cmp_exp_end_label_name);
-
-    // Generate true label
-    make_exact_label(this->cmp_exp_true_label_name);
-    // Move one to the AX as this is true
-    do_asm("mov ax, 1");
-    // No need to generate any "jmp" instruction as naturally the code will run to the end
-
-    // Generate end label
-    make_exact_label(this->cmp_exp_end_label_name);
-
-    // Now reset the compare expression
-    this->is_cmp_expression = false;
 
 }
 
@@ -1561,16 +1510,24 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
     // Process the expression of the "IF" statement
     make_expression(exp_branch, &s_info);
 
-    // Handle the compare expression
-    handle_compare_expression();
-
     // AX now contains true or false 
     std::string true_label = build_unique_label();
     std::string false_label = build_unique_label();
     std::string end_label = build_unique_label();
 
-    do_asm("cmp ax, 0");
-    do_asm("je " + false_label);
+    // Handle any compare expression
+    if (this->is_cmp_expression)
+    {
+        // This is for expressions such as if(x == 1)
+        false_label = this->cmp_exp_false_label_name;
+        this->is_cmp_expression = false;
+    }
+    else
+    {
+        // This is for expressions such as if(x == 1 || x == 2)
+        do_asm("cmp ax, 0");
+        do_asm("je " + false_label);
+    }
     // This is where we will jump if its true
     make_exact_label(true_label);
 
@@ -1649,11 +1606,17 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     // Handle the compare expression
     handle_compare_expression();
 
-    // AX now contains true or false 
-
-    do_asm("cmp ax, 0");
-    do_asm("je " + false_label);
-
+    if (this->is_cmp_expression)
+    {
+        false_label = this->cmp_exp_false_label_name;
+        this->is_cmp_expression = false;
+    }
+    else
+    {
+        do_asm("cmp ax, 0");
+        do_asm("je " + false_label);
+    }
+    
     // This is where we will jump if its true
     make_exact_label(true_label);
 
@@ -1705,14 +1668,19 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
     // Process the expression of the "WHILE" statement
     make_expression(exp_branch, &s_info);
 
-    // Handle the compare expression
-    handle_compare_expression();
-
-    // AX now contains true or false 
-
-    do_asm("cmp ax, 0");
-    do_asm("je " + false_label);
-
+    if (this->is_cmp_expression)
+    {
+        // This would be the case for expressions such as while(x != 0)
+        false_label = this->cmp_exp_false_label_name;
+        this->is_cmp_expression = false;
+    }
+    else
+    {
+        /* This would be the case for expressions such as while(x != 0 || y != 3), they would have been previously handled 
+         * meaning we need to compare the result to zero*/
+        do_asm("cmp ax, 0");
+        do_asm("je " + false_label);
+    }
     calculate_scope_size(body_branch);
 
     // This is where we will jump if its true
