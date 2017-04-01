@@ -1519,6 +1519,7 @@ void CodeGen8086::handle_if_stmt(std::shared_ptr<IFBranch> branch)
     if (this->is_cmp_expression)
     {
         // This is for expressions such as if(x == 1)
+        true_label = this->cmp_exp_true_label_name;
         false_label = this->cmp_exp_false_label_name;
         this->is_cmp_expression = false;
     }
@@ -1608,6 +1609,7 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
 
     if (this->is_cmp_expression)
     {
+        true_label = this->cmp_exp_true_label_name;
         false_label = this->cmp_exp_false_label_name;
         this->is_cmp_expression = false;
     }
@@ -1616,7 +1618,7 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
         do_asm("cmp ax, 0");
         do_asm("je " + false_label);
     }
-    
+
     // This is where we will jump if its true
     make_exact_label(true_label);
 
@@ -1671,6 +1673,7 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
     if (this->is_cmp_expression)
     {
         // This would be the case for expressions such as while(x != 0)
+        true_label = this->cmp_exp_true_label_name;
         false_label = this->cmp_exp_false_label_name;
         this->is_cmp_expression = false;
     }
@@ -1696,7 +1699,7 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
 
     // This is where we will jump if its false, the body will never be run.
     make_exact_label(false_label);
-
+    
     // Lets make the label for where we end up if we break
     make_exact_label(this->breakable_label);
 

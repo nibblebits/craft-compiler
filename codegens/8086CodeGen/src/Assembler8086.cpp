@@ -1960,7 +1960,7 @@ IDENTIFIER_TYPE Assembler8086::get_identifier_type(std::string iden_name)
     }
     else
     {
-        throw Exception("IDENTIFIER_TYPE Assembler8086::get_identifier_type(std::string iden_name): identifier type unknown");
+        throw Exception("IDENTIFIER_TYPE Assembler8086::get_identifier_type(std::string iden_name): identifier type unknown: \"" + iden_name + "\"");
     }
 
     return iden_type;
