@@ -103,6 +103,10 @@ struct exp_info
         if (!exp_compares.empty())
         {
             exp_compares.pop_back();
+        }
+
+        if (!exp_compares.empty())
+        {
             last_compare_exp_info = exp_compares.back();
         }
         else

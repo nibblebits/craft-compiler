@@ -21,7 +21,7 @@
  *
  * Created on 14 September 2016, 03:40
  * 
- * Description: 
+ * Description: The code generator that targets the 8086 processor.
  */
 
 #include "CodeGen8086.h"
