@@ -72,6 +72,9 @@ public:
     SemanticValidator(Compiler* compiler);
     virtual ~SemanticValidator();
 
+    void allow_data_type(std::string data_type);
+    bool is_data_type_allowed(std::string data_type);
+    
     void setTree(std::shared_ptr<Tree> tree);
     void validate();
 
@@ -99,7 +102,11 @@ private:
     std::shared_ptr<FuncDefBranch> getFunction(std::string function_name);
 
     bool ensure_function_exists(std::string func_name, std::shared_ptr<Branch> stmt_branch);
+    bool ensure_variable_valid(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     bool ensure_variable_exists(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
+    
+    bool ensure_variable_type_legal(std::string var_type, std::shared_ptr<Branch> branch=NULL);
+    
     void function_not_declared(std::string func_name, std::shared_ptr<Branch> stmt_branch);
     void variable_not_declared(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     void critical_error(std::string message, std::shared_ptr<Branch> branch = NULL);
@@ -109,6 +116,9 @@ private:
 
     // Map of all functions
     std::map<std::string, std::shared_ptr<FuncDefBranch>> functions;
+    
+    // Allowed data types
+    std::vector<std::string> allowed_data_types;
 };
 
 #endif /* SEMANTICVALIDATOR_H */

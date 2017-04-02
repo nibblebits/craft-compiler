@@ -31,10 +31,31 @@
 SemanticValidator::SemanticValidator(Compiler* compiler) : CompilerEntity(compiler)
 {
     this->logger = std::shared_ptr<Logger>(new Logger());
+
+    // Void is allowed by default
+    allow_data_type("void");
 }
 
 SemanticValidator::~SemanticValidator()
 {
+}
+
+void SemanticValidator::allow_data_type(std::string data_type)
+{
+    this->allowed_data_types.push_back(data_type);
+}
+
+bool SemanticValidator::is_data_type_allowed(std::string data_type)
+{
+    for (std::string type : this->allowed_data_types)
+    {
+        if (type == data_type)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void SemanticValidator::setTree(std::shared_ptr<Tree> tree)
@@ -104,7 +125,7 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
     {
         validate_for_stmt(std::dynamic_pointer_cast<FORBranch>(branch));
     }
-    else if(type == "ASM")
+    else if (type == "ASM")
     {
         validate_inline_asm(std::dynamic_pointer_cast<ASMBranch>(branch));
     }
@@ -121,13 +142,18 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
 
 void SemanticValidator::validate_function_definition(std::shared_ptr<FuncDefBranch> func_def_branch)
 {
-    // Register the function error logged if function is already registered
-    register_function(func_def_branch);
-
-    // Validate the function arguments
-    for (std::shared_ptr<Branch> func_arg_child : func_def_branch->getArgumentsBranch()->getChildren())
+    // Ensure the return type is valid
+    std::shared_ptr<DataTypeBranch> data_type_branch = func_def_branch->getReturnDataTypeBranch();
+    if (!data_type_branch->isPrimitive() || ensure_variable_type_legal(data_type_branch->getDataType(), data_type_branch))
     {
-        validate_part(func_arg_child);
+        // Register the function error logged if function is already registered
+        register_function(func_def_branch);
+
+        // Validate the function arguments
+        for (std::shared_ptr<Branch> func_arg_child : func_def_branch->getArgumentsBranch()->getChildren())
+        {
+            validate_part(func_arg_child);
+        }
     }
 
 }
@@ -152,28 +178,30 @@ void SemanticValidator::validate_body(std::shared_ptr<BODYBranch> body_branch)
 void SemanticValidator::validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch)
 {
     std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
-    std::string vdef_var_iden_name = vdef_var_iden_branch->getVariableNameBranch()->getValue();
-    // Check to see if the variable definition is already registered in this scope
-    for (std::shared_ptr<Branch> child : vdef_branch->getLocalScope()->getChildren())
+    if (vdef_branch->getType() == "STRUCT_DEF" || ensure_variable_type_legal(vdef_branch->getDataTypeBranch()->getDataType(), vdef_branch))
     {
-        // We check for a cast rather than type as other branches can extend V_DEF branch
-        std::shared_ptr<VDEFBranch> vdef_child = std::dynamic_pointer_cast<VDEFBranch>(child);
-        if (vdef_child != NULL)
+        std::string vdef_var_iden_name = vdef_var_iden_branch->getVariableNameBranch()->getValue();
+        // Check to see if the variable definition is already registered in this scope
+        for (std::shared_ptr<Branch> child : vdef_branch->getLocalScope()->getChildren())
         {
-            std::shared_ptr<VarIdentifierBranch> vdef_child_var_iden_branch = vdef_child->getVariableIdentifierBranch();
-            std::string vdef_child_var_iden_name = vdef_child_var_iden_branch->getVariableNameBranch()->getValue();
-            // Is this the current branch we are validating?
-            if (vdef_child == vdef_branch)
-                continue;
-
-            if (vdef_var_iden_name == vdef_child_var_iden_name)
+            // We check for a cast rather than type as other branches can extend V_DEF branch
+            std::shared_ptr<VDEFBranch> vdef_child = std::dynamic_pointer_cast<VDEFBranch>(child);
+            if (vdef_child != NULL)
             {
-                // We already have a variable of this name on this scope
-                logger->error("The variable \"" + vdef_var_iden_name + "\" has been redeclared", vdef_branch);
+                std::shared_ptr<VarIdentifierBranch> vdef_child_var_iden_branch = vdef_child->getVariableIdentifierBranch();
+                std::string vdef_child_var_iden_name = vdef_child_var_iden_branch->getVariableNameBranch()->getValue();
+                // Is this the current branch we are validating?
+                if (vdef_child == vdef_branch)
+                    continue;
+
+                if (vdef_var_iden_name == vdef_child_var_iden_name)
+                {
+                    // We already have a variable of this name on this scope
+                    logger->error("The variable \"" + vdef_var_iden_name + "\" has been redeclared", vdef_branch);
+                }
             }
         }
     }
-
     // Lets validate the value if one exists
     if (vdef_branch->hasValueExpBranch())
     {
@@ -575,16 +603,16 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
 void SemanticValidator::validate_inline_asm(std::shared_ptr<ASMBranch> asm_branch)
 {
     // Inline assembly only allows for numbers or variables that are alone 
-    for(std::shared_ptr<Branch> branch : asm_branch->getInstructionArgumentsBranch()->getChildren())
+    for (std::shared_ptr<Branch> branch : asm_branch->getInstructionArgumentsBranch()->getChildren())
     {
         std::shared_ptr<ASMArgBranch> asm_arg_branch = std::dynamic_pointer_cast<ASMArgBranch>(branch);
         std::shared_ptr<Branch> arg_value_branch = asm_arg_branch->getArgumentValueBranch();
         std::string arg_value_type = arg_value_branch->getType();
-        if(arg_value_type != "number" && arg_value_type != "VAR_IDENTIFIER")
+        if (arg_value_type != "number" && arg_value_type != "VAR_IDENTIFIER")
         {
             this->logger->error("Inline assembly only allows for numbers or variables that are alone", branch);
         }
-        else if(arg_value_type == "VAR_IDENTIFIER")
+        else if (arg_value_type == "VAR_IDENTIFIER")
         {
             std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(arg_value_branch);
             if (var_iden_branch->hasStructureAccessBranch() || var_iden_branch->hasRootArrayIndexBranch())
@@ -652,6 +680,11 @@ bool SemanticValidator::ensure_function_exists(std::string func_name, std::share
     return true;
 }
 
+bool SemanticValidator::ensure_variable_valid(std::shared_ptr<VarIdentifierBranch> var_iden_branch)
+{
+    return ensure_variable_exists(var_iden_branch);
+}
+
 bool SemanticValidator::ensure_variable_exists(std::shared_ptr<VarIdentifierBranch> var_iden_branch)
 {
     if (!var_iden_branch->hasVariableDefinitionBranch())
@@ -661,6 +694,19 @@ bool SemanticValidator::ensure_variable_exists(std::shared_ptr<VarIdentifierBran
     }
 
     return true;
+}
+
+bool SemanticValidator::ensure_variable_type_legal(std::string var_type, std::shared_ptr<Branch> branch)
+{
+
+    if (is_data_type_allowed(var_type))
+    {
+        return true;
+    }
+
+    std::string codegen_name = getCompiler()->getCodeGenerator()->getName();
+    this->logger->error("The variable type \"" + var_type + "\" is not compatible with the \"" + codegen_name + "\"", branch);
+    return false;
 }
 
 void SemanticValidator::function_not_declared(std::string func_name, std::shared_ptr<Branch> stmt_branch)
