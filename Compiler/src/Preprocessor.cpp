@@ -326,6 +326,7 @@ void Preprocessor::process_macro_ifdef(std::shared_ptr<MacroIfDefBranch> macro_i
     if (is_definition_registered(req_branch->getValue()))
     {
         // The definition is registered so replace this macro with the body branch
+        process_child(body_branch);
         macro_ifdef_branch->replaceSelf(body_branch);
         body_branch->replaceWithChildren();
     }
@@ -334,6 +335,7 @@ void Preprocessor::process_macro_ifdef(std::shared_ptr<MacroIfDefBranch> macro_i
         // All were false so lets delete ourself and all children associated with us
         macro_ifdef_branch->removeSelf();
     }
+
 }
 
 void Preprocessor::process_macro_ifndef(std::shared_ptr<MacroIfNDefBranch> macro_ifndef_branch)
@@ -344,6 +346,7 @@ void Preprocessor::process_macro_ifndef(std::shared_ptr<MacroIfNDefBranch> macro
     if (!is_definition_registered(req_branch->getValue()))
     {
         // The definition is registered so replace this macro with the body branch
+        process_child(body_branch);
         macro_ifndef_branch->replaceSelf(body_branch);
         body_branch->replaceWithChildren();
     }
