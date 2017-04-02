@@ -31,11 +31,11 @@
 const char operators[] = {'=', '+', '-', '/', '*', '<', '>', '&', '|', '^', '%', '!'};
 const char symbols[] = {'(', ')', ',', '#', '{', '}', '.', '[', ']', ';'};
 const std::string general_keywords[] = {
-    "if", "for", "do", "while", "continue", "break", "continue", "switch", "__asm", "string", "else", "return", "ifdef", "ifndef", "define"
+    "if", "for", "do", "while", "continue", "break", "switch", "__asm", "string", "else", "return", "ifdef", "ifndef", "define"
 };
 
 const std::string data_type_keywords[] = {
-    "nibble", "bit", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64",
+    "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64",
     "struct", "void"
 };
 
