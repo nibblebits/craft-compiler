@@ -304,6 +304,9 @@ enum
     
     IDIV_WITH_REG_W0,
     IDIV_WITH_REG_W1,
+    
+    TEST_REG_WITH_REG_W0,
+    TEST_REG_WITH_REG_W1
    
 };
 
