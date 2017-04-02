@@ -59,6 +59,7 @@ void SemanticValidator::validate_top(std::shared_ptr<RootBranch> root_branch)
 void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
 {
     std::string type = branch->getType();
+
     if (type == "FUNC")
     {
         validate_function(std::dynamic_pointer_cast<FuncBranch>(branch));
@@ -98,6 +99,23 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
     else if (type == "FUNC_CALL")
     {
         validate_function_call(std::dynamic_pointer_cast<FuncCallBranch>(branch));
+    }
+    else if (type == "FOR")
+    {
+        validate_for_stmt(std::dynamic_pointer_cast<FORBranch>(branch));
+    }
+    else if(type == "ASM")
+    {
+        validate_inline_asm(std::dynamic_pointer_cast<ASMBranch>(branch));
+    }
+    else
+    {
+        /* If a macro was not preprocessed it will remain in the tree
+         * and will be caught by the semantic validator here.*/
+        if (getCompiler()->getPreprocessor()->is_macro(type))
+        {
+            logger->error("Macros are not supported in this part of the program", branch);
+        }
     }
 }
 
@@ -171,14 +189,20 @@ void SemanticValidator::validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch)
 void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch> var_iden_branch)
 {
     // We need to check that the var identifier links to a valid variable.
-    std::shared_ptr<VDEFBranch> root_vdef_branch = var_iden_branch->getVariableDefinitionBranch(true);
-
-    if (root_vdef_branch == NULL)
+    std::shared_ptr<VDEFBranch> root_vdef_branch = NULL;
+    bool has_vdef = var_iden_branch->hasVariableDefinitionBranch(true);
+    if (has_vdef)
+    {
+        root_vdef_branch = var_iden_branch->getVariableDefinitionBranch(true);
+    }
+    else
     {
         // No V_DEF branch exists for this var identifier branch so it is illegal
         logger->error("The variable \"" + var_iden_branch->getVariableNameBranch()->getValue() + "\" could not be found", var_iden_branch);
+        return;
     }
-    else if (root_vdef_branch->getType() == "STRUCT_DEF"
+
+    if (root_vdef_branch->getType() == "STRUCT_DEF"
             && var_iden_branch->hasStructureAccessBranch())
     {
         std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(root_vdef_branch);
@@ -287,6 +311,20 @@ void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign
     validate_value(assign_branch->getValueBranch(), &s_info);
 }
 
+void SemanticValidator::validate_for_stmt(std::shared_ptr<FORBranch> for_branch)
+{
+    std::shared_ptr<Branch> init_branch = for_branch->getInitBranch();
+    std::shared_ptr<Branch> cond_branch = for_branch->getCondBranch();
+    std::shared_ptr<Branch> loop_branch = for_branch->getLoopBranch();
+    std::shared_ptr<Branch> body_branch = for_branch->getBodyBranch();
+
+    struct semantic_information s_info;
+    validate_part(init_branch);
+    validate_value(cond_branch, &s_info);
+    validate_value(loop_branch, &s_info);
+    validate_part(body_branch);
+}
+
 void SemanticValidator::validate_function_call(std::shared_ptr<FuncCallBranch> func_call_branch)
 {
     std::string func_name = func_call_branch->getFuncNameBranch()->getValue();
@@ -393,21 +431,24 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
     }
     else if (branch_type == "number")
     {
-        // Numbers pass as pointers
-        if (!s_info->sv_info.requires_pointer)
+        if (s_info->sv_info.requirement_type != "")
         {
-            // If we are primitive or we require a pointer then a number is valid input
-            if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type))
+            // Numbers pass as pointers
+            if (!s_info->sv_info.requires_pointer)
             {
-                long number = std::stoi(branch->getValue());
-                if (!getCompiler()->canFit(s_info->sv_info.requirement_type, getCompiler()->getTypeFromNumber(number)))
+                // If we are primitive or we require a pointer then a number is valid input
+                if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type))
                 {
-                    this->logger->warn("Decimal number: \"" + std::to_string(number) + "\" cannot fit into type \"" + s_info->sv_info.requirement_type + "\" and will be capped", branch);
+                    long number = std::stoi(branch->getValue());
+                    if (!getCompiler()->canFit(s_info->sv_info.requirement_type, getCompiler()->getTypeFromNumber(number)))
+                    {
+                        this->logger->warn("Decimal number: \"" + std::to_string(number) + "\" cannot fit into type \"" + s_info->sv_info.requirement_type + "\" and will be capped", branch);
+                    }
                 }
-            }
-            else
-            {
-                this->logger->error("The type: \"" + s_info->sv_info.requirement_type + "\" is not a primitive type so cannot have a value of a number", branch);
+                else
+                {
+                    this->logger->error("The type: \"" + s_info->sv_info.requirement_type + "\" is not a primitive type so cannot have a value of a number", branch);
+                }
             }
         }
     }
@@ -417,53 +458,56 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
         std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(branch);
         if (ensure_variable_exists(var_iden_branch))
         {
-            // Lets get the type of the variable to see if it can fit into our requirement type
-            std::string var_iden_name = var_iden_branch->getVariableNameBranch()->getValue();
-            std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
-            std::string vdef_type = vdef_branch->getDataTypeBranch()->getDataType();
+            if (s_info->sv_info.requirement_type != "")
+            {
+                // Lets get the type of the variable to see if it can fit into our requirement type
+                std::string var_iden_name = var_iden_branch->getVariableNameBranch()->getValue();
+                std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
+                std::string vdef_type = vdef_branch->getDataTypeBranch()->getDataType();
 
-            if (vdef_branch->isPointer() && s_info->sv_info.requires_pointer
-                    && vdef_branch->getPointerDepth() != s_info->sv_info.pointer_depth)
-            {
-                this->logger->error("The variable: \"" + var_iden_name + "\" must have a pointer depth of "
-                                    + std::to_string(s_info->sv_info.pointer_depth) + " but its pointer depth is: " + std::to_string(vdef_branch->getPointerDepth()));
-            }
-            if (!vdef_branch->isPointer()
-                    && s_info->sv_info.requires_pointer)
-            {
-                this->logger->warn("The variable: \"" + var_iden_name + "\" is not a pointer but a pointer was expected", branch);
-            }
-            else if (vdef_branch->isPointer()
-                    && !s_info->sv_info.requires_pointer)
-            {
-                this->logger->warn("The variable: \"" + var_iden_name + "\" is a pointer but a non pointer type is expected");
-            }
-            else if (!vdef_branch->isPrimitive() && !vdef_branch->getDataTypeBranch()->isPointer())
-            {
-                this->logger->error("Non-primitive types that are not pointers cannot be referenced directly, variable in question: \"" + var_iden_name + "\"", branch);
-            }
-
-            if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type))
-            {
-                if (!getCompiler()->isPrimitiveDataType(vdef_type))
+                if (vdef_branch->isPointer() && s_info->sv_info.requires_pointer
+                        && vdef_branch->getPointerDepth() != s_info->sv_info.pointer_depth)
                 {
-                    this->logger->error("Expecting a primitive type of type \"" + s_info->sv_info.requirement_type
-                                        + "\" but a non primitive type of type \"" + vdef_type + "\" was provided", branch);
+                    this->logger->error("The variable: \"" + var_iden_name + "\" must have a pointer depth of "
+                                        + std::to_string(s_info->sv_info.pointer_depth) + " but its pointer depth is: " + std::to_string(vdef_branch->getPointerDepth()));
                 }
-            }
-            else
-            {
-                if (getCompiler()->isPrimitiveDataType(vdef_type))
+                if (!vdef_branch->isPointer()
+                        && s_info->sv_info.requires_pointer)
                 {
-                    this->logger->error("Expecting a non-primitive type of type \"" + s_info->sv_info.requirement_type
-                                        + "\" but a primitive type of type \"" + vdef_type + "\" was provided", branch);
+                    this->logger->warn("The variable: \"" + var_iden_name + "\" is not a pointer but a pointer was expected", branch);
+                }
+                else if (vdef_branch->isPointer()
+                        && !s_info->sv_info.requires_pointer)
+                {
+                    this->logger->warn("The variable: \"" + var_iden_name + "\" is a pointer but a non pointer type is expected");
+                }
+                else if (!vdef_branch->isPrimitive() && !vdef_branch->getDataTypeBranch()->isPointer())
+                {
+                    this->logger->error("Non-primitive types that are not pointers cannot be referenced directly, variable in question: \"" + var_iden_name + "\"", branch);
+                }
+
+                if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type))
+                {
+                    if (!getCompiler()->isPrimitiveDataType(vdef_type))
+                    {
+                        this->logger->error("Expecting a primitive type of type \"" + s_info->sv_info.requirement_type
+                                            + "\" but a non primitive type of type \"" + vdef_type + "\" was provided", branch);
+                    }
                 }
                 else
                 {
-                    // We are checking to see if both structure types match
-                    if (s_info->sv_info.requirement_type != vdef_type)
+                    if (getCompiler()->isPrimitiveDataType(vdef_type))
                     {
-                        this->logger->error("Expecting a primitive type whose name is \"" + s_info->sv_info.requirement_type + "\" but type \"" + vdef_type + "\" was provided", branch);
+                        this->logger->error("Expecting a non-primitive type of type \"" + s_info->sv_info.requirement_type
+                                            + "\" but a primitive type of type \"" + vdef_type + "\" was provided", branch);
+                    }
+                    else
+                    {
+                        // We are checking to see if both structure types match
+                        if (s_info->sv_info.requirement_type != vdef_type)
+                        {
+                            this->logger->error("Expecting a primitive type whose name is \"" + s_info->sv_info.requirement_type + "\" but type \"" + vdef_type + "\" was provided", branch);
+                        }
                     }
                 }
             }
@@ -521,7 +565,33 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
 
         // Validate the function call
         validate_function_call(std::dynamic_pointer_cast<FuncCallBranch>(branch));
+    }
+    else
+    {
+        validate_part(branch);
+    }
+}
 
+void SemanticValidator::validate_inline_asm(std::shared_ptr<ASMBranch> asm_branch)
+{
+    // Inline assembly only allows for numbers or variables that are alone 
+    for(std::shared_ptr<Branch> branch : asm_branch->getInstructionArgumentsBranch()->getChildren())
+    {
+        std::shared_ptr<ASMArgBranch> asm_arg_branch = std::dynamic_pointer_cast<ASMArgBranch>(branch);
+        std::shared_ptr<Branch> arg_value_branch = asm_arg_branch->getArgumentValueBranch();
+        std::string arg_value_type = arg_value_branch->getType();
+        if(arg_value_type != "number" && arg_value_type != "VAR_IDENTIFIER")
+        {
+            this->logger->error("Inline assembly only allows for numbers or variables that are alone", branch);
+        }
+        else if(arg_value_type == "VAR_IDENTIFIER")
+        {
+            std::shared_ptr<VarIdentifierBranch> var_iden_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(arg_value_branch);
+            if (var_iden_branch->hasStructureAccessBranch() || var_iden_branch->hasRootArrayIndexBranch())
+            {
+                this->logger->error("Inline assembly does not support variables with structure or array access.", branch);
+            }
+        }
     }
 }
 
@@ -584,7 +654,7 @@ bool SemanticValidator::ensure_function_exists(std::string func_name, std::share
 
 bool SemanticValidator::ensure_variable_exists(std::shared_ptr<VarIdentifierBranch> var_iden_branch)
 {
-    if (var_iden_branch->getVariableDefinitionBranch() == NULL)
+    if (!var_iden_branch->hasVariableDefinitionBranch())
     {
         variable_not_declared(var_iden_branch);
         return false;

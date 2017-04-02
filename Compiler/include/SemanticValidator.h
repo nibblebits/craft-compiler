@@ -33,6 +33,12 @@
 
 struct semantic_value_information
 {
+    semantic_value_information()
+    {
+        requirement_type = "";
+        requires_pointer = false;
+        pointer_depth = 0;
+    }
     std::string requirement_type;
     bool requires_pointer; 
     int pointer_depth;
@@ -54,9 +60,11 @@ class FuncCallBranch;
 class VarIdentifierBranch;
 class PTRBranch;
 class AssignBranch;
+class FORBranch;
 class STRUCTDEFBranch;
 class STRUCTBranch;
 class EBranch;
+class ASMBranch;
 
 class EXPORT SemanticValidator : public CompilerEntity
 {
@@ -78,11 +86,13 @@ private:
     void validate_var_access(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     bool validate_pointer_access(std::shared_ptr<PTRBranch> ptr_branch);
     void validate_assignment(std::shared_ptr<AssignBranch> assign_branch);
+    void validate_for_stmt(std::shared_ptr<FORBranch> for_branch);
     void validate_function_call(std::shared_ptr<FuncCallBranch> func_call_branch);
     void validate_structure_definition(std::shared_ptr<STRUCTDEFBranch> struct_def_branch);
     void validate_structure(std::shared_ptr<STRUCTBranch> structure_branch);
     void validate_expression(std::shared_ptr<EBranch> e_branch, struct semantic_information* s_info);
     void validate_value(std::shared_ptr<Branch> branch, struct semantic_information* s_info);
+    void validate_inline_asm(std::shared_ptr<ASMBranch> asm_branch);
     void register_function(std::shared_ptr<FuncDefBranch> func_branch);
     bool hasFunction(std::string function_name);
     bool hasFunctionDeclaration(std::string function_name);
