@@ -69,6 +69,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/MacroDefinitionIdentifierBranch.o \
 	${OBJECTDIR}/src/MacroFuncCallBranch.o \
 	${OBJECTDIR}/src/MacroIfDefBranch.o \
+	${OBJECTDIR}/src/MacroIfNDefBranch.o \
+	${OBJECTDIR}/src/MacroStmtExpBodyBranch.o \
 	${OBJECTDIR}/src/PTRBranch.o \
 	${OBJECTDIR}/src/Parser.o \
 	${OBJECTDIR}/src/Preprocessor.o \
@@ -287,6 +289,16 @@ ${OBJECTDIR}/src/MacroIfDefBranch.o: src/MacroIfDefBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroIfDefBranch.o src/MacroIfDefBranch.cpp
+
+${OBJECTDIR}/src/MacroIfNDefBranch.o: src/MacroIfNDefBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroIfNDefBranch.o src/MacroIfNDefBranch.cpp
+
+${OBJECTDIR}/src/MacroStmtExpBodyBranch.o: src/MacroStmtExpBodyBranch.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroStmtExpBodyBranch.o src/MacroStmtExpBodyBranch.cpp
 
 ${OBJECTDIR}/src/PTRBranch.o: src/PTRBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

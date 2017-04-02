@@ -117,6 +117,7 @@ private:
 
     // Macro processing
     void process_macro_ifdef();
+    void process_macro_ifndef();
     void process_macro_define();
     void process_macro_function_call();
     void process_macro_definition_identifier();
@@ -128,7 +129,7 @@ private:
     void shift();
     void peek(int offset = -1);
     void pop_branch();
-    void setRootAndScopes(std::shared_ptr<Branch> branch);
+    void setRootAndScopes(std::shared_ptr<Branch> branch, std::shared_ptr<ScopeBranch> local_scope=NULL);
     void push_branch(std::shared_ptr<Branch> branch, bool apply_scopes_to_branch=true);
     void shift_pop();
 

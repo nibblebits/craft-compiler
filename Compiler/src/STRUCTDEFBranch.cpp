@@ -62,7 +62,8 @@ void STRUCTDEFBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 
     if (this->unique_struct_body_branch != NULL)
     {
-        struct_def_branch_clone->setStructBody(std::dynamic_pointer_cast<BODYBranch>(this->unique_struct_body_branch->clone()));
+        // Removed the clone() call for the unique_struct_body_branch as it causes issues with macros
+        struct_def_branch_clone->setStructBody(std::dynamic_pointer_cast<BODYBranch>(this->unique_struct_body_branch));
     }
 }
 

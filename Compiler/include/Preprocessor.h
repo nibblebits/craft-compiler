@@ -33,6 +33,7 @@
 class Tree;
 class Branch;
 class MacroIfDefBranch;
+class MacroIfNDefBranch;
 class MacroDefineBranch;
 class MacroDefinitionIdentifierBranch;
 class MacroFuncCallBranch;
@@ -87,6 +88,7 @@ public:
 private:
     void process_macro(std::shared_ptr<Branch> macro);
     void process_macro_ifdef(std::shared_ptr<MacroIfDefBranch> macro_ifdef_branch);
+    void process_macro_ifndef(std::shared_ptr<MacroIfNDefBranch> macro_ifndef_branch);
     void process_macro_define(std::shared_ptr<MacroDefineBranch> macro_define_branch);
     void process_macro_def_identifier(std::shared_ptr<MacroDefinitionIdentifierBranch> macro_def_iden_branch);
     void process_macro_func_call(std::shared_ptr<MacroFuncCallBranch> macro_func_call_branch);

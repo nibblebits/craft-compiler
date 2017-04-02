@@ -127,6 +127,7 @@ bool Preprocessor::is_macro(std::string macro_name)
 {
     return (
             macro_name == "MACRO_IFDEF" ||
+            macro_name == "MACRO_IFNDEF" ||
             macro_name == "MACRO_DEFINE" ||
             macro_name == "MACRO_DEFINITION_IDENTIFIER" ||
             macro_name == "MACRO_FUNC_CALL"
@@ -179,6 +180,11 @@ void Preprocessor::process_macro(std::shared_ptr<Branch> macro)
     {
         std::shared_ptr<MacroIfDefBranch> macro_ifdef_branch = std::dynamic_pointer_cast<MacroIfDefBranch>(macro);
         process_macro_ifdef(macro_ifdef_branch);
+    }
+    else if (macro->getType() == "MACRO_IFNDEF")
+    {
+        std::shared_ptr<MacroIfNDefBranch> macro_ifndef_branch = std::dynamic_pointer_cast<MacroIfNDefBranch>(macro);
+        process_macro_ifndef(macro_ifndef_branch);
     }
     else if (macro->getType() == "MACRO_DEFINE")
     {
@@ -313,7 +319,7 @@ void Preprocessor::process_body(std::shared_ptr<BODYBranch> body_branch)
 void Preprocessor::process_macro_ifdef(std::shared_ptr<MacroIfDefBranch> macro_ifdef_branch)
 {
     this->logger->warn("Macros \"ifdef\" is quite buggy and will likely crash, use it if you can a fix will be made for this soon");
-    
+
     std::shared_ptr<Branch> req_branch = macro_ifdef_branch->getRequirementBranch();
     std::shared_ptr<BODYBranch> body_branch = macro_ifdef_branch->getBodyBranch();
 
@@ -327,6 +333,24 @@ void Preprocessor::process_macro_ifdef(std::shared_ptr<MacroIfDefBranch> macro_i
     {
         // All were false so lets delete ourself and all children associated with us
         macro_ifdef_branch->removeSelf();
+    }
+}
+
+void Preprocessor::process_macro_ifndef(std::shared_ptr<MacroIfNDefBranch> macro_ifndef_branch)
+{
+    std::shared_ptr<Branch> req_branch = macro_ifndef_branch->getRequirementBranch();
+    std::shared_ptr<BODYBranch> body_branch = macro_ifndef_branch->getBodyBranch();
+
+    if (!is_definition_registered(req_branch->getValue()))
+    {
+        // The definition is registered so replace this macro with the body branch
+        macro_ifndef_branch->replaceSelf(body_branch);
+        body_branch->replaceWithChildren();
+    }
+    else
+    {
+        // All were false so lets delete ourself and all children associated with us
+        macro_ifndef_branch->removeSelf();
     }
 }
 

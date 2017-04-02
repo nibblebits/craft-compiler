@@ -236,6 +236,11 @@ void Parser::process_macro()
         // We have a macro ifdef lets process it
         process_macro_ifdef();
     }
+    else if(is_peek_keyword("ifndef"))
+    {
+        // We have a macro ifndef lets process it
+        process_macro_ifndef();
+    }
     else if (is_peek_keyword("define"))
     {
         // We have a macro define lets process it
@@ -1396,7 +1401,7 @@ void Parser::process_structure_declaration()
         // Ok their is an equal sign so we must be assigning this declaration
         // Shift and pop the equal sign we no longer need it
         shift_pop();
-        
+
         // Process the expression we are setting this variable too
         process_expression();
         // Pop the expression from the stack
@@ -1723,6 +1728,39 @@ void Parser::process_macro_ifdef()
 
 }
 
+void Parser::process_macro_ifndef()
+{
+    shift_pop();
+    if (!is_branch_keyword("ifndef"))
+    {
+        error_expecting("ifndef", this->branch_value);
+    }
+
+    // Lets get the requirement
+    shift_pop();
+    if (!is_branch_type("identifier"))
+    {
+        error_expecting("identifier", this->branch_type);
+    }
+
+    std::shared_ptr<Branch> requirement_branch = this->branch;
+
+    // Ok lets get the body, we don't want to create a new scope as macros are interpreted not compiled.
+    process_body(NULL, false);
+    pop_branch();
+
+    std::shared_ptr<BODYBranch> body_branch = std::dynamic_pointer_cast<BODYBranch>(this->branch);
+
+    // Ok lets put it all together
+
+    std::shared_ptr<MacroIfNDefBranch> macro_ifndef_branch = std::shared_ptr<MacroIfNDefBranch>(new MacroIfNDefBranch(getCompiler()));
+    macro_ifndef_branch->setRequirementBranch(requirement_branch);
+    macro_ifndef_branch->setBodyBranch(body_branch);
+
+    // Ok we are done push it to the stack
+    push_branch(macro_ifndef_branch);
+}
+
 void Parser::process_macro_define()
 {
     shift_pop();
@@ -1925,12 +1963,18 @@ void Parser::pop_branch()
     }
 }
 
-void Parser::setRootAndScopes(std::shared_ptr<Branch> branch)
+void Parser::setRootAndScopes(std::shared_ptr<Branch> branch, std::shared_ptr<ScopeBranch> local_scope)
 {
     branch->setRoot(this->root_branch);
+    
+    if (local_scope == NULL)
+    {
+        local_scope = this->current_local_scope;
+    }
+    
     // We should not set scopes to themselves!
-    if (this->current_local_scope != branch)
-        branch->setLocalScope(this->current_local_scope);
+    if (local_scope != branch)
+        branch->setLocalScope(local_scope);
     if (this->root_scope != branch)
         branch->setRootScope(this->root_scope);
 }

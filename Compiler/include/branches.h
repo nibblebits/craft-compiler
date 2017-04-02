@@ -56,6 +56,8 @@
 #include "ContinueBranch.h"
 #include "WhileBranch.h"
 #include "ReturnBranch.h"
+#include "MacroStmtExpBodyBranch.h"
+#include "MacroIfNDefBranch.h"
 #include "MacroIfDefBranch.h"
 #include "MacroDefineBranch.h"
 #include "MacroDefinitionIdentifierBranch.h"

@@ -44,6 +44,8 @@
       <itemPath>include/MacroDefinitionIdentifierBranch.h</itemPath>
       <itemPath>include/MacroFuncCallBranch.h</itemPath>
       <itemPath>include/MacroIfDefBranch.h</itemPath>
+      <itemPath>include/MacroIfNDefBranch.h</itemPath>
+      <itemPath>include/MacroStmtExpBodyBranch.h</itemPath>
       <itemPath>include/PTRBranch.h</itemPath>
       <itemPath>include/Parser.h</itemPath>
       <itemPath>include/ParserException.h</itemPath>
@@ -116,6 +118,8 @@
       <itemPath>src/MacroDefinitionIdentifierBranch.cpp</itemPath>
       <itemPath>src/MacroFuncCallBranch.cpp</itemPath>
       <itemPath>src/MacroIfDefBranch.cpp</itemPath>
+      <itemPath>src/MacroIfNDefBranch.cpp</itemPath>
+      <itemPath>src/MacroStmtExpBodyBranch.cpp</itemPath>
       <itemPath>src/PTRBranch.cpp</itemPath>
       <itemPath>src/Parser.cpp</itemPath>
       <itemPath>src/Preprocessor.cpp</itemPath>
@@ -270,6 +274,10 @@
       </item>
       <item path="include/MacroIfDefBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/MacroIfNDefBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MacroStmtExpBodyBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
@@ -406,6 +414,10 @@
       <item path="src/MacroFuncCallBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MacroIfDefBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MacroIfNDefBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MacroStmtExpBodyBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PTRBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -557,6 +569,10 @@
       </item>
       <item path="include/MacroIfDefBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/MacroIfNDefBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/MacroStmtExpBodyBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/PTRBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Parser.h" ex="false" tool="3" flavor2="0">
@@ -693,6 +709,10 @@
       <item path="src/MacroFuncCallBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/MacroIfDefBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MacroIfNDefBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/MacroStmtExpBodyBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/PTRBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
