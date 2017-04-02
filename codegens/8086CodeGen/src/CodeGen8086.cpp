@@ -46,6 +46,12 @@ CodeGen8086::CodeGen8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat
 
     // Setup a default label on the data segment for us to offset from for global variables
     make_label("data", "data");
+    
+    // Allow the data types
+    getCompiler()->getSemanticValidator()->allow_data_type("uint8");
+    getCompiler()->getSemanticValidator()->allow_data_type("int8");
+    getCompiler()->getSemanticValidator()->allow_data_type("uint16");
+    getCompiler()->getSemanticValidator()->allow_data_type("int16");
 }
 
 CodeGen8086::~CodeGen8086()
@@ -1700,7 +1706,7 @@ void CodeGen8086::handle_while_stmt(std::shared_ptr<WhileBranch> branch)
 
     // This is where we will jump if its false, the body will never be run.
     make_exact_label(false_label);
-    
+
     // Lets make the label for where we end up if we break
     make_exact_label(this->breakable_label);
 
@@ -2832,9 +2838,9 @@ void CodeGen8086::assemble(std::string assembly)
 {
 #ifdef DEBUG_MODE
     std::cout << "FINAL ASSEMBLY" << std::endl;
-#endif
-    
     std::cout << assembly << std::endl;
+#endif
+
     Assembler8086 assembler(getCompiler(), getObjectFormat());
     assembler.setInput(assembly);
     assembler.run();
