@@ -66,8 +66,13 @@ std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch(boo
     std::shared_ptr<VDEFBranch> vdef_branch = Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), true, no_follow);
     if (vdef_branch == NULL)
         throw Exception("VarIdentifierBranch has no VDEFBranch associated with it", "std::shared_ptr<VDEFBranch> VarIdentifierBranch::getVariableDefinitionBranch(bool no_follow)");
-    
+
     return vdef_branch;
+}
+
+bool VarIdentifierBranch::hasVariableDefinitionBranch(bool no_follow)
+{
+    return Branch::getLocalScope()->getVariableDefinitionBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->getptr()), true, no_follow) != NULL;
 }
 
 std::shared_ptr<VarIdentifierBranch> VarIdentifierBranch::getFinalVarIdentifierBranch()
@@ -121,14 +126,14 @@ int VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void
     {
         throw Exception("Expecting a static position", "nt VarIdentifierBranch::getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options, struct position_info* p_info)");
     }
-    
+
     struct position position;
     std::shared_ptr<VarIdentifierBranch> failed_var_iden = NULL;
     var_to_process->getPositionAsFarAsPossible(&position, &failed_var_iden, options);
-    
+
     if (p_info != NULL && p_info->abs_pos != -1)
         return p_info->abs_pos + position.end;
-    
+
     return position.end;
 
 }

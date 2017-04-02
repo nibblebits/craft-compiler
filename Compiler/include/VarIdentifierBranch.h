@@ -132,6 +132,7 @@ public:
     std::shared_ptr<STRUCTAccessBranch> getStructureAccessBranch();
     std::shared_ptr<ArrayIndexBranch> getRootArrayIndexBranch();
     std::shared_ptr<VDEFBranch> getVariableDefinitionBranch(bool no_follow = false);
+    bool hasVariableDefinitionBranch(bool no_follow = false);
     std::shared_ptr<VarIdentifierBranch> getFinalVarIdentifierBranch();
     int getRootPositionRelZero(POSITION_OPTIONS options = 0);
     int getPositionRelZero(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options = 0);
