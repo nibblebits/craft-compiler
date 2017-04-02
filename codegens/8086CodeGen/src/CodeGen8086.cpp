@@ -318,6 +318,7 @@ void CodeGen8086::handle_logical_expression(std::shared_ptr<Branch> exp_branch, 
         make_exact_label(this->cmp_exp_true_label_name);
         do_asm("mov ax, 1");
         make_exact_label(this->cmp_exp_end_label_name);
+        this->cmp_exp_last_logic_operator = "";
         this->is_cmp_expression = false;
     }
 
@@ -2832,6 +2833,7 @@ void CodeGen8086::assemble(std::string assembly)
 #ifdef DEBUG_MODE
     std::cout << "FINAL ASSEMBLY" << std::endl;
 #endif
+    
     std::cout << assembly << std::endl;
     Assembler8086 assembler(getCompiler(), getObjectFormat());
     assembler.setInput(assembly);
