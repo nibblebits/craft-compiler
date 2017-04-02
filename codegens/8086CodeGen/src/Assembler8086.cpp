@@ -80,7 +80,7 @@ unsigned char ins_map[] = {
     0xc1, 0xcd, 0x38, 0x39, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d,
     0x80, 0x81, 0x80, 0x81, 0x8d, 0xd2, 0xd3, 0xd2, 0xd3, 0xf6,
     0xf7, 0xf6, 0xf7, 0x84, 0x85, 0x84, 0x85, 0x84, 0x85, 0xa8,
-    0xa9
+    0xa9, 0xf6, 0xf7
 };
 
 // instruction size excluding OOMMM and OORRRMMM rules that change the size (you should still include the OOMMM and OORRRMMM byte)
@@ -97,8 +97,8 @@ unsigned char ins_sizes[] = {
     4, 3, 4, 3, 4, 3, 3, 3, 3, 3,
     3, 2, 2, 2, 2, 2, 2, 2, 2, 3,
     3, 4, 3, 4, 2, 2, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 1,
-    1
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    3, 3, 4
 };
 
 
@@ -118,7 +118,7 @@ unsigned char static_rrr[] = {
     3, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     7, 7, 7, 7, 0, 3, 3, 2, 2, 5,
     5, 7, 7, 0, 0, 0, 0, 0, 0, 0,
-    0
+    0, 0, 0
 };
 
 /* Describes information relating to an instruction 
@@ -259,6 +259,8 @@ INSTRUCTION_INFO ins_info[] = {
     USE_W | HAS_OORRRMMM | HAS_REG_USE_LEFT, // test reg16, mem
     HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // test al, imm8
     USE_W | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // test ax, imm16
+    HAS_OOMMM | HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // test reg8, imm8
+    USE_W | HAS_OOMMM |HAS_REG_USE_LEFT | HAS_IMM_USE_RIGHT, // test reg16, imm16
 };
 
 struct ins_syntax_def ins_syntax[] = {
@@ -392,7 +394,9 @@ struct ins_syntax_def ins_syntax[] = {
     "test", TEST_REG_WITH_MEM_W0, REG8_MEM16,
     "test", TEST_REG_WITH_MEM_W1, REG16_MEM16,
     "test", TEST_ACC_WITH_IMM_W0, AL_IMM8,
-    "test", TEST_ACC_WITH_IMM_W1, AX_IMM16
+    "test", TEST_ACC_WITH_IMM_W1, AX_IMM16,
+    "test", TEST_REG_WITH_IMM_W0, REG8_IMM8,
+    "test", TEST_REG_WITH_IMM_W1, REG16_IMM16
 };
 
 /* Certain instructions have condition codes that specify a particular event.
