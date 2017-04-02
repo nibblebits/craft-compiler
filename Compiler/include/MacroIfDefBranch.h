@@ -27,17 +27,12 @@
 
 #include "CustomBranch.h"
 
-class MacroIfDefBranch : public CustomBranch
+#include "MacroStmtExpBodyBranch.h"
+class MacroIfDefBranch : public MacroStmtExpBodyBranch
 {
 public:
     MacroIfDefBranch(Compiler* compiler);
     virtual ~MacroIfDefBranch();
-
-    // No idea what to name this?
-    void setRequirementBranch(std::shared_ptr<Branch> requirement_branch);
-    void setBodyBranch(std::shared_ptr<BODYBranch> body_branch);
-    std::shared_ptr<Branch> getRequirementBranch();
-    std::shared_ptr<BODYBranch> getBodyBranch();
 
     virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
     virtual std::shared_ptr<Branch> create_clone();

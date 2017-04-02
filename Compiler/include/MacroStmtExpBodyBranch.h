@@ -16,30 +16,34 @@
  */
 
 /* 
- * File:   MacroIfDefBranch.cpp
+ * File:   MacroStmtExpBody.h
  * Author: Daniel McCarthy
  *
- * Created on 08 January 2017, 02:03
- * 
- * Description: 
+ * Created on 02 April 2017, 01:56
  */
 
-#include "MacroIfDefBranch.h"
+#ifndef MACROSTMTEXPBODYBRANCH_H
+#define MACROSTMTEXPBODYBRANCH_H
 
-MacroIfDefBranch::MacroIfDefBranch(Compiler* compiler) : MacroStmtExpBodyBranch(compiler, "MACRO_IFDEF", "")
+#include "CustomBranch.h"
+class BODYBranch;
+class MacroStmtExpBodyBranch : public CustomBranch
 {
-}
+public:
+    MacroStmtExpBodyBranch(Compiler* compiler, std::string type, std::string value);
+    virtual ~MacroStmtExpBodyBranch();
 
-MacroIfDefBranch::~MacroIfDefBranch()
-{
-}
+    void setRequirementBranch(std::shared_ptr<Branch> requirement_branch);
+    void setBodyBranch(std::shared_ptr<BODYBranch> body_branch);
+    std::shared_ptr<Branch> getRequirementBranch();
+    std::shared_ptr<BODYBranch> getBodyBranch();
 
-void MacroIfDefBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
-{
-    MacroStmtExpBodyBranch::imp_clone(cloned_branch);
-}
+    virtual void imp_clone(std::shared_ptr<Branch> cloned_branch);
+    virtual std::shared_ptr<Branch> create_clone();
 
-std::shared_ptr<Branch> MacroIfDefBranch::create_clone()
-{
-    return std::shared_ptr<Branch>(new MacroIfDefBranch(getCompiler()));
-}
+private:
+
+};
+
+#endif /* MACROSTMTEXPBODYBRANCH_H */
+
