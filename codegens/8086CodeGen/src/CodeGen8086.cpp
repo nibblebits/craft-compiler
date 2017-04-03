@@ -46,7 +46,7 @@ CodeGen8086::CodeGen8086(Compiler* compiler, std::shared_ptr<VirtualObjectFormat
 
     // Setup a default label on the data segment for us to offset from for global variables
     make_label("data", "data");
-    
+
     // Allow the data types
     getCompiler()->getSemanticValidator()->allow_data_type("uint8");
     getCompiler()->getSemanticValidator()->allow_data_type("int8");
@@ -583,7 +583,8 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
         {
             first_reg = second_reg;
         }
-
+        // We must blank DX as mul and imul perform like this DX:AX * operand
+        do_asm("xor dx, dx");
         if (do_signed)
         {
             do_asm("imul " + first_reg);
@@ -602,6 +603,8 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
         {
             first_reg = second_reg;
         }
+        // We must blank DX as div and idiv perform like this DX:AX / operand
+        do_asm("xor dx, dx");
         if (do_signed)
         {
             do_asm("idiv " + first_reg);
@@ -610,16 +613,10 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
         {
             do_asm("div " + first_reg);
         }
-        if (is_gen_reg_16_bit(first_reg))
+
+        if (!is_gen_reg_16_bit(first_reg))
         {
-            // This is a 16 bit division so the DX register will contain the remainder, lets move it into the AX register
-            do_asm("mov ax, dx");
-        }
-        else
-        {
-            // This is an 8 bit division so the AH register will contain the result, lets exchange them
-            do_asm("xchg ah, al");
-            // Finally erase the ah register.
+            // AH contains remainder, we don't want that
             do_asm("xor ah, ah");
         }
 
@@ -634,6 +631,9 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
             first_reg = second_reg;
         }
 
+        // We must blank DX as div and idiv perform like this DX:AX / operand
+        do_asm("xor dx, dx");
+
         do_asm("div " + first_reg);
         if (is_gen_reg_16_bit(first_reg))
         {
@@ -642,9 +642,9 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
         }
         else
         {
-            // This is an 8 bit division so the AH register will contain the result, lets exchange them
-            do_asm("xchg ah, al");
-            // Finally erase the ah register.
+            // AH contains the result
+            do_asm("mov al, ah");
+            // Erase AH
             do_asm("xor ah, ah");
         }
     }
@@ -1093,11 +1093,35 @@ void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::s
     }
     else if (op == "*=")
     {
-        do_asm("mul " + target_reg + ", ax");
+        // We must blank DX as mul and imul perform like this DX:AX * operand
+        do_asm("xor dx, dx");
+        if (do_signed)
+        {
+            do_asm("imul " + target_reg);
+        }
+        else
+        {
+            do_asm("mul " + target_reg);
+        }
     }
     else if (op == "/=")
     {
-        do_asm("div " + target_reg + ", ax");
+        // We must blank DX as div and idiv perform like this DX:AX / operand
+        do_asm("xor dx, dx");
+        if (do_signed)
+        {
+            do_asm("idiv " + target_reg);
+        }
+        else
+        {
+            do_asm("div " + target_reg);
+        }
+
+        if (!is_gen_reg_16_bit(target_reg))
+        {
+            // AH contains remainder, we don't want that
+            do_asm("xor ah, ah");
+        }   
     }
     else
     {
