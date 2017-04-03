@@ -1080,6 +1080,11 @@ std::string CodeGen8086::make_var_access(struct stmt_info* s_info, std::shared_p
 
 void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::string pos)
 {
+    if (target_reg == "ax" || target_reg == "cx")
+    {
+        throw Exception("It is not possible to use the ax or cx register", "void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::string pos)");
+    }
+
     // Load the old value
     do_asm("mov " + target_reg + ", [" + pos + "]");
     if (op == "+=")
@@ -1088,57 +1093,90 @@ void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::s
     }
     else if (op == "-=")
     {
-        do_asm("sub " + target_reg + ", ax");
+        do_asm("sub ax, " + target_reg + ", ax");
     }
-    else if (op == "*=")
+    else if (op == "*=" || op == "/=" || op == "%=")
     {
-        // We must blank DX as mul and imul perform like this DX:AX * operand
-        do_asm("xor dx, dx");
-        if (do_signed)
+        bool using_cx = false;
+        std::string old_target_reg = target_reg;
+        if (target_reg == "dx")
         {
-            do_asm("imul " + target_reg);
-        }
-        else
-        {
-            do_asm("mul " + target_reg);
-        }
-    }
-    else if (op == "/=")
-    {
-        // We must blank DX as div and idiv perform like this DX:AX / operand
-        do_asm("xor dx, dx");
-        if (do_signed)
-        {
-            do_asm("idiv " + target_reg);
-        }
-        else
-        {
-            do_asm("div " + target_reg);
+            // Multiplication, division and modulas use the DX register so we cannot use it
+            // Save CX
+            do_asm("push cx");
+            target_reg = "cx";
+            using_cx = true;
         }
 
-        if (!is_gen_reg_16_bit(target_reg))
-        {
-            // AH contains remainder, we don't want that
-            do_asm("xor ah, ah");
-        }
-    }
-    else if (op == "%=")
-    {
-        // We must blank DX as div and idiv perform like this DX:AX / operand
+        // We must move the old target register to the CX register as we will perform operations on it
+        do_asm("mov cx, " + old_target_reg);
+        
+        /* Now we must exchange CX and AX as AX contains the operand, e.g a += 5;. AX contains 5 we want to perform
+         * var = var * new_value; not var = new_value * var
+         */
+        do_asm("xchg ax, cx");
+        
+        // We must blank DX as the following instructions perform like this DX:AX operator operand
         do_asm("xor dx, dx");
-        do_asm("div " + target_reg);
-        if (is_gen_reg_16_bit(target_reg))
+
+        if (op == "/=")
         {
-            // This is a 16 bit division so the DX register will contain the remainder, lets move it into the AX register
-            do_asm("mov ax, dx");
+            if (do_signed)
+            {
+                do_asm("idiv " + target_reg);
+            }
+            else
+            {
+                do_asm("div " + target_reg);
+            }
+
+            if (!is_gen_reg_16_bit(target_reg))
+            {
+                // AH contains remainder, we don't want that
+                do_asm("xor ah, ah");
+            }
+        }
+        else if (op == "%=")
+        {
+            // We must blank DX as div and idiv perform like this DX:AX / operand
+            do_asm("xor dx, dx");
+            do_asm("div " + target_reg);
+            if (is_gen_reg_16_bit(target_reg))
+            {
+                // This is a 16 bit division so the DX register will contain the remainder, lets move it into the AX register
+                do_asm("mov ax, dx");
+            }
+            else
+            {
+                // AH contains the remainder
+                do_asm("mov al, ah");
+                // Erase AH
+                do_asm("xor ah, ah");
+            }
         }
         else
         {
-            // AH contains the remainder
-            do_asm("mov al, ah");
-            // Erase AH
-            do_asm("xor ah, ah");
+            // This is multiplication
+            // We must blank DX as mul and imul perform like this DX:AX * operand
+            do_asm("xor dx, dx");
+            if (do_signed)
+            {
+                do_asm("imul " + target_reg);
+            }
+            else
+            {
+                do_asm("mul " + target_reg);
+            }
         }
+
+        if (using_cx)
+        {
+            // restore CX
+            do_asm("pop cx");
+        }
+
+        // Finally lets move AX into the target register
+        do_asm("mov " + old_target_reg + ", ax");
     }
     else if (op == "^=")
     {
@@ -1154,15 +1192,19 @@ void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::s
     }
     else if (op == "<<=")
     {
+        do_asm("push cx");
         // We need to move the total bits to shift into the CL register
         do_asm("mov cl, " + convert_full_reg_to_low_reg("ax"));
         do_asm("rcl " + target_reg + ", " + "cl");
+        do_asm("pop cx");
     }
     else if (op == ">>=")
     {
         // We need to move the total bits to shift into the CL register
+        do_asm("push cx");
         do_asm("mov cl, " + convert_full_reg_to_low_reg("ax"));
         do_asm("rcr " + target_reg + ", " + "cl");
+        do_asm("pop cx");
     }
     else
     {
