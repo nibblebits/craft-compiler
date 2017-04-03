@@ -289,7 +289,7 @@ int GenerateMode()
         std::shared_ptr<Stream> input_stream = LoadFile(input_file_name);
         source_file_data = std::string(input_stream->getBuf(), input_stream->getSize());
     }
-    catch (Exception ex)
+    catch (Exception& ex)
     {
         std::cout << "Problem loading source file: " << ex.getMessage() << std::endl;
         return SOURCE_FILE_LOAD_FAILURE;
@@ -301,7 +301,7 @@ int GenerateMode()
     {
         obj_format = getObjectFormat(obj_format_name);
     }
-    catch (Exception ex)
+    catch (Exception& ex)
     {
         std::cout << "Problem loading object format: " << ex.getMessage() << std::endl;
         return OBJECT_FORMAT_LOAD_PROBLEM;
@@ -313,7 +313,7 @@ int GenerateMode()
         codegen = getCodeGenerator(codegen_name, obj_format);
         compiler.setCodeGenerator(codegen);
     }
-    catch (Exception ex)
+    catch (Exception& ex)
     {
         std::cout << "Problem loading code generator: " << ex.getMessage() << std::endl;
         return CODEGENERATOR_LOAD_PROBLEM;
@@ -325,6 +325,7 @@ int GenerateMode()
     semanticValidator = compiler.getSemanticValidator();
     treeImprover = compiler.getTreeImprover();
 
+    lexer->setFilename(input_file_name);
     lexer->setInput(source_file_data);
     try
     {
@@ -428,7 +429,7 @@ int GenerateMode()
         WriteFile(output_file_name, obj_format->getObjectStream());
 
     }
-    catch (Exception ex)
+    catch (Exception& ex)
     {
         std::cout << "Error with code generator: " << ex.getMessage() << std::endl;
         return ERROR_WITH_CODEGENERATOR;
@@ -551,24 +552,12 @@ int LinkMode()
         std::cout << "Failed to output executable file" << std::endl;
         return ERROR_WITH_OUTPUT_FILE;
     }
+
     return 0;
 }
 
-struct test
-{
- 	int a;
-	int b;
-	int* c; 
-};
-
 int main(int argc, char** argv)
 {
-    
-    struct test t;
-    int a = 50;
-    t.c = &a;
-    
-  
     arguments = GoblinArgumentParser_GetArguments(argc, argv);
 
     std::cout << COMPILER_FULLNAME << std::endl;

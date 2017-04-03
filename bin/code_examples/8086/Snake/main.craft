@@ -1,0 +1,461 @@
+// Uncomment for debugging information in game
+//#define DEBUG_INFO
+
+__asm("call _main");
+__asm("mov ah, 0x4c");
+__asm("mov al, 0");
+__asm("int 0x21");
+
+struct snake_part
+{
+	int8 x;
+	int8 y;
+	uint8 direction;
+	uint8 active;
+	struct snake_part* next;
+	struct snake_part* prev;
+}
+
+struct food
+{
+	uint8 x;
+	uint8 y;
+}
+
+void write_string_ex(uint8* message, uint8 x, uint8 y, uint8 colour, uint8 length);
+void write_string(uint8* message);
+void write_char(uint8 c);
+void draw_rect(uint16 x, uint16 y, uint8 width, uint8 height, uint8 colour);
+void setup_video_mode();
+void set_cursor_position(uint8 x, uint8 y);
+void DrawFoodWithColour(uint8 colour);
+void DrawPartWithColour(struct snake_part* part, uint8 colour);
+void grow();
+uint8 get_scan_code();
+uint8 get_key_press();
+uint16 get_system_time();
+
+void wait_seconds(uint8 seconds)
+{
+	uint16 cur_ticks = get_system_time();
+	while(seconds > 0)
+	{
+		if (get_system_time() - cur_ticks > 18)
+		{
+			seconds -= 1;
+		}
+	}
+}
+
+void null_mem(uint8* ptr, uint8 size)
+{
+	for (uint8 i = 0; i < size; i = i + 1)
+	{
+		ptr[i] = 0;
+	}
+}
+
+uint8 strlen(uint8* message)
+{
+	uint8 i = 0;
+	while(message[i] != 0)
+	{
+		i += 1;
+	}
+	return i;
+}
+
+void print(uint8* message, uint8 x, uint8 y, uint8 colour)
+{
+	write_string_ex(message, x, y, colour, strlen(message));
+}
+
+void print_number(uint16 number, uint8 x, uint8 y, uint8 colour)
+{
+	uint8 array[6];
+	// Null the memory
+	null_mem(&array, 6);
+	
+	uint16 thousands;
+	uint8 hundreds;
+	uint8 tens;
+	uint8 units;
+	thousands = (number / 1000) + 48;
+	hundreds = (number / 100 % 10) + 48;
+	tens = (number / 10 % 10) + 48;
+	units = (number % 10) + 48;
+	
+	array[0] = thousands;
+	array[1] = hundreds;
+	array[2] = tens;
+	array[3] = units;
+	print(&array, x, y, colour);
+}
+
+uint8 get_random_number()
+{
+	uint16 system_time = get_system_time();
+	return system_time & 0x0f;
+}
+
+uint8 get_random_number_but_not(uint8 number)
+{
+	uint8 num = get_random_number();
+	while(num == number)
+	{
+		num = get_random_number();
+	}
+	return num;
+}
+
+
+void scrape_screen()
+{
+	setup_video_mode();
+}
+
+void exit()
+{
+	__asm("mov ah, 0x4c");
+	__asm("mov al, 0");
+	__asm("int 0x21");
+}
+
+struct snake_part snake_pool[50];
+struct snake_part* head;
+struct snake_part* last;
+struct food food;
+uint8 current_direction;
+uint16 score;
+
+void game_error(uint8* message)
+{
+	write_string("System error: ");
+	write_string(message);
+	write_char(0x10);
+	exit();
+}
+
+void GameMenu()
+{
+	scrape_screen();
+	print("Snake v1.0", 10, 2, 2);
+	print("Press spacebar to start the game", 2, 4, 2);
+	print("A game written in Craft language", 4, 10, 3);
+	print("Daniel McCarthy", 4, 11, 4);
+	while(get_key_press() != 0x20) {}
+}
+void game_over()
+{
+	scrape_screen();
+	print("Game Over!", 10, 5, 4);
+	print("SCORE: ", 10, 7, 10);
+	print_number(score, 17, 7, 9);
+	
+	if (score < 20)
+	{
+		print("You must be a new player with that score", 4, 12, 15);
+	}
+	else if(score < 50)
+	{
+		print("I hope this is better than before", 4, 12, 15)
+	}
+	else if(score < 100)
+	{
+		print("Can't you even reach a score of 100", 4, 12, 15);
+	}
+	else if(score < 300)
+	{
+		print("Not a bad score", 4, 12, 15);
+	}
+	else
+	{
+		print("Pretty decent score");
+	}
+	
+	if(score > 500)
+	{
+		print("Damn your good", 4, 12, 15);
+	}
+	else if(score > 1000)
+	{
+		print("You must be hacking with a score like that!");
+	}
+	else if(score >= 5000)
+	{
+		print("Ok your banned a score like that is impossible");
+	}
+	
+	wait_seconds(5);
+	exit();
+}
+
+void ResetSnakePart(struct snake_part* part)
+{
+	DrawPartWithColour(part, 0);
+	part->x = 0;
+	part->y = 0;
+	part->direction = 0;
+	part->active = 0;
+	part->next = 0;
+	part->prev = 0;
+}
+
+struct snake_part* NewSnakePart()
+{
+	for (uint8 i = 0; i < 50; i = i + 1)
+	{
+		if (snake_pool[i].active == 0)
+		{
+			ResetSnakePart(&snake_pool[i]);
+			snake_pool[i].active = 1;
+			return &snake_pool[i];
+		}
+	}
+	
+	game_error("No more snake parts available");
+}
+
+void new_food()
+{
+	food.x = get_random_number_but_not(food.x);
+	food.y = get_random_number_but_not(food.y);
+}
+
+void eat()
+{
+	grow();
+	new_food();
+	score += 10;
+}
+
+void grow()
+{
+	struct snake_part* new_part;
+	new_part = NewSnakePart();
+	new_part->x = last->x;
+	new_part->y = last->y;
+	new_part->direction = last->direction;
+	
+	if (current_direction == 0)
+	{
+		new_part->x += 1;
+	}
+    else if(current_direction == 1)
+	{
+		new_part->y += 1;
+	}
+	else if(current_direction == 2)
+	{
+		new_part->x -= 1;
+	}
+	else if(current_direction == 3)
+	{
+		new_part->y -= 1;
+	}
+	
+	last->next = new_part;
+	new_part->prev = last;
+	last = new_part;
+}
+
+
+void move()
+{
+	struct snake_part* new_head;
+	new_head = NewSnakePart();
+	new_head->x = head->x;
+	new_head->y = head->y;
+	new_head->direction = current_direction;
+	if (current_direction == 0)
+	{
+		new_head->x -= 1;
+	}
+    else if(current_direction == 1)
+	{
+		new_head->y -= 1;
+	}
+	else if(current_direction == 2)
+	{
+		new_head->x += 1;
+	}
+	else if(current_direction == 3)
+	{
+		new_head->y += 1;
+	}
+	
+	new_head->next = head;
+	head->prev = new_head;
+	head = new_head;
+	last->prev->next = 0;
+	last->active = 0;
+	last = last->prev;
+}
+
+void InitGame()
+{
+	scrape_screen();
+	write_string("Initiating Game...");
+	
+	for (uint8 i = 0; i < 50; i = i + 1)
+	{
+		ResetSnakePart(&snake_pool[i]);
+	}
+	
+	current_direction = 0;
+	head = NewSnakePart();
+	head->x = 6;
+	head->y = 0;
+	head->direction = current_direction;
+	
+	last = NewSnakePart();
+	last->x = 7;
+	last->y = 0;
+	last->direction = current_direction;
+	last->prev = head;
+	head->next = last;
+	
+	for (uint8 i = 0; i < 3; i = i + 1)
+	{	
+		grow();
+	}
+	new_food();
+	scrape_screen();
+}
+
+void DrawPartWithColour(struct snake_part* part, uint8 colour)
+{
+	uint16 realX = 10 * part->x;
+	uint16 realY = 10 * part->y;
+	draw_rect(realX, realY, 10, 10, colour);
+}
+
+void DrawPart(struct snake_part* part)
+{
+	DrawPartWithColour(part, 2);
+}
+
+void DrawFoodWithColour(uint8 colour)
+{
+	uint16 realX = 10 * food.x;
+	uint16 realY = 10 * food.y;
+	draw_rect(realX, realY, 10, 10, colour);
+}
+
+void DrawFood()
+{
+	DrawFoodWithColour(1);
+}
+
+void CheckKey()
+{
+	uint8 code = get_scan_code();
+	if (code == 0x4b)
+	{
+		if (current_direction != 2)
+		{
+			current_direction = 0;
+		}
+	}
+	else if (code == 0x48)
+	{
+		if (current_direction != 3)
+		{
+			current_direction = 1;
+		}
+	}
+	else if (code == 0x4d)
+	{
+		if (current_direction != 0)
+		{
+			current_direction = 2;
+		}
+	}
+	else if (code == 0x50)
+	{
+		if (current_direction != 1)
+		{
+			current_direction = 3;
+		}
+	}
+}
+
+void collision_check()
+{
+	if (head->x == food.x && head->y == food.y)
+	{
+		eat();
+	}
+	
+	struct snake_part* part;
+	part = head->next;
+	while(part != 0)
+	{
+		if (head->x == part->x && head->y == part->y)
+		{
+			game_over();
+		}
+		part = part->next;
+	}
+	
+	if (head->x < 0 || head->y < 0 || head->x > 30 || head->y > 20)
+	{
+		game_over();
+	}
+}
+
+void ProcessGame()
+{
+	CheckKey();
+	move();
+	collision_check();
+}
+
+void DrawGame()
+{
+	struct snake_part* part;
+	part = head;
+	while(part != 0)
+	{
+		DrawPart(part);
+		part = part->next;
+	}
+	
+	DrawFood();
+	
+	// Lets draw some debugging information if its enabled
+	#ifdef DEBUG_INFO
+	{
+		print("HX: ", 20, 15, 2);
+		print_number(head->x, 23, 15, 2);
+		print("HY: ", 20, 16, 2);
+		print_number(head->y, 23, 16, 2);
+		print("FX: ", 20, 17, 2);
+		print_number(food.x, 23, 17, 2);
+		print("FY: ", 20, 18, 2);
+		print_number(food.y, 23, 18, 2);
+	}
+	
+	// Lets draw our score
+	print("SCORE: ", 25, 0, 9);
+	print_number(score, 25 + 7, 0, 10);
+	
+}
+void main()
+{
+	setup_video_mode();
+	GameMenu();
+	InitGame();
+	
+	uint16 cur_ticks = get_system_time();
+	while(1)
+	{
+		if (get_system_time() - cur_ticks > 1)
+		{
+			ProcessGame();
+			DrawGame();
+			cur_ticks = get_system_time();
+		}
+	}
+
+}

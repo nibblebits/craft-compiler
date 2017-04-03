@@ -1,0 +1,1 @@
+segment codeglobal _get_system_time; uint16 get_system_time(); returns the system times clock ticks; there are approx 18 clock ticks per second_get_system_time:push bpmov bp, spmov ah, 0int 0x1amov ax, dxpop bpret
