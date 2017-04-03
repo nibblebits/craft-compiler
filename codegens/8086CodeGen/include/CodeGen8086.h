@@ -187,7 +187,7 @@ public:
     void make_array_offset_instructions(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_branch, int size_p_elem = 1);
     void make_move_mem_to_mem(VARIABLE_ADDRESS &dest_loc, VARIABLE_ADDRESS &from_loc, int size);
     void make_move_mem_to_mem(std::string dest_loc, std::string from_loc, int size);
-    void make_var_access_rel_base(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch, std::shared_ptr<VDEFBranch>* vdef_in_question_branch = NULL, std::shared_ptr<VarIdentifierBranch>* var_access_iden_branch = NULL, std::string base_reg = "bx", std::shared_ptr<STRUCTBranch> current_struct = NULL);
+  
     void handle_struct_access(struct stmt_info* s_info, std::shared_ptr<STRUCTAccessBranch> access_branch);
     std::string make_var_access(struct stmt_info* s_info, std::shared_ptr<VarIdentifierBranch> var_branch, int* data_size = NULL);
     void make_appendment(std::string target_reg, std::string op, std::string pos);
@@ -219,16 +219,7 @@ public:
     void handle_array_index(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size);
 
     int getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch);
-    int getFunctionArgumentIndex(std::shared_ptr<Branch> var_branch);
-    int getBPOffsetForArgument(std::shared_ptr<Branch> var_branch);
-    int getOffsetForGlobalVariable(std::shared_ptr<Branch> var_branch);
-    std::shared_ptr<STRUCTBranch> getStructure(std::string struct_name);
-    std::shared_ptr<STRUCTBranch> getStructureFromScopeVariable(std::shared_ptr<Branch> branch);
-    std::shared_ptr<VDEFBranch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
-    int getStructureVariableOffset(std::string struct_name, std::string var_name);
-    int getStructureVariableOffset(std::shared_ptr<STRUCTBranch> struct_branch, std::string var_name);
     int getStructSize(std::string struct_name);
-    int getBPOffsetForScopeVariable(std::shared_ptr<Branch> var_branch);
     bool hasGlobalVariable(std::shared_ptr<VarIdentifierBranch> var_branch);
     bool hasScopeVariable(std::shared_ptr<Branch> var_branch);
     bool hasArgumentVariable(std::shared_ptr<Branch> var_branch);
