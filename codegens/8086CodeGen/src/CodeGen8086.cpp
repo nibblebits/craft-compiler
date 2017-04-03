@@ -1140,6 +1140,30 @@ void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::s
             do_asm("xor ah, ah");
         }
     }
+    else if (op == "^=")
+    {
+        do_asm("xor " + target_reg + ", " + "ax");
+    }
+    else if (op == "|=")
+    {
+        do_asm("or " + target_reg + ", " + "ax");
+    }
+    else if (op == "&=")
+    {
+        do_asm("and " + target_reg + ", " + "ax");
+    }
+    else if (op == "<<=")
+    {
+        // We need to move the total bits to shift into the CL register
+        do_asm("mov cl, " + convert_full_reg_to_low_reg("ax"));
+        do_asm("rcl " + target_reg + ", " + "cl");
+    }
+    else if (op == ">>=")
+    {
+        // We need to move the total bits to shift into the CL register
+        do_asm("mov cl, " + convert_full_reg_to_low_reg("ax"));
+        do_asm("rcr " + target_reg + ", " + "cl");
+    }
     else
     {
         throw Exception("Appendment operator \"" + op + "\" is not implemented.", "void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::string pos)");
