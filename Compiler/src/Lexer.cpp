@@ -184,6 +184,24 @@ void Lexer::tokenize()
                 position.col_pos = 0;
             }
         }
+        else if(c == '\'')
+        {
+            // A single quote has been opened so we are expecting a character equivalent of a number
+            it++;
+            c = ReadNextChar(&it);
+            if (c != '\'')
+            {
+                it++;
+                if (ReadNextChar(&it) != '\'')
+                {
+                    throw LexerException(position, "Opening a quote but not closing it or quote length exceeds 1 byte. 'A' is legal 'AB' is not.");
+                }
+            }
+            
+            // This character will be treated as a number
+            tokenValue = std::to_string(c);
+            token = new Token("number", tokenValue, position);
+        }
         else if (c == '"')
         {
             // A string has been opened
