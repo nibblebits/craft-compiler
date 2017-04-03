@@ -62,7 +62,7 @@ void Logger::error(std::string message, std::shared_ptr<Branch> bad_branch)
     if (c_bad_branch != NULL 
             || bad_token != NULL)
     {
-        message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
+        message += " in file \"" + position.filename + "\" on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
     }
     
     this->total_errors++;

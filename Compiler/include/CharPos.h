@@ -31,6 +31,7 @@ struct CharPos
 {
     int line_no;
     int col_pos;
+    std::string filename;
 };
 
 

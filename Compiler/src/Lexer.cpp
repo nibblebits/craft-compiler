@@ -39,14 +39,20 @@ const std::string data_type_keywords[] = {
     "struct", "void"
 };
 
-Lexer::Lexer(Compiler* compiler) : CompilerEntity(compiler)
+Lexer::Lexer(Compiler* compiler, std::string filename) : CompilerEntity(compiler)
 {
-
+    this->filename = filename;
 }
 
 Lexer::~Lexer()
 {
 
+}
+
+
+void Lexer::setFilename(std::string filename)
+{
+    this->filename = filename;
 }
 
 void Lexer::setInput(std::string input)
@@ -65,6 +71,7 @@ void Lexer::tokenize()
     tokenValue = "";
     position.line_no = 1;
     position.col_pos = 1;
+    position.filename = this->filename;
 
     for (it = this->input.begin(); it < this->input.end(); it++)
     {

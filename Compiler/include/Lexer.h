@@ -38,7 +38,8 @@ typedef bool (*is_func)();
 class EXPORT Lexer : public CompilerEntity
 {
 public:
-    Lexer(Compiler* compiler);
+    Lexer(Compiler* compiler, std::string filename="");
+    void setFilename(std::string filename);
     void setInput(std::string input);
     void tokenize();
     std::vector<std::shared_ptr<Token>> getTokens();
@@ -50,6 +51,7 @@ private:
     Token* token;
     std::string tokenValue;
     CharPos position;
+    std::string filename;
     std::string::iterator it;
 
     void fillTokenWhile(std::function<bool(char c) > callback, std::string* custom_tokenValue = NULL);

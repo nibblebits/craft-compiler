@@ -1743,7 +1743,7 @@ void Parser::process_macro_include()
             return;
         }
 
-        std::shared_ptr<Lexer> lexer = std::shared_ptr<Lexer>(new Lexer(getCompiler()));
+        std::shared_ptr<Lexer> lexer = std::shared_ptr<Lexer>(new Lexer(getCompiler(), filename));
         std::shared_ptr<Parser> parser = std::shared_ptr<Parser>(new Parser(getCompiler()));
         lexer->setInput(std::string(file_stream->getBuf(), file_stream->getSize()));
         lexer->tokenize();
