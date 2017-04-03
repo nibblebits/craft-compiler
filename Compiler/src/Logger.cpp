@@ -58,20 +58,20 @@ void Logger::error(std::string message, std::shared_ptr<Branch> bad_branch)
     {
         position = bad_token->getPosition();
     }
-    
-    if (c_bad_branch != NULL 
+
+    if (c_bad_branch != NULL
             || bad_token != NULL)
     {
         message += " in file \"" + position.filename + "\" on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
     }
-    
+
     this->total_errors++;
     this->log.push_back(message);
 }
 
 void Logger::warn(std::string message, std::shared_ptr<Branch> bad_branch)
 {
-     CharPos position;
+    CharPos position;
     std::shared_ptr<CustomBranch> c_bad_branch = std::dynamic_pointer_cast<CustomBranch>(bad_branch);
     std::shared_ptr<Token> bad_token = std::dynamic_pointer_cast<Token>(bad_branch);
     message = "warning: " + message;
@@ -90,11 +90,11 @@ void Logger::warn(std::string message, std::shared_ptr<Branch> bad_branch)
     {
         position = bad_token->getPosition();
     }
-    
-    if (c_bad_branch != NULL 
+
+    if (c_bad_branch != NULL
             || bad_token != NULL)
     {
-        message += " on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
+        message += " in file \"" + position.filename + "\" on line " + std::to_string(position.line_no) + ", col:" + std::to_string(position.col_pos);
     }
 
     this->log.push_back(message);
