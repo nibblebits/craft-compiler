@@ -31,7 +31,7 @@
 SemanticValidator::SemanticValidator(Compiler* compiler) : CompilerEntity(compiler)
 {
     this->logger = std::shared_ptr<Logger>(new Logger());
-
+    this->current_function = NULL;
     // Void is allowed by default
     allow_data_type("void");
 }
@@ -129,6 +129,10 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
     {
         validate_inline_asm(std::dynamic_pointer_cast<ASMBranch>(branch));
     }
+    else if (type == "RETURN")
+    {
+        validate_return(std::dynamic_pointer_cast<ReturnBranch>(branch));
+    }
     else
     {
         /* If a macro was not preprocessed it will remain in the tree
@@ -160,11 +164,15 @@ void SemanticValidator::validate_function_definition(std::shared_ptr<FuncDefBran
 
 void SemanticValidator::validate_function(std::shared_ptr<FuncBranch> func_branch)
 {
+    this->current_function = func_branch;
+    
     // Validate the definition of this function
     validate_function_definition(func_branch);
 
     // Validate the function body
     validate_part(func_branch->getBodyBranch());
+    
+    this->current_function = NULL;
 }
 
 void SemanticValidator::validate_body(std::shared_ptr<BODYBranch> body_branch)
@@ -177,30 +185,44 @@ void SemanticValidator::validate_body(std::shared_ptr<BODYBranch> body_branch)
 
 void SemanticValidator::validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch)
 {
-    std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
     if (vdef_branch->getType() == "STRUCT_DEF" || ensure_variable_type_legal(vdef_branch->getDataTypeBranch()->getDataType(), vdef_branch))
     {
-        std::string vdef_var_iden_name = vdef_var_iden_branch->getVariableNameBranch()->getValue();
-        // Check to see if the variable definition is already registered in this scope
-        for (std::shared_ptr<Branch> child : vdef_branch->getLocalScope()->getChildren())
-        {
-            // We check for a cast rather than type as other branches can extend V_DEF branch
-            std::shared_ptr<VDEFBranch> vdef_child = std::dynamic_pointer_cast<VDEFBranch>(child);
-            if (vdef_child != NULL)
-            {
-                std::shared_ptr<VarIdentifierBranch> vdef_child_var_iden_branch = vdef_child->getVariableIdentifierBranch();
-                std::string vdef_child_var_iden_name = vdef_child_var_iden_branch->getVariableNameBranch()->getValue();
-                // Is this the current branch we are validating?
-                if (vdef_child == vdef_branch)
-                    continue;
+        std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
+        std::string var_name = vdef_var_iden_branch->getVariableNameBranch()->getValue();
+        // We must first ensure the variable is not already registered in this VDEF's local scope
+        ensure_variable_not_already_registered_in_local_scope(vdef_branch);
 
-                if (vdef_var_iden_name == vdef_child_var_iden_name)
-                {
-                    // We already have a variable of this name on this scope
-                    logger->error("The variable \"" + vdef_var_iden_name + "\" has been redeclared", vdef_branch);
-                }
+        /* Now lets ensure this declaration does not have structure access as 
+         * this is a variable declaration we are not accessing a variable*/
+        if (vdef_var_iden_branch->hasStructureAccessBranch())
+        {
+            this->logger->error("Variable definitions cannot have structure access", vdef_var_iden_branch);
+        }
+
+        if (vdef_var_iden_branch->hasRootArrayIndexBranch())
+        {
+            std::shared_ptr<ArrayIndexBranch> root_array_index_branch = vdef_var_iden_branch->getRootArrayIndexBranch();
+            /*
+             * Now lets validate that we have no more than one array index as currently only one array index
+             * is supported but functionality exists for more than one as this was originally planned and may also
+             * be implemented in the future
+             */
+
+            if (root_array_index_branch->hasNextArrayIndexBranch())
+            {
+                this->logger->error("Only one array index is supported for variable declarations", vdef_var_iden_branch);
+            }
+
+            /* Variable definitions allow array indexes to only be numeric. We cannot declare x amount of elements 
+             * based on a variable with a value that will be unknown at compile time. */
+            std::string value_type = root_array_index_branch->getValueBranch()->getType();
+            if (value_type != "number")
+            {
+                this->logger->error("The variable declaration: \"" + var_name + "\" has an array index value that is not a number. Only numbers are supported for array indexes in variable declarations", vdef_var_iden_branch);
             }
         }
+
+
     }
     // Lets validate the value if one exists
     if (vdef_branch->hasValueExpBranch())
@@ -211,6 +233,25 @@ void SemanticValidator::validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch)
         s_info.sv_info.pointer_depth = vdef_branch->getPointerDepth();
 
         validate_value(vdef_branch->getValueExpBranch(), &s_info);
+    }
+}
+
+void SemanticValidator::validate_return(std::shared_ptr<ReturnBranch> return_branch)
+{
+    if (this->current_function == NULL)
+    {
+        this->logger->error("A return statement must be within the body of a function", return_branch);
+        return;
+    }
+    
+    if (return_branch->hasExpressionBranch())
+    {
+        std::shared_ptr<DataTypeBranch> return_type_branch = this->current_function->getReturnDataTypeBranch();
+        struct semantic_information s_info;
+        s_info.sv_info.requirement_type = return_type_branch->getDataType();
+        s_info.sv_info.requires_pointer = return_type_branch->isPointer();
+        s_info.sv_info.pointer_depth = return_type_branch->getPointerDepth();
+        validate_value(return_branch->getExpressionBranch(), &s_info);
     }
 }
 
@@ -468,7 +509,8 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
                 if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type))
                 {
                     long number = std::stoi(branch->getValue());
-                    if (!getCompiler()->canFit(s_info->sv_info.requirement_type, getCompiler()->getTypeFromNumber(number)))
+                    std::string number_type = getCompiler()->getTypeFromNumber(number);
+                    if (!is_data_type_allowed(number_type) || !getCompiler()->canFit(s_info->sv_info.requirement_type, number_type))
                     {
                         this->logger->warn("Decimal number: \"" + std::to_string(number) + "\" cannot fit into type \"" + s_info->sv_info.requirement_type + "\" and will be capped", branch);
                     }
@@ -493,6 +535,20 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
                 std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
                 std::string vdef_type = vdef_branch->getDataTypeBranch()->getDataType();
 
+                // Lets validate array access if we have any
+                if (var_iden_branch->hasRootArrayIndexBranch())
+                {
+                    std::shared_ptr<ArrayIndexBranch> array_index_branch = var_iden_branch->getRootArrayIndexBranch();
+                    if (array_index_branch->hasNextArrayIndexBranch())
+                    {
+                        // We don't support more than one array index yet
+                        this->logger->error("Only one array index is currently supported with the accessing of variables", array_index_branch);
+                    }
+
+                    // Ok finally lets validate the first array index branch
+                    validate_value(array_index_branch->getValueBranch(), s_info);
+                }
+
                 if (vdef_branch->isPointer() && s_info->sv_info.requires_pointer
                         && vdef_branch->getPointerDepth() != s_info->sv_info.pointer_depth)
                 {
@@ -502,7 +558,7 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
                 if (!vdef_branch->isPointer()
                         && s_info->sv_info.requires_pointer)
                 {
-                    this->logger->warn("The variable: \"" + var_iden_name + "\" is not a pointer but a pointer was expected", branch);
+                    this->logger->warn("The variable: \"" + var_iden_name + "\" is not a pointer but a pointer was expected. The variable will be treated as a pointer", branch);
                 }
                 else if (vdef_branch->isPointer()
                         && !s_info->sv_info.requires_pointer)
@@ -691,6 +747,35 @@ bool SemanticValidator::ensure_variable_exists(std::shared_ptr<VarIdentifierBran
     {
         variable_not_declared(var_iden_branch);
         return false;
+    }
+
+    return true;
+}
+
+bool SemanticValidator::ensure_variable_not_already_registered_in_local_scope(std::shared_ptr<VDEFBranch> vdef_branch)
+{
+    std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
+    std::string vdef_var_iden_name = vdef_var_iden_branch->getVariableNameBranch()->getValue();
+    // Check to see if the variable definition is already registered in this scope
+    for (std::shared_ptr<Branch> child : vdef_branch->getLocalScope()->getChildren())
+    {
+        // We check for a cast rather than type as other branches can extend V_DEF branch
+        std::shared_ptr<VDEFBranch> vdef_child = std::dynamic_pointer_cast<VDEFBranch>(child);
+        if (vdef_child != NULL)
+        {
+            std::shared_ptr<VarIdentifierBranch> vdef_child_var_iden_branch = vdef_child->getVariableIdentifierBranch();
+            std::string vdef_child_var_iden_name = vdef_child_var_iden_branch->getVariableNameBranch()->getValue();
+            // Is this the current branch we are validating?
+            if (vdef_child == vdef_branch)
+                continue;
+
+            if (vdef_var_iden_name == vdef_child_var_iden_name)
+            {
+                // We already have a variable of this name on this scope
+                logger->error("The variable \"" + vdef_var_iden_name + "\" has been redeclared", vdef_branch);
+                return false;
+            }
+        }
     }
 
     return true;

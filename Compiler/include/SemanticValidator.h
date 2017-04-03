@@ -33,6 +33,7 @@
 
 struct semantic_value_information
 {
+
     semantic_value_information()
     {
         requirement_type = "";
@@ -40,7 +41,7 @@ struct semantic_value_information
         pointer_depth = 0;
     }
     std::string requirement_type;
-    bool requires_pointer; 
+    bool requires_pointer;
     int pointer_depth;
 };
 
@@ -53,6 +54,7 @@ class Tree;
 class Branch;
 class RootBranch;
 class VDEFBranch;
+class ReturnBranch;
 class BODYBranch;
 class FuncBranch;
 class FuncDefBranch;
@@ -74,7 +76,7 @@ public:
 
     void allow_data_type(std::string data_type);
     bool is_data_type_allowed(std::string data_type);
-    
+
     void setTree(std::shared_ptr<Tree> tree);
     void validate();
 
@@ -86,6 +88,7 @@ private:
     void validate_function(std::shared_ptr<FuncBranch> func_branch);
     void validate_body(std::shared_ptr<BODYBranch> body_branch);
     void validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch);
+    void validate_return(std::shared_ptr<ReturnBranch> return_branch);
     void validate_var_access(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     bool validate_pointer_access(std::shared_ptr<PTRBranch> ptr_branch);
     void validate_assignment(std::shared_ptr<AssignBranch> assign_branch);
@@ -104,9 +107,9 @@ private:
     bool ensure_function_exists(std::string func_name, std::shared_ptr<Branch> stmt_branch);
     bool ensure_variable_valid(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     bool ensure_variable_exists(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
-    
-    bool ensure_variable_type_legal(std::string var_type, std::shared_ptr<Branch> branch=NULL);
-    
+    bool ensure_variable_not_already_registered_in_local_scope(std::shared_ptr<VDEFBranch> vdef_branch);
+    bool ensure_variable_type_legal(std::string var_type, std::shared_ptr<Branch> branch = NULL);
+
     void function_not_declared(std::string func_name, std::shared_ptr<Branch> stmt_branch);
     void variable_not_declared(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     void critical_error(std::string message, std::shared_ptr<Branch> branch = NULL);
@@ -117,6 +120,9 @@ private:
     // Map of all functions
     std::map<std::string, std::shared_ptr<FuncDefBranch>> functions;
     
+    // The current function that is being validated
+    std::shared_ptr<FuncBranch> current_function;
+
     // Allowed data types
     std::vector<std::string> allowed_data_types;
 };
