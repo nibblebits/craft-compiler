@@ -116,6 +116,7 @@ private:
     void process_continue();
 
     // Macro processing
+    void process_macro_include();
     void process_macro_ifdef();
     void process_macro_ifndef();
     void process_macro_define();

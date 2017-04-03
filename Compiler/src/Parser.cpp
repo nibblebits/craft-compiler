@@ -87,6 +87,11 @@ void Parser::merge(std::shared_ptr<Branch> root)
 
     for (std::shared_ptr<Branch> branch : root->getChildren())
     {
+        // The branch as its from another parser will have different scopes, lets blank them.
+        branch->setParent(NULL);
+        branch->setLocalScope(NULL);
+        branch->setRootScope(NULL);
+        branch->setRoot(NULL);
         push_branch(branch);
     }
 }
@@ -231,12 +236,17 @@ void Parser::process_macro()
     }
 
     peek();
-    if (is_peek_keyword("ifdef"))
+    if (is_peek_keyword("include"))
+    {
+        // We have an include macro
+        process_macro_include();
+    }
+    else if (is_peek_keyword("ifdef"))
     {
         // We have a macro ifdef lets process it
         process_macro_ifdef();
     }
-    else if(is_peek_keyword("ifndef"))
+    else if (is_peek_keyword("ifndef"))
     {
         // We have a macro ifndef lets process it
         process_macro_ifndef();
@@ -1694,6 +1704,66 @@ void Parser::process_continue()
     push_branch(continue_branch);
 }
 
+void Parser::process_macro_include()
+{
+    shift_pop();
+    if (!is_branch_keyword("include"))
+    {
+        error_expecting("include", this->branch_value);
+    }
+
+    // Ok we are expecting a string next
+    peek();
+    if (!is_peek_type("string"))
+    {
+        error_expecting("string", this->branch_value);
+    }
+
+    shift_pop();
+    std::shared_ptr<Branch> filename_branch = this->branch;
+    std::string filename = filename_branch->getValue();
+
+    // If we have a semicolon get rid of it, we won't make this a requirement
+    peek();
+    if (is_peek_symbol(";"))
+    {
+        shift_pop();
+    }
+
+    /* We have all the information we need for loading this file.
+     * We need to load the file and perform lexical analysis and parsing on it then 
+     * finally merge the tree with our own */
+
+    try
+    {
+        std::shared_ptr<Stream> file_stream = LoadFile(filename);
+        if (file_stream->hasInput())
+        {
+            error("Input file \"" + filename + "\" is empty");
+            return;
+        }
+
+        std::shared_ptr<Lexer> lexer = std::shared_ptr<Lexer>(new Lexer(getCompiler()));
+        std::shared_ptr<Parser> parser = std::shared_ptr<Parser>(new Parser(getCompiler()));
+        lexer->setInput(std::string(file_stream->getBuf(), file_stream->getSize()));
+        lexer->tokenize();
+        
+        parser->setInput(lexer->getTokens());
+        parser->buildTree();
+        
+        // Merge the new tree with ours
+        merge(parser->getTree()->root);
+    }
+    catch (Exception& exception)
+    {
+        error("Problem loading input file: \"" + filename + "\": " + exception.getMessage());
+    }
+
+
+    // We don't want to push this branch to the tree. We have just dealt with it and loaded the other file.
+
+}
+
 void Parser::process_macro_ifdef()
 {
     shift_pop();
@@ -1966,12 +2036,12 @@ void Parser::pop_branch()
 void Parser::setRootAndScopes(std::shared_ptr<Branch> branch, std::shared_ptr<ScopeBranch> local_scope)
 {
     branch->setRoot(this->root_branch);
-    
+
     if (local_scope == NULL)
     {
         local_scope = this->current_local_scope;
     }
-    
+
     // We should not set scopes to themselves!
     if (local_scope != branch)
         branch->setLocalScope(local_scope);
