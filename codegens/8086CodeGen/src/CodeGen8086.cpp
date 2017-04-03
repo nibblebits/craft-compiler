@@ -633,7 +633,6 @@ void CodeGen8086::make_math_instruction(std::string op, std::string first_reg, s
 
         // We must blank DX as div and idiv perform like this DX:AX / operand
         do_asm("xor dx, dx");
-
         do_asm("div " + first_reg);
         if (is_gen_reg_16_bit(first_reg))
         {
@@ -1121,7 +1120,25 @@ void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::s
         {
             // AH contains remainder, we don't want that
             do_asm("xor ah, ah");
-        }   
+        }
+    }
+    else if (op == "%=")
+    {
+        // We must blank DX as div and idiv perform like this DX:AX / operand
+        do_asm("xor dx, dx");
+        do_asm("div " + target_reg);
+        if (is_gen_reg_16_bit(target_reg))
+        {
+            // This is a 16 bit division so the DX register will contain the remainder, lets move it into the AX register
+            do_asm("mov ax, dx");
+        }
+        else
+        {
+            // AH contains the remainder
+            do_asm("mov al, ah");
+            // Erase AH
+            do_asm("xor ah, ah");
+        }
     }
     else
     {
