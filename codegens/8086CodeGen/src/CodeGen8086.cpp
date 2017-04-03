@@ -1093,7 +1093,7 @@ void CodeGen8086::make_appendment(std::string target_reg, std::string op, std::s
     }
     else if (op == "-=")
     {
-        do_asm("sub ax, " + target_reg + ", ax");
+        do_asm("sub ax, " + target_reg);
     }
     else if (op == "*=" || op == "/=" || op == "%=")
     {
