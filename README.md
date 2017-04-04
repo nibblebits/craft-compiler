@@ -21,7 +21,7 @@ Bootable executable (no operating system required)
 
 # How to compile?
 
-Currently only Windows is supported, please download Cygwin and install the g++-14 and the make Cygwin packages.
+Currently only Windows is supported, please download Cygwin and install the g++-14 compiler and the "make" Cygwin packages.
 Once installed ensure that your environment PATH variable is set to the "bin" directory of Cygwin.
 
 Once your ready open Cygwin terminal and navigate to the root directory of Craft Compiler and then do the commands:
