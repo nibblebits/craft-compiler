@@ -318,8 +318,6 @@ void Preprocessor::process_body(std::shared_ptr<BODYBranch> body_branch)
 
 void Preprocessor::process_macro_ifdef(std::shared_ptr<MacroIfDefBranch> macro_ifdef_branch)
 {
-    this->logger->warn("Macros \"ifdef\" is quite buggy and will likely crash, use it if you can a fix will be made for this soon");
-
     std::shared_ptr<Branch> req_branch = macro_ifdef_branch->getRequirementBranch();
     std::shared_ptr<BODYBranch> body_branch = macro_ifdef_branch->getBodyBranch();
 
