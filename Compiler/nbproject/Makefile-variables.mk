@@ -16,9 +16,9 @@ CND_PACKAGE_NAME_Debug=libCompiler.dll.tar
 CND_PACKAGE_PATH_Debug=dist/Debug/Cygwin-Windows/package/libCompiler.dll.tar
 # Release configuration
 CND_PLATFORM_Release=Cygwin-Windows
-CND_ARTIFACT_DIR_Release=dist/Release/Cygwin-Windows
-CND_ARTIFACT_NAME_Release=compiler
-CND_ARTIFACT_PATH_Release=dist/Release/Cygwin-Windows/compiler
+CND_ARTIFACT_DIR_Release=../bin
+CND_ARTIFACT_NAME_Release=Compiler.dll
+CND_ARTIFACT_PATH_Release=../bin/Compiler.dll
 CND_PACKAGE_DIR_Release=dist/Release/Cygwin-Windows/package
 CND_PACKAGE_NAME_Release=compiler.tar
 CND_PACKAGE_PATH_Release=dist/Release/Cygwin-Windows/package/compiler.tar

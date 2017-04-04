@@ -123,297 +123,297 @@ LDLIBSOPTIONS=
 ${OBJECTDIR}/src/ASMArgBranch.o: src/ASMArgBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASMArgBranch.o src/ASMArgBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASMArgBranch.o src/ASMArgBranch.cpp
 
 ${OBJECTDIR}/src/ASMArgsBranch.o: src/ASMArgsBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASMArgsBranch.o src/ASMArgsBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASMArgsBranch.o src/ASMArgsBranch.cpp
 
 ${OBJECTDIR}/src/ASMBranch.o: src/ASMBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASMBranch.o src/ASMBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASMBranch.o src/ASMBranch.cpp
 
 ${OBJECTDIR}/src/ASTAssistant.o: src/ASTAssistant.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASTAssistant.o src/ASTAssistant.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ASTAssistant.o src/ASTAssistant.cpp
 
 ${OBJECTDIR}/src/AddressOfBranch.o: src/AddressOfBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/AddressOfBranch.o src/AddressOfBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/AddressOfBranch.o src/AddressOfBranch.cpp
 
 ${OBJECTDIR}/src/ArrayIndexBranch.o: src/ArrayIndexBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArrayIndexBranch.o src/ArrayIndexBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArrayIndexBranch.o src/ArrayIndexBranch.cpp
 
 ${OBJECTDIR}/src/Assembler.o: src/Assembler.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Assembler.o src/Assembler.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Assembler.o src/Assembler.cpp
 
 ${OBJECTDIR}/src/AssignBranch.o: src/AssignBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/AssignBranch.o src/AssignBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/AssignBranch.o src/AssignBranch.cpp
 
 ${OBJECTDIR}/src/BODYBranch.o: src/BODYBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BODYBranch.o src/BODYBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BODYBranch.o src/BODYBranch.cpp
 
 ${OBJECTDIR}/src/Branch.o: src/Branch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Branch.o src/Branch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Branch.o src/Branch.cpp
 
 ${OBJECTDIR}/src/BreakBranch.o: src/BreakBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BreakBranch.o src/BreakBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BreakBranch.o src/BreakBranch.cpp
 
 ${OBJECTDIR}/src/CodeGenerator.o: src/CodeGenerator.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CodeGenerator.o src/CodeGenerator.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CodeGenerator.o src/CodeGenerator.cpp
 
 ${OBJECTDIR}/src/Compiler.o: src/Compiler.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Compiler.o src/Compiler.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Compiler.o src/Compiler.cpp
 
 ${OBJECTDIR}/src/CompilerEntity.o: src/CompilerEntity.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CompilerEntity.o src/CompilerEntity.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CompilerEntity.o src/CompilerEntity.cpp
 
 ${OBJECTDIR}/src/ContinueBranch.o: src/ContinueBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ContinueBranch.o src/ContinueBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ContinueBranch.o src/ContinueBranch.cpp
 
 ${OBJECTDIR}/src/CustomBranch.o: src/CustomBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CustomBranch.o src/CustomBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CustomBranch.o src/CustomBranch.cpp
 
 ${OBJECTDIR}/src/DataTypeBranch.o: src/DataTypeBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/DataTypeBranch.o src/DataTypeBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/DataTypeBranch.o src/DataTypeBranch.cpp
 
 ${OBJECTDIR}/src/EBranch.o: src/EBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/EBranch.o src/EBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/EBranch.o src/EBranch.cpp
 
 ${OBJECTDIR}/src/ELSEBranch.o: src/ELSEBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ELSEBranch.o src/ELSEBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ELSEBranch.o src/ELSEBranch.cpp
 
 ${OBJECTDIR}/src/FORBranch.o: src/FORBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FORBranch.o src/FORBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FORBranch.o src/FORBranch.cpp
 
 ${OBJECTDIR}/src/FuncArgumentsBranch.o: src/FuncArgumentsBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncArgumentsBranch.o src/FuncArgumentsBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncArgumentsBranch.o src/FuncArgumentsBranch.cpp
 
 ${OBJECTDIR}/src/FuncBranch.o: src/FuncBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncBranch.o src/FuncBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncBranch.o src/FuncBranch.cpp
 
 ${OBJECTDIR}/src/FuncCallBranch.o: src/FuncCallBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncCallBranch.o src/FuncCallBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncCallBranch.o src/FuncCallBranch.cpp
 
 ${OBJECTDIR}/src/FuncDefBranch.o: src/FuncDefBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncDefBranch.o src/FuncDefBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/FuncDefBranch.o src/FuncDefBranch.cpp
 
 ${OBJECTDIR}/src/Helper.o: src/Helper.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Helper.o src/Helper.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Helper.o src/Helper.cpp
 
 ${OBJECTDIR}/src/IFBranch.o: src/IFBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/IFBranch.o src/IFBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/IFBranch.o src/IFBranch.cpp
 
 ${OBJECTDIR}/src/Lexer.o: src/Lexer.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Lexer.o src/Lexer.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Lexer.o src/Lexer.cpp
 
 ${OBJECTDIR}/src/Linker.o: src/Linker.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Linker.o src/Linker.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Linker.o src/Linker.cpp
 
 ${OBJECTDIR}/src/Logger.o: src/Logger.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Logger.o src/Logger.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Logger.o src/Logger.cpp
 
 ${OBJECTDIR}/src/LogicalNotBranch.o: src/LogicalNotBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/LogicalNotBranch.o src/LogicalNotBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/LogicalNotBranch.o src/LogicalNotBranch.cpp
 
 ${OBJECTDIR}/src/MacroDefineBranch.o: src/MacroDefineBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroDefineBranch.o src/MacroDefineBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroDefineBranch.o src/MacroDefineBranch.cpp
 
 ${OBJECTDIR}/src/MacroDefinitionIdentifierBranch.o: src/MacroDefinitionIdentifierBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroDefinitionIdentifierBranch.o src/MacroDefinitionIdentifierBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroDefinitionIdentifierBranch.o src/MacroDefinitionIdentifierBranch.cpp
 
 ${OBJECTDIR}/src/MacroFuncCallBranch.o: src/MacroFuncCallBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroFuncCallBranch.o src/MacroFuncCallBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroFuncCallBranch.o src/MacroFuncCallBranch.cpp
 
 ${OBJECTDIR}/src/MacroIfDefBranch.o: src/MacroIfDefBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroIfDefBranch.o src/MacroIfDefBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroIfDefBranch.o src/MacroIfDefBranch.cpp
 
 ${OBJECTDIR}/src/MacroIfNDefBranch.o: src/MacroIfNDefBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroIfNDefBranch.o src/MacroIfNDefBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroIfNDefBranch.o src/MacroIfNDefBranch.cpp
 
 ${OBJECTDIR}/src/MacroStmtExpBodyBranch.o: src/MacroStmtExpBodyBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroStmtExpBodyBranch.o src/MacroStmtExpBodyBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MacroStmtExpBodyBranch.o src/MacroStmtExpBodyBranch.cpp
 
 ${OBJECTDIR}/src/PTRBranch.o: src/PTRBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PTRBranch.o src/PTRBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/PTRBranch.o src/PTRBranch.cpp
 
 ${OBJECTDIR}/src/Parser.o: src/Parser.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Parser.o src/Parser.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Parser.o src/Parser.cpp
 
 ${OBJECTDIR}/src/Preprocessor.o: src/Preprocessor.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Preprocessor.o src/Preprocessor.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Preprocessor.o src/Preprocessor.cpp
 
 ${OBJECTDIR}/src/ReturnBranch.o: src/ReturnBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ReturnBranch.o src/ReturnBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ReturnBranch.o src/ReturnBranch.cpp
 
 ${OBJECTDIR}/src/RootBranch.o: src/RootBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/RootBranch.o src/RootBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/RootBranch.o src/RootBranch.cpp
 
 ${OBJECTDIR}/src/STRUCTAccessBranch.o: src/STRUCTAccessBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTAccessBranch.o src/STRUCTAccessBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTAccessBranch.o src/STRUCTAccessBranch.cpp
 
 ${OBJECTDIR}/src/STRUCTBranch.o: src/STRUCTBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTBranch.o src/STRUCTBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTBranch.o src/STRUCTBranch.cpp
 
 ${OBJECTDIR}/src/STRUCTDEFBranch.o: src/STRUCTDEFBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTDEFBranch.o src/STRUCTDEFBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTDEFBranch.o src/STRUCTDEFBranch.cpp
 
 ${OBJECTDIR}/src/STRUCTDescriptorBranch.o: src/STRUCTDescriptorBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTDescriptorBranch.o src/STRUCTDescriptorBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/STRUCTDescriptorBranch.o src/STRUCTDescriptorBranch.cpp
 
 ${OBJECTDIR}/src/Scope.o: src/Scope.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Scope.o src/Scope.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Scope.o src/Scope.cpp
 
 ${OBJECTDIR}/src/ScopeBranch.o: src/ScopeBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ScopeBranch.o src/ScopeBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ScopeBranch.o src/ScopeBranch.cpp
 
 ${OBJECTDIR}/src/SemanticValidator.o: src/SemanticValidator.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/SemanticValidator.o src/SemanticValidator.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/SemanticValidator.o src/SemanticValidator.cpp
 
 ${OBJECTDIR}/src/StandardScopeBranch.o: src/StandardScopeBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/StandardScopeBranch.o src/StandardScopeBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/StandardScopeBranch.o src/StandardScopeBranch.cpp
 
 ${OBJECTDIR}/src/Stream.o: src/Stream.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Stream.o src/Stream.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Stream.o src/Stream.cpp
 
 ${OBJECTDIR}/src/Token.o: src/Token.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Token.o src/Token.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Token.o src/Token.cpp
 
 ${OBJECTDIR}/src/Tree.o: src/Tree.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Tree.o src/Tree.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Tree.o src/Tree.cpp
 
 ${OBJECTDIR}/src/TreeImprover.o: src/TreeImprover.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/TreeImprover.o src/TreeImprover.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/TreeImprover.o src/TreeImprover.cpp
 
 ${OBJECTDIR}/src/VDEFBranch.o: src/VDEFBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VDEFBranch.o src/VDEFBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VDEFBranch.o src/VDEFBranch.cpp
 
 ${OBJECTDIR}/src/VarIdentifierBranch.o: src/VarIdentifierBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VarIdentifierBranch.o src/VarIdentifierBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VarIdentifierBranch.o src/VarIdentifierBranch.cpp
 
 ${OBJECTDIR}/src/VirtualObjectFormat.o: src/VirtualObjectFormat.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VirtualObjectFormat.o src/VirtualObjectFormat.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VirtualObjectFormat.o src/VirtualObjectFormat.cpp
 
 ${OBJECTDIR}/src/VirtualSegment.o: src/VirtualSegment.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VirtualSegment.o src/VirtualSegment.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/VirtualSegment.o src/VirtualSegment.cpp
 
 ${OBJECTDIR}/src/WhileBranch.o: src/WhileBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/WhileBranch.o src/WhileBranch.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/WhileBranch.o src/WhileBranch.cpp
 
 ${OBJECTDIR}/src/common.o: src/common.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/common.o src/common.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/common.o src/common.cpp
 
 # Subprojects
 .build-subprojects:
