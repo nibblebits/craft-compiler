@@ -1,0 +1,3 @@
+[submodule "libs/MagicOMF"]
+	path = libs/MagicOMF
+	url = https://github.com/nibblebits/MagicOMF
