@@ -46,6 +46,10 @@
           <incDir>
             <pElem>include</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>DEBUG_MODE</Elem>
+          </preprocessorList>
+          <useLinkerLibraries>false</useLinkerLibraries>
         </ccTool>
         <linkerTool>
           <output>../bin/GoblinArgumentParser.${CND_DLIB_EXT}</output>
@@ -78,6 +82,13 @@
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <standard>11</standard>
+          <incDir>
+            <pElem>include</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>RELEASE</Elem>
+          </preprocessorList>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -85,6 +96,9 @@
         <asmTool>
           <developmentMode>5</developmentMode>
         </asmTool>
+        <linkerTool>
+          <output>../bin/GoblinArgumentParser.${CND_DLIB_EXT}</output>
+        </linkerTool>
       </compileType>
       <item path="GoblinArgumentParser.cpp" ex="false" tool="1" flavor2="0">
       </item>

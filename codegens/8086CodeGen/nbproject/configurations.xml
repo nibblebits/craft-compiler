@@ -67,6 +67,9 @@
             <pElem>include</pElem>
             <pElem>../../Compiler/include</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>DEBUG_MODE</Elem>
+          </preprocessorList>
         </ccTool>
         <linkerTool>
           <output>../../bin/codegens/8086CodeGen.${CND_DLIB_EXT}</output>
@@ -142,6 +145,14 @@
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <standard>11</standard>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../../Compiler/include</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>RELEASE</Elem>
+          </preprocessorList>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -149,6 +160,12 @@
         <asmTool>
           <developmentMode>5</developmentMode>
         </asmTool>
+        <linkerTool>
+          <output>../../bin/codegens/8086CodeGen.${CND_DLIB_EXT}</output>
+          <linkerLibItems>
+            <linkerLibFileItem>../../bin/Compiler.dll</linkerLibFileItem>
+          </linkerLibItems>
+        </linkerTool>
       </compileType>
       <item path="include/Assembler8086.h" ex="false" tool="3" flavor2="0">
       </item>

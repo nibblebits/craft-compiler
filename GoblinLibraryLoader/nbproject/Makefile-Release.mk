@@ -56,16 +56,16 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGoblinLibraryLoader.${CND_DLIB_EXT}
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../bin/GoblinLibraryLoader.${CND_DLIB_EXT}
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGoblinLibraryLoader.${CND_DLIB_EXT}: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGoblinLibraryLoader.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
+../bin/GoblinLibraryLoader.${CND_DLIB_EXT}: ${OBJECTFILES}
+	${MKDIR} -p ../bin
+	${LINK.c} -o ../bin/GoblinLibraryLoader.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
 
 ${OBJECTDIR}/src/GoblinLibraryLoader.o: src/GoblinLibraryLoader.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.c) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinLibraryLoader.o src/GoblinLibraryLoader.c
+	$(COMPILE.c) -O2 -DRELEASE -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinLibraryLoader.o src/GoblinLibraryLoader.c
 
 # Subprojects
 .build-subprojects:

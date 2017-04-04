@@ -65,7 +65,7 @@ LDLIBSOPTIONS=
 ${OBJECTDIR}/src/GoblinLibraryLoader.o: src/GoblinLibraryLoader.c
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.c) -g -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinLibraryLoader.o src/GoblinLibraryLoader.c
+	$(COMPILE.c) -g -DDEBUG_MODE -Iinclude  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GoblinLibraryLoader.o src/GoblinLibraryLoader.c
 
 # Subprojects
 .build-subprojects:

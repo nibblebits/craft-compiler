@@ -535,6 +535,7 @@ int LinkMode()
     try
     {
         linker->link();
+        std::cout << "Link successful" << std::endl;
     }
     catch (Exception ex)
     {

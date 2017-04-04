@@ -53,25 +53,27 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=../../bin/Compiler.dll
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libBinLinker.${CND_DLIB_EXT}
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../bin/linkers/bin.${CND_DLIB_EXT}
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libBinLinker.${CND_DLIB_EXT}: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libBinLinker.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
+../../bin/linkers/bin.${CND_DLIB_EXT}: ../../bin/Compiler.dll
+
+../../bin/linkers/bin.${CND_DLIB_EXT}: ${OBJECTFILES}
+	${MKDIR} -p ../../bin/linkers
+	${LINK.cc} -o ../../bin/linkers/bin.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -I../../Compiler/include -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/src/BinLinker.o: src/BinLinker.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BinLinker.o src/BinLinker.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -I../../Compiler/include -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BinLinker.o src/BinLinker.cpp
 
 # Subprojects
 .build-subprojects:
@@ -79,6 +81,8 @@ ${OBJECTDIR}/src/BinLinker.o: src/BinLinker.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} -r ../../bin/linkers/Compiler.dll
+	${RM} ../../bin/linkers/bin.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:

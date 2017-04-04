@@ -16,9 +16,9 @@ CND_PACKAGE_NAME_Debug=libBinLinker.dll.tar
 CND_PACKAGE_PATH_Debug=dist/Debug/Cygwin-Windows/package/libBinLinker.dll.tar
 # Release configuration
 CND_PLATFORM_Release=Cygwin-Windows
-CND_ARTIFACT_DIR_Release=dist/Release/Cygwin-Windows
-CND_ARTIFACT_NAME_Release=libBinLinker.dll
-CND_ARTIFACT_PATH_Release=dist/Release/Cygwin-Windows/libBinLinker.dll
+CND_ARTIFACT_DIR_Release=../../bin/linkers
+CND_ARTIFACT_NAME_Release=bin.dll
+CND_ARTIFACT_PATH_Release=../../bin/linkers/bin.dll
 CND_PACKAGE_DIR_Release=dist/Release/Cygwin-Windows/package
 CND_PACKAGE_NAME_Release=libBinLinker.dll.tar
 CND_PACKAGE_PATH_Release=dist/Release/Cygwin-Windows/package/libBinLinker.dll.tar

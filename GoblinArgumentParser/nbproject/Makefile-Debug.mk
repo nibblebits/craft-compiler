@@ -67,17 +67,17 @@ LDLIBSOPTIONS=
 ${OBJECTDIR}/GoblinArgumentParser.o: GoblinArgumentParser.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/GoblinArgumentParser.o GoblinArgumentParser.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/GoblinArgumentParser.o GoblinArgumentParser.cpp
 
 ${OBJECTDIR}/src/Argument.o: src/Argument.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Argument.o src/Argument.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Argument.o src/Argument.cpp
 
 ${OBJECTDIR}/src/ArgumentContainer.o: src/ArgumentContainer.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArgumentContainer.o src/ArgumentContainer.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArgumentContainer.o src/ArgumentContainer.cpp
 
 # Subprojects
 .build-subprojects:

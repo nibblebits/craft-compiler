@@ -64,80 +64,82 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=../../bin/Compiler.dll
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/lib8086CodeGen.${CND_DLIB_EXT}
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../bin/codegens/8086CodeGen.${CND_DLIB_EXT}
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/lib8086CodeGen.${CND_DLIB_EXT}: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/lib8086CodeGen.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
+../../bin/codegens/8086CodeGen.${CND_DLIB_EXT}: ../../bin/Compiler.dll
+
+../../bin/codegens/8086CodeGen.${CND_DLIB_EXT}: ${OBJECTFILES}
+	${MKDIR} -p ../../bin/codegens
+	${LINK.cc} -o ../../bin/codegens/8086CodeGen.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/src/Assembler8086.o: src/Assembler8086.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Assembler8086.o src/Assembler8086.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Assembler8086.o src/Assembler8086.cpp
 
 ${OBJECTDIR}/src/ChildOfSegment.o: src/ChildOfSegment.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ChildOfSegment.o src/ChildOfSegment.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ChildOfSegment.o src/ChildOfSegment.cpp
 
 ${OBJECTDIR}/src/CodeGen8086.o: src/CodeGen8086.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CodeGen8086.o src/CodeGen8086.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/CodeGen8086.o src/CodeGen8086.cpp
 
 ${OBJECTDIR}/src/DataBranch.o: src/DataBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/DataBranch.o src/DataBranch.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/DataBranch.o src/DataBranch.cpp
 
 ${OBJECTDIR}/src/ExternBranch.o: src/ExternBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ExternBranch.o src/ExternBranch.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ExternBranch.o src/ExternBranch.cpp
 
 ${OBJECTDIR}/src/GlobalBranch.o: src/GlobalBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GlobalBranch.o src/GlobalBranch.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/GlobalBranch.o src/GlobalBranch.cpp
 
 ${OBJECTDIR}/src/InstructionBranch.o: src/InstructionBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/InstructionBranch.o src/InstructionBranch.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/InstructionBranch.o src/InstructionBranch.cpp
 
 ${OBJECTDIR}/src/LabelBranch.o: src/LabelBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/LabelBranch.o src/LabelBranch.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/LabelBranch.o src/LabelBranch.cpp
 
 ${OBJECTDIR}/src/MustFitTable.o: src/MustFitTable.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MustFitTable.o src/MustFitTable.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/MustFitTable.o src/MustFitTable.cpp
 
 ${OBJECTDIR}/src/OffsetableBranch.o: src/OffsetableBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OffsetableBranch.o src/OffsetableBranch.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OffsetableBranch.o src/OffsetableBranch.cpp
 
 ${OBJECTDIR}/src/OperandBranch.o: src/OperandBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OperandBranch.o src/OperandBranch.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OperandBranch.o src/OperandBranch.cpp
 
 ${OBJECTDIR}/src/SegmentBranch.o: src/SegmentBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/SegmentBranch.o src/SegmentBranch.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/SegmentBranch.o src/SegmentBranch.cpp
 
 # Subprojects
 .build-subprojects:
@@ -145,6 +147,8 @@ ${OBJECTDIR}/src/SegmentBranch.o: src/SegmentBranch.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} -r ../../bin/codegens/Compiler.dll
+	${RM} ../../bin/codegens/8086CodeGen.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:

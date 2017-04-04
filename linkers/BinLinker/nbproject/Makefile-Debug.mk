@@ -68,12 +68,12 @@ LDLIBSOPTIONS=../../bin/Compiler.dll
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -s -I../../Compiler/include -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -g -s -DDEBUG_MODE -I../../Compiler/include -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
 
 ${OBJECTDIR}/src/BinLinker.o: src/BinLinker.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -s -I../../Compiler/include -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BinLinker.o src/BinLinker.cpp
+	$(COMPILE.cc) -g -s -DDEBUG_MODE -I../../Compiler/include -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BinLinker.o src/BinLinker.cpp
 
 # Subprojects
 .build-subprojects:

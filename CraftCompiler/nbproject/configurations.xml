@@ -4,16 +4,15 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>include/GoblinLibraryLoader.h</itemPath>
-    </logicalFolder>
-    <logicalFolder name="ResourceFiles"
-                   displayName="Resource Files"
-                   projectFiles="true">
+      <logicalFolder name="ResourceFiles"
+                     displayName="Resource Files"
+                     projectFiles="true">
+      </logicalFolder>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>src/GoblinLibraryLoader.c</itemPath>
+      <itemPath>main.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -26,47 +25,44 @@
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <itemPath>main.h</itemPath>
   </logicalFolder>
-  <sourceRootList>
-    <Elem>include</Elem>
-    <Elem>src</Elem>
-  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
-    <conf name="Debug" type="2">
+    <conf name="Debug" type="1">
       <toolsSet>
-        <compilerSet>default</compilerSet>
+        <compilerSet>Cygwin|Cygwin</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
-        <cTool>
-          <incDir>
-            <pElem>include</pElem>
-          </incDir>
-          <preprocessorList>
-            <Elem>DEBUG_MODE</Elem>
-          </preprocessorList>
-        </cTool>
         <ccTool>
           <standard>11</standard>
           <incDir>
-            <pElem>include</pElem>
+            <pElem>../Compiler/include</pElem>
+            <pElem>.</pElem>
+            <pElem>../GoblinArgumentParser/include</pElem>
+            <pElem>../GoblinLibraryLoader/include</pElem>
           </incDir>
           <preprocessorList>
             <Elem>DEBUG_MODE</Elem>
           </preprocessorList>
         </ccTool>
         <linkerTool>
-          <output>../bin/GoblinLibraryLoader.${CND_DLIB_EXT}</output>
+          <output>../bin/craft</output>
+          <linkerLibItems>
+            <linkerLibFileItem>../bin/GoblinArgumentParser.dll</linkerLibFileItem>
+            <linkerLibFileItem>../bin/GoblinLibraryLoader.dll</linkerLibFileItem>
+            <linkerLibFileItem>../bin/Compiler.dll</linkerLibFileItem>
+          </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="include/GoblinLibraryLoader.h" ex="false" tool="3" flavor2="0">
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/GoblinLibraryLoader.c" ex="false" tool="0" flavor2="0">
+      <item path="main.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
-    <conf name="Release" type="2">
+    <conf name="Release" type="1">
       <toolsSet>
         <compilerSet>default</compilerSet>
         <dependencyChecking>true</dependencyChecking>
@@ -75,18 +71,15 @@
       <compileType>
         <cTool>
           <developmentMode>5</developmentMode>
-          <incDir>
-            <pElem>include</pElem>
-          </incDir>
-          <preprocessorList>
-            <Elem>RELEASE</Elem>
-          </preprocessorList>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
           <standard>11</standard>
           <incDir>
-            <pElem>include</pElem>
+            <pElem>../Compiler/include</pElem>
+            <pElem>.</pElem>
+            <pElem>../GoblinArgumentParser/include</pElem>
+            <pElem>../GoblinLibraryLoader/include</pElem>
           </incDir>
           <preprocessorList>
             <Elem>RELEASE</Elem>
@@ -99,12 +92,17 @@
           <developmentMode>5</developmentMode>
         </asmTool>
         <linkerTool>
-          <output>../bin/GoblinLibraryLoader.${CND_DLIB_EXT}</output>
+          <output>../bin/craft</output>
+          <linkerLibItems>
+            <linkerLibFileItem>../bin/Compiler.dll</linkerLibFileItem>
+            <linkerLibFileItem>../bin/GoblinArgumentParser.dll</linkerLibFileItem>
+            <linkerLibFileItem>../bin/GoblinLibraryLoader.dll</linkerLibFileItem>
+          </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="include/GoblinLibraryLoader.h" ex="false" tool="3" flavor2="0">
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="src/GoblinLibraryLoader.c" ex="false" tool="0" flavor2="0">
+      <item path="main.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>

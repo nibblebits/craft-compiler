@@ -16,9 +16,9 @@ CND_PACKAGE_NAME_Debug=libOMFObjFormat.dll.tar
 CND_PACKAGE_PATH_Debug=dist/Debug/Cygwin-Windows/package/libOMFObjFormat.dll.tar
 # Release configuration
 CND_PLATFORM_Release=Cygwin-Windows
-CND_ARTIFACT_DIR_Release=dist/Release/Cygwin-Windows
-CND_ARTIFACT_NAME_Release=libOMFObjFormat.dll
-CND_ARTIFACT_PATH_Release=dist/Release/Cygwin-Windows/libOMFObjFormat.dll
+CND_ARTIFACT_DIR_Release=../../bin/obj_formats
+CND_ARTIFACT_NAME_Release=omf.dll
+CND_ARTIFACT_PATH_Release=../../bin/obj_formats/omf.dll
 CND_PACKAGE_DIR_Release=dist/Release/Cygwin-Windows/package
 CND_PACKAGE_NAME_Release=libOMFObjFormat.dll.tar
 CND_PACKAGE_PATH_Release=dist/Release/Cygwin-Windows/package/libOMFObjFormat.dll.tar

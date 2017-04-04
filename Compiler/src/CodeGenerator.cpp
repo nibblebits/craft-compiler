@@ -83,7 +83,6 @@ std::string CodeGenerator::getName()
 
 void CodeGenerator::do_asm(std::string asm_ins, std::string segment)
 {
-    std::cout << asm_ins << std::endl;
     std::map<std::string, std::string>::const_iterator it = this->assembly.find(segment);
     bool exists = it != this->assembly.end();
 

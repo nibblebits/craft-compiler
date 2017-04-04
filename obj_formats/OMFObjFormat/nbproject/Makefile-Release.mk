@@ -53,25 +53,29 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=../../bin/MagicOMF.dll ../../bin/Compiler.dll
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libOMFObjFormat.${CND_DLIB_EXT}
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../../bin/obj_formats/omf.${CND_DLIB_EXT}
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libOMFObjFormat.${CND_DLIB_EXT}: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libOMFObjFormat.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
+../../bin/obj_formats/omf.${CND_DLIB_EXT}: ../../bin/MagicOMF.dll
+
+../../bin/obj_formats/omf.${CND_DLIB_EXT}: ../../bin/Compiler.dll
+
+../../bin/obj_formats/omf.${CND_DLIB_EXT}: ${OBJECTFILES}
+	${MKDIR} -p ../../bin/obj_formats
+	${LINK.cc} -o ../../bin/obj_formats/omf.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
 
 ${OBJECTDIR}/src/OMFObjectFormat.o: src/OMFObjectFormat.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OMFObjectFormat.o src/OMFObjectFormat.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../libs/MagicOMF/include -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/OMFObjectFormat.o src/OMFObjectFormat.cpp
 
 ${OBJECTDIR}/src/main.o: src/main.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -I../../libs/MagicOMF/include -I../../Compiler/include -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/main.o src/main.cpp
 
 # Subprojects
 .build-subprojects:
@@ -79,6 +83,8 @@ ${OBJECTDIR}/src/main.o: src/main.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} -r ../../bin/obj_formats/MagicOMF.dll ../../bin/obj_formats/Compiler.dll
+	${RM} ../../bin/obj_formats/omf.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:

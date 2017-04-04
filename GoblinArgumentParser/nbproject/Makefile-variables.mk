@@ -16,9 +16,9 @@ CND_PACKAGE_NAME_Debug=libGoblinArgumentParser.dll.tar
 CND_PACKAGE_PATH_Debug=dist/Debug/Cygwin-Windows/package/libGoblinArgumentParser.dll.tar
 # Release configuration
 CND_PLATFORM_Release=Cygwin-Windows
-CND_ARTIFACT_DIR_Release=dist/Release/Cygwin-Windows
-CND_ARTIFACT_NAME_Release=libGoblinArgumentParser.dll
-CND_ARTIFACT_PATH_Release=dist/Release/Cygwin-Windows/libGoblinArgumentParser.dll
+CND_ARTIFACT_DIR_Release=../bin
+CND_ARTIFACT_NAME_Release=GoblinArgumentParser.dll
+CND_ARTIFACT_PATH_Release=../bin/GoblinArgumentParser.dll
 CND_PACKAGE_DIR_Release=dist/Release/Cygwin-Windows/package
 CND_PACKAGE_NAME_Release=libGoblinArgumentParser.dll.tar
 CND_PACKAGE_PATH_Release=dist/Release/Cygwin-Windows/package/libGoblinArgumentParser.dll.tar

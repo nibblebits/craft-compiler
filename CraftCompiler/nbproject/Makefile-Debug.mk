@@ -56,22 +56,22 @@ LDLIBSOPTIONS=../bin/GoblinArgumentParser.dll ../bin/GoblinLibraryLoader.dll ../
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../bin/craft_compiler.exe
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../bin/craft.exe
 
-../bin/craft_compiler.exe: ../bin/GoblinArgumentParser.dll
+../bin/craft.exe: ../bin/GoblinArgumentParser.dll
 
-../bin/craft_compiler.exe: ../bin/GoblinLibraryLoader.dll
+../bin/craft.exe: ../bin/GoblinLibraryLoader.dll
 
-../bin/craft_compiler.exe: ../bin/Compiler.dll
+../bin/craft.exe: ../bin/Compiler.dll
 
-../bin/craft_compiler.exe: ${OBJECTFILES}
+../bin/craft.exe: ${OBJECTFILES}
 	${MKDIR} -p ../bin
-	${LINK.cc} -o ../bin/craft_compiler ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.cc} -o ../bin/craft ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -I../Compiler/include -I. -I../GoblinArgumentParser/include -I../GoblinLibraryLoader/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -g -DDEBUG_MODE -I../Compiler/include -I. -I../GoblinArgumentParser/include -I../GoblinLibraryLoader/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
 
 # Subprojects
 .build-subprojects:
@@ -80,7 +80,7 @@ ${OBJECTDIR}/main.o: main.cpp
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
 	${RM} -r ../bin/GoblinArgumentParser.dll ../bin/Compiler.dll ../bin/GoblinLibraryLoader.dll
-	${RM} ../bin/craft_compiler.exe
+	${RM} ../bin/craft.exe
 
 # Subprojects
 .clean-subprojects:

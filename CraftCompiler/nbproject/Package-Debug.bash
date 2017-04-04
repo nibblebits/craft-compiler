@@ -13,8 +13,8 @@ CND_BUILDDIR=build
 CND_DLIB_EXT=dll
 NBTMPDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tmp-packaging
 TMPDIRNAME=tmp-packaging
-OUTPUT_PATH=../bin/craft_compiler
-OUTPUT_BASENAME=craft_compiler
+OUTPUT_PATH=../bin/craft
+OUTPUT_BASENAME=craft
 PACKAGE_TOP_DIR=craftcompiler/
 
 # Functions

@@ -45,6 +45,9 @@
             <pElem>../../libs/MagicOMF/include</pElem>
             <pElem>../../Compiler/include</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>DEBUG_MODE</Elem>
+          </preprocessorList>
         </ccTool>
         <linkerTool>
           <output>../../bin/obj_formats/omf.${CND_DLIB_EXT}</output>
@@ -75,6 +78,15 @@
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <standard>11</standard>
+          <incDir>
+            <pElem>include</pElem>
+            <pElem>../../libs/MagicOMF/include</pElem>
+            <pElem>../../Compiler/include</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>RELEASE</Elem>
+          </preprocessorList>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -82,6 +94,13 @@
         <asmTool>
           <developmentMode>5</developmentMode>
         </asmTool>
+        <linkerTool>
+          <output>../../bin/obj_formats/omf.${CND_DLIB_EXT}</output>
+          <linkerLibItems>
+            <linkerLibFileItem>../../bin/MagicOMF.dll</linkerLibFileItem>
+            <linkerLibFileItem>../../bin/Compiler.dll</linkerLibFileItem>
+          </linkerLibItems>
+        </linkerTool>
       </compileType>
       <item path="include/OMFObjectFormat.h" ex="false" tool="3" flavor2="0">
       </item>

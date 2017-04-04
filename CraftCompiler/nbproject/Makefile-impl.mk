@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=Craft Compiler
+PROJECTNAME=CraftCompiler
 
 # Active Configuration
 DEFAULTCONF=Debug

@@ -58,26 +58,26 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGoblinArgumentParser.${CND_DLIB_EXT}
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../bin/GoblinArgumentParser.${CND_DLIB_EXT}
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGoblinArgumentParser.${CND_DLIB_EXT}: ${OBJECTFILES}
-	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libGoblinArgumentParser.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
+../bin/GoblinArgumentParser.${CND_DLIB_EXT}: ${OBJECTFILES}
+	${MKDIR} -p ../bin
+	${LINK.cc} -o ../bin/GoblinArgumentParser.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared
 
 ${OBJECTDIR}/GoblinArgumentParser.o: GoblinArgumentParser.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/GoblinArgumentParser.o GoblinArgumentParser.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/GoblinArgumentParser.o GoblinArgumentParser.cpp
 
 ${OBJECTDIR}/src/Argument.o: src/Argument.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Argument.o src/Argument.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Argument.o src/Argument.cpp
 
 ${OBJECTDIR}/src/ArgumentContainer.o: src/ArgumentContainer.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArgumentContainer.o src/ArgumentContainer.cpp
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/ArgumentContainer.o src/ArgumentContainer.cpp
 
 # Subprojects
 .build-subprojects:
