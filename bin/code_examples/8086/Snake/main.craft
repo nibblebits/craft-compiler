@@ -1,5 +1,5 @@
 // Uncomment for debugging information in game
-//#define DEBUG_INFO
+#define DEBUG_INFO
 
 __asm("call _main");
 __asm("mov ah, 0x4c");
