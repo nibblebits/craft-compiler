@@ -5,6 +5,13 @@ Website: http://craft-language.org
 
 If you have any problems send a message to "daniel" on the Craft language forums: http://craft-language.org/forum
 
+# Repository cloning information
+The Craft compiler repository uses the submodule MagicOMF that was written for this project.
+When cloning you must specify the --recursive flag or MagicOMF may not be downloaded.
+
+Command to clone: git clone --recursive https://github.com/nibblebits/craft-compiler
+
+
 # Current object format targets:
 OMF(Object Module Format)
 
