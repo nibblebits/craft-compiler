@@ -1,4 +1,4 @@
-# Craft Compiler
+# Craft Compiler V0.1.0
 A general purpose compiler and compiler framework for the Craft programming language
 
 
