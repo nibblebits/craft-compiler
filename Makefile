@@ -17,11 +17,20 @@ debug:
 	$(MAKE) -C ./obj_formats/OMFObjFormat CONF=Debug
 	$(MAKE) -C ./CraftCompiler CONF=Debug 
 clean:
-	$(MAKE) -C ./CraftCompiler clean
-	$(MAKE) -C ./Compiler clean
-	$(MAKE) -C ./GoblinArgumentParser clean
-	$(MAKE) -C ./GoblinLibraryLoader clean
-	$(MAKE) -C ./codegens/8086CodeGen clean
-	$(MAKE) -C ./libs/MagicOMF clean
-	$(MAKE) -C ./linkers/BinLinker clean
-	$(MAKE) -C ./obj_formats/OMFObjFormat clean
+	$(MAKE) -C ./GoblinArgumentParser CONF=Debug clean
+	$(MAKE) -C ./GoblinLibraryLoader CONF=Debug clean
+	$(MAKE) -C ./Compiler CONF=Debug clean
+	$(MAKE) -C ./codegens/8086CodeGen CONF=Debug clean
+	$(MAKE) -C ./libs/MagicOMF CONF=Debug clean
+	$(MAKE) -C ./linkers/BinLinker CONF=Debug clean
+	$(MAKE) -C ./obj_formats/OMFObjFormat CONF=Debug clean
+	$(MAKE) -C ./CraftCompiler CONF=Debug clean
+	
+	$(MAKE) -C ./GoblinArgumentParser CONF=Release clean
+	$(MAKE) -C ./GoblinLibraryLoader CONF=Release clean
+	$(MAKE) -C ./Compiler CONF=Release clean
+	$(MAKE) -C ./codegens/8086CodeGen CONF=Release clean
+	$(MAKE) -C ./libs/MagicOMF CONF=Release clean
+	$(MAKE) -C ./linkers/BinLinker CONF=Release clean
+	$(MAKE) -C ./obj_formats/OMFObjFormat CONF=Release clean
+	$(MAKE) -C ./CraftCompiler CONF=Release clean
