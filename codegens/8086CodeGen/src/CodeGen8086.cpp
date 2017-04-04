@@ -216,6 +216,8 @@ std::string CodeGen8086::make_unique_label(std::string segment)
 std::string CodeGen8086::make_string(std::shared_ptr<Branch> string_branch)
 {
     std::string str = string_branch->getValue();
+    // We escape any quotes in the string as the assembler will see it as terminating the string
+    str = Helper::str_replace(str, "'", "\\'");
     std::string label_name = make_unique_label("data");
     do_asm("db '" + str + "', 0", "data");
     return label_name;
