@@ -22,6 +22,9 @@
  * Created on 28 May 2016, 19:48
  * 
  * Description: This header contains definitions such as debug mode and other compiler related settings.
+ * 
+ * If this is to be a debug compiler please pass the DEBUG_MODE definition to the compiler to enable debugging mode, or for a release pass RELEASE.
+ * If you are compiling with the make files this would have been done for you.
  */
 
 #ifndef DEF_H
@@ -30,12 +33,6 @@
 #define COMPILER_NAME "Craft compiler"
 #define COMPILER_VERSION "v0.1.0 beta"
 #define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
-
-// Uncomment this line to enable debug mode, this will display debug related information related to the compiler
-#define DEBUG_MODE
-// Only uncomment the below if this is a release
-//#define RELEASE
-
 
 #define CODEGEN_DIR "./codegens"
 #define OBJ_FORMAT_DIR "./obj_formats"
