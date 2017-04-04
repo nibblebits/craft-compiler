@@ -35,6 +35,7 @@ public:
     static std::vector<std::string> split(std::string str, char delimiter);
     static std::string str_remove(std::string str, char remove);
     static std::string str_remove(std::string str, int index);
+    static std::string str_replace(std::string str, std::string target, std::string replacement);
 private:
 
 };

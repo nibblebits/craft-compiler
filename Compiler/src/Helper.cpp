@@ -54,7 +54,7 @@ std::string Helper::str_remove(std::string str, char remove)
             new_str += c;
         }
     }
-    
+
     return new_str;
 }
 
@@ -68,8 +68,32 @@ std::string Helper::str_remove(std::string str, int index)
             new_str += str[i];
         }
     }
-    
+
     return new_str;
 }
 
-
+std::string Helper::str_replace(std::string str, std::string target, std::string replacement)
+{
+    std::string new_str = "";
+    std::string::size_type n = 0;
+    std::string::size_type prev_n = 0;
+    while((n = str.find(target, n)) != std::string::npos)
+    {
+        new_str += str.substr(prev_n, (n-prev_n)) + replacement;
+        prev_n = n+1;
+        n += target.size();
+    }
+    
+    if (n == 0)
+    {
+        // No replacement was found set the new string to the current one
+        new_str = str;
+    }
+    else
+    {
+        // Ok we need to add on the final part
+        new_str += str.substr(prev_n, (str.size()-prev_n));
+    }
+    
+    return new_str;
+}
