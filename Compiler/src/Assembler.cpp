@@ -168,7 +168,21 @@ void Assembler::lexify()
             {
                 it++;
                 c = *it;
-                if (c != '\'')
+                // Check for escape
+                if (c == '\\')
+                {
+                    it++;
+                    c = *it;
+                    if (c == '\'')
+                    {
+                        it++;
+                    }
+                    else
+                    {
+                        throw AssemblerException(position, "Unexpected character for escaping");
+                    }
+                }
+                else if (c != '\'')
                 {
                     tokenValue += c;
                     position.col_pos++;
