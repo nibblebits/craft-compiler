@@ -1858,6 +1858,8 @@ void Parser::process_macro_define()
         macro_define_branch->setDefinitionValueBranch(value_exp);
     }
 
+    process_semicolon();
+    
     // Ok finally lets push this to the stack
     push_branch(macro_define_branch);
 
