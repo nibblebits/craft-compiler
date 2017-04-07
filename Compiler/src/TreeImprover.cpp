@@ -291,7 +291,7 @@ void TreeImprover::improve_body(std::shared_ptr<BODYBranch> body_branch, struct 
 
 void TreeImprover::improve_var_iden(std::shared_ptr<VarIdentifierBranch> var_iden_branch, struct improvement* improvement)
 {
-    if (var_iden_branch->hasStructureAccessBranch())
+    if (var_iden_branch->hasStructureAccessBranch() && var_iden_branch->hasVariableDefinitionBranch(true))
     {
         // Time to set local scopes for the structure access to point to correct structure scope bodys
         std::shared_ptr<STRUCTAccessBranch> access_branch = std::dynamic_pointer_cast<STRUCTAccessBranch>(var_iden_branch->getStructureAccessBranch());
