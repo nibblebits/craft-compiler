@@ -166,53 +166,57 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch, struct improve
     {
         std::shared_ptr<STRUCTDEFBranch> struct_def_branch = std::dynamic_pointer_cast<STRUCTDEFBranch>(branch);
         std::string struct_name = struct_def_branch->getDataTypeBranch()->getDataType();
-        std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(this->tree->root->getDeclaredStructureByName(struct_name));
-        std::shared_ptr<BODYBranch> struct_branch_body = struct_branch->getStructBodyBranch();
-        /* Before improving the STRUCT_DEF it is important to make sure we are not nested already and otherwise
-         * push ourself to a stack so that infinite nesting can be avoided*/
-        if (!improvement->isInStruct(struct_name))
+        /* Semantic validator comes after the tree improver stage, so we cannot be sure the structure is declared yet 
+         * if it is not then we will just ignore it so the semantic validator can find it later*/
+        if (this->tree->root->isStructureDeclared(struct_name))
         {
-            /* We need to clone the body of the structure that this structure definition is referring to
-             * this is because the framework requires unique children for it to do certain things.
-             * Upon cloning we will then let the new structure definition know about it.
-             */
-            std::shared_ptr<BODYBranch> unique_body = std::dynamic_pointer_cast<BODYBranch>(struct_branch_body->clone());
-            struct_def_branch->setStructBody(unique_body);
-
-            // Scopes for struct_declaration are set after pushing the branch.
-            // We need to set the local scope and root scope to match that of the structure declaration body's scope
-            unique_body->setLocalScope(struct_def_branch->getLocalScope());
-            unique_body->setRootScope(struct_def_branch->getRootScope());
-
-            // We now need to set all the unique body's children scopes to point to the unique_body
-            unique_body->iterate_children([&](std::shared_ptr<Branch> child_branch)
+            std::shared_ptr<STRUCTBranch> struct_branch = std::dynamic_pointer_cast<STRUCTBranch>(this->tree->root->getDeclaredStructureByName(struct_name));
+            std::shared_ptr<BODYBranch> struct_branch_body = struct_branch->getStructBodyBranch();
+            /* Before improving the STRUCT_DEF it is important to make sure we are not nested already and otherwise
+             * push ourself to a stack so that infinite nesting can be avoided*/
+            if (!improvement->isInStruct(struct_name))
             {
-                child_branch->setLocalScope(unique_body);
-                child_branch->setRootScope(unique_body->getRootScope());
-            });
+                /* We need to clone the body of the structure that this structure definition is referring to
+                 * this is because the framework requires unique children for it to do certain things.
+                 * Upon cloning we will then let the new structure definition know about it.
+                 */
+                std::shared_ptr<BODYBranch> unique_body = std::dynamic_pointer_cast<BODYBranch>(struct_branch_body->clone());
+                struct_def_branch->setStructBody(unique_body);
+
+                // Scopes for struct_declaration are set after pushing the branch.
+                // We need to set the local scope and root scope to match that of the structure declaration body's scope
+                unique_body->setLocalScope(struct_def_branch->getLocalScope());
+                unique_body->setRootScope(struct_def_branch->getRootScope());
+
+                // We now need to set all the unique body's children scopes to point to the unique_body
+                unique_body->iterate_children([&](std::shared_ptr<Branch> child_branch)
+                {
+                    child_branch->setLocalScope(unique_body);
+                    child_branch->setRootScope(unique_body->getRootScope());
+                });
 
 
-            // Set the unique body's parent to our struct declaration
-            unique_body->setParent(struct_def_branch);
+                // Set the unique body's parent to our struct declaration
+                unique_body->setParent(struct_def_branch);
 
-            // Ok this structure definition has not been defined before so lets push ourself to the stack
-            improvement->push_struct_def_branch(struct_def_branch);
+                // Ok this structure definition has not been defined before so lets push ourself to the stack
+                improvement->push_struct_def_branch(struct_def_branch);
 
-            // Now lets process this unique structure body
-            improve_body(unique_body, improvement);
+                // Now lets process this unique structure body
+                improve_body(unique_body, improvement);
 
-            // We are done so lets pop ourself off
-            improvement->pop_struct_def_branch();
-        }
-        else
-        {
-            // We are already registered, to avoid an infinite loop we should set the information to be that of its prior
-            std::shared_ptr<STRUCTDEFBranch> defined_struct_def_branch = improvement->getStructDefFromStack(struct_name);
-            struct_def_branch->setLocalScope(defined_struct_def_branch->getStructBody());
-            struct_def_branch->setRootScope(defined_struct_def_branch->getRootScope());
-            struct_def_branch->setParent(defined_struct_def_branch->getParent());
-            struct_def_branch->setStructBody(defined_struct_def_branch->getStructBody());
-            
+                // We are done so lets pop ourself off
+                improvement->pop_struct_def_branch();
+            }
+            else
+            {
+                // We are already registered, to avoid an infinite loop we should set the information to be that of its prior
+                std::shared_ptr<STRUCTDEFBranch> defined_struct_def_branch = improvement->getStructDefFromStack(struct_name);
+                struct_def_branch->setLocalScope(defined_struct_def_branch->getStructBody());
+                struct_def_branch->setRootScope(defined_struct_def_branch->getRootScope());
+                struct_def_branch->setParent(defined_struct_def_branch->getParent());
+                struct_def_branch->setStructBody(defined_struct_def_branch->getStructBody());
+            }
         }
     }
 
