@@ -133,6 +133,10 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
     {
         validate_return(std::dynamic_pointer_cast<ReturnBranch>(branch));
     }
+    else if (type == "ADDRESS_OF")
+    {
+        validate_address_of(std::dynamic_pointer_cast<AddressOfBranch>(branch));
+    }
     else
     {
         /* If a macro was not preprocessed it will remain in the tree
@@ -165,13 +169,13 @@ void SemanticValidator::validate_function_definition(std::shared_ptr<FuncDefBran
 void SemanticValidator::validate_function(std::shared_ptr<FuncBranch> func_branch)
 {
     this->current_function = func_branch;
-    
+
     // Validate the definition of this function
     validate_function_definition(func_branch);
 
     // Validate the function body
     validate_part(func_branch->getBodyBranch());
-    
+
     this->current_function = NULL;
 }
 
@@ -243,7 +247,7 @@ void SemanticValidator::validate_return(std::shared_ptr<ReturnBranch> return_bra
         this->logger->error("A return statement must be within the body of a function", return_branch);
         return;
     }
-    
+
     if (return_branch->hasExpressionBranch())
     {
         std::shared_ptr<DataTypeBranch> return_type_branch = this->current_function->getReturnDataTypeBranch();
@@ -253,6 +257,12 @@ void SemanticValidator::validate_return(std::shared_ptr<ReturnBranch> return_bra
         s_info.sv_info.pointer_depth = return_type_branch->getPointerDepth();
         validate_value(return_branch->getExpressionBranch(), &s_info);
     }
+}
+
+void SemanticValidator::validate_address_of(std::shared_ptr<AddressOfBranch> address_of_branch)
+{
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch = address_of_branch->getVariableIdentifierBranch();
+    validate_var_access(var_iden_branch);
 }
 
 void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch> var_iden_branch)
@@ -330,13 +340,13 @@ void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch>
 /**
  * Attempts to validate the pointer branch
  * 
- * @param ptr_branch
+ * @param ptr_branchF
  * @return  Returns true on success and false on failure 
  */
 bool SemanticValidator::validate_pointer_access(std::shared_ptr<PTRBranch> ptr_branch)
 {
     // Lets make sure the pointer access is linking to a valid pointer definition
-    
+
     if (!ptr_branch->hasPointerVariableIdentifierBranch())
     {
         this->logger->error("Attempting to access invalid pointer value, pointer access must use a valid pointer variable", ptr_branch);
