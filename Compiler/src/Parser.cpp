@@ -1098,7 +1098,7 @@ std::shared_ptr<Branch> Parser::process_expression_operand(PARSER_EXPRESSION_OPT
         pop_branch();
 
         std::shared_ptr<AddressOfBranch> address_of_branch = std::shared_ptr<AddressOfBranch>(new AddressOfBranch(this->getCompiler()));
-        address_of_branch->setVariableBranch(this->branch);
+        address_of_branch->setVariableIdentifierBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(this->branch));
         b = address_of_branch;
     }
     else if (is_peek_operator("*"))

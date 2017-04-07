@@ -156,7 +156,7 @@ void TreeImprover::improve_branch(std::shared_ptr<Branch> branch, struct improve
     else if (branch->getType() == "ADDRESS_OF")
     {
         std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(branch);
-        improve_branch(address_of_branch->getVariableBranch(), improvement);
+        improve_branch(address_of_branch->getVariableIdentifierBranch(), improvement);
     }
     else if (branch->getType() == "VAR_IDENTIFIER")
     {

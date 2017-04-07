@@ -25,6 +25,7 @@
  */
 
 #include "AddressOfBranch.h"
+#include "VarIdentifierBranch.h"
 
 AddressOfBranch::AddressOfBranch(Compiler* compiler) : CustomBranch(compiler, "ADDRESS_OF", "")
 {
@@ -34,20 +35,20 @@ AddressOfBranch::~AddressOfBranch()
 {
 }
 
-void AddressOfBranch::setVariableBranch(std::shared_ptr<Branch> branch)
+void AddressOfBranch::setVariableIdentifierBranch(std::shared_ptr<VarIdentifierBranch> branch)
 {
     this->registerBranch("variable_branch", branch);
 }
 
-std::shared_ptr<Branch> AddressOfBranch::getVariableBranch()
+std::shared_ptr<VarIdentifierBranch> AddressOfBranch::getVariableIdentifierBranch()
 {
-    return this->getRegisteredBranchByName("variable_branch");
+    return std::dynamic_pointer_cast<VarIdentifierBranch>(this->getRegisteredBranchByName("variable_branch"));
 }
 
 void AddressOfBranch::imp_clone(std::shared_ptr<Branch> cloned_branch)
 {
     std::shared_ptr<AddressOfBranch> address_of_branch_clone = std::dynamic_pointer_cast<AddressOfBranch>(cloned_branch);
-    address_of_branch_clone->setVariableBranch(getVariableBranch()->clone());
+    address_of_branch_clone->setVariableIdentifierBranch(std::dynamic_pointer_cast<VarIdentifierBranch>(getVariableIdentifierBranch()->clone()));
 }
 
 std::shared_ptr<Branch> AddressOfBranch::create_clone()
