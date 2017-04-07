@@ -336,7 +336,8 @@ void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch>
 bool SemanticValidator::validate_pointer_access(std::shared_ptr<PTRBranch> ptr_branch)
 {
     // Lets make sure the pointer access is linking to a valid pointer definition
-    if (ptr_branch->getPointerVariableIdentifierBranch() == NULL)
+    
+    if (!ptr_branch->hasPointerVariableIdentifierBranch())
     {
         this->logger->error("Attempting to access invalid pointer value, pointer access must use a valid pointer variable", ptr_branch);
         return false;
@@ -362,7 +363,7 @@ void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign
         }
 
         // Ok its a pointer branch so get the pointer variable identifier associated with it.
-        var_iden_branch = ptr_branch->getPointerVariableIdentifierBranch();
+        var_iden_branch = ptr_branch->getFirstPointerVariableIdentifierBranch();
     }
     else
     {
