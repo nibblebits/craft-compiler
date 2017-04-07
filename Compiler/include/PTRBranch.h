@@ -34,8 +34,10 @@ public:
     virtual ~PTRBranch();
     void setExpressionBranch(std::shared_ptr<Branch> var_branch);
     std::shared_ptr<Branch> getExpressionBranch();
-    
+    [[deprecated("This method will be removed, please use the \"getFirstPointerVariableIdentifierBranch\" method. For checking if a pointer variable identifier exists, use the \"hasPointerVariableIdentifierBranch\" method.")]]
     std::shared_ptr<VarIdentifierBranch> getPointerVariableIdentifierBranch();
+    std::shared_ptr<VarIdentifierBranch> getFirstPointerVariableIdentifierBranch();
+    bool hasPointerVariableIdentifierBranch();
 
     void setPointerDepth(int depth);
     int getPointerDepth();
