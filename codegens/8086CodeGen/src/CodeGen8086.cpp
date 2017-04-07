@@ -487,7 +487,7 @@ void CodeGen8086::make_expression_part(std::shared_ptr<Branch> exp, std::string 
     {
         // Move the address of the variable to the AX register
         std::shared_ptr<AddressOfBranch> address_of_branch = std::dynamic_pointer_cast<AddressOfBranch>(exp);
-        std::shared_ptr<VarIdentifierBranch> var_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(address_of_branch->getVariableBranch());
+        std::shared_ptr<VarIdentifierBranch> var_branch = std::dynamic_pointer_cast<VarIdentifierBranch>(address_of_branch->getVariableIdentifierBranch());
         make_move_var_addr_to_reg(s_info, register_to_store, var_branch);
     }
     else if (exp->getType() == "ASSIGN")
