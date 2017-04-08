@@ -40,6 +40,12 @@ CustomBranch::~CustomBranch()
 
 void CustomBranch::registerBranch(std::string name, std::shared_ptr<Branch> branch)
 {
+    if (isBranchRegistered(name))
+    {
+        // This branch is already registered lets remove it
+        removeChild(getRegisteredBranchByName(name));
+        this->registered_branches[name] = NULL;
+    }
     if (branch != NULL)
     {
         // If the branch getting registered is currently not a child then make it one

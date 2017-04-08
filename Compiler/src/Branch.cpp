@@ -52,13 +52,13 @@ void Branch::addChild(std::shared_ptr<Branch> branch, std::shared_ptr<Branch> ch
         throw Exception("Branch::addChild(std::shared_ptr<Branch> branch): NULL children are not allowed!");
     }
 
-    if (branch->hasParent())
-    {
-        throw Exception("Branch::addChild(std::shared_ptr<Branch> branch): child already has a parent! Try cloning the branch first");
-    }
-
     if (!force_add)
     {
+        if (branch->hasParent())
+        {
+            throw Exception("Branch::addChild(std::shared_ptr<Branch> branch): child already has a parent! Try cloning the branch first");
+        }
+
         try
         {
             branch->validate_identity_on_tree();
@@ -120,12 +120,12 @@ void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch>
     {
         throw Exception("The child provided is NULL", "void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)");
     }
-    
+
     if (new_branch == NULL)
     {
         throw Exception("The new_branch is NULL", "void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch> new_branch)");
     }
-    
+
     try
     {
         validate_identity_on_tree();
@@ -165,6 +165,10 @@ void Branch::replaceChild(std::shared_ptr<Branch> child, std::shared_ptr<Branch>
 
 void Branch::replaceSelf(std::shared_ptr<Branch> replacee_branch)
 {
+    if (!hasParent())
+    {
+        throw Exception("This branch does not have a parent, this is required for replacing of self", "void Branch::replaceSelf(std::shared_ptr<Branch> replacee_branch)");
+    }
     try
     {
         validate_identity_on_tree();
@@ -174,7 +178,7 @@ void Branch::replaceSelf(std::shared_ptr<Branch> replacee_branch)
         ex.setFunctionName("void Branch::replaceSelf(std::shared_ptr<Branch> replacee_branch)");
         throw ex;
     }
-
+    
     getParent()->replaceChild(this->getptr(), replacee_branch);
 }
 
