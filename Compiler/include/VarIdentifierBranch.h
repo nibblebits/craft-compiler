@@ -138,7 +138,7 @@ public:
     int getPositionRelZero(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options = 0);
     int getPositionRelZeroIgnoreCurrentScope(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options = 0, struct position_info* p_info = NULL);
     int getPositionRelZeroFromThis(std::function<void(struct position_info* pos_info) > handle_func, std::function<void(int rel_position) > point_func, POSITION_OPTIONS options = 0, bool is_root = true, struct position_info* p_info = NULL);
-    void getPositionAsFarAsPossible(struct position* position, std::shared_ptr<VarIdentifierBranch>* failed_var_iden_branch, POSITION_OPTIONS options = 0, bool zero_position=true);
+    void getPositionAsFarAsPossible(struct position* position, std::shared_ptr<VarIdentifierBranch>* failed_var_iden_branch, POSITION_OPTIONS options = 0, bool zero_position=true, bool rel_zero=true);
     bool isPositionStatic();
     bool isAllArrayAccessStatic();
     bool isAllStructureAccessStatic();

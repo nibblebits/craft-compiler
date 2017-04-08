@@ -41,6 +41,7 @@ public:
     void warn(std::string message, std::shared_ptr<Branch> bad_branch=NULL);
 
     std::vector<std::string> getLog();
+    std::string getLogAsString();
     bool hasAnError();
     bool hasErrorOrWarning();
 private:

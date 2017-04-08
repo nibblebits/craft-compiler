@@ -105,6 +105,15 @@ std::vector<std::string> Logger::getLog()
     return this->log;
 }
 
+ std::string Logger::getLogAsString()
+ {
+     std::string log = "";
+     for (std::string entity : getLog())
+     {
+         log += entity + "\n";
+     }
+     return log;
+ }
 bool Logger::hasAnError()
 {
     return this->total_errors != 0;

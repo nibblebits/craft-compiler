@@ -1733,7 +1733,8 @@ void Parser::process_macro_include()
     /* We have all the information we need for loading this file.
      * We need to load the file and perform lexical analysis and parsing on it then 
      * finally merge the tree with our own */
-
+    std::shared_ptr<Lexer> lexer = std::shared_ptr<Lexer>(new Lexer(getCompiler(), filename));
+    std::shared_ptr<Parser> parser = std::shared_ptr<Parser>(new Parser(getCompiler()));
     try
     {
         std::shared_ptr<Stream> file_stream = LoadFile(filename);
@@ -1743,20 +1744,19 @@ void Parser::process_macro_include()
             return;
         }
 
-        std::shared_ptr<Lexer> lexer = std::shared_ptr<Lexer>(new Lexer(getCompiler(), filename));
-        std::shared_ptr<Parser> parser = std::shared_ptr<Parser>(new Parser(getCompiler()));
         lexer->setInput(std::string(file_stream->getBuf(), file_stream->getSize()));
         lexer->tokenize();
-        
+
         parser->setInput(lexer->getTokens());
         parser->buildTree();
-        
+
         // Merge the new tree with ours
         merge(parser->getTree()->root);
     }
     catch (Exception& exception)
     {
-        error("Problem loading input file: \"" + filename + "\": " + exception.getMessage());
+        std::string error_log = parser->getLogger()->getLogAsString();
+        error("Problem loading input file: \"" + filename + "\": " + exception.getMessage() + "\n" + error_log);
     }
 
 
@@ -1859,7 +1859,7 @@ void Parser::process_macro_define()
     }
 
     process_semicolon();
-    
+
     // Ok finally lets push this to the stack
     push_branch(macro_define_branch);
 

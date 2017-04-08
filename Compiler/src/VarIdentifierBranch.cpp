@@ -316,22 +316,30 @@ int VarIdentifierBranch::getPositionRelZeroFromThis(std::function<void(struct po
     return p_info->abs_pos;
 }
 
-void VarIdentifierBranch::getPositionAsFarAsPossible(struct position* position, std::shared_ptr<VarIdentifierBranch>* failed_var_iden_branch, POSITION_OPTIONS options, bool zero_position)
+void VarIdentifierBranch::getPositionAsFarAsPossible(struct position* position, std::shared_ptr<VarIdentifierBranch>* failed_var_iden_branch, POSITION_OPTIONS options, bool zero_position, bool rel_zero)
 {
     if (zero_position)
     {
         position->reset();
     }
 
+    if (this->getVariableNameBranch()->getValue() == "type_ptr")
+    {
+        int x = 30;
+    }
     *failed_var_iden_branch = NULL;
     std::shared_ptr<VDEFBranch> vdef_branch = getVariableDefinitionBranch(true);
     std::shared_ptr<VarIdentifierBranch> vdef_var_iden_branch = vdef_branch->getVariableIdentifierBranch();
-    int self_offset = vdef_branch->getPositionRelScope();
-    if (options & POSITION_OPTION_START_WITH_VARSIZE)
+    int self_offset;
+    if (rel_zero && options & ~POSITION_OPTION_CALCULATE_REL_SCOPE)
     {
-        self_offset += vdef_branch->getSize();
+        self_offset = vdef_branch->getPositionRelZero(options);
     }
-
+    else
+    {
+        self_offset = vdef_branch->getPositionRelScope(options);
+    }
+   
     if (position->do_new_start)
     {
         position->reset();
@@ -369,7 +377,7 @@ void VarIdentifierBranch::getPositionAsFarAsPossible(struct position* position, 
         options &= ~POSITION_OPTION_START_WITH_VARSIZE;
         if (hasStructureAccessBranch())
         {
-            getStructureAccessBranch()->getVarIdentifierBranch()->getPositionAsFarAsPossible(position, failed_var_iden_branch, options, false);
+            getStructureAccessBranch()->getVarIdentifierBranch()->getPositionAsFarAsPossible(position, failed_var_iden_branch, options, false, false);
         }
     }
 }
