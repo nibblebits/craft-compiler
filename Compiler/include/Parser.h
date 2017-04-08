@@ -59,10 +59,18 @@ enum
 
 typedef unsigned char PARSER_EXPRESSION_OPTIONS;
 
+enum
+{
+    ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT
+};
+
+typedef unsigned int Associativity;
 struct order_of_operation
 {
     const char* op;
     int priority;
+    Associativity assoc;
 };
 
 class CompilerEntity;
@@ -96,7 +104,7 @@ private:
     void process_variable_access(std::shared_ptr<STRUCTDEFBranch> last_struct_def=NULL);
     void process_structure_descriptor();
     void process_structure_access();
-    void process_expression(PARSER_EXPRESSION_OPTIONS options=0);
+    void process_expression(PARSER_EXPRESSION_OPTIONS options=0, std::shared_ptr<Branch> left = NULL);
     void process_expression_part(std::shared_ptr<Branch> left=NULL, PARSER_EXPRESSION_OPTIONS=0);
     std::shared_ptr<Branch> process_expression_operand(PARSER_EXPRESSION_OPTIONS options=0);
     std::shared_ptr<Branch> process_expression_operator();
@@ -157,6 +165,8 @@ private:
     inline bool is_assignment_operator(std::string op);
     int get_order_of_operations_priority_for_operator(std::string op);
     ORDER_OF_OPERATIONS_PRIORITY get_order_of_operations_priority(std::string lop, std::string rop);
+    Associativity get_assoc_for_operator(std::string op);
+    
     std::shared_ptr<STRUCTBranch> getDeclaredStructure(std::string struct_name);
     int get_pointer_depth();
     

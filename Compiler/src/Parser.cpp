@@ -36,22 +36,31 @@
  * The same order of operations to C will be used.*/
 
 struct order_of_operation o_of_operation[] = {
-    "<<", 0,
-    ">>", 0,
-    "<", 1,
-    ">", 1,
-    "<=", 1,
-    ">=", 1,
-    "==", 2,
-    "!=", 2,
-    "&", 3,
-    "^", 4,
-    "|", 5,
-    "+", 6,
-    "-", 6,
-    "*", 7,
-    "/", 7,
-    "%", 7,
+    "<<", 0, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    ">>", 0, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "<", 1, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    ">", 1, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "<=", 1, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    ">=", 1, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "==", 2, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "!=", 2, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "&", 3, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "^", 4, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "|", 5, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "+", 6, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "-", 6, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "*", 7, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "/", 7, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "%", 7, ORDER_OF_OPERATIONS_ASSOC_LEFT_TO_RIGHT,
+    "+=", 8, ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT,
+    "-=", 8, ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT,
+    "*=", 8, ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT,
+    "/=", 8, ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT,
+    "%=", 8, ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT,
+    "^=", 8, ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT,
+    "&=", 8, ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT,
+    "<<=", 8, ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT,
+    ">>=", 8, ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT,
 };
 
 Parser::Parser(Compiler* compiler) : CompilerEntity(compiler)
@@ -911,9 +920,9 @@ void Parser::process_structure_access()
     push_branch(struct_access_root);
 }
 
-void Parser::process_expression(PARSER_EXPRESSION_OPTIONS options)
+void Parser::process_expression(PARSER_EXPRESSION_OPTIONS options, std::shared_ptr<Branch> left)
 {
-    std::shared_ptr<Branch> last = NULL;
+    std::shared_ptr<Branch> last = left;
     std::shared_ptr<Branch> tmp = NULL;
     do
     {
@@ -921,10 +930,11 @@ void Parser::process_expression(PARSER_EXPRESSION_OPTIONS options)
         process_expression_part(last, options);
         // Pop off the result
         pop_branch();
-        last = this->branch;
 
+        last = this->branch;
         // Peek ahead to see if order of operations applies
         peek();
+
         if (is_peek_type("operator"))
         {
             ORDER_OF_OPERATIONS_PRIORITY priority = get_order_of_operations_priority(last->getValue(), this->peek_token_value);
@@ -938,6 +948,31 @@ void Parser::process_expression(PARSER_EXPRESSION_OPTIONS options)
                 // Replace the branch with the new branch
                 last->getSecondChild()->replaceSelf(tmp);
             }
+            else
+            {
+                /*
+                 * This is required and ensures that some operators work from right to left, including assignments.
+                 * Without this these operators will become a child of the expression, even for assignments.
+                 */
+                if (get_assoc_for_operator(last->getValue()) == ORDER_OF_OPERATIONS_ASSOC_RIGHT_TO_LEFT)
+                {
+                    if (last->getType() == "ASSIGN")
+                    {
+                        std::shared_ptr<AssignBranch> assign_branch = std::dynamic_pointer_cast<AssignBranch>(last);
+                        process_expression(options, assign_branch->getValueBranch()->clone());
+                        pop_branch();
+                        assign_branch->setValueBranch(this->branch);
+                    }
+                    else
+                    {
+                        process_expression(options, last->getSecondChild()->clone());
+                        pop_branch();
+                        last->getSecondChild()->replaceSelf(this->branch);
+                    }
+                }
+            }
+
+
         }
 
         // Peek ahead to see if we are done or not
@@ -2186,7 +2221,6 @@ bool Parser::is_peek_type(std::string type, int peek)
 
 bool Parser::is_peek_value(std::string value)
 {
-
     return this->peek_token_value == value;
 }
 
@@ -2198,7 +2232,6 @@ bool Parser::is_peek_keyword(std::string keyword)
 
 bool Parser::is_peek_operator(std::string op)
 {
-
     return is_peek_type("operator") && is_peek_value(op);
 }
 
@@ -2256,6 +2289,19 @@ ORDER_OF_OPERATIONS_PRIORITY Parser::get_order_of_operations_priority(std::strin
         return ORDER_OF_OPERATIONS_LEFT_GREATER;
     else
         return ORDER_OF_OPERATIONS_RIGHT_GREATER;
+}
+
+Associativity Parser::get_assoc_for_operator(std::string op)
+{
+    int size = sizeof (o_of_operation) / sizeof (struct order_of_operation);
+    for (int i = 0; i < size; i++)
+    {
+        if (o_of_operation[i].op == op)
+            return o_of_operation[i].assoc;
+    }
+
+    // Operator not found in list so use priority zero
+    throw Exception(op + " is not in the operator priority list", "Associativity Parser::get_assoc_for_operator(std::string op)");
 }
 
 std::shared_ptr<STRUCTBranch> Parser::getDeclaredStructure(std::string struct_name)
