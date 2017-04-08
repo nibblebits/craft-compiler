@@ -1,0 +1,116 @@
+#include "io.ch"
+
+void print_char(uint8 c)
+{
+	__asm("mov ah, 0x0e");
+	__asm("mov al, [%i]", c);
+	__asm("int 0x10");
+}
+
+void print_str(uint8* str)
+{
+	uint16 i = 0;
+	while(str[i] != 0)
+	{
+		print_char(str[i]);
+		i += 1;
+	}
+}
+
+int16 print_str_stop_at(uint8* str, uint8 c)
+{
+	uint16 i = 0;
+	while(str[i] != 0 && str[i] != c)
+	{
+		print_char(str[i]);
+		i += 1;
+	}
+	
+	if (str[i] == c)
+	{
+		// Returns position as it stopped at "c"
+		return i;
+	}
+
+	// Returns -1 if it didn't stop at "c"
+	return -1;
+}
+
+void print_number(uint16 number)
+{
+	uint8 array[6];
+	// Null the memory
+	for (uint8 i = 0; i < 6; i += 1)
+	{
+		array[i] = 0;
+	}
+	
+	uint16 thousands;
+	uint8 hundreds;
+	uint8 tens;
+	uint8 units;
+	thousands = (number / 1000) + 48;
+	hundreds = (number / 100 % 10) + 48;
+	tens = (number / 10 % 10) + 48;
+	units = (number % 10) + 48;
+	
+	if (thousands != '0')
+	{
+		print_char(thousands);
+	}
+	
+	if (hundreds != '0')
+	{
+		print_char(hundreds);
+	}
+	
+	if (tens != '0')
+	{
+		print_char(tens);
+	}
+	
+	if (units != '0')
+	{
+		print_char(units);
+	}
+}
+
+void print_part(uint8 type, uint16 arg)
+{
+	if (type == 'i')
+	{
+		print_number(arg);
+	}
+	else
+	{
+		print_str("Unknown type: ");
+		print_number(type);
+	}
+}
+// Currently unlimited arguments are not supported.
+void print(uint8* str, uint16 arg1, uint16 arg2, uint16 arg3)
+{
+	uint16 args[3];
+	args[0] = arg1;
+	args[1] = arg2;
+	args[2] = arg3;
+	
+	uint8 cur_arg = 0;
+	uint16 pos = print_str_stop_at(str, '%');
+	if (pos == -1)
+	{
+		// -1 was returned so we have no options lets output the whole thing
+		print_str(str);
+		return;
+	}
+	
+	while(pos != -1)
+	{
+		uint8* type_ptr = str+pos+1;
+		print_part(*type_ptr, args[cur_arg]);
+		cur_arg += 1;
+		str = str+pos+2;
+		pos = print_str_stop_at(str, '%');
+	}
+	
+}

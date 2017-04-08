@@ -1,0 +1,12 @@
+__asm("call _main");
+__asm("mov ah, 0x4c");
+__asm("mov al, 0");
+__asm("int 0x21");
+
+#include "../io.ch"
+
+void main()
+{
+	uint8 age = 21;
+	print("My age is %i and I will be %i next", age, age+1, 0);
+}
