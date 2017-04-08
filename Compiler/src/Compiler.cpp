@@ -362,7 +362,12 @@ bool Compiler::isAssignmentOperator(std::string value)
             value == "+=" ||
             value == "-=" ||
             value == "*=" ||
-            value == "/=";
+            value == "/=" ||
+            value == "^=" ||
+            value == "&=" ||
+            value == "|=" ||
+            value == "<<=" ||
+            value == ">>=";
 }
 
 long Compiler::getNumberFromString(std::string str, char formatting_symbol)
