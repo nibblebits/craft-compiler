@@ -133,6 +133,14 @@ void SemanticValidator::validate_part(std::shared_ptr<Branch> branch)
     {
         validate_return(std::dynamic_pointer_cast<ReturnBranch>(branch));
     }
+    else if (type == "WHILE")
+    {
+        validate_while_loop(std::dynamic_pointer_cast<WhileBranch>(branch));
+    }
+    else if (type == "IF")
+    {
+        validate_if_stmt(std::dynamic_pointer_cast<IFBranch>(branch));
+    }
     else if (type == "ADDRESS_OF")
     {
         validate_address_of(std::dynamic_pointer_cast<AddressOfBranch>(branch));
@@ -256,6 +264,29 @@ void SemanticValidator::validate_return(std::shared_ptr<ReturnBranch> return_bra
         s_info.sv_info.requires_pointer = return_type_branch->isPointer();
         s_info.sv_info.pointer_depth = return_type_branch->getPointerDepth();
         validate_value(return_branch->getExpressionBranch(), &s_info);
+    }
+}
+
+void SemanticValidator::validate_while_loop(std::shared_ptr<WhileBranch> while_branch)
+{
+    struct semantic_information s_info;
+    validate_value(while_branch->getExpressionBranch(), &s_info);
+    validate_part(while_branch->getBodyBranch());
+}
+
+void SemanticValidator::validate_if_stmt(std::shared_ptr<IFBranch> if_branch)
+{
+    struct semantic_information s_info;
+    validate_value(if_branch->getExpressionBranch(), &s_info);
+    validate_part(if_branch->getBodyBranch());
+    if (if_branch->hasElseIfBranch())
+    {
+        validate_if_stmt(if_branch->getElseIfBranch());
+    }
+
+    if (if_branch->hasElseBranch())
+    {
+        validate_part(if_branch->getElseBranch());
     }
 }
 
