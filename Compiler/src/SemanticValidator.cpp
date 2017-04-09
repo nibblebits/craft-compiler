@@ -663,29 +663,33 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
                 this->logger->error("Function: \"" + function_name + "\" returns type void this is illegal for expressions", func_call_branch);
             }
         }
-        else if (s_info->sv_info.requires_pointer && (!func_def_return_type_branch->isPointer() || (return_data_type != s_info->sv_info.requirement_type && return_data_type != "void")))
+
+        if (s_info->sv_info.requirement_type != "")
         {
-            this->logger->error("Function: \"" + function_name + "\" does not return a pointer of type \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
-        }
-        else if (!s_info->sv_info.requires_pointer && func_def_return_type_branch->isPointer())
-        {
-            this->logger->error("Function \"" + function_name + "\" returns a pointer of type \"" + s_info->sv_info.requirement_type + "\" but we are expecting a non pointer type of \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
-        }
-        else if (s_info->sv_info.requires_pointer && func_def_return_type_branch->isPointer() && s_info->sv_info.pointer_depth != func_def_return_type_branch->getPointerDepth())
-        {
-            this->logger->error("Function \"" + function_name + "\" returns a pointer of type \"" + s_info->sv_info.requirement_type + "\" with a pointer depth of " + std::to_string(func_def_return_type_branch->getPointerDepth()) + " but we are expecting a pointer depth of " + std::to_string(s_info->sv_info.pointer_depth), func_call_branch);
-        }
-        else if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) && !getCompiler()->isPrimitiveDataType(return_data_type))
-        {
-            this->logger->error("Function \"" + function_name + "\" is returning a non-primitive type of type: \"" + return_data_type + "\". Expecting a primitive type of type \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
-        }
-        else if (!getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) && getCompiler()->isPrimitiveDataType(return_data_type))
-        {
-            this->logger->error("Function \"" + function_name + "\" is returning a primitive type of type: \"" + return_data_type + "\". Expecting a non-primitive type of type \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
-        }
-        else if (return_data_type != "void" && getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) && !getCompiler()->canFit(s_info->sv_info.requirement_type, return_data_type))
-        {
-            this->logger->warn("Function: \"" + function_name + "\" returns type \"" + return_data_type + "\" but this primitive type cannot fit directly into \"" + s_info->sv_info.requirement_type + "\" data will be lost", func_call_branch);
+            if (s_info->sv_info.requires_pointer && (!func_def_return_type_branch->isPointer() || (return_data_type != s_info->sv_info.requirement_type && return_data_type != "void")))
+            {
+                this->logger->error("Function: \"" + function_name + "\" does not return a pointer of type \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
+            }
+            else if (!s_info->sv_info.requires_pointer && func_def_return_type_branch->isPointer())
+            {
+                this->logger->error("Function \"" + function_name + "\" returns a pointer of type \"" + s_info->sv_info.requirement_type + "\" but we are expecting a non pointer type of \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
+            }
+            else if (s_info->sv_info.requires_pointer && func_def_return_type_branch->isPointer() && s_info->sv_info.pointer_depth != func_def_return_type_branch->getPointerDepth())
+            {
+                this->logger->error("Function \"" + function_name + "\" returns a pointer of type \"" + s_info->sv_info.requirement_type + "\" with a pointer depth of " + std::to_string(func_def_return_type_branch->getPointerDepth()) + " but we are expecting a pointer depth of " + std::to_string(s_info->sv_info.pointer_depth), func_call_branch);
+            }
+            else if (getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) && !getCompiler()->isPrimitiveDataType(return_data_type))
+            {
+                this->logger->error("Function \"" + function_name + "\" is returning a non-primitive type of type: \"" + return_data_type + "\". Expecting a primitive type of type \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
+            }
+            else if (!getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) && getCompiler()->isPrimitiveDataType(return_data_type))
+            {
+                this->logger->error("Function \"" + function_name + "\" is returning a primitive type of type: \"" + return_data_type + "\". Expecting a non-primitive type of type \"" + s_info->sv_info.requirement_type + "\"", func_call_branch);
+            }
+            else if (return_data_type != "void" && getCompiler()->isPrimitiveDataType(s_info->sv_info.requirement_type) && !getCompiler()->canFit(s_info->sv_info.requirement_type, return_data_type))
+            {
+                this->logger->warn("Function: \"" + function_name + "\" returns type \"" + return_data_type + "\" but this primitive type cannot fit directly into \"" + s_info->sv_info.requirement_type + "\" data will be lost", func_call_branch);
+            }
         }
 
 
