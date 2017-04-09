@@ -31,7 +31,7 @@
 #define DEF_H
 
 #define COMPILER_NAME "Craft compiler"
-#define COMPILER_VERSION "v0.1.1 beta"
+#define COMPILER_VERSION "v0.1.2 beta"
 #define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
 
 #define CODEGEN_DIR "./codegens"

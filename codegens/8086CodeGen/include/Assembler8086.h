@@ -28,8 +28,9 @@
 #include "definitions.h"
 #include "Assembler.h"
 
-// Uncomment this when performing tests on the assembler
+#ifdef DEBUG_MODE
 #define TEST_MODE
+#endif
 
 class InstructionBranch;
 class Branch;

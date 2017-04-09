@@ -55,6 +55,8 @@ class Branch;
 class RootBranch;
 class VDEFBranch;
 class ReturnBranch;
+class WhileBranch;
+class IFBranch;
 class AddressOfBranch;
 class BODYBranch;
 class FuncBranch;
@@ -90,6 +92,8 @@ private:
     void validate_body(std::shared_ptr<BODYBranch> body_branch);
     void validate_vdef(std::shared_ptr<VDEFBranch> vdef_branch);
     void validate_return(std::shared_ptr<ReturnBranch> return_branch);
+    void validate_while_loop(std::shared_ptr<WhileBranch> while_branch);
+    void validate_if_stmt(std::shared_ptr<IFBranch> if_branch);
     void validate_address_of(std::shared_ptr<AddressOfBranch> address_of_branch);
     void validate_var_access(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     bool validate_pointer_access(std::shared_ptr<PTRBranch> ptr_branch);
