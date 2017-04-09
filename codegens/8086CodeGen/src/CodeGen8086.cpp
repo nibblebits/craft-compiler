@@ -1923,7 +1923,9 @@ void CodeGen8086::handle_next_access(struct stmt_info* s_info, struct VARIABLE_A
     struct position position;
     std::shared_ptr<VarIdentifierBranch> failed_var_iden = NULL;
     std::shared_ptr<VDEFBranch> failed_vdef_branch = NULL;
-    next_var_iden->getPositionAsFarAsPossible(&position, &failed_var_iden);
+    /* POSITION_OPTION_CALCULATE_REL_SCOPE flag to state we want this position relative to our scope and not from zero. 
+       The position relative to zero was already calculated earlier in execution*/
+    next_var_iden->getPositionAsFarAsPossible(&position, &failed_var_iden, POSITION_OPTION_CALCULATE_REL_SCOPE);
 
     if (failed_var_iden != NULL)
     {
