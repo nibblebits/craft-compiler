@@ -151,11 +151,32 @@ std::ifstream::pos_type EXPORT GetFileSize(std::string filename)
     return pos;
 }
 
-std::shared_ptr<Stream> EXPORT LoadFile(std::string filename)
+bool EXPORT hasFile(std::string filename)
 {
-    // Load the file
+    std::ifstream ifs;
+    ifs.open(filename, ios::in);
+    if (ifs.is_open())
+    {
+        return true;
+    }
+
+    return false;
+}
+
+std::shared_ptr<Stream> EXPORT LoadFile(std::string filename, std::string include_dir)
+{
     std::ifstream ifs;
     std::shared_ptr<Stream> stream = std::shared_ptr<Stream>(new Stream());
+
+
+    /*
+     *  If we have an include directory and the file is not present in the local directory 
+     * then we need to load from the include directory 
+     */
+    if (include_dir != "" && !hasFile(filename))
+    {
+        filename = Helper::str_replace(include_dir, "\\", "/") + "/" + filename;
+    }
 
     ifs.open(filename, ios::in | ios::binary);
     if (!ifs.is_open())
@@ -175,18 +196,43 @@ std::shared_ptr<Stream> EXPORT LoadFile(std::string filename)
         {
             throw Exception("Managed to open file: " + filename + " but failed with reading.");
         }
-        
+
         for (int i = 0; i < length; i++)
         {
             stream->write8(buf[i]);
         }
-        
+
         delete[] buf;
     }
 
     ifs.close();
 
     return stream;
+}
+
+std::shared_ptr<Stream> EXPORT LoadFile(std::string filename, std::vector<std::string> include_dirs)
+{
+    if (include_dirs.empty())
+    {
+        throw Exception("Expecting include directories, if the file is single use LoadFile(string)", "std::shared_ptr<Stream> EXPORT LoadFile(std::string filename, std::vector<std::string>* include_dirs)");
+    }
+    // Do we have the file in the local directory?
+    if (hasFile(filename))
+    {
+        return LoadFile(filename);
+    }
+
+    // loop through until we find the file (or not)
+    for (std::string include_dir : include_dirs)
+    {
+        std::string abs_filename = Helper::str_replace(include_dir, "\\", "/") + "/" + filename;
+        if (hasFile(abs_filename))
+        {
+            return LoadFile(filename, include_dir);
+        }
+    }
+
+    throw Exception("File \"" + filename + "\" could not be found or loaded.", "std::shared_ptr<Stream> EXPORT LoadFile(std::string filename, std::vector<std::string>* include_dirs)");
 }
 
 void EXPORT WriteFile(std::string filename, Stream* stream)

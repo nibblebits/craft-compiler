@@ -45,6 +45,16 @@ Compiler::~Compiler()
 
 }
 
+void Compiler::setStdLib(std::string stdlib)
+{
+    this->stdlib = stdlib;
+}
+
+void Compiler::setIncludeDirs(std::vector<std::string> include_dirs)
+{
+    this->include_dirs = include_dirs;
+}
+
 void Compiler::setArgument(std::string name, std::string value)
 {
     this->arguments[name] = value;
@@ -113,6 +123,21 @@ std::string Compiler::getArgumentValue(std::string name)
 bool Compiler::hasArgument(std::string name)
 {
     return this->arguments.find(name) != this->arguments.end();
+}
+
+std::string Compiler::getStdLib()
+{
+    return this->stdlib;
+}
+
+std::string Compiler::getStdLibAddress()
+{
+    return std::string(STDLIB_DIR) + "/" + getStdLib();
+}
+
+std::vector<std::string> Compiler::getIncludeDirs()
+{
+    return this->include_dirs;
 }
 
 std::shared_ptr<VDEFBranch> Compiler::getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name)
@@ -319,13 +344,13 @@ long Compiler::evaluate(long n1, long n2, std::string op)
         return n1 >> n2;
     else if (op == "<<")
         return n1 << n2;
-    else if(op == "<")
+    else if (op == "<")
         return n1 < n2;
-    else if(op == ">")
+    else if (op == ">")
         return n1 > n2;
-    else if(op == "<=")
+    else if (op == "<=")
         return n1 <= n2;
-    else if(op == ">=")
+    else if (op == ">=")
         return n1 >= n2;
 
 

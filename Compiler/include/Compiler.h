@@ -48,7 +48,10 @@ class EXPORT Compiler
 public:
     Compiler();
     virtual ~Compiler();
-
+    
+    void setStdLib(std::string stdlib);
+    void setIncludeDirs(std::vector<std::string> include_dirs);
+    
     void setArgument(std::string name, std::string value);
     void setCodeGenerator(std::shared_ptr<CodeGenerator> codegen);
     void setLinker(std::shared_ptr<Linker> linker);
@@ -62,6 +65,9 @@ public:
     std::shared_ptr<Linker> getLinker();
     std::string getArgumentValue(std::string name);
     bool hasArgument(std::string name);
+    std::string getStdLib();
+    std::string getStdLibAddress();
+    std::vector<std::string> getIncludeDirs();
 
     std::shared_ptr<VDEFBranch> getVariableFromStructure(std::shared_ptr<STRUCTBranch> structure, std::string var_name);
     int getSizeOfVarDef(std::shared_ptr<VDEFBranch> vdef_branch);
@@ -93,6 +99,8 @@ private:
     ASTAssistant* astAssistant;
     
     std::map<std::string, std::string> arguments;
+    std::vector<std::string> include_dirs;
+    std::string stdlib;
     int pointer_size;
 
     // The code generator must be shared as we are not the sole owner of it and it would be unsafe to not have this as a shared pointer.

@@ -37,6 +37,7 @@
 #define CODEGEN_DIR "./codegens"
 #define OBJ_FORMAT_DIR "./obj_formats"
 #define LINKER_DIR "./linkers"
+#define STDLIB_DIR "./stdlib"
 
 // If its a CYGWIN compiler then enable _WIN32
 #ifdef __CYGWIN__

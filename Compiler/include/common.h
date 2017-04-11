@@ -44,7 +44,9 @@ class VirtualSegment;
 #endif
 
 std::ifstream::pos_type EXPORT GetFileSize(std::string filename);
-std::shared_ptr<Stream> EXPORT LoadFile(std::string filename);
+bool EXPORT hasFile(std::string filename);
+std::shared_ptr<Stream> EXPORT LoadFile(std::string filename, std::string include_dir = "");
+std::shared_ptr<Stream> EXPORT LoadFile(std::string filename, std::vector<std::string> include_dirs);
 
 #ifdef DEBUG_MODE
 void EXPORT debug_output_tokens(std::vector<std::shared_ptr<Token>> tokens);

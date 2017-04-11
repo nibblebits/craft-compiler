@@ -1773,7 +1773,10 @@ void Parser::process_macro_include()
     std::shared_ptr<Parser> parser = std::shared_ptr<Parser>(new Parser(getCompiler()));
     try
     {
-        std::shared_ptr<Stream> file_stream = LoadFile(filename);
+        std::vector<std::string> include_vec = getCompiler()->getIncludeDirs();
+        // Add the stdlib to the include vector
+        include_vec.push_back(getCompiler()->getStdLibAddress());
+        std::shared_ptr<Stream> file_stream = LoadFile(filename, include_vec);
         if (file_stream->hasInput())
         {
             error("Input file \"" + filename + "\" is empty");

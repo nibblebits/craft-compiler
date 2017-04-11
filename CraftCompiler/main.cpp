@@ -482,7 +482,10 @@ int LinkMode()
         try
         {
             std::shared_ptr<VirtualObjectFormat> obj_format = getObjectFormat(file_ext);
-            std::shared_ptr<Stream> stream = LoadFile(file_name);
+            std::vector<std::string> include_vec = compiler.getIncludeDirs();
+            // Push the stdlib to the end of the include vector
+            include_vec.push_back(compiler.getStdLibAddress());
+            std::shared_ptr<Stream> stream = LoadFile(file_name, include_vec);
             try
             {
                 obj_format->read(stream);
@@ -587,6 +590,7 @@ void HelpMenu()
 
 int main(int argc, char** argv)
 {
+    
     arguments = GoblinArgumentParser_GetArguments(argc, argv);
 
     std::cout << COMPILER_FULLNAME << std::endl;
@@ -603,6 +607,18 @@ int main(int argc, char** argv)
     for (Argument argument : arguments.getArguments())
     {
         compiler.setArgument(argument.name, argument.value);
+    }
+    
+    // Let the compiler know about the stdlib
+    if (arguments.hasArgument("stdlib"))
+    {
+        compiler.setStdLib(arguments.getArgumentValue("stdlib"));
+    }
+    
+    // Let the compiler know about the include directories
+    if (arguments.hasArgument("I"))
+    {
+        compiler.setIncludeDirs(Helper::split(arguments.getArgumentValue("I"), ','));
     }
 
     if (arguments.hasArgument("help"))
