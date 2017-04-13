@@ -49,8 +49,8 @@ public:
     std::vector<std::shared_ptr<GLOBAL_REF>> getGlobalReferences();
     std::vector<std::shared_ptr<GLOBAL_REF>> getGlobalReferencesForSegment(std::string segment_name);
 
-    bool hasGlobalReference(std::string ref_name);
     std::shared_ptr<GLOBAL_REF> getGlobalReferenceByName(std::string ref_name);
+    bool hasGlobalReference(std::string ref_name);
     
     void registerExternalReference(std::string ref_name);
     std::vector<std::string> getExternalReferences();

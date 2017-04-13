@@ -86,6 +86,10 @@ void VirtualObjectFormat::registerGlobalReference(std::shared_ptr<VirtualSegment
         throw Exception("void VirtualObjectFormat::registerGlobalReference(std::shared_ptr<VirtualSegment> segment, std::string ref_name, int offset): expecting a segment but NULL was provided");
     }
 
+    if (hasGlobalReference(ref_name))
+    {
+        throw Exception("The global reference \"" + ref_name + "\" is already registered on one of the segments", "void VirtualObjectFormat::registerGlobalReference(std::shared_ptr<VirtualSegment> segment, std::string ref_name, int offset)");
+    }
     segment->register_global_reference(ref_name, offset);
 }
 
@@ -106,17 +110,6 @@ std::vector<std::shared_ptr<GLOBAL_REF>> VirtualObjectFormat::getGlobalReference
     return getSegment(segment_name)->getGlobalReferences();
 }
 
-bool VirtualObjectFormat::hasGlobalReference(std::string ref_name)
-{
-    for (std::shared_ptr<VirtualSegment> segment : getSegments())
-    {
-        if (segment->hasGlobalReference(ref_name))
-            return true;
-    }
-
-    return false;
-}
-
 std::shared_ptr<GLOBAL_REF> VirtualObjectFormat::getGlobalReferenceByName(std::string ref_name)
 {
     for (std::shared_ptr<VirtualSegment> segment : getSegments())
@@ -126,6 +119,17 @@ std::shared_ptr<GLOBAL_REF> VirtualObjectFormat::getGlobalReferenceByName(std::s
     }
 
     return NULL;
+}
+
+bool VirtualObjectFormat::hasGlobalReference(std::string ref_name)
+{
+    for (std::shared_ptr<VirtualSegment> segment : getSegments())
+    {
+        if (segment->hasGlobalReference(ref_name))
+            return true;
+    }
+
+    return false;
 }
 
 void VirtualObjectFormat::registerExternalReference(std::string ref_name)
