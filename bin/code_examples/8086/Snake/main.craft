@@ -174,11 +174,11 @@ void game_over()
 	}
 	else if(score > 1000)
 	{
-		print("You must be hacking with a score like that!");
+		print("You must be hacking with a score like that!", 4, 12, 15);
 	}
 	else if(score >= 5000)
 	{
-		print("Ok your banned a score like that is impossible");
+		print("Ok your banned a score like that is impossible", 4, 12, 15);
 	}
 	
 	wait_seconds(5);
