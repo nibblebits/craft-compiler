@@ -1357,8 +1357,6 @@ void Assembler8086::pass_3_part(std::shared_ptr<Branch> branch)
     if (type == "LABEL")
     {
         std::shared_ptr<LabelBranch> label_branch = std::dynamic_pointer_cast<LabelBranch>(branch);
-        // Ok we need to register a global reference (if any)
-        register_global_reference_if_any(label_branch);
         // Ok we need to handle the must fit
         handle_mustfits_for_label_branch(label_branch);
     }
@@ -2052,15 +2050,6 @@ std::shared_ptr<VirtualSegment> Assembler8086::get_virtual_segment_for_label(std
     std::shared_ptr<LabelBranch> label_branch = get_label_branch(label_name);
     std::string segment_name = label_branch->getSegmentBranch()->getSegmentNameBranch()->getValue();
     return getObjectFormat()->getSegment(segment_name);
-}
-
-void Assembler8086::register_global_reference_if_any(std::shared_ptr<LabelBranch> label_branch)
-{
-    std::string label_name = label_branch->getLabelNameBranch()->getValue();
-    if (has_global(label_name))
-    {
-        getObjectFormat()->registerGlobalReference(this->segment, label_name, label_branch->getOffset());
-    }
 }
 
 void Assembler8086::register_fixup_if_required(int offset, FIXUP_LENGTH length, std::shared_ptr<InstructionBranch> ins_branch, std::shared_ptr<OperandBranch> branch)
