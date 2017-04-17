@@ -444,3 +444,60 @@ long Compiler::getNumberFromString(std::string str)
 
     return std::stoi(str);
 }
+
+bool Compiler::isHookRegistered(std::string name)
+{
+    return isNonReturnableHookRegistered(name) || isReturnableHookRegistered(name);
+}
+
+bool Compiler::isNonReturnableHookRegistered(std::string name)
+{
+    return (hook_funcs.find(name) != hook_funcs.end());
+}
+
+void Compiler::registerNonReturnableHook(std::string name, INVOKEABLE_HOOK_FUNCTION hook_func)
+{
+    std::vector<INVOKEABLE_HOOK_FUNCTION> non_returnable_hook_funcs;
+    if (isNonReturnableHookRegistered(name))
+    {
+        non_returnable_hook_funcs = hook_funcs.at(name); 
+    }
+    
+    non_returnable_hook_funcs.push_back(hook_func);
+    
+    hook_funcs[name] = non_returnable_hook_funcs;
+}
+
+std::vector<INVOKEABLE_HOOK_FUNCTION> Compiler::getFunctionsOfNonReturnableHook(std::string name)
+{
+    if (isNonReturnableHookRegistered(name))
+    {
+        throw Exception("The non-returnable hook \"" + name + "\" is not registered", "void Compiler::registerNonReturnableHook(std::string name, INVOKEABLE_HOOK_FUNCTION hook_func)");
+    }
+    
+    return this->hook_funcs.at(name);
+}
+
+bool Compiler::isReturnableHookRegistered(std::string name)
+{
+    return (returnable_hook_funcs.find(name) != returnable_hook_funcs.end());
+}
+
+void Compiler::registerReturnableHook(std::string name, INVOKEABLE_RETURNABLE_HOOK_FUNCTION hook_func)
+{
+    if (isReturnableHookRegistered(name))
+    {
+        throw Exception("The returnable hook \"" + name + "\" is already registered. Returnable hooks can only be registered once.", "void Compiler::registerReturnableHook(std::string name, INVOKEABLE_RETURNABLE_HOOK_FUNCTION hook_func)");
+    }
+    returnable_hook_funcs[name] = hook_func;
+}
+
+INVOKEABLE_RETURNABLE_HOOK_FUNCTION Compiler::getFunctionOfReturnableHook(std::string name)
+{
+    if (!isReturnableHookRegistered(name))
+    {
+        throw Exception("No returnable hook has been found for the name \"" + name + "\"", "INVOKEABLE_RETURNABLE_HOOK_FUNCTION Compiler::getFunctionOfReturnableHook(std::string name)");
+    }
+
+    return returnable_hook_funcs.at(name);
+}

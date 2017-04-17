@@ -30,6 +30,8 @@
 #ifndef DEF_H
 #define DEF_H
 
+#include <functional>
+
 #define COMPILER_NAME "Craft compiler"
 #define COMPILER_VERSION "v0.1.2 beta"
 #define COMPILER_FULLNAME COMPILER_NAME " " COMPILER_VERSION
@@ -112,6 +114,9 @@ enum
 };
 
 typedef unsigned int STRING_APPEND_OPTIONS;
+
+typedef std::function<void()> INVOKEABLE_HOOK_FUNCTION; 
+typedef std::function<void*(const char* argument)> INVOKEABLE_RETURNABLE_HOOK_FUNCTION; 
 
 
 #endif /* DEF_H */

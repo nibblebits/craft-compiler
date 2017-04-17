@@ -60,7 +60,9 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/FuncCallBranch.o \
 	${OBJECTDIR}/src/FuncDefBranch.o \
 	${OBJECTDIR}/src/Helper.o \
+	${OBJECTDIR}/src/Hook.o \
 	${OBJECTDIR}/src/IFBranch.o \
+	${OBJECTDIR}/src/InvokeableHook.o \
 	${OBJECTDIR}/src/Lexer.o \
 	${OBJECTDIR}/src/Linker.o \
 	${OBJECTDIR}/src/Logger.o \
@@ -245,10 +247,20 @@ ${OBJECTDIR}/src/Helper.o: src/Helper.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Helper.o src/Helper.cpp
 
+${OBJECTDIR}/src/Hook.o: src/Hook.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/Hook.o src/Hook.cpp
+
 ${OBJECTDIR}/src/IFBranch.o: src/IFBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/IFBranch.o src/IFBranch.cpp
+
+${OBJECTDIR}/src/InvokeableHook.o: src/InvokeableHook.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -DRELEASE -Iinclude -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/InvokeableHook.o src/InvokeableHook.cpp
 
 ${OBJECTDIR}/src/Lexer.o: src/Lexer.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

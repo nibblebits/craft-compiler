@@ -33,7 +33,10 @@
       <itemPath>include/FuncCallBranch.h</itemPath>
       <itemPath>include/FuncDefBranch.h</itemPath>
       <itemPath>include/Helper.h</itemPath>
+      <itemPath>include/Hook.h</itemPath>
       <itemPath>include/IFBranch.h</itemPath>
+      <itemPath>include/InvokeableHook.h</itemPath>
+      <itemPath>include/InvokeableReturnHook.h</itemPath>
       <itemPath>include/Lexer.h</itemPath>
       <itemPath>include/LexerException.h</itemPath>
       <itemPath>include/Linker.h</itemPath>
@@ -109,7 +112,9 @@
       <itemPath>src/FuncCallBranch.cpp</itemPath>
       <itemPath>src/FuncDefBranch.cpp</itemPath>
       <itemPath>src/Helper.cpp</itemPath>
+      <itemPath>src/Hook.cpp</itemPath>
       <itemPath>src/IFBranch.cpp</itemPath>
+      <itemPath>src/InvokeableHook.cpp</itemPath>
       <itemPath>src/Lexer.cpp</itemPath>
       <itemPath>src/Linker.cpp</itemPath>
       <itemPath>src/Logger.cpp</itemPath>
@@ -252,7 +257,13 @@
       </item>
       <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Hook.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/IFBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/InvokeableHook.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/InvokeableReturnHook.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Lexer.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -397,7 +408,11 @@
       </item>
       <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/Hook.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/IFBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/InvokeableHook.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Lexer.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -558,7 +573,13 @@
       </item>
       <item path="include/Helper.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/Hook.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/IFBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/InvokeableHook.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/InvokeableReturnHook.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Lexer.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -703,7 +724,11 @@
       </item>
       <item path="src/Helper.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="src/Hook.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="src/IFBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/InvokeableHook.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Lexer.cpp" ex="false" tool="1" flavor2="0">
       </item>

@@ -36,6 +36,11 @@ CompilerEntity::~CompilerEntity()
 {
 }
 
+std::shared_ptr<CompilerEntity> CompilerEntity::getptr()
+{
+    return shared_from_this();
+}
+
 Compiler* CompilerEntity::getCompiler()
 {
     return this->compiler;

@@ -1,5 +1,5 @@
 /*
-    Craft Compiler v0.1.0 - The standard compiler for the Craft programming language.
+    Craft compiler v0.1.0 - The standard compiler for the Craft programming language.
     Copyright (C) 2016  Daniel McCarthy
 
     This program is free software: you can redistribute it and/or modify
@@ -16,30 +16,37 @@
  */
 
 /* 
- * File:   CompilerEntity.h
+ * File:   InvokeableReturnHook.h
  * Author: Daniel McCarthy
  *
- * Created on 18 June 2016, 19:07
+ * Created on 17 April 2017, 13:21
  */
 
-#ifndef COMPILERENTITY_H
-#define COMPILERENTITY_H
+#ifndef INVOKEABLERETURNHOOK_H
+#define INVOKEABLERETURNHOOK_H
 
-#include <memory>
-#include "def.h"
-class Compiler;
-class EXPORT CompilerEntity : public std::enable_shared_from_this<CompilerEntity> {
+#include "Hook.h"
+
+template <typename T>
+class InvokeableReturnHook : public Hook
+{
 public:
-    CompilerEntity(Compiler* compiler);
-    virtual ~CompilerEntity();
-    
-    std::shared_ptr<CompilerEntity> getptr();
-protected:
-    Compiler* getCompiler();
-private:
-    Compiler* compiler;
+    InvokeableReturnHook(INVOKEABLE_RETURNABLE_HOOK_FUNCTION hook_func)
+    {
+        this->hook_func = hook_func;
+    }
+    virtual ~InvokeableReturnHook()
+    {
+        
+    }
 
+    T invoke(const char* argument)
+    {
+        return (T) hook_func(argument);
+    }
+private:
+    INVOKEABLE_RETURNABLE_HOOK_FUNCTION hook_func;
 };
 
-#endif /* COMPILERENTITY_H */
+#endif /* INVOKEABLERETURNHOOK_H */
 

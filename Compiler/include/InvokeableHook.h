@@ -1,5 +1,5 @@
 /*
-    Craft Compiler v0.1.0 - The standard compiler for the Craft programming language.
+    Craft compiler v0.1.0 - The standard compiler for the Craft programming language.
     Copyright (C) 2016  Daniel McCarthy
 
     This program is free software: you can redistribute it and/or modify
@@ -16,30 +16,27 @@
  */
 
 /* 
- * File:   CompilerEntity.h
+ * File:   InvokeableHook.h
  * Author: Daniel McCarthy
  *
- * Created on 18 June 2016, 19:07
+ * Created on 17 April 2017, 14:34
  */
 
-#ifndef COMPILERENTITY_H
-#define COMPILERENTITY_H
+#ifndef INVOKEABLEHOOK_H
+#define INVOKEABLEHOOK_H
 
-#include <memory>
-#include "def.h"
-class Compiler;
-class EXPORT CompilerEntity : public std::enable_shared_from_this<CompilerEntity> {
+#include <vector>
+#include "Hook.h"
+
+class InvokeableHook : public Hook {
 public:
-    CompilerEntity(Compiler* compiler);
-    virtual ~CompilerEntity();
+    InvokeableHook(std::vector<INVOKEABLE_HOOK_FUNCTION> invokeable_hook_funcs);
+    virtual ~InvokeableHook();
     
-    std::shared_ptr<CompilerEntity> getptr();
-protected:
-    Compiler* getCompiler();
+    void invoke();
 private:
-    Compiler* compiler;
-
+    std::vector<INVOKEABLE_HOOK_FUNCTION>  hook_funcs;
 };
 
-#endif /* COMPILERENTITY_H */
+#endif /* INVOKEABLEHOOK_H */
 

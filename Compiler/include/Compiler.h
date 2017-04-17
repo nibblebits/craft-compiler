@@ -39,19 +39,23 @@
 #include "Linker.h"
 #include "common.h"
 #include "def.h"
+#include "Hook.h"
+#include "InvokeableHook.h"
+#include "InvokeableReturnHook.h"
 
 class VDEFBranch;
 class STRUCTBranch;
 class ArrayIndexBranch;
+
 class EXPORT Compiler
 {
 public:
     Compiler();
     virtual ~Compiler();
-    
+
     void setStdLib(std::string stdlib);
     void setIncludeDirs(std::vector<std::string> include_dirs);
-    
+
     void setArgument(std::string name, std::string value);
     void setCodeGenerator(std::shared_ptr<CodeGenerator> codegen);
     void setLinker(std::shared_ptr<Linker> linker);
@@ -88,6 +92,26 @@ public:
     long getNumberFromString(std::string str, char formatting_symbol);
     long getNumberFromString(std::string str);
 
+    bool isHookRegistered(std::string name);
+    bool isNonReturnableHookRegistered(std::string name);
+    void registerNonReturnableHook(std::string name, INVOKEABLE_HOOK_FUNCTION hook_func);
+    std::vector<INVOKEABLE_HOOK_FUNCTION> getFunctionsOfNonReturnableHook(std::string name);
+    
+    bool isReturnableHookRegistered(std::string name);
+    void registerReturnableHook(std::string name, INVOKEABLE_RETURNABLE_HOOK_FUNCTION hook_func);
+    INVOKEABLE_RETURNABLE_HOOK_FUNCTION getFunctionOfReturnableHook(std::string name);
+
+    template <typename T>
+    InvokeableReturnHook<T> getReturnableHook(std::string name)
+    {
+        return InvokeableReturnHook<T>(getFunctionOfReturnableHook(name));
+    }
+
+    InvokeableHook getNonReturnableHook(std::string name)
+    {
+        return InvokeableHook(getFunctionsOfNonReturnableHook(name));
+    }
+    
 private:
     /* Ideally these do not have to be pointers but since arguments now exist in the constructors of these objects I have ran into issues calling them.
      * I plan to change this soon */
@@ -97,15 +121,17 @@ private:
     SemanticValidator* semanticValidator;
     TreeImprover* treeImprover;
     ASTAssistant* astAssistant;
-    
+
     std::map<std::string, std::string> arguments;
     std::vector<std::string> include_dirs;
     std::string stdlib;
     int pointer_size;
 
+    std::map<std::string, std::vector<INVOKEABLE_HOOK_FUNCTION>> hook_funcs;
+    std::map<std::string, INVOKEABLE_RETURNABLE_HOOK_FUNCTION> returnable_hook_funcs;
+
     // The code generator must be shared as we are not the sole owner of it and it would be unsafe to not have this as a shared pointer.
     std::shared_ptr<CodeGenerator> codeGenerator;
-
     std::shared_ptr<Linker> linker;
 };
 
