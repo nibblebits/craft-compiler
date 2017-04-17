@@ -20,10 +20,39 @@
 #include <windows.h>
 #endif
 #include <stdio.h>
+#include <string.h>
+
+bool EXPORT GoblinLoadDependencies(const char* def_filename) {
+    FILE* fp;
+    char* line = 0;
+    size_t len = 0;
+    fp = fopen(def_filename, "r");
+    if (!fp) {
+        return false;
+    }
+
+    while(getline(&line, &len, fp) != -1)
+    {
+        GoblinLoadLibrary(line);
+    }
+    
+    if (line)
+        free(line);
+    fclose(fp);
+    return true;
+}
 
 void* EXPORT GoblinLoadLibrary(const char* filename) {
     void* lib_ptr = 0;
 #ifdef _WIN32
+    
+    char dep_filename[strlen(filename+4)];
+    strcpy(dep_filename, filename);
+    strcat(dep_filename, ".dep");
+    
+    // Load dependencies of this library
+    GoblinLoadDependencies(dep_filename);
+    
     lib_ptr = LoadLibrary(filename);
 #else
 #error "not yet supported in linux"

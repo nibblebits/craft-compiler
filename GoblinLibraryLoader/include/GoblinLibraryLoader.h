@@ -17,6 +17,7 @@
 
 #ifndef GOBLINLIBRARYLOADER_H
 #define GOBLINLIBRARYLOADER_H
+#include <stdbool.h>
 
 #define EXPORT __declspec(dllexport)
 
@@ -32,6 +33,7 @@ extern "C" {
     #error Goblin Library Loader is only compatible with windows at the moment
 #endif
 
+    bool EXPORT GoblinLoadDependencies(const char* def_filename);
     void* EXPORT GoblinLoadLibrary(const char* filename);
     void* EXPORT GoblinGetAddress(void* library, const char* entity_name);
 
