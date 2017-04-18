@@ -207,6 +207,8 @@ std::shared_ptr<Stream> EXPORT LoadFile(std::string filename, std::string includ
 
     ifs.close();
 
+    // Reset the stream position
+    stream->setPosition(0);
     return stream;
 }
 
