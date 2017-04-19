@@ -28,6 +28,7 @@
 #include <memory>
 #include <fstream>
 #include <string>
+#include <Windows.h>
 #include "def.h"
 #include "Compiler.h"
 #include "branches.h"
@@ -83,10 +84,22 @@ bool object_file_output = false;
 
 ArgumentContainer arguments;
 
+void* LoadFileRelativeToModule(std::string filename)
+{
+    char buffer[512];
+    GetModuleFileName(NULL, buffer, 512);
+    
+    std::string path = Helper::str_replace(std::string(buffer), "\\", "/");
+    std::string::size_type pos = path.find_last_of("/");
+    std::string root = path.substr(0, pos);
+    return GoblinLoadLibrary((root + "/" + filename).c_str());
+}
+
+
 std::shared_ptr<Linker> getLinker(std::string linker_name)
 {
     std::shared_ptr<Linker> linker = NULL;
-    void* lib_addr = GoblinLoadLibrary(std::string(std::string(LINKER_DIR)
+    void* lib_addr = LoadFileRelativeToModule(std::string(std::string(LINKER_DIR)
                                                    + "/" + linker_name + std::string(LIBRARY_EXT)).c_str());
     if (lib_addr == NULL)
     {
@@ -112,7 +125,7 @@ std::shared_ptr<Linker> getLinker(std::string linker_name)
 VirtualObjectFormat* getObjectFormat(std::string object_format_name)
 {
     VirtualObjectFormat* virtual_obj_format = NULL;
-    void* lib_addr = GoblinLoadLibrary(std::string(std::string(OBJ_FORMAT_DIR)
+    void* lib_addr = LoadFileRelativeToModule(std::string(std::string(OBJ_FORMAT_DIR)
                                                    + "/" + object_format_name + std::string(LIBRARY_EXT)).c_str());
     if (lib_addr == NULL)
     {
@@ -138,7 +151,7 @@ VirtualObjectFormat* getObjectFormat(std::string object_format_name)
 std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name, std::shared_ptr<VirtualObjectFormat> object_format)
 {
     std::shared_ptr<CodeGenerator> codegen = NULL;
-    void* lib_addr = GoblinLoadLibrary(std::string(std::string(CODEGEN_DIR)
+    void* lib_addr = LoadFileRelativeToModule(std::string(std::string(CODEGEN_DIR)
                                                    + "/" + codegen_name + std::string(LIBRARY_EXT)).c_str());
 
     if (lib_addr == NULL)
