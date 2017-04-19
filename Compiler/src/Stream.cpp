@@ -44,6 +44,11 @@ Stream::~Stream()
 {
 }
 
+std::shared_ptr<Stream> Stream::newInstance()
+{
+    return std::shared_ptr<Stream>(new Stream());
+}
+
 void Stream::loadFromFile(std::string filename)
 {
     std::ifstream ifs;
@@ -195,7 +200,7 @@ void Stream::writeStream(Stream* stream, int offset, int total)
     stream->setPosition(offset);
     int total_wrote = 0;
     while (stream->hasInput()
-                && total_wrote < total)
+            && total_wrote < total)
     {
         write8(stream->read8());
         total_wrote++;
@@ -299,6 +304,24 @@ uint32_t Stream::peek32(int pos)
     return result;
 }
 
+void Stream::read(std::string* str, int amount)
+{
+    char buf[amount+1];
+    read(buf, amount);
+    // Null terminator
+    buf[amount] = 0;
+    
+    *str = std::string(buf);
+}
+
+void Stream::read(char* buf, int amount)
+{
+    for (int i = 0; i < amount; i++)
+    {
+        buf[i] = read8();
+    }
+}
+
 uint8_t Stream::read8()
 {
     if (this->vector.size() <= pos)
@@ -337,6 +360,7 @@ std::string Stream::readStr()
 }
 
 // Splits the stream into a vector of chunks
+
 std::vector<std::shared_ptr<Stream>> Stream::chunkSplit(int chunk_size)
 {
     // Ok we first need to know how many chunks we have

@@ -40,6 +40,7 @@ class EXPORT Stream : public std::enable_shared_from_this<Stream>
 public:
     Stream();
     virtual ~Stream();
+    static std::shared_ptr<Stream> newInstance();
     void loadFromFile(std::string filename);
     void loadFrom_ifstream(std::ifstream* stream);
     void setPosition(int position);
@@ -62,6 +63,8 @@ public:
     uint16_t peek16(int pos);
     uint32_t peek32(int pos);
 
+    void read(std::string* str, int amount);
+    void read(char* buf, int amount);
     uint8_t read8();
     uint16_t read16();
     uint32_t read32();
