@@ -44,6 +44,8 @@ public:
     std::vector<std::shared_ptr<Token>> getTokens();
     static bool isDataTypeKeyword(std::string value);
     virtual ~Lexer();
+    
+    void setFileName(std::string filename);
 private:
     std::string input;
     std::vector<std::shared_ptr<Token>> tokens;

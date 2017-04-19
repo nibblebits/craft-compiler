@@ -49,6 +49,11 @@ Lexer::~Lexer()
 
 }
 
+void Lexer::setFileName(std::string filename)
+{
+    this->filename = filename;
+}
+
 void Lexer::setInput(std::string input)
 {
     this->input = input;
@@ -111,7 +116,7 @@ void Lexer::tokenize()
             fillTokenWhile([](char c) -> bool
             {
                 return isCharacter(c) || isNumber(c);
-                
+
             });
 
             if (isKeyword(tokenValue))
@@ -185,7 +190,7 @@ void Lexer::tokenize()
                 position.col_pos = 0;
             }
         }
-        else if(c == '\'')
+        else if (c == '\'')
         {
             // A single quote has been opened so we are expecting a character equivalent of a number
             it++;
@@ -198,7 +203,7 @@ void Lexer::tokenize()
                     throw LexerException(position, "Opening a quote but not closing it or quote length exceeds 1 byte. 'A' is legal 'AB' is not.");
                 }
             }
-            
+
             // This character will be treated as a number
             tokenValue = std::to_string(c);
             token = new Token("number", tokenValue, position);
@@ -254,8 +259,8 @@ std::vector<std::shared_ptr<Token>> Lexer::getTokens()
 }
 
 char Lexer::HandleEscapeSequence(char c)
-{ 
-    switch(c)
+{
+    switch (c)
     {
     case 'n':
         c = '\n';
@@ -274,17 +279,18 @@ char Lexer::HandleEscapeSequence(char c)
         c = '\r';
         break;
     case '"':
-        c  = '"';
+        c = '"';
         break;
     case '\\':
-        c = '\\';    
+        c = '\\';
         break;
     default:
         throw Exception("Invalid escape sequence character \"" + std::to_string(c) + "\"");
     }
-    
+
     return c;
 }
+
 void Lexer::fillTokenWhile(std::function<bool(char c) > callback, std::string* custom_tokenValue)
 {
     if (custom_tokenValue == NULL)
