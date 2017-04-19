@@ -39,7 +39,7 @@ public:
     void setPointer(bool is_pointer, int depth = 0);
     void setCustomDataTypeSize(int size);
     bool hasCustomDataTypeSize();
-    int getDataTypeSize(bool no_pointer = false);
+    int getDataTypeSize(bool no_pointer_if_one_pointer = false);
 
     bool isPointer();
     int getPointerDepth();

@@ -84,18 +84,15 @@ bool DataTypeBranch::hasCustomDataTypeSize()
     return this->custom_data_type_size != -1;
 }
 
-int DataTypeBranch::getDataTypeSize(bool no_pointer)
+int DataTypeBranch::getDataTypeSize(bool no_pointer_if_one_pointer)
 {
     if (hasCustomDataTypeSize())
         return this->custom_data_type_size;
 
     // Sometimes people may want to get the data type size as if the branch was not a pointer.
-    if (!no_pointer)
+    if (isPointer() && (!no_pointer_if_one_pointer || getPointerDepth() > 1))
     {
-        if (isPointer())
-        {
-            return getCompiler()->getCodeGenerator()->getPointerSize();
-        }
+        return getCompiler()->getCodeGenerator()->getPointerSize();
     }
 
     // Is this a primitive type?
