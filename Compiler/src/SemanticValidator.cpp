@@ -595,7 +595,7 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
                         && vdef_branch->getPointerDepth() != s_info->sv_info.pointer_depth)
                 {
                     this->logger->error("The variable: \"" + var_iden_name + "\" must have a pointer depth of "
-                                        + std::to_string(s_info->sv_info.pointer_depth) + " but its pointer depth is: " + std::to_string(vdef_branch->getPointerDepth()));
+                                        + std::to_string(s_info->sv_info.pointer_depth) + " but its pointer depth is: " + std::to_string(vdef_branch->getPointerDepth()), branch);
                 }
                 if (!vdef_branch->isPointer()
                         && s_info->sv_info.requires_pointer)
@@ -605,7 +605,7 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
                 else if (vdef_branch->isPointer()
                         && !s_info->sv_info.requires_pointer)
                 {
-                    this->logger->warn("The variable: \"" + var_iden_name + "\" is a pointer but a non pointer type is expected");
+                    this->logger->warn("The variable: \"" + var_iden_name + "\" is a pointer but a non pointer type is expected", branch);
                 }
                 else if (!vdef_branch->isPrimitive() && !vdef_branch->getDataTypeBranch()->isPointer())
                 {
