@@ -1,5 +1,8 @@
 #include "io.ch"
 
+uint8 recv_key();
+void terminal_backspace();
+
 void print_char(uint8 c)
 {
 	__asm("mov ah, 0x0e");
@@ -111,6 +114,41 @@ void print(uint8* str, uint16 arg1, uint16 arg2, uint16 arg3)
 		cur_arg += 1;
 		str = str+pos+2;
 		pos = print_str_stop_at(str, '%');
+	}	
+}
+
+uint8 kb_buf[KB_SIZE];
+uint8 kb_i = 0;
+void terminal()
+{
+	kb_i = 0;
+	while(1)
+	{
+		uint8 key = recv_key();
+		if (key == 8 && kb_i != 0)
+		{
+			terminal_backspace();
+			kb_i -= 1;
+		}
+		else if (key == 13)
+		{
+			break;
+		}
+		else
+		{
+			
+		}
 	}
+}
+
+void scan_char(uint8* ptr)
+{
+	uint8 key = recv_key();
+	print_char(key);
+	*ptr = key;
+}
+
+void scan_uint8(uint8* ptr)
+{
 	
 }
