@@ -22,7 +22,62 @@
 #include <stdio.h>
 #include <string.h>
 
-bool EXPORT GoblinLoadDependencies(const char* def_filename) {
+void str_replace(char* store, const char* str, const char* find, const char* replace)
+{
+    int str_len = strlen(str);
+    int find_len = strlen(find);
+    int replace_len = strlen(replace);
+    
+    int si = 0;
+    int i = 0;
+    for (i = 0; i < str_len; i++)
+    {
+        if (str[i] == find[0])
+        {
+            int fp = 0;
+            for (fp = 0; fp < find_len; fp++)
+            {
+                int index = i+fp;
+                if (str[index] != find[fp])
+                {
+                    break;
+                }
+            }
+            
+            // Did we have a match
+            if (fp == find_len)
+            {
+                // Ok then lets add the replacement
+                for (int rp = 0; rp < replace_len; rp++)
+                {
+                    store[si] = replace[rp];
+                    si++;
+                }
+                i += find_len-1;
+            }
+        }
+        else
+        {
+            store[si] = str[i];
+            si++;
+        }
+    }
+    
+    // Null terminator
+    store[si] = 0;
+}
+
+void handle_values(char* store, const char* str)
+{
+    char path[512];
+    char buf[512];
+    GetModuleFileName(NULL, buf, 512);
+    str_replace(path, buf, "\\", "/");
+    *(strrchr(path, '/')) = 0;
+    str_replace(store, str,  "%exe_dir", path);   
+}
+bool EXPORT GoblinLoadDependencies(const char* def_filename)
+{
     FILE* fp;
     char* line = 0;
     size_t len = 0;
@@ -33,7 +88,9 @@ bool EXPORT GoblinLoadDependencies(const char* def_filename) {
 
     while(getline(&line, &len, fp) != -1)
     {
-        GoblinLoadLibrary(line);
+        char handled_line[512];
+        handle_values(handled_line, line);
+        GoblinLoadLibrary(handled_line);
     }
     
     if (line)
@@ -42,7 +99,8 @@ bool EXPORT GoblinLoadDependencies(const char* def_filename) {
     return true;
 }
 
-void* EXPORT GoblinLoadLibrary(const char* filename) {
+void* EXPORT GoblinLoadLibrary(const char* filename)
+{
     void* lib_ptr = 0;
 #ifdef _WIN32
     
@@ -61,7 +119,8 @@ void* EXPORT GoblinLoadLibrary(const char* filename) {
     return lib_ptr;
 }
 
-void* EXPORT GoblinGetAddress(void* library, const char* entryPoint) {
+void* EXPORT GoblinGetAddress(void* library, const char* entryPoint)
+{
 #ifdef _WIN32
     return (void*) GetProcAddress(library, entryPoint);
 #else
