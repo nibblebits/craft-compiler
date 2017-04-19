@@ -1543,13 +1543,6 @@ void CodeGen8086::handle_func_return(struct stmt_info* s_info, std::shared_ptr<R
     do_asm("ret");
 }
 
-void CodeGen8086::handle_compare_expression()
-{
-
-
-
-}
-
 void CodeGen8086::handle_scope_variable_declaration(std::shared_ptr<VDEFBranch> def_branch)
 {
     // Register a scope variable
@@ -1669,8 +1662,6 @@ void CodeGen8086::handle_for_stmt(std::shared_ptr<FORBranch> branch)
     // Make the condition branches expression
     make_expression(cond_branch, &s_info);
 
-    // Handle the compare expression
-    handle_compare_expression();
 
     if (this->is_cmp_expression)
     {
