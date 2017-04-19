@@ -44,13 +44,12 @@ public:
     virtual ~Linker();
     void addObjectFile(std::shared_ptr<VirtualObjectFormat> obj);
     bool hasObjectFile(std::shared_ptr<VirtualObjectFormat> obj);
-    void link();
+    virtual void link();
     Stream* getExecutableStream();
 protected:
     virtual void link_merge(std::shared_ptr<VirtualObjectFormat> obj1, std::shared_ptr<VirtualObjectFormat> obj2);
     virtual void resolve(std::shared_ptr<VirtualObjectFormat> final_obj) = 0;
     virtual void build(Stream* executable_stream, std::shared_ptr<VirtualObjectFormat> final_obj) = 0;
-private:
     std::deque<std::shared_ptr<VirtualObjectFormat>> obj_stack;
     Stream executable_stream;
 };
