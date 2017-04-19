@@ -49,12 +49,6 @@ Lexer::~Lexer()
 
 }
 
-
-void Lexer::setFilename(std::string filename)
-{
-    this->filename = filename;
-}
-
 void Lexer::setInput(std::string input)
 {
     this->input = input;

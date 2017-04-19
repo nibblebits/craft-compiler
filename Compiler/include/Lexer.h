@@ -39,7 +39,6 @@ class EXPORT Lexer : public CompilerEntity
 {
 public:
     Lexer(Compiler* compiler, std::string filename="");
-    void setFilename(std::string filename);
     void setInput(std::string input);
     void tokenize();
     std::vector<std::shared_ptr<Token>> getTokens();
