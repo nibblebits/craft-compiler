@@ -602,7 +602,7 @@ void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct se
                 {
                     this->logger->warn("The variable: \"" + var_iden_name + "\" is not a pointer but a pointer was expected. The variable will be treated as a pointer", branch);
                 }
-                else if (vdef_branch->isPointer()
+                else if (vdef_branch->isPointer() && !var_iden_branch->hasRootArrayIndexBranch()
                         && !s_info->sv_info.requires_pointer)
                 {
                     this->logger->warn("The variable: \"" + var_iden_name + "\" is a pointer but a non pointer type is expected", branch);
