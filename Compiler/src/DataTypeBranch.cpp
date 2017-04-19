@@ -98,7 +98,7 @@ int DataTypeBranch::getDataTypeSize(bool no_pointer)
         }
     }
 
-    // Is this is primitive type?
+    // Is this a primitive type?
     if (getCompiler()->isPrimitiveDataType(getDataType()))
     {
         // Yes it is so return the primitive data type size
