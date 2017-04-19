@@ -26,18 +26,18 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "main.craft" -output "test_source.omf" -codegen 8086CodeGen -O -format "omf"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "./main.craft" -output "test_source.omf" -codegen 8086CodeGen -O -format "omf"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.goblin" -output "test_source.omf" -codegen 8086CodeGen -O -format "omf"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "./stdlib/io.craft" -output "test_source.omf" -codegen 8086CodeGen -O -format "omf"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "./bin/stdlib/io.craft" -output "test_source.omf" -codegen 8086CodeGen -O -format "omf"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.craft" -output "test_source.omf" -codegen 8086CodeGen -O -format "omf"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.craft" -output "test_source.omf" -codegen 8086CodeGen -O -format "omf" stdlib "msdos"</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}"-input "test_source.omf,io.omf" -output "test.com" -L -format "bin" -stdlib "msdos" -org_data "0x100"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.omf,hello.omf" -output "test.csl" -L -format "csl"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.craft" -output "test_source.omf" -codegen 8086CodeGen -O -format "omf" -stdlib "msdos"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.craft" -output "test.omf" -codegen 8086CodeGen -O -format "omf" -stdlib "msdos"</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.omf,io.omf" -output "test.com" -L -format "bin" -stdlib "msdos" -org_data "0x100"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"-input "test_source.omf,io.omf" -output "test.com" -L -format "bin" -stdlib "msdos" -org_data "0x100"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"-input "test_source.omf,test.csl" -output "test.com" -L -format "bin" -stdlib "msdos" -org_data "0x100"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.craft" -output "test.omf" -codegen 8086CodeGen -O -format "omf" stdlib "msdos"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.omf,hello.omf" -output "./test.csl" -L -format "csl"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test.craft" -output "test_source.omf" -codegen 8086CodeGen -O -format "omf" stdlib "msdos"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" -input "test_source.omf,test.csl" -output "test.com" -L -format "bin" -stdlib "msdos" -org_data "0x100"</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" -input "test_source.omf,io.omf" -output "test.com" -L -format "bin" -stdlib "msdos" -org_data "0x100"</runcommand>
+        <runcommand>"${OUTPUT_PATH}" -input "test_source.omf,test.csl" -output "test.com" -L -format "bin" -stdlib "msdos" -org_data "0x100"</runcommand>
         <rundir>C:\Users\dansb\Desktop\CraftCompilerV0.1.1\bin</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>

@@ -109,9 +109,9 @@ std::shared_ptr<Linker> getLinker(std::string linker_name)
     return linker;
 }
 
-std::shared_ptr<VirtualObjectFormat> getObjectFormat(std::string object_format_name)
+VirtualObjectFormat* getObjectFormat(std::string object_format_name)
 {
-    std::shared_ptr<VirtualObjectFormat> virtual_obj_format = NULL;
+    VirtualObjectFormat* virtual_obj_format = NULL;
     void* lib_addr = GoblinLoadLibrary(std::string(std::string(OBJ_FORMAT_DIR)
                                                    + "/" + object_format_name + std::string(LIBRARY_EXT)).c_str());
     if (lib_addr == NULL)
@@ -125,7 +125,7 @@ std::shared_ptr<VirtualObjectFormat> getObjectFormat(std::string object_format_n
         throw Exception("The virtual object format: " + object_format_name + " does not have a valid \"Init\" function");
     }
 
-    virtual_obj_format = std::shared_ptr<VirtualObjectFormat>(init_func(&compiler));
+    virtual_obj_format = init_func(&compiler);
 
     if (virtual_obj_format == NULL)
     {
@@ -298,7 +298,8 @@ int GenerateMode()
 
     try
     {
-        obj_format = getObjectFormat(obj_format_name);
+        obj_format = std::shared_ptr<VirtualObjectFormat>(getObjectFormat(obj_format_name));
+        obj_format->setFileName(output_file_name);
     }
     catch (Exception& ex)
     {
@@ -323,8 +324,7 @@ int GenerateMode()
     preprocessor = compiler.getPreprocessor();
     semanticValidator = compiler.getSemanticValidator();
     treeImprover = compiler.getTreeImprover();
-
-    lexer->setFilename(input_file_name);
+    
     lexer->setInput(source_file_data);
     try
     {
@@ -421,7 +421,7 @@ int GenerateMode()
         codegen->assemble();
 
         // Finalize the object
-        std::shared_ptr<VirtualObjectFormat> obj_format = codegen->getObjectFormat();
+        std::shared_ptr<VirtualObjectFormat> obj_format = std::shared_ptr<VirtualObjectFormat>(codegen->getObjectFormat());
         obj_format->finalize();
 
         // Ok lets write the object file
@@ -474,6 +474,19 @@ int LinkMode()
             " to produce executable of type \"" << arguments.getArgumentValue("format") <<
             "\" at location \"" << arguments.getArgumentValue("output") << "\"" << std::endl;
 
+    // We must load the executable format linker
+    std::shared_ptr<Linker> linker;
+    try
+    {
+        linker = getLinker(exe_format);
+        compiler.setLinker(linker);
+    }
+    catch (Exception ex)
+    {
+        std::cout << "Error loading linker: " + ex.getMessage() << std::endl;
+        return ERROR_WITH_LINKER;
+    }
+
     // We must load the object files into memory, we also need to take their type into consideration
     for (std::string file_name : file_names_to_link)
     {
@@ -481,7 +494,8 @@ int LinkMode()
         std::string file_ext = getFileExtension(file_name);
         try
         {
-            std::shared_ptr<VirtualObjectFormat> obj_format = getObjectFormat(file_ext);
+            std::shared_ptr<VirtualObjectFormat> obj_format = std::shared_ptr<VirtualObjectFormat>(getObjectFormat(file_ext));
+            obj_format->setFileName(file_name);
             std::vector<std::string> include_vec = compiler.getIncludeDirs();
             // Push the stdlib to the end of the include vector
             include_vec.push_back(compiler.getStdLibAddress());
@@ -516,17 +530,6 @@ int LinkMode()
         }
     }
 
-    // Now we must load the executable format linker
-    std::shared_ptr<Linker> linker;
-    try
-    {
-        linker = getLinker(exe_format);
-    }
-    catch (Exception ex)
-    {
-        std::cout << "Error loading linker: " + ex.getMessage() << std::endl;
-        return ERROR_WITH_LINKER;
-    }
 
 
     // Now link the files together
@@ -588,9 +591,10 @@ void HelpMenu()
     std::cout << "Also ensure that you do not use the equal sign while using these options, e.g -input = \"name\" is illegal use -input \"name\"" << std::endl;
 }
 
+#include "InvokeableReturnHook.h"
+
 int main(int argc, char** argv)
 {
-    
     arguments = GoblinArgumentParser_GetArguments(argc, argv);
 
     std::cout << COMPILER_FULLNAME << std::endl;
@@ -608,13 +612,13 @@ int main(int argc, char** argv)
     {
         compiler.setArgument(argument.name, argument.value);
     }
-    
+
     // Let the compiler know about the stdlib
     if (arguments.hasArgument("stdlib"))
     {
         compiler.setStdLib(arguments.getArgumentValue("stdlib"));
     }
-    
+
     // Let the compiler know about the include directories
     if (arguments.hasArgument("I"))
     {
@@ -626,7 +630,7 @@ int main(int argc, char** argv)
         HelpMenu();
         return 0;
     }
-    
+
     // Some error checking
     if (arguments.hasArgument("O") && arguments.hasArgument("L"))
     {
