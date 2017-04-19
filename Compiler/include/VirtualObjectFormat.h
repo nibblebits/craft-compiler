@@ -39,6 +39,9 @@ public:
     VirtualObjectFormat(Compiler* compiler);
     virtual ~VirtualObjectFormat();
 
+    void setFileName(std::string filename);
+    std::string getFileName();
+    
     std::shared_ptr<VirtualSegment> createSegment(std::string segment_name);
     std::shared_ptr<VirtualSegment> getSegment(std::string segment_name);
     std::vector<std::shared_ptr<VirtualSegment>> getSegments();
@@ -65,6 +68,7 @@ public:
 protected:
     virtual std::shared_ptr<VirtualSegment> new_segment(std::string segment_name, uint32_t origin) = 0;
 private:
+    std::string filename;
     Stream object_stream;
     std::vector<std::shared_ptr<VirtualSegment>> segments;
     std::vector<std::string> external_references;

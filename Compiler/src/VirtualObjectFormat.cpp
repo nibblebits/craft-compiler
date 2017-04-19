@@ -39,6 +39,16 @@ VirtualObjectFormat::~VirtualObjectFormat()
 {
 }
 
+void VirtualObjectFormat::setFileName(std::string filename)
+{
+    this->filename = filename;
+}
+
+std::string VirtualObjectFormat::getFileName()
+{
+    return this->filename;
+}
+
 std::shared_ptr<VirtualSegment> VirtualObjectFormat::createSegment(std::string segment_name)
 {
     if (hasSegment(segment_name))
