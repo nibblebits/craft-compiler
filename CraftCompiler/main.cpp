@@ -325,6 +325,7 @@ int GenerateMode()
     semanticValidator = compiler.getSemanticValidator();
     treeImprover = compiler.getTreeImprover();
     
+    lexer->setFileName(input_file_name);
     lexer->setInput(source_file_data);
     try
     {
