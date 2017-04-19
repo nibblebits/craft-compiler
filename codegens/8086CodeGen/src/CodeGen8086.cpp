@@ -1292,6 +1292,10 @@ void CodeGen8086::handle_ptr(struct stmt_info* s_info, std::shared_ptr<PTRBranch
     std::shared_ptr<Branch> exp_branch = ptr_branch->getExpressionBranch();
     make_expression(exp_branch, s_info, NULL, NULL);
 
+    // This could be improved not sure about it at all
+    s_info->assignment_data_size = ptr_branch->getFirstPointerVariableIdentifierBranch()->getVariableDefinitionBranch()->getDataTypeBranch()->getDataTypeSize(true);
+    s_info->pointer_var_position = "bx";
+    
     s_info->is_child_of_pointer = false;
 }
 
