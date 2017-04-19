@@ -110,6 +110,7 @@ private:
     bool hasFunctionDeclaration(std::string function_name);
     std::shared_ptr<FuncDefBranch> getFunction(std::string function_name);
 
+    void build_semantic_information(struct semantic_information* s_info, std::shared_ptr<VDEFBranch> vdef_in_question, std::shared_ptr<PTRBranch> ptr_branch);
     bool ensure_function_exists(std::string func_name, std::shared_ptr<Branch> stmt_branch);
     bool ensure_variable_valid(std::shared_ptr<VarIdentifierBranch> var_iden_branch);
     bool ensure_variable_exists(std::shared_ptr<VarIdentifierBranch> var_iden_branch);

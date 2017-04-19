@@ -7,15 +7,19 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/Logger.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/common.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/include/Lexer.h</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/SemanticValidator.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/Compiler.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/Lexer.cpp</file>
-            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/Parser.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/Linker.cpp</file>
             <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/VirtualObjectFormat.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/Logger.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/common.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/include/Lexer.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/include/SemanticValidator.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/include/DataTypeBranch.h</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/VDEFBranch.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/Parser.cpp</file>
+            <file>file:/C:/Users/dansb/Desktop/CraftCompilerV0.1.1/Compiler/src/DataTypeBranch.cpp</file>
         </group>
     </open-files>
 </project-private>

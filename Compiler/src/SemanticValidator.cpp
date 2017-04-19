@@ -371,7 +371,7 @@ void SemanticValidator::validate_var_access(std::shared_ptr<VarIdentifierBranch>
 /**
  * Attempts to validate the pointer branch
  * 
- * @param ptr_branchF
+ * @param ptr_branch
  * @return  Returns true on success and false on failure 
  */
 bool SemanticValidator::validate_pointer_access(std::shared_ptr<PTRBranch> ptr_branch)
@@ -384,6 +384,15 @@ bool SemanticValidator::validate_pointer_access(std::shared_ptr<PTRBranch> ptr_b
         return false;
     }
 
+    std::shared_ptr<VarIdentifierBranch> var_iden_branch = ptr_branch->getFirstPointerVariableIdentifierBranch();
+    std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
+    if (ptr_branch->getPointerDepth() > vdef_branch->getPointerDepth())
+    {
+        this->logger->error("Accessing variable \"" +
+                            vdef_branch->getDataTypeBranch()->getDataTypeFormatted() +
+                            "\" with a pointer depth of \"" + std::to_string(ptr_branch->getPointerDepth()) + "\" that is too deep", ptr_branch);
+        return false;
+    }
     return true;
 }
 
@@ -392,11 +401,12 @@ void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign
     // Validate the variable to assign
     validate_part(assign_branch->getVariableToAssignBranch());
 
+    std::shared_ptr<PTRBranch> ptr_branch = NULL;
     std::shared_ptr<VarIdentifierBranch> var_iden_branch = NULL;
     std::shared_ptr<Branch> var_to_assign_branch = assign_branch->getVariableToAssignBranch();
     if (var_to_assign_branch->getType() == "PTR")
     {
-        std::shared_ptr<PTRBranch> ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_to_assign_branch);
+        ptr_branch = std::dynamic_pointer_cast<PTRBranch>(var_to_assign_branch);
         // Lets validate the pointer to make sure its all valid
         if (!validate_pointer_access(ptr_branch))
         {
@@ -412,13 +422,12 @@ void SemanticValidator::validate_assignment(std::shared_ptr<AssignBranch> assign
     }
 
     std::shared_ptr<VDEFBranch> vdef_branch = var_iden_branch->getVariableDefinitionBranch();
-    std::string data_type = vdef_branch->getDataTypeBranch()->getDataType();
 
-    // Validate that the value is legal
+    // Lets build some semantic information
     struct semantic_information s_info;
-    s_info.sv_info.requirement_type = data_type;
-    s_info.sv_info.requires_pointer = vdef_branch->isPointer();
-    s_info.sv_info.pointer_depth = vdef_branch->getPointerDepth();
+    build_semantic_information(&s_info, vdef_branch, ptr_branch);
+    
+    // Validate that the value is legal
     validate_value(assign_branch->getValueBranch(), &s_info);
 }
 
@@ -510,7 +519,7 @@ void SemanticValidator::validate_structure(std::shared_ptr<STRUCTBranch> structu
     validate_body(structure_branch->getStructBodyBranch());
 }
 
-void SemanticValidator::validate_expression(std::shared_ptr<EBranch> e_branch, struct semantic_information* s_info)
+void SemanticValidator::validate_expression(std::shared_ptr<EBranch> e_branch, struct semantic_information * s_info)
 {
     std::shared_ptr<Branch> left = e_branch->getFirstChild();
     std::shared_ptr<Branch> right = e_branch->getSecondChild();
@@ -533,7 +542,7 @@ void SemanticValidator::validate_expression(std::shared_ptr<EBranch> e_branch, s
     }
 }
 
-void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct semantic_information* s_info)
+void SemanticValidator::validate_value(std::shared_ptr<Branch> branch, struct semantic_information * s_info)
 {
     std::string branch_type = branch->getType();
     if (branch_type == "E")
@@ -769,6 +778,30 @@ std::shared_ptr<FuncDefBranch> SemanticValidator::getFunction(std::string functi
     }
 
     return this->functions[function_name];
+}
+
+void SemanticValidator::build_semantic_information(struct semantic_information* s_info, std::shared_ptr<VDEFBranch> vdef_in_question, std::shared_ptr<PTRBranch> ptr_branch)
+{
+    s_info->sv_info.requirement_type = vdef_in_question->getDataTypeBranch()->getDataType();
+    if (ptr_branch != NULL)
+    {
+        int pointer_depth_diff = vdef_in_question->getPointerDepth() - ptr_branch->getPointerDepth();
+        if (pointer_depth_diff != 0)
+        {
+            // We require a pointer
+            s_info->sv_info.requires_pointer = true;
+            s_info->sv_info.pointer_depth = pointer_depth_diff;
+        }
+        else
+        {
+            s_info->sv_info.requires_pointer = false;
+        }
+    }
+    else
+    {
+        s_info->sv_info.requires_pointer = vdef_in_question->isPointer();
+        s_info->sv_info.pointer_depth = vdef_in_question->getPointerDepth();
+    }
 }
 
 bool SemanticValidator::ensure_function_exists(std::string func_name, std::shared_ptr<Branch> stmt_branch)
