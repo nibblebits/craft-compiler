@@ -1779,18 +1779,15 @@ void Parser::process_macro_include()
         std::shared_ptr<Stream> file_stream = LoadFile(filename, include_vec);
         if (file_stream->hasInput())
         {
-            error("Input file \"" + filename + "\" is empty");
-            return;
+            lexer->setInput(std::string(file_stream->getBuf(), file_stream->getSize()));
+            lexer->tokenize();
+
+            parser->setInput(lexer->getTokens());
+            parser->buildTree();
+
+            // Merge the new tree with ours
+            merge(parser->getTree()->root);
         }
-
-        lexer->setInput(std::string(file_stream->getBuf(), file_stream->getSize()));
-        lexer->tokenize();
-
-        parser->setInput(lexer->getTokens());
-        parser->buildTree();
-
-        // Merge the new tree with ours
-        merge(parser->getTree()->root);
     }
     catch (Exception& exception)
     {
