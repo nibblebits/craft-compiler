@@ -44,6 +44,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/src/Assembler.o \
 	${OBJECTDIR}/src/AssignBranch.o \
 	${OBJECTDIR}/src/BODYBranch.o \
+	${OBJECTDIR}/src/BlankVirtualObjectFormat.o \
 	${OBJECTDIR}/src/Branch.o \
 	${OBJECTDIR}/src/BreakBranch.o \
 	${OBJECTDIR}/src/CodeGenerator.o \
@@ -166,6 +167,11 @@ ${OBJECTDIR}/src/BODYBranch.o: src/BODYBranch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BODYBranch.o src/BODYBranch.cpp
+
+${OBJECTDIR}/src/BlankVirtualObjectFormat.o: src/BlankVirtualObjectFormat.cpp
+	${MKDIR} -p ${OBJECTDIR}/src
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG_MODE -Iinclude -std=c++14  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/src/BlankVirtualObjectFormat.o src/BlankVirtualObjectFormat.cpp
 
 ${OBJECTDIR}/src/Branch.o: src/Branch.cpp
 	${MKDIR} -p ${OBJECTDIR}/src

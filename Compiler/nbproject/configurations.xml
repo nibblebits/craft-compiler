@@ -14,6 +14,7 @@
       <itemPath>include/AssemblerException.h</itemPath>
       <itemPath>include/AssignBranch.h</itemPath>
       <itemPath>include/BODYBranch.h</itemPath>
+      <itemPath>include/BlankVirtualObjectFormat.h</itemPath>
       <itemPath>include/Branch.h</itemPath>
       <itemPath>include/BreakBranch.h</itemPath>
       <itemPath>include/CharPos.h</itemPath>
@@ -96,6 +97,7 @@
       <itemPath>src/Assembler.cpp</itemPath>
       <itemPath>src/AssignBranch.cpp</itemPath>
       <itemPath>src/BODYBranch.cpp</itemPath>
+      <itemPath>src/BlankVirtualObjectFormat.cpp</itemPath>
       <itemPath>src/Branch.cpp</itemPath>
       <itemPath>src/BreakBranch.cpp</itemPath>
       <itemPath>src/CodeGenerator.cpp</itemPath>
@@ -218,6 +220,8 @@
       <item path="include/AssignBranch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/BODYBranch.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/BlankVirtualObjectFormat.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -375,6 +379,8 @@
       <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/BODYBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/BlankVirtualObjectFormat.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -535,6 +541,8 @@
       </item>
       <item path="include/BODYBranch.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/BlankVirtualObjectFormat.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include/Branch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include/BreakBranch.h" ex="false" tool="3" flavor2="0">
@@ -691,6 +699,8 @@
       <item path="src/AssignBranch.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/BODYBranch.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/BlankVirtualObjectFormat.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="src/Branch.cpp" ex="false" tool="1" flavor2="0">
       </item>
