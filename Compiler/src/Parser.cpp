@@ -1776,6 +1776,7 @@ void Parser::process_macro_include()
         std::vector<std::string> include_vec = getCompiler()->getIncludeDirs();
         // Add the stdlib to the include vector
         include_vec.push_back(getCompiler()->getStdLibAddress());
+        std::cout << getCompiler()->getStdLibAddress() << std::endl;
         std::shared_ptr<Stream> file_stream = LoadFile(filename, include_vec);
         if (file_stream->hasInput())
         {

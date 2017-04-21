@@ -53,6 +53,7 @@ public:
     Compiler();
     virtual ~Compiler();
 
+    void setRootDirectory(std::string root_dir);
     void setStdLib(std::string stdlib);
     void setIncludeDirs(std::vector<std::string> include_dirs);
 
@@ -69,6 +70,7 @@ public:
     std::shared_ptr<Linker> getLinker();
     std::string getArgumentValue(std::string name);
     bool hasArgument(std::string name);
+    std::string getRootDirectory();
     std::string getStdLib();
     std::string getStdLibAddress();
     std::vector<std::string> getIncludeDirs();
@@ -122,6 +124,8 @@ private:
     TreeImprover* treeImprover;
     ASTAssistant* astAssistant;
 
+    std::string root_dir;
+    
     std::map<std::string, std::string> arguments;
     std::vector<std::string> include_dirs;
     std::string stdlib;

@@ -45,6 +45,11 @@ Compiler::~Compiler()
 
 }
 
+void Compiler::setRootDirectory(std::string root_dir)
+{
+    this->root_dir = root_dir;
+}
+
 void Compiler::setStdLib(std::string stdlib)
 {
     this->stdlib = stdlib;
@@ -120,6 +125,11 @@ std::string Compiler::getArgumentValue(std::string name)
     return this->arguments[name];
 }
 
+std::string Compiler::getRootDirectory()
+{
+    return this->root_dir;
+}
+
 bool Compiler::hasArgument(std::string name)
 {
     return this->arguments.find(name) != this->arguments.end();
@@ -132,7 +142,7 @@ std::string Compiler::getStdLib()
 
 std::string Compiler::getStdLibAddress()
 {
-    return std::string(STDLIB_DIR) + "/" + getStdLib();
+    return getRootDirectory() + "/" + std::string(STDLIB_DIR) + "/" + getStdLib();
 }
 
 std::vector<std::string> Compiler::getIncludeDirs()
@@ -460,11 +470,11 @@ void Compiler::registerNonReturnableHook(std::string name, INVOKEABLE_HOOK_FUNCT
     std::vector<INVOKEABLE_HOOK_FUNCTION> non_returnable_hook_funcs;
     if (isNonReturnableHookRegistered(name))
     {
-        non_returnable_hook_funcs = hook_funcs.at(name); 
+        non_returnable_hook_funcs = hook_funcs.at(name);
     }
-    
+
     non_returnable_hook_funcs.push_back(hook_func);
-    
+
     hook_funcs[name] = non_returnable_hook_funcs;
 }
 
@@ -474,7 +484,7 @@ std::vector<INVOKEABLE_HOOK_FUNCTION> Compiler::getFunctionsOfNonReturnableHook(
     {
         throw Exception("The non-returnable hook \"" + name + "\" is not registered", "void Compiler::registerNonReturnableHook(std::string name, INVOKEABLE_HOOK_FUNCTION hook_func)");
     }
-    
+
     return this->hook_funcs.at(name);
 }
 

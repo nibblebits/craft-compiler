@@ -84,23 +84,27 @@ bool object_file_output = false;
 
 ArgumentContainer arguments;
 
-void* LoadFileRelativeToModule(std::string filename)
+std::string getRunningDirectory()
 {
     char buffer[512];
     GetModuleFileName(NULL, buffer, 512);
-    
+
     std::string path = Helper::str_replace(std::string(buffer), "\\", "/");
     std::string::size_type pos = path.find_last_of("/");
     std::string root = path.substr(0, pos);
-    return GoblinLoadLibrary((root + "/" + filename).c_str());
+    return root;
 }
 
+void* LoadFileRelativeToModule(std::string filename)
+{
+    return GoblinLoadLibrary((getRunningDirectory() + "/" + filename).c_str());
+}
 
 std::shared_ptr<Linker> getLinker(std::string linker_name)
 {
     std::shared_ptr<Linker> linker = NULL;
     void* lib_addr = LoadFileRelativeToModule(std::string(std::string(LINKER_DIR)
-                                                   + "/" + linker_name + std::string(LIBRARY_EXT)).c_str());
+                                                          + "/" + linker_name + std::string(LIBRARY_EXT)).c_str());
     if (lib_addr == NULL)
     {
         throw Exception("The linker: " + linker_name + " could not be found or loaded");
@@ -126,7 +130,7 @@ VirtualObjectFormat* getObjectFormat(std::string object_format_name)
 {
     VirtualObjectFormat* virtual_obj_format = NULL;
     void* lib_addr = LoadFileRelativeToModule(std::string(std::string(OBJ_FORMAT_DIR)
-                                                   + "/" + object_format_name + std::string(LIBRARY_EXT)).c_str());
+                                                          + "/" + object_format_name + std::string(LIBRARY_EXT)).c_str());
     if (lib_addr == NULL)
     {
         throw Exception("The object format: " + object_format_name + " could not be found or loaded");
@@ -152,7 +156,7 @@ std::shared_ptr<CodeGenerator> getCodeGenerator(std::string codegen_name, std::s
 {
     std::shared_ptr<CodeGenerator> codegen = NULL;
     void* lib_addr = LoadFileRelativeToModule(std::string(std::string(CODEGEN_DIR)
-                                                   + "/" + codegen_name + std::string(LIBRARY_EXT)).c_str());
+                                                          + "/" + codegen_name + std::string(LIBRARY_EXT)).c_str());
 
     if (lib_addr == NULL)
     {
@@ -337,7 +341,7 @@ int GenerateMode()
     preprocessor = compiler.getPreprocessor();
     semanticValidator = compiler.getSemanticValidator();
     treeImprover = compiler.getTreeImprover();
-    
+
     lexer->setFileName(input_file_name);
     lexer->setInput(source_file_data);
     try
@@ -621,6 +625,9 @@ int main(int argc, char** argv)
         return NO_ARGUMENTS_PROVIDED;
     }
 
+    // The root directory will be the directory of the running process
+    compiler.setRootDirectory(getRunningDirectory());
+            
     // Let the compiler know the arguments that were passed to us.
     for (Argument argument : arguments.getArguments())
     {

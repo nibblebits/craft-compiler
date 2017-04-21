@@ -214,10 +214,6 @@ std::shared_ptr<Stream> EXPORT LoadFile(std::string filename, std::string includ
 
 std::shared_ptr<Stream> EXPORT LoadFile(std::string filename, std::vector<std::string> include_dirs)
 {
-    if (include_dirs.empty())
-    {
-        throw Exception("Expecting include directories, if the file is single use LoadFile(string)", "std::shared_ptr<Stream> EXPORT LoadFile(std::string filename, std::vector<std::string>* include_dirs)");
-    }
     // Do we have the file in the local directory?
     if (hasFile(filename))
     {
