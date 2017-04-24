@@ -1,7 +1,8 @@
 #include "io.ch"
 
-uint8 recv_key();
 void terminal_backspace();
+uint8 recv_key();
+void terminal(uint8* buf);
 
 void print_char(uint8 c)
 {
@@ -18,25 +19,6 @@ void print_str(uint8* str)
 		print_char(str[i]);
 		i += 1;
 	}
-}
-
-int16 print_str_stop_at(uint8* str, uint8 c)
-{
-	uint16 i = 0;
-	while(str[i] != 0 && str[i] != c)
-	{
-		print_char(str[i]);
-		i += 1;
-	}
-	
-	if (str[i] == c)
-	{
-		// Returns position as it stopped at "c"
-		return i;
-	}
-
-	// Returns -1 if it didn't stop at "c"
-	return -1;
 }
 
 void print_number(uint16 number)
@@ -78,77 +60,12 @@ void print_number(uint16 number)
 	}
 }
 
-void print_part(uint8 type, uint16 arg)
-{
-	if (type == 'i')
-	{
-		print_number(arg);
-	}
-	else
-	{
-		print_str("Unknown type: ");
-		print_number(type);
-	}
-}
-// Currently unlimited arguments are not supported.
-void print(uint8* str, uint16 arg1, uint16 arg2, uint16 arg3)
-{
-	uint16 args[3];
-	args[0] = arg1;
-	args[1] = arg2;
-	args[2] = arg3;
-	
-	uint8 cur_arg = 0;
-	uint16 pos = print_str_stop_at(str, '%');
-	if (pos == -1)
-	{
-		// -1 was returned so we have no options lets output the whole thing
-		print_str(str);
-		return;
-	}
-	
-	while(pos != -1)
-	{
-		uint8* type_ptr = str+pos+1;
-		print_part(*type_ptr, args[cur_arg]);
-		cur_arg += 1;
-		str = str+pos+2;
-		pos = print_str_stop_at(str, '%');
-	}	
-}
-
-uint8 kb_buf[KB_SIZE];
-uint8 kb_i = 0;
-void terminal()
-{
-	kb_i = 0;
-	while(1)
-	{
-		uint8 key = recv_key();
-		if (key == 8 && kb_i != 0)
-		{
-			terminal_backspace();
-			kb_i -= 1;
-		}
-		else if (key == 13)
-		{
-			break;
-		}
-		else
-		{
-			
-		}
-	}
-}
-
 void scan_char(uint8* ptr)
 {
-	uint8 key = recv_key();
-	print_char(key);
-	*ptr = key;
+	*ptr = recv_key();
 }
 
-void scan_uint8(uint8* ptr)
+void scan_str(uint8* ptr)
 {
-	
+	terminal(ptr);
 }

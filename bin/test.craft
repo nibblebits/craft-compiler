@@ -1,0 +1,20 @@
+__asm("call _main");
+__asm("mov ah, 0x4c");
+__asm("mov al, 0");
+__asm("int 0x21");
+
+#include "io.ch"
+
+void main()
+{
+	uint8 buf[20];
+	print_str("Enter your name: \n\r");
+	scan_str(&buf);
+	print_str("Your name is: ");
+	
+	for (uint8 i = 0; i < 5; i+=1)
+	{
+		print_char(buf[i]);
+	}
+	print_str("\n\r");
+}

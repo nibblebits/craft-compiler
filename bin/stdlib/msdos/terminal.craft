@@ -1,0 +1,29 @@
+#include "io.ch"
+void terminal_backspace();
+uint8 recv_key();
+void terminal(uint8* buf)
+{
+	uint16 i = 0;
+	while(1)
+	{
+		uint8 key = recv_key();
+		if (key == 13)
+		{
+			print_str("\n\r");
+			break;
+		}
+		else if(key == 8)
+		{
+			terminal_backspace();
+		}
+		else
+		{
+			buf[i] = key;
+		}
+		
+		print_char(key);
+		i += 1;
+	}
+	
+	buf[i+1] = 0;
+}

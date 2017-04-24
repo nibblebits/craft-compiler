@@ -1,3 +1,4 @@
+segment code
 global _terminal_backspace
 
 ; void terminal_backspace();

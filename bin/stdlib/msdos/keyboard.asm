@@ -1,3 +1,4 @@
+segment code
 global _recv_key
 
 ; uint8 recv_key();
