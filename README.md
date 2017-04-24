@@ -14,12 +14,14 @@ Command to clone: git clone --recursive https://github.com/nibblebits/craft-comp
 
 # Current object format targets:
 OMF(Object Module Format)
+CSL(Craft Static Library)
 
 # Current processor targets
 8086 processor
 
 # Current linkers
 Binary linker
+CSL(Craft Static Library) linker
 
 # Current supported systems your executable can be compiled for
 MS-DOS - (You can use the DOSBOX emulator to run your executable)
