@@ -208,6 +208,11 @@ void VirtualSegment::register_fixup(std::shared_ptr<FIXUP_TARGET> fixup_target, 
 
 void VirtualSegment::register_fixup_target_segment(FIXUP_TYPE fixup_type, std::shared_ptr<VirtualSegment> relating_segment, int offset, FIXUP_LENGTH length)
 {
+    if (relating_segment == NULL)
+    {
+        throw Exception("You must provide a relating segment", "void VirtualSegment::register_fixup_target_segment(FIXUP_TYPE fixup_type, std::shared_ptr<VirtualSegment> relating_segment, int offset, FIXUP_LENGTH length)");
+    }
+    
     if (shared_from_this() == relating_segment)
     {
         throw Exception("You cannot register a segment relative fixup whose target segment is the same as the segment you are registering the fixup for.", "void VirtualSegment::register_fixup_target_segment(FIXUP_TYPE fixup_type, std::shared_ptr<VirtualSegment> relating_segment, int offset, FIXUP_LENGTH length)");
@@ -230,19 +235,16 @@ void VirtualSegment::register_global_reference(std::string ref_name, int offset)
 
 std::vector<std::shared_ptr<FIXUP>> VirtualSegment::getFixups()
 {
-
     return this->fixups;
 }
 
 bool VirtualSegment::hasFixups()
 {
-
     return !this->fixups.empty();
 }
 
 std::vector<std::shared_ptr<GLOBAL_REF>> VirtualSegment::getGlobalReferences()
 {
-
     return this->global_references;
 }
 
@@ -260,7 +262,6 @@ std::shared_ptr<GLOBAL_REF> VirtualSegment::getGlobalReferenceByName(std::string
 
 bool VirtualSegment::hasGlobalReferences()
 {
-
     return !getGlobalReferences().empty();
 }
 
