@@ -99,6 +99,10 @@ void Lexer::tokenize()
                             // Ok we are at the end
                             return false;
                         }
+                        else
+                        {
+                            op_found = false;
+                        }
                     }
                     else if (c == '*')
                     {
