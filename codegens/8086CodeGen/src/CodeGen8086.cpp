@@ -1207,10 +1207,10 @@ void CodeGen8086::make_var_assignment(std::shared_ptr<Branch> var_branch, std::s
             s_info.is_assigning_pointer = true;
         }
 
-
         // Make the value expression
         make_expression(value, &s_info);
 
+        
         int data_size;
         s_info.is_assignment_variable = true;
         pos = make_var_access(&s_info, var_iden_branch, &data_size);
@@ -1804,8 +1804,9 @@ void CodeGen8086::handle_continue(std::shared_ptr<ContinueBranch> branch)
     do_asm("jmp " + this->continue_label);
 }
 
-void CodeGen8086::handle_array_index(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
+void CodeGen8086::handle_array_index(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size)
 {
+    struct stmt_info s_info;
     do_asm("; ARRAY INDEX");
     // The current array index the framework needs us to resolve it at runtime.
     std::shared_ptr<Branch> child = array_index_branch->getValueBranch();
@@ -1814,11 +1815,11 @@ void CodeGen8086::handle_array_index(struct stmt_info* s_info, std::shared_ptr<A
     if (child->getType() == "E")
     {
         // This is an expression.
-        make_expression(child, s_info);
+        make_expression(child, &s_info);
     }
     else
     {
-        make_move_reg_variable("ax", std::dynamic_pointer_cast<VarIdentifierBranch>(child), s_info);
+        make_move_reg_variable("ax", std::dynamic_pointer_cast<VarIdentifierBranch>(child), &s_info);
     }
     // Ok now we need to multiply AX by the element size so that the offset points correctly
     do_asm("mov cx, " + std::to_string(elem_size));
@@ -1865,7 +1866,7 @@ void CodeGen8086::scope_handle_func(struct stmt_info* s_info, struct position_in
             if (pos_info->has_array_access && !pos_info->array_access_static)
             {
                 // Do we have array access?
-                handle_array_index(s_info, pos_info->array_index_branch, pos_info->data_type_size);
+                handle_array_index(pos_info->array_index_branch, pos_info->data_type_size);
                 if (pos_info->point_before_array_access)
                 {
                     do_asm("mov bx, [bp-" + std::to_string(pos_info->abs_start_pos) + "+" + std::to_string(pos_info->rel_offset_from_start_pos) + "]");
@@ -1895,7 +1896,7 @@ void CodeGen8086::scope_handle_func(struct stmt_info* s_info, struct position_in
         if (pos_info->has_array_access && !pos_info->array_access_static)
         {
             // Do we have array access
-            handle_array_index(s_info, pos_info->array_index_branch, pos_info->data_type_size);
+            handle_array_index(pos_info->array_index_branch, pos_info->data_type_size);
             if (pos_info->is_last || (pos_info->var_iden_branch->hasStructureAccessBranch() && !pos_info->var_iden_branch->getStructureAccessBranch()->isAccessingAsPointer()))
             {
                 do_asm("lea bx, [bx+" + std::to_string(pos_info->abs_pos) + "+di]");
@@ -1944,7 +1945,7 @@ void CodeGen8086::handle_next_access(struct stmt_info* s_info, struct VARIABLE_A
             }
             if (!is_static)
             {
-                handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_var_iden->getVariableDefinitionBranch(true)->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
+                handle_array_index(failed_var_iden->getRootArrayIndexBranch(), failed_var_iden->getVariableDefinitionBranch(true)->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
             }
             else
             {
@@ -2128,7 +2129,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                     {
                         static_access = false;
                         // We need to handle a non-static array index, the "di" register will be set with the result
-                        handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
+                        handle_array_index(failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
                         address.apply_reg = "di";
                     }
                     else if (do_point_first)
@@ -2269,7 +2270,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                     {
                         static_access = false;
                         // We need to handle a non-static array index, the "di" register will be set with the result
-                        handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
+                        handle_array_index(failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
                         address.apply_reg = "di";
                     }
                     else if (do_point_first)
@@ -2416,7 +2417,7 @@ struct VARIABLE_ADDRESS CodeGen8086::getASMAddressForVariable(struct stmt_info* 
                     {
                         static_access = false;
                         // We need to handle a non-static array index, the "di" register will be set with the result
-                        handle_array_index(s_info, failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
+                        handle_array_index(failed_var_iden->getRootArrayIndexBranch(), failed_vdef_branch->getDataTypeBranch()->getDataTypeSize(ignore_pointer));
                         address.apply_reg = "di";
                     }
                     else if (do_point_first)

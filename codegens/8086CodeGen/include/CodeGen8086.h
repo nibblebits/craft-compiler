@@ -215,7 +215,7 @@ public:
     void handle_while_stmt(std::shared_ptr<WhileBranch> branch);
     void handle_break(std::shared_ptr<BreakBranch> branch);
     void handle_continue(std::shared_ptr<ContinueBranch> branch);
-    void handle_array_index(struct stmt_info* s_info, std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size);
+    void handle_array_index(std::shared_ptr<ArrayIndexBranch> array_index_branch, int elem_size);
 
     int getSizeOfVariableBranch(std::shared_ptr<VDEFBranch> vdef_branch);
     int getStructSize(std::string struct_name);
