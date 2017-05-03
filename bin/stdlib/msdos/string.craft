@@ -1,0 +1,11 @@
+#include "string.ch"
+uint16 strlen(uint8* str)
+{
+	uint8 i = 0;
+	while(str[i] != 0)
+	{
+		i+=1;
+	}
+	
+	return i;
+}

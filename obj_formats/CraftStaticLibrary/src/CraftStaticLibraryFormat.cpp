@@ -68,8 +68,6 @@ void CraftStaticLibraryFormat::ReadHeader(struct header* header)
         throw Exception("This craft static library is of a version that this library cannot handle. Please upgrade your compiler", "void CraftStaticLibraryFormat::ReadHeader(struct header* header)");
     }
 
-    // Reserved byte
-    input_stream->read8();
 }
 
 void CraftStaticLibraryFormat::ReadObjects(struct library* library)
@@ -82,6 +80,7 @@ void CraftStaticLibraryFormat::ReadObjects(struct library* library)
         std::shared_ptr<VirtualObjectFormat> obj_format = std::shared_ptr<VirtualObjectFormat>(new BlankVirtualObjectFormat(getCompiler()));
         obj_format->setFileName(obj_name);
         ReadSegments(obj_format);
+        ReadFixups(obj_format);
         getCompiler()->getLinker()->addObjectFile(obj_format);
     }
 }
@@ -108,13 +107,18 @@ void CraftStaticLibraryFormat::ReadSegments(std::shared_ptr<VirtualObjectFormat>
             int offset = input_stream->read32();
             segment->register_global_reference(global_name, offset);
         }
+    }
+}
 
-        // Load fixups
-        int total_fixups = input_stream->read32();
-        for (int i = 0; i < total_fixups; i++)
-        {
-            ReadFixup(obj_format, segment);
-        }
+void CraftStaticLibraryFormat::ReadFixups(std::shared_ptr<VirtualObjectFormat> obj_format)
+{
+    // Load fixups
+    int total_fixups = input_stream->read32();
+    for (int i = 0; i < total_fixups; i++)
+    {
+        std::string segment_str = ReadString();
+        std::shared_ptr<VirtualSegment> segment = obj_format->getSegment(segment_str);
+        ReadFixup(obj_format, segment);
     }
 }
 
@@ -204,12 +208,11 @@ void CraftStaticLibraryFormat::WriteHeader(Stream* lib_stream, struct header* he
 {
     if (header->descriptor.size() > 3)
     {
-        throw Exception("Descriptor may may only be 3 bytes", "void CraftStaticLibraryFormat::WriteHeader(Stream* lib_stream, struct header* header)");
+        throw Exception("Descriptor may only be 3 bytes", "void CraftStaticLibraryFormat::WriteHeader(Stream* lib_stream, struct header* header)");
     }
     lib_stream->writeStr(header->descriptor, false);
     lib_stream->write16(header->version);
-    // Reserved byte
-    lib_stream->write8(0);
+
 }
 
 void CraftStaticLibraryFormat::WriteObjects(Stream* lib_stream, std::vector<struct object> objects)
@@ -223,7 +226,9 @@ void CraftStaticLibraryFormat::WriteObjects(Stream* lib_stream, std::vector<stru
     {
         WriteString(lib_stream, obj.name);
         WriteSegments(lib_stream, obj.segments);
+        WriteFixups(lib_stream, obj.fixups);
     }
+
 }
 
 void CraftStaticLibraryFormat::WriteSegments(Stream* lib_stream, std::vector<struct segment> segments)
@@ -246,13 +251,16 @@ void CraftStaticLibraryFormat::WriteSegments(Stream* lib_stream, std::vector<str
             WriteString(lib_stream, global_ref.name);
             lib_stream->write32(global_ref.offset);
         }
+    }
+}
 
-        // Total fixups
-        lib_stream->write32(segment.fixups.size());
-        for (std::shared_ptr<struct FIXUP> fixup : segment.fixups)
-        {
-            WriteFixup(lib_stream, fixup);
-        }
+void CraftStaticLibraryFormat::WriteFixups(Stream* lib_stream, std::vector<std::shared_ptr<struct FIXUP>> fixups)
+{
+    // Total fixups
+    lib_stream->write32(fixups.size());
+    for (std::shared_ptr<struct FIXUP> fixup : fixups)
+    {
+        WriteFixup(lib_stream, fixup);
     }
 }
 
@@ -289,6 +297,9 @@ void CraftStaticLibraryFormat::WriteFixup(Stream* lib_stream, std::shared_ptr<st
     default:
         throw Exception("Unsupported fixup type", "void CraftStaticLibraryFormat::WriteFixup(Stream* lib_stream, std::shared_ptr<struct FIXUP> fixup)");
     }
+
+    // Write the name of the segment this fixup is for
+    WriteString(lib_stream, fixup->getSegmentToFix()->getName());
 
     // Fixup targets are stored from bit 2 to bit 0
     switch (fixup->getTarget()->getType())
@@ -338,7 +349,7 @@ void CraftStaticLibraryFormat::finalize_part(struct library* library, std::share
 
         for (std::shared_ptr<struct FIXUP> fixup : segment->getFixups())
         {
-            seg.fixups.push_back(fixup);
+            obj.fixups.push_back(fixup);
         }
         obj.segments.push_back(seg);
 

@@ -4,17 +4,17 @@ __asm("mov al, 0");
 __asm("int 0x21");
 
 #include "io.ch"
+#include "stdlib.ch"
+#define BUF_SIZE 10;
 
 void main()
 {
-	uint8 buf[20];
-	print_str("Enter your name: \n\r");
-	scan_str(&buf);
-	print_str("Your name is: ");
-	
-	for (uint8 i = 0; i < 5; i+=1)
-	{
-		print_char(buf[i]);
-	}
-	print_str("\n\r");
+	uint16 age;
+	uint16 next_age;
+	print_str("Enter your age: ");
+	age = atoi("325");
+	next_age = age + 1;
+	print_str("You will be ");
+	print_number(age);
+	print_str(" in one year\r\n");
 }

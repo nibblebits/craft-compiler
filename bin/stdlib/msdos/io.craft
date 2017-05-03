@@ -1,8 +1,9 @@
 #include "io.ch"
+#include "stdlib.ch"
 
 void terminal_backspace();
 uint8 recv_key();
-void terminal(uint8* buf);
+void terminal(uint8* buf, uint16 len);
 
 void print_char(uint8 c)
 {
@@ -65,7 +66,13 @@ void scan_char(uint8* ptr)
 	*ptr = recv_key();
 }
 
-void scan_str(uint8* ptr)
+void scan_int(uint16* ptr)
 {
-	terminal(ptr);
+	
+	
+}
+
+void scan_str(uint8* ptr, uint16 len)
+{
+	terminal(ptr, len);
 }

@@ -269,8 +269,8 @@ int GenerateMode()
 
     if (!arguments.hasArgument("codegen"))
     {
-        std::cout << "No code generator provided, defaulting to standard code generator" << std::endl;
-        codegen_name = "goblin_bytecode";
+        std::cout << "No code generator provided, defaulting to 8086 code generator" << std::endl;
+        codegen_name = "8086CodeGen";
     }
     else
     {
@@ -479,7 +479,7 @@ int LinkMode()
     }
     else
     {
-        std::cout << "No executable format defined, defaulting to bin" << std::endl;
+        std::cout << "No executable format defined, defaulting to raw binary format: \"bin\" " << std::endl;
         exe_format = "bin";
     }
 
@@ -535,8 +535,8 @@ int LinkMode()
             debug_virtual_object_format(obj_format);
 #endif
 
-            // Ok we have everything we need let's add the object file to a vector for later processing
-            obj_files.push_back(obj_format);
+            // Ok we have everything we need let's add the object file to the linker
+            linker->addObjectFile(obj_format);
         }
         catch (Exception ex)
         {
@@ -547,15 +547,7 @@ int LinkMode()
             return ERROR_WITH_OBJECT_FORMAT;
         }
     }
-
-
-
-    // Now link the files together
-    for (std::shared_ptr<VirtualObjectFormat> obj_file : obj_files)
-    {
-        linker->addObjectFile(obj_file);
-    }
-
+    
     try
     {
         linker->link();
@@ -608,8 +600,6 @@ void HelpMenu()
     std::cout << std::endl;
     std::cout << "Also ensure that you do not use the equal sign while using these options, e.g -input = \"name\" is illegal use -input \"name\"" << std::endl;
 }
-
-#include "InvokeableReturnHook.h"
 
 int main(int argc, char** argv)
 {

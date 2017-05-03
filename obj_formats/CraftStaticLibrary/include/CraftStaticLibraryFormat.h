@@ -74,12 +74,12 @@ struct segment {
     std::string name;
     std::shared_ptr<Stream> data;
     std::vector<struct global_reference> global_refs;
-    std::vector<std::shared_ptr<struct FIXUP>> fixups;
 };
 
 struct object {
     std::string name;
     std::vector<struct segment> segments;
+    std::vector<std::shared_ptr<struct FIXUP>> fixups;
 };
 
 struct header {
@@ -109,11 +109,13 @@ protected:
     void ReadHeader(struct header* header);
     void ReadObjects(struct library* library);
     void ReadSegments(std::shared_ptr<VirtualObjectFormat> obj_format);
+    void ReadFixups(std::shared_ptr<VirtualObjectFormat> obj_format);
     void ReadFixup(std::shared_ptr<VirtualObjectFormat> obj_format, std::shared_ptr<VirtualSegment> segment);
     void WriteString(Stream* lib_stream, std::string str);
     void WriteHeader(Stream* lib_stream, struct header* header);
     void WriteObjects(Stream* lib_stream, std::vector<struct object> objects);
     void WriteSegments(Stream* lib_stream, std::vector<struct segment> segments);
+    void WriteFixups(Stream* lib_stream, std::vector<std::shared_ptr<struct FIXUP>> fixups);
     void WriteFixup(Stream* lib_stream, std::shared_ptr<struct FIXUP> fixup);
 private:
     std::vector<std::shared_ptr<VirtualObjectFormat>> obj_formats;

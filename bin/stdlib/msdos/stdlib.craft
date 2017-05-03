@@ -1,0 +1,92 @@
+#include "stdlib.ch"
+#include "string.ch"
+
+uint8* itoa_bin(uint16 value, uint8* str)
+{
+	return 0;
+}
+uint8* itoa_dec(uint16 value, uint8* str)
+{
+	uint16 parts[4];
+	parts[0] = (value / 1000) + 48;
+	parts[1] = (value / 100 % 10) + 48;
+	parts[2] = (value / 10 % 10) + 48;
+	parts[3] = (value % 10) + 48;
+	
+	uint8 i = 0;
+	uint8 b = 0;
+	for (i = 0; i < 3; i +=1)
+	{
+		if (parts[i] != '0')
+		{
+			str[b] = parts[i];
+			b+=1;
+		}
+	}
+	str[b] = parts[3];
+	str[b+1] = 0;
+	return str;
+}
+
+uint8* itoa_hex(uint16 value, uint8* str)
+{
+	return 0;
+}
+uint8* itoa(uint16 value, uint8* str, uint8 base)
+{
+	if (base == 10)
+	{
+		return itoa_dec(value, str);
+	}
+	else if(base == 16)
+	{
+		return itoa_hex(value, str);
+	}
+	else if(base == 2)
+	{
+		return itoa_bin(value, str);
+	}
+	
+	return 0;
+}
+
+uint8 char_valid_number(uint8 c)
+{
+	if (c >= 48 && c <= 57)
+	{
+		return 1;
+	}
+	
+	return 0;
+}
+
+int16 atoi_neg(uint8* str)
+{
+	return 0;
+}
+
+uint16 atoi_pos(uint8* str)
+{
+	uint16 result = 0;
+	uint16 len = strlen(str);
+	if (len > 5)
+	{
+		return 0;
+	}
+	
+	for (uint8 i = 0; i < len; i+=1)
+	{
+		if (char_valid_number(str[i]) == 0)
+		{
+			return 0;
+		}
+		result = result*10 + str[i] - '0';
+	}
+	
+	return result;
+}
+
+uint16 atoi(uint8* str)
+{
+	return atoi_pos(str);
+}
