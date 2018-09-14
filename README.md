@@ -1,7 +1,6 @@
 # Craft Compiler V0.1.2
 A general purpose compiler and compiler framework for the Craft programming language
 
-Website: http://craft-language.org
 
 If you have any problems send a message to "daniel" on the Craft language forums: http://craft-language.org/forum
 
